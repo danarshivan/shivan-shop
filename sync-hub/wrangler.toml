@@ -1,0 +1,13 @@
+name = "shivan-shop-sync-hub"
+main = "index.js"
+account_id = "9d76c540342fdbb288b426f195d5c54a"
+compatibility_date = "2026-10-08"
+workers_dev = false
+
+[[durable_objects.bindings]]
+name = "SYNC_HUB"
+class_name = "SyncHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SyncHub"]

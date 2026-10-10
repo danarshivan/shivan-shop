@@ -1,0 +1,4 @@
+Built Shivan Shop into dist/.
+Shivan Shop local preview: http://localhost:4173/?fibMock=1
+Bound to 0.0.0.0:4173. The mock does not connect to FIB or transfer money.
+On your phone, open http://<this-computer-LAN-IP>:4173/?fibMock=1 while both devices use the same Wi-Fi.

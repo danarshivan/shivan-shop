@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shivan Shop - Luxury Fashion</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0b;
+            --mobile-bg: #121212;
+            --card-bg: rgba(22, 22, 22, 0.95);
+            --accent-rose: #e0a96d;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --border-color: rgba(224, 169, 109, 0.3);
+            --owner-color: #ffb703;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
+            background: #1e1e1e;
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .iphone-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            background-color: #1e1e1e;
+            margin: 0;
+        }
+        .mobile-frame, .iphone-frame {
+            width: min(390px, 100vw);
+            height: min(844px, 100vh);
+            max-width: 100%;
+            background: #000000;
+            border-radius: 45px;
+            border: 12px solid #2b2b2b;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            background: #121212;
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .iphone-screen::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .iphone-screen::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .iphone-notch {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 105px;
+            height: 21px;
+            background: #111;
+            border-radius: 15px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .view-section {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 32px 16px 85px;
+            box-sizing: border-box;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 15px;
+            text-align: center;
+        }
+        .brand-title {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 20%, var(--accent-rose) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+        .auth-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 24px;
+            box-sizing: border-box;
+        }
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            width: 100%;
+            min-height: 100%;
+            padding: 30px 12px 12px;
+            box-sizing: border-box;
+            text-align: center;
+            background: transparent !important;
+            position: relative;
+            overflow-y: auto;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 300px;
+            background: rgba(18, 18, 18, 0.85) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(224, 169, 109, 0.4) !important;
+            padding: 14px 18px;
+            border-radius: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            z-index: 1;
+        }
+        .auth-card h2, .auth-container h2 {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .auth-card p, .auth-container p {
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .auth-card input {
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .auth-card button {
+            padding: 8px;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        .auth-input {
+            width: 100%;
+            background: rgba(15,15,15,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 12px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .main-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e0a96d 0%, #b8864b 100%);
+            color: #0c0c0c;
+            border: none;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .auth-switcher {
+            font-size: 11px;
+            color: var(--accent-rose);
+            margin-top: 15px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Banner Slider */
+        .banner-slider {
+            width: 100%;
+            height: 190px;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            background: #111;
+        }
+        .banner-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background-size: cover;
+            background-position: center top;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .banner-slide.active {
+            display: block;
+        }
+        .banner-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .store-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-rose);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .product-img-container {
+            width: 100%;
+            height: 150px;
+            background: #181818;
+            overflow: hidden;
+            position: relative;
+        }
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+        }
+        .product-info {
+            padding: 10px;
+        }
+        .product-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .product-price {
+            font-size: 12px;
+            color: var(--accent-rose);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .order-btn {
+            background: linear-gradient(135deg, #e0a96d 0%, #b8864b 100%);
+            color: #0c0c0c;
+            border: none;
+            padding: 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Search Input */
+        .search-box-full {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .search-input-full {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid var(--accent-rose);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        /* Orders Item Card */
+        .order-item-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .profile-avatar { font-size: 45px; margin-bottom: 10px; }
+        .profile-name { font-size: 17px; font-weight: bold; color: var(--accent-rose); margin-bottom: 4px; }
+        .profile-email { font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
+        
+        .owner-badge-box {
+            background: linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(26, 26, 26, 0.9) 100%);
+            border: 1px solid var(--owner-color);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .owner-action-btn {
+            background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+            color: #0c0c0c;
+            border: none;
+            padding: 9px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+        }
+        .logout-btn {
+            background-color: #d9534f;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* COMPACT FLOATING GLASS NAVBAR (Smaller size, mobile style) */
+        .bottom-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 25px;
+            right: 25px;
+            height: 52px;
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(224, 169, 109, 0.2);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-sizing: border-box;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 8.5px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            padding: 2px 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-item span.icon { 
+            font-size: 16px; 
+            margin-bottom: 1px;
+            transition: transform 0.3s ease;
+        }
+        .nav-item.active { 
+            color: var(--accent-rose); 
+            font-weight: 700;
+        }
+        .nav-item.active span.icon {
+            transform: translateY(-2px) scale(1.1);
+        }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            width: 12px;
+            height: 2.5px;
+            background-color: var(--accent-rose);
+            border-radius: 2px;
+            box-shadow: 0 0 6px var(--accent-rose);
+        }
+        /* Full-viewport phone frame */
+        .iphone-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            background: #111;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .iphone-frame {
+            width: 100% !important;
+            max-width: 600px !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: #121212;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Full-screen storefront styling */
+        body.iphone-container {
+            width: 100vw;
+            height: 100vh;
+            background: #121212;
+        }
+        .mobile-frame.iphone-frame {
+            width: 100vw !important;
+            max-width: none !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            position: relative;
+        }
+        .iphone-notch { display: none; }
+        .iphone-screen.app-container {
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            background: #121212;
+        }
+        .view-section { padding: 0 0 82px; }
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            padding: 16px 20px;
+            background: rgba(18, 18, 18, 0.96);
+            border-bottom: 1px solid rgba(224, 169, 109, 0.16);
+        }
+        .app-header h1 {
+            margin: 0;
+            color: #f2c17d;
+            font-size: 19px;
+            letter-spacing: 0.4px;
+        }
+        .shop-content { padding: 14px 16px 24px; }
+        .shop-content .banner-slider { margin-top: 0; }
+        .shop-content .products-grid { gap: 12px; }
+        .shop-content .product-card {
+            overflow: hidden;
+            border: 1px solid rgba(224, 169, 109, 0.18);
+            border-radius: 14px;
+            background: #1b1b1b;
+        }
+        .shop-content .product-img-container { height: 160px; }
+        .shop-content .product-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 0;
+        }
+        .shop-content .product-info { padding: 10px; }
+        .shop-content .product-price { color: #f2c17d; }
+        .shop-content .order-btn {
+            width: 100%;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        .bottom-nav {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 68px;
+            border: 0;
+            border-top: 1px solid rgba(224, 169, 109, 0.18);
+            border-radius: 0;
+            background: rgba(18, 18, 18, 0.97);
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+        }
+        .nav-item { font-size: 9px; }
+        .nav-item span.icon { font-size: 18px; }
+
+        /* Profile screen styling */
+        .profile-content {
+            min-height: calc(100% - 54px);
+            overflow-y: auto;
+            padding: 12px 12px 85px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .profile-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 24px 20px;
+            border: 1px solid rgba(243, 156, 18, 0.18);
+            border-radius: 20px;
+            background: #1e1e1e;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .user-info-header { margin-bottom: 12px; text-align: center; }
+        .avatar-circle {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+            font-size: 24px;
+        }
+        .profile-card .user-name { margin: 0 0 2px; color: #fff; font-size: 15px; }
+        .profile-card .user-phone { margin: 0; color: #aaa; font-size: 11px; }
+        .profile-card .input-group { margin-bottom: 10px; text-align: right; }
+        .profile-card .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #f39c12;
+            font-size: 11px;
+        }
+        .profile-card .input-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            outline: none;
+            background: #252525;
+            color: #fff;
+            font-size: 13px;
+        }
+        .profile-card .input-group input:focus { border-color: #f39c12; background: #2a2a2a; }
+        .profile-action {
+            width: 100%;
+            min-height: 42px;
+            margin-top: 9px;
+            padding: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .profile-primary { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .profile-success { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .profile-danger { border: 1px solid rgba(231, 76, 60, 0.4); background: rgba(231, 76, 60, 0.12); color: #ff786e; }
+        .password-section {
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid rgba(243, 156, 18, 0.2);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .profile-message { min-height: 18px; margin-top: 10px; text-align: center; font-size: 11px; }
+        @media (max-width: 360px) {
+            .profile-content { padding: 16px 12px 90px; }
+            .profile-card { padding: 20px 16px; }
+        }
+        /* Compact profile dimensions from the latest design */
+        .profile-card { max-width: 360px; padding: 15px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        .avatar-circle { width: 55px; height: 55px; margin-bottom: 8px; }
+        .profile-card .input-group label { font-size: 10px; }
+        .profile-card .input-group input { padding: 9px 12px; border-radius: 8px; font-size: 12px; }
+        .profile-action { min-height: 38px; margin-top: 6px; padding: 9px; font-size: 12px; border-radius: 8px; }
+        .password-section { padding: 10px; border-radius: 10px; }
+        @media (max-width: 360px) {
+            .profile-content { padding: 12px 10px 80px; }
+            .profile-card { padding: 14px; }
+        }
+        /* Latest full-width profile refinements */
+        #profileView .app-header { padding: 12px 15px; }
+        #profileView .profile-content { width: 100%; }
+        #profileView .profile-card { max-width: 100%; }
+        #profileView .avatar-circle { width: 50px; height: 50px; font-size: 22px; }
+        #profileView .user-name { font-size: 14px; }
+        .bottom-nav { height: 60px; }
+        /* Profile spacing from the newest supplied layout */
+        #profileView .app-header { padding: 14px 15px; }
+        #profileView .profile-content { padding: 15px 15px 75px; }
+        #profileView .profile-card { max-width: none; padding: 18px 15px; border-radius: 16px; border-color: rgba(243, 156, 18, 0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
+        #profileView .user-info-header { margin-bottom: 15px; }
+        #profileView .avatar-circle { width: 60px; height: 60px; margin-bottom: 8px; font-size: 26px; }
+        #profileView .user-name { font-size: 15px; }
+        #profileView .input-group { margin-bottom: 12px; }
+        #profileView .input-group label { margin-bottom: 4px; font-size: 11px; }
+        #profileView .input-group input { padding: 10px 12px; border-radius: 10px; font-size: 12px; }
+        #profileView .profile-action { min-height: 40px; margin-top: 8px; padding: 10px; border-radius: 10px; font-size: 12px; }
+        #profileView .profile-danger { border: 1px solid #e74c3c; background: rgba(231, 76, 60, 0.15); }
+        .bottom-nav { height: 65px; }
+        /* Search screen layout from the supplied mobile design */
+        #searchView { padding: 0 0 82px; }
+        #searchView > .store-name {
+            justify-content: center;
+            margin: 0;
+            padding: 14px 15px;
+            background: #181818;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 16px;
+        }
+        #searchView .search-box-full { margin: 0; padding: 12px 12px 0; }
+        #searchView .search-input-full {
+            padding: 10px 14px;
+            background: #1e1e1e;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        #searchResultsGrid { width: 100%; padding: 12px; gap: 10px; }
+        #searchResultsGrid .product-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            background: #1e1e1e;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        #searchResultsGrid .product-img-container { height: 120px; }
+        #searchResultsGrid .product-img { height: 120px; object-fit: cover; }
+        #searchResultsGrid .product-info { padding: 8px; }
+        #searchResultsGrid .product-name { font-size: 11px; margin-bottom: 2px; }
+        #searchResultsGrid .product-price { font-size: 10px; margin-bottom: 6px; color: #f39c12; }
+        #searchResultsGrid .order-btn { padding: 6px; border-radius: 6px; font-size: 10px; }
+        /* Compact search spacing from the newest supplied layout */
+        #searchView .store-name { padding: 12px 15px; font-size: 15px; }
+        #searchView .search-box-full { padding: 10px 10px 0; }
+        #searchView .search-input-full { padding: 9px 12px; border-radius: 10px; font-size: 11px; }
+        #searchResultsGrid { gap: 8px; padding: 10px; }
+        #searchResultsGrid .product-card { border-radius: 10px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 105px; }
+        #searchResultsGrid .product-info { padding: 6px; }
+        #searchResultsGrid .product-name { font-size: 10px; }
+        #searchResultsGrid .product-price { font-size: 9px; margin-bottom: 5px; }
+        #searchResultsGrid .order-btn { padding: 5px; font-size: 9px; }
+        #searchView { scrollbar-width: none; -ms-overflow-style: none; }
+        #searchView::-webkit-scrollbar { display: none; }
+        .bottom-nav { height: 60px; }
+        /* Centered phone canvas from the latest search layout */
+        body.iphone-container {
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .mobile-frame.iphone-frame {
+            width: 100%;
+            max-width: 420px !important;
+            height: 100vh !important;
+            max-height: 850px !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: #121212;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+        .iphone-screen.app-container {
+            width: 100%;
+            height: 100% !important;
+            max-height: 850px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        @media (min-width: 480px) {
+            .mobile-frame.iphone-frame {
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 24px !important;
+            }
+        }
+        #searchView .search-box-full { padding: 12px 12px 0; }
+        #searchView .search-input-full { padding: 10px 14px; border-radius: 12px; }
+        #searchResultsGrid { gap: 10px; padding: 12px; }
+        #searchResultsGrid .product-card { border-radius: 12px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 115px; }
+        #searchResultsGrid .product-info { padding: 8px; }
+        #searchResultsGrid .product-name { font-size: 11px; }
+        #searchResultsGrid .product-price { font-size: 10px; margin-bottom: 6px; }
+        #searchResultsGrid .order-btn { padding: 6px; border-radius: 8px; font-size: 10px; }
+        .bottom-nav { height: 65px; }
+        /* Refined compact phone frame and search cards */
+        .mobile-frame.iphone-frame {
+            max-width: 400px !important;
+            max-height: 800px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+        }
+        .iphone-screen.app-container { max-height: 800px; }
+        #searchView .store-name { padding: 12px; font-size: 15px; }
+        #searchView .search-input-full {
+            padding: 10px;
+            border: 1px solid #f39c12;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        #searchResultsGrid { gap: 10px; }
+        #searchResultsGrid .product-card { border-radius: 10px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 110px; }
+        #searchResultsGrid .product-info { padding: 8px; }
+        #searchResultsGrid .product-name { font-size: 11px; }
+        #searchResultsGrid .product-price { font-size: 10px; margin: 4px 0; }
+        #searchResultsGrid .order-btn { padding: 6px; border-radius: 6px; background: #f39c12; color: #fff; font-size: 10px; }
+        .bottom-nav { height: 60px; }
+        /* Final compact search layout */
+        #searchView > .store-name { padding: 10px; font-size: 14px; }
+        #searchView .search-box-full { padding: 10px 10px 0; }
+        #searchView .search-input-full { padding: 8px 10px; border-radius: 8px; font-size: 11px; }
+        #searchResultsGrid { gap: 8px; padding: 10px; }
+        #searchResultsGrid .product-card { border-radius: 8px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 95px; }
+        #searchResultsGrid .product-info { padding: 6px; }
+        #searchResultsGrid .product-name { font-size: 10px; }
+        #searchResultsGrid .product-price { font-size: 9px; margin: 2px 0 5px; }
+        #searchResultsGrid .order-btn { padding: 5px; border-radius: 5px; font-size: 9px; }
+        .bottom-nav { height: 55px; }
+        .nav-item { gap: 2px; font-size: 9px; }
+        .nav-item span.icon { font-size: 18px; }
+        /* Smaller fixed phone frame from the newest search layout */
+        body.iphone-container { position: fixed; inset: 0; }
+        .mobile-frame.iphone-frame {
+            max-width: 390px !important;
+            max-height: 750px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 16px !important;
+        }
+        .iphone-screen.app-container { max-height: 750px; }
+        #searchView { padding-bottom: 60px; }
+        #searchView .search-box-full { padding: 10px 10px 0; }
+        #searchView .search-input-full { padding: 8px 10px; border-radius: 8px; font-size: 11px; }
+        #searchResultsGrid { gap: 8px; padding: 8px 10px 10px; }
+        #searchResultsGrid .product-card { border-radius: 8px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 90px; }
+        #searchResultsGrid .product-info { padding: 6px; }
+        #searchResultsGrid .product-name { font-size: 10px; }
+        #searchResultsGrid .product-price { font-size: 9px; margin: 2px 0 4px; }
+        #searchResultsGrid .order-btn { padding: 4px; border-radius: 4px; font-size: 9px; }
+        .bottom-nav { height: 55px; }
+        /* Search layout refined with the latest four-card mockup */
+        .mobile-frame.iphone-frame { max-width: 400px !important; max-height: 800px !important; border-radius: 20px !important; }
+        .iphone-screen.app-container { max-height: 800px; }
+        #searchView { padding: 0 0 70px; }
+        #searchView > .store-name { padding: 12px; font-size: 15px; }
+        #searchView .search-box-full { padding: 12px 12px 0; }
+        #searchView .search-input-full { padding: 10px; border-radius: 10px; font-size: 12px; }
+        #searchResultsGrid { gap: 10px; padding: 12px; }
+        #searchResultsGrid .product-card { border-radius: 10px; }
+        #searchResultsGrid .product-img-container,
+        #searchResultsGrid .product-img { height: 110px; }
+        #searchResultsGrid .product-info { padding: 8px; }
+        #searchResultsGrid .product-name { font-size: 11px; }
+        #searchResultsGrid .product-price { font-size: 10px; margin: 4px 0; }
+        #searchResultsGrid .order-btn { padding: 6px; border-radius: 6px; font-size: 10px; }
+        .bottom-nav { height: 60px; }
+        .nav-item { gap: 3px; font-size: 10px; }
+        .nav-item span.icon { font-size: 20px; }
+        /* Search card spacing and scrollbar refinement */
+        #searchView { scrollbar-width: thin; }
+        #searchView::-webkit-scrollbar { display: block; width: 5px; }
+        #searchView::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        #searchResultsGrid .product-card { justify-content: flex-start; }
+        #searchResultsGrid .product-info { display: flex; flex-direction: column; gap: 4px; }
+        #searchResultsGrid .product-price { margin: 0; }
+        #searchResultsGrid .order-btn { margin-top: 2px; }
+        /* Main shop styling from the supplied layout */
+        #shopView { padding: 0 0 70px; }
+        #shopView > .app-header { padding: 12px; }
+        #shopView > .app-header h1 { color: #f39c12; font-size: 15px; font-weight: 700; }
+        #shopView .shop-content { padding: 12px; }
+        #shopView .products-grid { width: 100%; gap: 10px; }
+        #shopView .product-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            background: #1e1e1e;
+        }
+        #shopView .product-img-container,
+        #shopView .product-img { height: 110px; }
+        #shopView .product-info { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+        #shopView .product-name { font-size: 11px; }
+        #shopView .product-price { color: #f39c12; font-size: 10px; margin: 0; }
+        #shopView .order-btn { padding: 6px; margin-top: 2px; border-radius: 6px; color: #fff; font-size: 10px; }
+        .bottom-nav { height: 60px; }
+    </style>
+</head>
+<body class="iphone-container">
+
+<div class="mobile-frame iphone-frame">
+    <div class="iphone-notch" aria-hidden="true"></div>
+    <div class="iphone-screen app-container">
+
+    <!-- 1. LOGIN VIEW -->
+    <div id="loginView" class="view-section active">
+        <div class="auth-container">
+            <div class="brand-title">Shivan Shop</div>
+            <div class="brand-subtitle">Exclusive Ladies Wear</div>
+            <div class="auth-card">
+                <form onsubmit="handleLogin(event)">
+                    <input type="text" id="loginIdentifier" class="auth-input" placeholder="Phone Number or Email" required>
+                    <input type="password" id="loginPassword" class="auth-input" placeholder="Password" required>
+                    <button type="submit" class="main-btn">Login to Store</button>
+                </form>
+                <div id="authMessage" style="font-size: 10px; min-height: 12px; margin-top: 6px; text-align: center;"></div>
+                <div class="auth-switcher" onclick="showSignupView()">Create a new account? Register</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SIGNUP VIEW -->
+    <div id="signupView" class="view-section">
+        <div class="auth-container">
+            <div class="brand-title">Create Account</div>
+            <div class="brand-subtitle">Join Shivan Shop</div>
+            <div class="auth-card">
+                <form onsubmit="handleSignup(event)">
+                    <input type="text" id="signupName" class="auth-input" placeholder="Full Name" required>
+                    <input type="text" id="signupIdentifier" class="auth-input" placeholder="Phone Number or Email" required>
+                    <input type="password" id="signupPassword" class="auth-input" placeholder="Password (Min 8 characters)" required>
+
+                    <button type="submit" class="main-btn">Register Now</button>
+                </form>
+                <div id="signupAuthMessage" style="font-size: 10px; min-height: 12px; margin-top: 6px; text-align: center;"></div>
+
+                <div class="auth-switcher" onclick="showView('loginView')">Already have an account? Login</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SHOP VIEW -->
+    <div id="shopView" class="view-section">
+        <header class="app-header"><h1>Shivan Shop</h1></header>
+        <div class="shop-content">
+
+        <!-- Banner Slider -->
+        <div class="banner-slider">
+            <div class="banner-slide active" style="background-image: url('https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80')">
+                <div class="banner-overlay">👑 Luxury Winter Collection 2026</div>
+            </div>
+            <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&auto=format&fit=crop&q=80')">
+                <div class="banner-overlay">✨ New Elegance Evening Dresses</div>
+            </div>
+            <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=600&auto=format&fit=crop&q=80')">
+                <div class="banner-overlay">🔥 Chic Casual & Party Outfits</div>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-img-container">
+                    <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&auto=format&fit=crop&q=80" class="product-img">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Royal Evening Gown</div>
+                    <div class="product-price">25,000 IQD</div>
+                    <button class="order-btn" onclick="orderProduct('Royal Evening Gown', '25,000 IQD')">Order Now</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-img-container">
+                    <img src="https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?w=500&auto=format&fit=crop&q=80" class="product-img">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Chic Silk Dress</div>
+                    <div class="product-price">25,000 IQD</div>
+                    <button class="order-btn" onclick="orderProduct('Chic Silk Dress', '25,000 IQD')">Order Now</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-img-container">
+                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=80" class="product-img">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Modern Casual Set</div>
+                    <div class="product-price">25,000 IQD</div>
+                    <button class="order-btn" onclick="orderProduct('Modern Casual Set', '25,000 IQD')">Order Now</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-img-container">
+                    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&auto=format&fit=crop&q=80" class="product-img">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Luxury Party Blazer</div>
+                    <div class="product-price">25,000 IQD</div>
+                    <button class="order-btn" onclick="orderProduct('Luxury Party Blazer', '25,000 IQD')">Order Now</button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- 4. SEARCH VIEW -->
+    <div id="searchView" class="view-section">
+        <div class="store-name">Search Collection</div>
+        <div class="search-box-full">
+            <input type="text" id="fullSearchInput" class="search-input-full" placeholder="Search dresses..." onkeyup="performSearch()">
+        </div>
+        <div class="products-grid" id="searchResultsGrid"></div>
+    </div>
+
+    <!-- 5. ORDERS VIEW -->
+    <div id="ordersView" class="view-section">
+        <div class="store-name">📦 My Orders</div>
+        <div id="ordersListContainer">
+            <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 12px;">
+                No active orders yet. Order your favorite look!
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. PROFILE VIEW -->
+    <div id="profileView" class="view-section" dir="rtl">
+        <header class="app-header"><h1>پڕۆفایلا من</h1></header>
+        <div class="profile-content">
+            <section class="profile-card">
+                <div class="user-info-header">
+                    <div class="avatar-circle" aria-hidden="true">👤</div>
+                    <h2 class="user-name" id="displayProfileName"></h2>
+                    <p class="user-phone" id="displayProfileIdentifier"></p>
+                </div>
+
+                <form onsubmit="handleUpdateProfile(event)" class="profile-form">
+                    <div class="input-group">
+                        <label for="editProfileName">گوهورینا ناڤی</label>
+                        <input type="text" id="editProfileName" placeholder="ناڤێ تەڤایی" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="editProfileIdentifier">ژمارا مۆبایلێ یان ئیمەیڵ</label>
+                        <input type="text" id="editProfileIdentifier" placeholder="ژمارا مۆبایلێ یان ئیمەیڵ" required>
+                    </div>
+                    <button type="submit" class="profile-action profile-primary">نووکرنا پڕۆفایلی</button>
+                </form>
+
+                <button type="button" class="profile-action profile-success" onclick="togglePasswordSection()">گوهورینا پاسووردی</button>
+                <div id="passwordSection" class="password-section" style="display: none;">
+                    <form onsubmit="handleUpdatePassword(event)">
+                        <div class="input-group">
+                            <label for="oldPassword">پاسووردێ کەڤن</label>
+                            <input type="password" id="oldPassword" placeholder="پاسووردێ کەڤن" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="newPassword">پاسووردێ نوو</label>
+                            <input type="password" id="newPassword" placeholder="پاسووردێ نوو (کێمترین 8 پیت)" minlength="8" required>
+                        </div>
+                        <button type="submit" class="profile-action profile-primary">پاشەکەوتکرنا پاسووردێ نوو</button>
+                    </form>
+                </div>
+
+                <div id="profileAuthMessage" class="profile-message" aria-live="polite"></div>
+                <button type="button" class="profile-action profile-danger" onclick="handleLogout()">دەرکەڤتن</button>
+            </section>
+        </div>
+    </div>
+    <!-- Compact Floating Glass Navigation Bar -->
+    <div class="bottom-nav" id="bottomNav" style="display: none;">
+        <button class="nav-item active" onclick="switchTab('shopView', this)">
+            <span class="icon">🛍️</span>
+            <span>Shop</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('searchView', this)">
+            <span class="icon">🔍</span>
+            <span>Search</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('ordersView', this)">
+            <span class="icon">📦</span>
+            <span>Order</span>
+        </button>
+        <button class="nav-item" onclick="showProfileView(this)">
+            <span class="icon">👤</span>
+            <span>Profile</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    let myOrders = [];
+    let currentSlide = 0;
+
+    window.onload = function() {
+        setInterval(nextSlide, 3500);
+        performSearch();
+
+        let isLoggedIn = localStorage.getItem('isLoggedIn');
+        let savedUser = localStorage.getItem('shivanShopUser');
+        if(savedUser && isLoggedIn === 'true') {
+            showShopView();
+        } else {
+            showLoginView();
+        }
+    };
+    function nextSlide() {
+        let slides = document.querySelectorAll('.banner-slide');
+        if(slides.length === 0) return;
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+    }
+
+    function showView(viewId) {
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    function showShopView() {
+        showView('shopView');
+        document.getElementById('bottomNav').style.display = 'flex';
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelector('.nav-item').classList.add('active');
+    }
+    function showAuthMessage(text, isError = true, isSignup = false) {
+        let msgDiv = document.getElementById(isSignup ? 'signupAuthMessage' : 'authMessage');
+        if(!msgDiv) return;
+        msgDiv.style.color = isError ? '#ff6b6b' : '#2ecc71';
+        msgDiv.innerText = text;
+    }
+    function showLoginView() {
+        showView('loginView');
+    }
+
+    function showSignupView() {
+        showAuthMessage('', true, true);
+        showView('signupView');
+    }
+    function showMainStoreView(identifier, name) {
+        setupUserSession(identifier, name || 'Shivan User');
+    }
+
+    function getShivanShopUsers() {
+        let users = [];
+        try {
+            const parsedUsers = JSON.parse(localStorage.getItem('shivanShopUsers') || '[]');
+            if(Array.isArray(parsedUsers)) users = parsedUsers;
+        } catch (error) {
+            users = [];
+        }
+
+        if(users.length === 0) {
+            try {
+                const legacyUser = JSON.parse(localStorage.getItem('shivanShopUser') || 'null');
+                if(legacyUser && (legacyUser.identifier || legacyUser.phone) && legacyUser.pass) {
+                    users.push({
+                        name: legacyUser.name || 'Shivan User',
+                        identifier: legacyUser.identifier || legacyUser.phone,
+                        pass: legacyUser.pass
+                    });
+                    localStorage.setItem('shivanShopUsers', JSON.stringify(users));
+                }
+            } catch (error) {
+                users = [];
+            }
+        }
+        return users;
+    }
+
+    function saveUserToList(user, previousIdentifier = user.identifier) {
+        const users = getShivanShopUsers();
+        const index = users.findIndex(item => (item.identifier || item.phone) === previousIdentifier);
+        if(index >= 0) {
+            users[index] = { ...users[index], ...user, identifier: user.identifier };
+        } else {
+            users.push(user);
+        }
+        localStorage.setItem('shivanShopUsers', JSON.stringify(users));
+        localStorage.setItem('shivanShopUser', JSON.stringify(user));
+    }
+
+    function handleSignup(event) {
+        event.preventDefault();
+        let name = document.getElementById('signupName').value.trim();
+        let identifier = document.getElementById('signupIdentifier').value.trim();
+        let pass = document.getElementById('signupPassword').value;
+
+        if(!name || !identifier || pass.length < 8) {
+            showAuthMessage('تۆمارکرنا خەڵەت یان پسوورد کورتە!', true, true);
+            return;
+        }
+
+        let users = getShivanShopUsers();
+        let existingUser = users.find(user => (user.identifier || user.phone) === identifier);
+        if(existingUser) {
+            existingUser.name = name;
+            existingUser.identifier = identifier;
+            existingUser.pass = pass;
+        } else {
+            users.push({ name: name, identifier: identifier, pass: pass });
+        }
+
+        localStorage.setItem('shivanShopUsers', JSON.stringify(users));
+        showAuthMessage('حیسابا تە ب سەرکەفتی هاتە تۆمارکرن!', false, true);
+        setTimeout(() => { showLoginView(); }, 1500);
+    }
+
+    function handleLogin(event) {
+        event.preventDefault();
+        let identifierInput = document.getElementById('loginIdentifier').value.trim();
+        let passInput = document.getElementById('loginPassword').value;
+        let users = getShivanShopUsers();
+        let user = users.find(item => (item.identifier || item.phone) === identifierInput && item.pass === passInput);
+
+        if(user) {
+            const activeUser = { ...user, identifier: user.identifier || user.phone };
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('shivanShopUser', JSON.stringify(activeUser));
+            showAuthMessage('ب خێر هاتیش!', false, false);
+            setTimeout(() => showMainStoreView(activeUser.identifier, activeUser.name), 500);
+        } else {
+            showAuthMessage('زانیاریێن چوونەژوورێ شاشی یە!', true, false);
+        }
+    }
+    function setupUserSession(identifier, name = 'Shivan User') {
+        document.getElementById('displayProfileIdentifier').innerText = identifier;
+        document.getElementById('editProfileIdentifier').value = identifier;
+        document.getElementById('editProfileName').value = name;
+        document.getElementById('displayProfileName').innerText = name;
+        document.getElementById('profileAuthMessage').innerText = '';
+        document.getElementById('bottomNav').style.display = 'flex';
+        showView('shopView');
+    }
+
+    function showProfileView(btnElement) {
+        document.getElementById('profileAuthMessage').innerText = '';
+        document.getElementById('passwordSection').style.display = 'none';
+        
+
+        let savedUser = localStorage.getItem('shivanShopUser');
+        if(savedUser) {
+            try {
+                let user = JSON.parse(savedUser);
+                const identifier = user.identifier || user.phone || '';
+                document.getElementById('displayProfileName').innerText = user.name || 'Shivan User';
+                document.getElementById('displayProfileIdentifier').innerText = identifier;
+                document.getElementById('editProfileName').value = user.name || '';
+                document.getElementById('editProfileIdentifier').value = identifier;
+            } catch (error) {
+                showProfileMessage('Saved profile data could not be read.', true);
+            }
+        }
+
+        if(btnElement) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        showView('profileView');
+    }
+    function togglePasswordSection() {
+        const section = document.getElementById('passwordSection');
+
+        const isOpening = section.style.display === 'none';
+        section.style.display = isOpening ? 'block' : 'none';
+        
+    }
+    function handleUpdateProfile(event) {
+        event.preventDefault();
+        let user;
+        try {
+            user = JSON.parse(localStorage.getItem('shivanShopUser'));
+        } catch (error) {
+            user = null;
+        }
+        if(!user) {
+            showProfileMessage('Please log in again to update your profile.', true);
+            return;
+        }
+
+        const name = document.getElementById('editProfileName').value.trim();
+        const identifier = document.getElementById('editProfileIdentifier').value.trim();
+        if(!name || !identifier) {
+            showProfileMessage('Please fill in both profile fields.', true);
+            return;
+        }
+
+        const previousIdentifier = user.identifier || user.phone;
+        user.name = name;
+        user.identifier = identifier;
+        saveUserToList(user, previousIdentifier);
+        document.getElementById('displayProfileName').innerText = name;
+        document.getElementById('displayProfileIdentifier').innerText = identifier;
+        showProfileMessage('Profile updated successfully.', false);
+    }
+
+    function handleUpdatePassword(event) {
+        event.preventDefault();
+        let user;
+        try {
+            user = JSON.parse(localStorage.getItem('shivanShopUser'));
+        } catch (error) {
+            user = null;
+        }
+        if(!user) {
+            showProfileMessage('Please log in again to change your password.', true);
+            return;
+        }
+
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        if(oldPassword !== user.pass) {
+            showProfileMessage('The old password is incorrect.', true);
+            return;
+        }
+        if(newPassword.length < 8) {
+            showProfileMessage('The new password must be at least 8 characters.', true);
+            return;
+        }
+
+        user.pass = newPassword;
+        saveUserToList(user);
+        document.getElementById('oldPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('passwordSection').style.display = 'none';
+        
+        showProfileMessage('Password changed successfully.', false);
+    }
+
+    function showProfileMessage(message, isError) {
+        const messageElement = document.getElementById('profileAuthMessage');
+        messageElement.style.color = isError ? '#ff6b6b' : '#2ecc71';
+        messageElement.innerText = message;
+    }
+    function handleLogout() {
+        localStorage.setItem('isLoggedIn', 'false');
+        document.getElementById('bottomNav').style.display = 'none';
+        showLoginView();
+        document.getElementById('profileAuthMessage').innerText = '';
+    }
+    function switchTab(viewId, btnElement) {
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        btnElement.classList.add('active');
+        showView(viewId);
+        if(viewId === 'searchView') performSearch();
+    }
+
+    function orderProduct(name, price) {
+        myOrders.push({ name: name, price: price, time: new Date().toLocaleTimeString() });
+        updateOrdersUI();
+        alert('Successfully ordered ' + name + '!');
+    }
+
+    function updateOrdersUI() {
+        let container = document.getElementById('ordersListContainer');
+        if(myOrders.length === 0) {
+            container.innerHTML = `<div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 12px;">No active orders yet.</div>`;
+            return;
+        }
+        let html = '';
+        myOrders.forEach(o => {
+            html += `
+                <div class="order-item-card">
+                    <div>
+                        <div style="font-weight: bold; font-size: 12px; color: #fff;">${o.name}</div>
+                        <div style="font-size: 10px; color: var(--text-muted);">${o.time}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; font-size: 12px; color: var(--accent-rose);">${o.price}</div>
+                        <div style="font-size: 9px; color: #2ecc71;">Confirmed</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function performSearch() {
+        let query = document.getElementById('fullSearchInput') ? document.getElementById('fullSearchInput').value.toLowerCase() : '';
+        let items = [
+            { name: "Royal Evening Gown", price: "25,000 IQD", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&auto=format&fit=crop&q=80" },
+            { name: "Chic Silk Dress", price: "25,000 IQD", img: "https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?w=500&auto=format&fit=crop&q=80" },
+            { name: "Modern Casual Set", price: "25,000 IQD", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&auto=format&fit=crop&q=80" },
+            { name: "Luxury Party Blazer", price: "25,000 IQD", img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&auto=format&fit=crop&q=80" }
+        ];
+
+        let filtered = items.filter(i => i.name.toLowerCase().includes(query));
+        let grid = document.getElementById('searchResultsGrid');
+        
+        if(filtered.length === 0) {
+            grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">No dresses found!</div>`;
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(i => {
+            html += `
+                <div class="product-card">
+                    <div class="product-img-container">
+                        <img src="${i.img}" class="product-img">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">${i.name}</div>
+                        <div class="product-price">${i.price}</div>
+                        <button class="order-btn" onclick="orderProduct('${i.name}', '${i.price}')">Order Now</button>
+                    </div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

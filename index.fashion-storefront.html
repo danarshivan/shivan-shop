@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Shivan Shop</title>
+
+<style>
+
+/* =====================================================
+   SHIVAN SHOP
+   دیزاینێکی مۆدێرن و Mobile First
+===================================================== */
+
+:root{
+    --main:#ffb300;
+    --main2:#ff8a00;
+    --bg:#07080a;
+    --card:#121419;
+    --card2:#191b20;
+    --text:#ffffff;
+    --muted:#90939b;
+    --border:rgba(255,255,255,.08);
+    --danger:#ff4d5e;
+    --success:#22c77a;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    min-height:100vh;
+    background:
+        radial-gradient(
+            circle at top,
+            rgba(255,179,0,.06),
+            transparent 35%
+        ),
+        var(--bg);
+
+    color:var(--text);
+
+    font-family:
+        Tahoma,
+        Arial,
+        sans-serif;
+
+    transition:
+        background .3s,
+        color .3s;
+}
+
+button,
+input{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+/* =====================================================
+   APP
+===================================================== */
+
+.app{
+    width:100%;
+    min-height:100vh;
+    overflow:hidden;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.header{
+    position:sticky;
+    top:0;
+    z-index:1000;
+
+    height:76px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 6%;
+
+    background:rgba(7,8,10,.88);
+
+    backdrop-filter:blur(22px);
+
+    border-bottom:1px solid var(--border);
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo-icon{
+    width:46px;
+    height:46px;
+
+    border-radius:15px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:25px;
+    font-weight:900;
+
+    box-shadow:
+        0 8px 30px
+        color-mix(
+            in srgb,
+            var(--main) 25%,
+            transparent
+        );
+}
+
+.logo-text{
+    font-size:23px;
+    font-weight:900;
+}
+
+.logo-text span{
+    color:var(--main);
+}
+
+.header-actions{
+    display:flex;
+    gap:9px;
+}
+
+.header-btn{
+    width:43px;
+    height:43px;
+
+    border:1px solid var(--border);
+
+    border-radius:13px;
+
+    background:var(--card);
+
+    color:white;
+
+    font-size:19px;
+
+    transition:.25s;
+}
+
+.header-btn:hover{
+    border-color:var(--main);
+
+    transform:translateY(-2px);
+}
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container{
+    width:92%;
+    max-width:1250px;
+
+    margin:auto;
+}
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.hero{
+    position:relative;
+
+    height:500px;
+
+    margin-top:24px;
+
+    overflow:hidden;
+
+    border-radius:32px;
+
+    background:#111;
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.45);
+}
+
+.slide{
+    position:absolute;
+    inset:0;
+
+    opacity:0;
+
+    background-size:cover;
+    background-position:center;
+
+    transition:
+        opacity 1s ease;
+}
+
+.slide.active{
+    opacity:1;
+}
+
+.slide::after{
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,0,0,.85),
+            rgba(0,0,0,.45),
+            rgba(0,0,0,.12)
+        );
+}
+
+.hero-content{
+    position:absolute;
+
+    z-index:5;
+
+    top:50%;
+    left:8%;
+
+    transform:translateY(-50%);
+
+    max-width:650px;
+}
+
+.hero-brand{
+    color:var(--main);
+
+    font-size:23px;
+
+    font-weight:900;
+
+    margin-bottom:12px;
+}
+
+.hero-title{
+    font-size:68px;
+
+    line-height:1.05;
+
+    font-weight:900;
+
+    margin-bottom:18px;
+}
+
+.hero-title span{
+    color:var(--main);
+}
+
+.hero-description{
+    color:#ddd;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+    margin-bottom:26px;
+}
+
+.hero-button{
+    border:0;
+
+    padding:15px 32px;
+
+    border-radius:15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:16px;
+
+    font-weight:900;
+
+    box-shadow:
+        0 12px 35px
+        rgba(255,160,0,.22);
+}
+
+.dots{
+    position:absolute;
+
+    z-index:10;
+
+    bottom:22px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    display:flex;
+
+    gap:8px;
+}
+
+.dot{
+    width:9px;
+    height:9px;
+
+    border-radius:20px;
+
+    background:#777;
+
+    transition:.3s;
+}
+
+.dot.active{
+    width:30px;
+
+    background:var(--main);
+}
+
+/* =====================================================
+   SECTION
+===================================================== */
+
+.section{
+    margin-top:58px;
+}
+
+.section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:22px;
+}
+
+.section-title{
+    font-size:30px;
+    font-weight:900;
+}
+
+.section-title span{
+    color:var(--main);
+}
+
+/* =====================================================
+   CATEGORY
+===================================================== */
+
+.categories{
+    display:grid;
+
+    grid-template-columns:
+        repeat(5,1fr);
+
+    gap:15px;
+}
+
+.category{
+    min-height:145px;
+
+    padding:20px;
+
+    border-radius:22px;
+
+    border:1px solid var(--border);
+
+    background:
+        linear-gradient(
+            145deg,
+            #1b1d22,
+            #101115
+        );
+
+    transition:.3s;
+}
+
+.category:hover{
+    transform:translateY(-6px);
+
+    border-color:var(--main);
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.35);
+}
+
+.category-icon{
+    font-size:40px;
+    margin-bottom:13px;
+}
+
+.category-name{
+    font-size:18px;
+    font-weight:900;
+}
+
+.category-small{
+    color:var(--muted);
+
+    font-size:12px;
+
+    margin-top:6px;
+}
+
+/* =====================================================
+   PRODUCTS
+===================================================== */
+
+.products{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:18px;
+}
+
+.product{
+    overflow:hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #16181d,
+            #101114
+        );
+
+    border:1px solid var(--border);
+
+    border-radius:23px;
+
+    transition:
+        transform .3s,
+        border .3s,
+        box-shadow .3s;
+
+    cursor:pointer;
+}
+
+.product:hover{
+    transform:translateY(-7px);
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--main) 65%,
+            transparent
+        );
+
+    box-shadow:
+        0 20px 55px rgba(0,0,0,.45);
+}
+
+.product-image{
+    position:relative;
+
+    height:260px;
+
+    overflow:hidden;
+
+    background:#222;
+}
+
+.product-image img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    transition:
+        transform .6s;
+}
+
+.product:hover
+.product-image img{
+    transform:scale(1.07);
+}
+
+.favorite{
+    position:absolute;
+
+    top:12px;
+    right:12px;
+
+    width:42px;
+    height:42px;
+
+    border:0;
+
+    border-radius:13px;
+
+    background:
+        rgba(0,0,0,.6);
+
+    color:white;
+
+    font-size:21px;
+
+    z-index:3;
+}
+
+.favorite.active{
+    color:var(--main);
+}
+
+.product-info{
+    padding:16px;
+}
+
+.product-category{
+    color:var(--muted);
+
+    font-size:12px;
+
+    margin-bottom:8px;
+}
+
+.product-name{
+    font-size:18px;
+
+    font-weight:900;
+
+    margin-bottom:14px;
+}
+
+.product-bottom{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:10px;
+}
+
+.price{
+    color:var(--main);
+
+    font-size:17px;
+
+    font-weight:900;
+}
+
+.add-btn{
+    border:0;
+
+    padding:10px 14px;
+
+    border-radius:12px;
+
+    background:var(--main);
+
+    color:#111;
+
+    font-weight:900;
+
+    transition:.2s;
+}
+
+.add-btn:hover{
+    transform:scale(1.04);
+}
+
+/* =====================================================
+   PRODUCT DETAILS MODAL
+===================================================== */
+
+.modal{
+    position:fixed;
+
+    inset:0;
+
+    z-index:5000;
+
+    display:none;
+
+    align-items:flex-end;
+
+    justify-content:center;
+
+    background:
+        rgba(0,0,0,.76);
+
+    backdrop-filter:blur(8px);
+}
+
+.modal.show{
+    display:flex;
+}
+
+.product-sheet{
+    width:100%;
+    max-width:700px;
+
+    max-height:94vh;
+
+    overflow-y:auto;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1a1c21,
+            #0f1013
+        );
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        30px 30px 0 0;
+
+    animation:
+        sheetUp .3s ease;
+}
+
+@keyframes sheetUp{
+
+    from{
+        transform:translateY(100%);
+    }
+
+    to{
+        transform:translateY(0);
+    }
+
+}
+
+.sheet-image{
+    position:relative;
+
+    width:100%;
+
+    height:350px;
+
+    overflow:hidden;
+}
+
+.sheet-image img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+}
+
+.close-modal{
+    position:absolute;
+
+    top:15px;
+    left:15px;
+
+    width:43px;
+    height:43px;
+
+    border:0;
+
+    border-radius:13px;
+
+    background:
+        rgba(0,0,0,.65);
+
+    color:white;
+
+    font-size:22px;
+
+    z-index:4;
+}
+
+.sheet-content{
+    padding:22px;
+}
+
+.sheet-category{
+    color:var(--main);
+
+    font-size:13px;
+
+    margin-bottom:7px;
+}
+
+.sheet-title{
+    font-size:28px;
+
+    font-weight:900;
+
+    margin-bottom:9px;
+}
+
+.sheet-price{
+    color:var(--main);
+
+    font-size:24px;
+
+    font-weight:900;
+
+    margin-bottom:24px;
+}
+
+.option-title{
+    font-size:14px;
+
+    font-weight:bold;
+
+    color:#bbb;
+
+    margin-bottom:10px;
+}
+
+.options{
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:9px;
+
+    margin-bottom:22px;
+}
+
+.option{
+    min-width:48px;
+
+    padding:11px 16px;
+
+    border-radius:12px;
+
+    border:1px solid #303239;
+
+    background:#181a1f;
+
+    color:white;
+
+    font-weight:bold;
+
+    transition:.2s;
+}
+
+.option.active{
+    background:var(--main);
+
+    color:#111;
+
+    border-color:var(--main);
+}
+
+.color-option{
+    width:42px;
+    height:42px;
+
+    min-width:42px;
+
+    padding:0;
+
+    border-radius:50%;
+
+    border:3px solid #333;
+
+    position:relative;
+}
+
+.color-option.active{
+    border-color:var(--main);
+    box-shadow:
+        0 0 0 3px rgba(255,179,0,.2);
+}
+
+.quantity{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:13px;
+
+    margin-bottom:18px;
+
+    border-radius:15px;
+
+    background:#181a1f;
+
+    border:1px solid var(--border);
+}
+
+.quantity-controls{
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+}
+
+.quantity-controls button{
+    width:37px;
+    height:37px;
+
+    border:0;
+
+    border-radius:10px;
+
+    background:#292c32;
+
+    color:white;
+
+    font-size:20px;
+}
+
+.quantity-number{
+    min-width:20px;
+
+    text-align:center;
+
+    font-weight:900;
+}
+
+.buy-button{
+    width:100%;
+
+    padding:16px;
+
+    border:0;
+
+    border-radius:15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:16px;
+
+    font-weight:900;
+}
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+.settings{
+    display:grid;
+
+    grid-template-columns:
+        repeat(2,1fr);
+
+    gap:18px;
+}
+
+.setting-card{
+    padding:20px;
+
+    border-radius:20px;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+}
+
+.setting-card h3{
+    margin-bottom:14px;
+}
+
+.color-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.theme-color{
+    width:38px;
+    height:38px;
+
+    border-radius:50%;
+
+    border:3px solid transparent;
+
+    cursor:pointer;
+}
+
+.theme-color.active{
+    border-color:white;
+
+    box-shadow:
+        0 0 0 3px rgba(255,255,255,.15);
+}
+
+.font-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.font-button{
+    padding:10px 13px;
+
+    border:1px solid #303239;
+
+    border-radius:11px;
+
+    background:#181a1f;
+
+    color:white;
+}
+
+.font-button.active{
+    background:var(--main);
+
+    color:#111;
+
+    border-color:var(--main);
+}
+
+/* =====================================================
+   BRAND
+===================================================== */
+
+.brand-banner{
+    margin-top:60px;
+
+    min-height:240px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-align:center;
+
+    border-radius:30px;
+
+    border:1px solid
+        color-mix(
+            in srgb,
+            var(--main) 22%,
+            transparent
+        );
+
+    background:
+        radial-gradient(
+            circle,
+            color-mix(
+                in srgb,
+                var(--main) 18%,
+                transparent
+            ),
+            transparent 60%
+        ),
+        #121419;
+}
+
+.brand-banner h2{
+    font-size:58px;
+
+    font-weight:900;
+}
+
+.brand-banner h2 span{
+    color:var(--main);
+}
+
+.brand-banner p{
+    color:var(--muted);
+
+    margin-top:12px;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.footer{
+    margin-top:70px;
+
+    padding:40px 20px;
+
+    text-align:center;
+
+    color:#777;
+
+    border-top:1px solid var(--border);
+}
+
+.footer strong{
+    color:var(--main);
+}
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+.toast{
+    position:fixed;
+
+    left:50%;
+
+    bottom:25px;
+
+    transform:
+        translate(-50%,120px);
+
+    z-index:9000;
+
+    padding:13px 20px;
+
+    border-radius:14px;
+
+    background:white;
+
+    color:#111;
+
+    font-weight:bold;
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,.35);
+
+    transition:.3s;
+}
+
+.toast.show{
+    transform:
+        translate(-50%,0);
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:900px){
+
+    .products{
+        grid-template-columns:
+            repeat(3,1fr);
+    }
+
+    .categories{
+        grid-template-columns:
+            repeat(3,1fr);
+    }
+
+}
+
+@media(max-width:650px){
+
+    .header{
+        height:68px;
+
+        padding:
+            0 15px;
+    }
+
+    .logo-icon{
+        width:40px;
+        height:40px;
+    }
+
+    .logo-text{
+        font-size:18px;
+    }
+
+    .header-btn{
+        width:39px;
+        height:39px;
+    }
+
+    .container{
+        width:94%;
+    }
+
+    .hero{
+        height:460px;
+
+        margin-top:14px;
+
+        border-radius:23px;
+    }
+
+    .hero-content{
+        left:20px;
+        right:20px;
+
+        text-align:center;
+
+        max-width:none;
+    }
+
+    .hero-title{
+        font-size:43px;
+    }
+
+    .hero-brand{
+        font-size:18px;
+    }
+
+    .hero-description{
+        font-size:14px;
+    }
+
+    .hero-button{
+        padding:
+            13px 25px;
+    }
+
+    .section{
+        margin-top:42px;
+    }
+
+    .section-title{
+        font-size:24px;
+    }
+
+    .categories{
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap:10px;
+    }
+
+    .category{
+        min-height:125px;
+
+        padding:15px;
+    }
+
+    .category-icon{
+        font-size:34px;
+    }
+
+    .category-name{
+        font-size:16px;
+    }
+
+    .products{
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap:10px;
+    }
+
+    .product{
+        border-radius:18px;
+    }
+
+    .product-image{
+        height:190px;
+    }
+
+    .product-info{
+        padding:12px;
+    }
+
+    .product-name{
+        font-size:14px;
+    }
+
+    .price{
+        font-size:13px;
+    }
+
+    .add-btn{
+        padding:8px 9px;
+
+        font-size:11px;
+    }
+
+    .brand-banner{
+        min-height:190px;
+
+        border-radius:22px;
+    }
+
+    .brand-banner h2{
+        font-size:37px;
+    }
+
+    .sheet-image{
+        height:300px;
+    }
+
+    .sheet-title{
+        font-size:24px;
+    }
+
+    .settings{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:380px){
+
+    .product-image{
+        height:160px;
+    }
+
+    .product-bottom{
+        align-items:flex-start;
+
+        flex-direction:column;
+    }
+
+    .add-btn{
+        width:100%;
+    }
+
+}
+
+/* =====================================================
+   FONT OPTIONS
+===================================================== */
+
+.font-modern{
+    font-family:
+        Tahoma,
+        Arial,
+        sans-serif;
+}
+
+.font-classic{
+    font-family:
+        "Times New Roman",
+        serif;
+}
+
+.font-clean{
+    font-family:
+        Arial,
+        sans-serif;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+<!-- =================================================
+     HEADER
+================================================= -->
+
+<header class="header">
+
+<div class="logo">
+
+<div class="logo-icon">
+S
+</div>
+
+<div class="logo-text">
+Shivan <span>Shop</span>
+</div>
+
+</div>
+
+
+<div class="header-actions">
+
+<button
+class="header-btn"
+onclick="showToast('گەڕان')">
+
+🔎
+
+</button>
+
+<button
+class="header-btn"
+onclick="showToast('سەبەت')">
+
+🛒
+
+</button>
+
+</div>
+
+</header>
+
+
+
+<main class="container">
+
+
+<!-- =================================================
+     HERO
+================================================= -->
+
+<section class="hero">
+
+
+<div
+class="slide active"
+style="
+background-image:url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=90');
+">
+</div>
+
+
+<div
+class="slide"
+style="
+background-image:url('https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1600&q=90');
+">
+</div>
+
+
+<div
+class="slide"
+style="
+background-image:url('https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1600&q=90');
+">
+</div>
+
+
+<div class="hero-content">
+
+<div class="hero-brand">
+Shivan Shop
+</div>
+
+<h1 class="hero-title">
+
+شێوازی نوێ
+
+<br>
+
+بۆ
+<span>
+ژیانا تو
+</span>
+
+</h1>
+
+<p class="hero-description">
+
+بەرهەمێن جوان،
+کوالیتی بەرز و هەڵبژاردنا زۆر،
+هەمی ل Shivan Shop.
+
+</p>
+
+<button
+class="hero-button"
+onclick="
+document
+.getElementById('productsSection')
+.scrollIntoView({
+behavior:'smooth'
+});
+">
+
+بەرهەمان ببینە
+
+</button>
+
+</div>
+
+
+<div class="dots">
+
+<div class="dot active"></div>
+
+<div class="dot"></div>
+
+<div class="dot"></div>
+
+</div>
+
+</section>
+
+
+
+<!-- =================================================
+     CATEGORIES
+================================================= -->
+
+<section class="section">
+
+<div class="section-head">
+
+<h2 class="section-title">
+
+پۆلێنێن
+<span>
+بەرهەمان
+</span>
+
+</h2>
+
+</div>
+
+
+<div class="categories">
+<div class="category"><div class="category-icon">👗</div><div class="category-name">جلکێن شەڤێ</div><div class="category-small">جلکێن جوان</div></div>
+<div class="category"><div class="category-icon">👚</div><div class="category-name">جلکێن کەژوال</div><div class="category-small">بۆ ڕۆژانە</div></div>
+<div class="category"><div class="category-icon">🧥</div><div class="category-name">جلکێن پارتی</div><div class="category-small">بۆ بۆنە تایبەتەکان</div></div>
+<div class="category"><div class="category-icon">👜</div><div class="category-name">ئەکسسوار</div><div class="category-small">تەواوکرنا شێوازێ</div></div>
+<div class="category"><div class="category-icon">✨</div><div class="category-name">کۆلێکشنا نوو</div><div class="category-small">هەڵبژاردنێن نوو</div></div>
+</div></section>
+
+
+
+<!-- =================================================
+     PRODUCTS
+================================================= -->
+
+<section
+class="section"
+id="productsSection">
+
+<div class="section-head">
+
+<h2 class="section-title">
+
+بەرهەمێن
+<span>
+نوێ
+</span>
+
+</h2>
+
+</div>
+
+
+<div
+class="products"
+id="products">
+
+
+<!-- PRODUCT 1 -->
+
+<div
+class="product"
+onclick="openProduct(1)">
+
+<div class="product-image">
+
+<img
+src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=90">
+
+<button
+class="favorite"
+data-product-id="1" onclick="event.stopPropagation(); toggleFavorite(this)">
+
+♡
+</button>
+
+</div>
+
+
+<div class="product-info">
+
+<div class="product-category">
+جلکێن شەڤێ</div>
+
+<div class="product-name">
+Royal Evening Gown
+</div>
+
+<div class="product-bottom">
+
+<div class="price">
+25,000 IQD
+</div>
+
+<button
+class="add-btn"
+onclick="event.stopPropagation();openProduct(1)">
+
+ببینە
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- PRODUCT 2 -->
+
+<div
+class="product"
+onclick="openProduct(2)">
+
+<div class="product-image">
+
+<img
+src="https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?auto=format&fit=crop&w=900&q=90">
+
+<button
+class="favorite"
+data-product-id="2" onclick="event.stopPropagation();toggleFavorite(this)">
+
+♡
+
+</button>
+
+</div>
+
+<div class="product-info">
+
+<div class="product-category">
+جلکێن شەڤێ</div>
+
+<div class="product-name">
+Chic Silk Dress
+</div>
+
+<div class="product-bottom">
+
+<div class="price">
+25,000 IQD
+</div>
+
+<button
+class="add-btn"
+onclick="event.stopPropagation();openProduct(2)">
+
+ببینە
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- PRODUCT 3 -->
+
+<div
+class="product"
+onclick="openProduct(3)">
+
+<div class="product-image">
+
+<img
+src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=90">
+
+<button
+class="favorite"
+data-product-id="3" onclick="event.stopPropagation();toggleFavorite(this)">
+
+♡
+
+</button>
+
+</div>
+
+<div class="product-info">
+
+<div class="product-category">
+جلکێن کەژوال</div>
+
+<div class="product-name">
+Modern Casual Set
+</div>
+
+<div class="product-bottom">
+
+<div class="price">
+25,000 IQD
+</div>
+
+<button
+class="add-btn"
+onclick="event.stopPropagation();openProduct(3)">
+
+ببینە
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- PRODUCT 4 -->
+
+<div
+class="product"
+onclick="openProduct(4)">
+
+<div class="product-image">
+
+<img
+src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=90">
+
+<button
+class="favorite"
+data-product-id="4" onclick="event.stopPropagation();toggleFavorite(this)">
+
+♡
+
+</button>
+
+</div>
+
+<div class="product-info">
+
+<div class="product-category">
+جلکێن پارتی</div>
+
+<div class="product-name">
+Luxury Party Blazer
+</div>
+
+<div class="product-bottom">
+
+<div class="price">
+25,000 IQD
+</div>
+
+<button
+class="add-btn"
+onclick="event.stopPropagation();openProduct(4)">
+
+ببینە
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<!-- =================================================
+     BRAND
+================================================= -->
+
+<section class="brand-banner">
+
+<div>
+
+<h2>
+
+<span>
+Shivan
+</span>
+
+Shop
+
+</h2>
+
+<p>
+جوانی، کوالیتی و شێوازی نوێ
+</p>
+
+</div>
+
+</section>
+
+
+
+<!-- =================================================
+     SETTINGS
+================================================= -->
+
+<section class="section">
+
+<div class="section-head">
+
+<h2 class="section-title">
+
+ڕێکخستنا
+<span>
+دیزاین
+</span>
+
+</h2>
+
+</div>
+
+
+<div class="settings">
+
+
+<div class="setting-card">
+
+<h3>
+ڕەنگێ Shop
+</h3>
+
+<div class="color-list">
+
+<button
+class="theme-color active"
+style="background:#ffb300"
+onclick="setTheme('#ffb300','#ff8a00',this)">
+</button>
+
+<button
+class="theme-color"
+style="background:#8b5cf6"
+onclick="setTheme('#8b5cf6','#6d28d9',this)">
+</button>
+
+<button
+class="theme-color"
+style="background:#22c55e"
+onclick="setTheme('#22c55e','#15803d',this)">
+</button>
+
+<button
+class="theme-color"
+style="background:#ef4444"
+onclick="setTheme('#ef4444','#b91c1c',this)">
+</button>
+
+<button
+class="theme-color"
+style="background:#06b6d4"
+onclick="setTheme('#06b6d4','#0891b2',this)">
+</button>
+
+</div>
+
+</div>
+
+
+
+<div class="setting-card">
+
+<h3>
+فۆنت
+</h3>
+
+<div class="font-list">
+
+<button
+class="font-button active"
+onclick="setFont('modern',this)">
+
+مۆدێرن
+
+</button>
+
+<button
+class="font-button"
+onclick="setFont('classic',this)">
+
+کلاسیک
+
+</button>
+
+<button
+class="font-button"
+onclick="setFont('clean',this)">
+
+پاک
+
+</button>
+
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<footer class="footer">
+
+<strong>
+Shivan Shop
+</strong>
+
+<br><br>
+
+جوانی • کوالیتی • شێوازی نوێ
+
+</footer>
+
+
+</main>
+
+</div>
+
+
+
+<!-- =================================================
+     PRODUCT MODAL
+================================================= -->
+
+<div
+id="productModal"
+class="modal"
+onclick="closeProduct(event)">
+
+<div
+class="product-sheet"
+onclick="event.stopPropagation()">
+
+
+<div class="sheet-image">
+
+<img
+id="modalImage"
+src="">
+
+<button
+class="close-modal"
+onclick="closeProduct()">
+
+×
+</button>
+
+</div>
+
+
+<div class="sheet-content">
+
+<div
+id="modalCategory"
+class="sheet-category">
+</div>
+
+<h2
+id="modalTitle"
+class="sheet-title">
+</h2>
+
+<div
+id="modalPrice"
+class="sheet-price">
+</div>
+
+
+
+<!-- SIZE -->
+
+<div class="option-title">
+قەبارە هەڵبژێرە
+</div>
+
+<div class="options">
+
+<button
+class="option active"
+onclick="selectOption(this,'size')">
+S
+</button>
+
+<button
+class="option"
+onclick="selectOption(this,'size')">
+M
+</button>
+
+<button
+class="option"
+onclick="selectOption(this,'size')">
+L
+</button>
+
+<button
+class="option"
+onclick="selectOption(this,'size')">
+XL
+</button>
+
+</div>
+
+
+
+<!-- COLOR -->
+
+<div class="option-title">
+ڕەنگ هەڵبژێرە
+</div>
+
+<div class="options">
+
+<button
+class="option color-option active"
+style="background:#111"
+onclick="selectOption(this,'color')">
+</button>
+
+<button
+class="option color-option"
+style="background:#ffffff"
+onclick="selectOption(this,'color')">
+</button>
+
+<button
+class="option color-option"
+style="background:#d62828"
+onclick="selectOption(this,'color')">
+</button>
+
+<button
+class="option color-option"
+style="background:#1d4ed8"
+onclick="selectOption(this,'color')">
+</button>
+
+<button
+class="option color-option"
+style="background:#15803d"
+onclick="selectOption(this,'color')">
+</button>
+
+</div>
+
+
+
+<!-- QUANTITY -->
+
+<div class="quantity">
+
+<span>
+ژمارا
+</span>
+
+<div class="quantity-controls">
+
+<button onclick="changeQuantity(-1)">
+−
+</button>
+
+<div
+id="quantity"
+class="quantity-number">
+1
+</div>
+
+<button onclick="changeQuantity(1)">
++
+</button>
+
+</div>
+
+</div>
+
+
+
+<button
+class="buy-button"
+onclick="addToCart()">
+
+زیاد بکە بۆ سەبەت 🛒
+
+</button>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- =================================================
+     TOAST
+===================================================== -->
+
+<div
+id="toast"
+class="toast">
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   PRODUCT DATA
+===================================================== */
+
+const products={
+
+1:{
+    name:"Royal Evening Gown",
+    category:"جلکێن شەڤێ",
+    price:25000,
+    image:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=90"
+},
+
+2:{
+    name:"Chic Silk Dress",
+    category:"جلکێن شەڤێ",
+    price:25000,
+    image:"https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?auto=format&fit=crop&w=900&q=90"
+},
+
+3:{
+    name:"Modern Casual Set",
+    category:"جلکێن کەژوال",
+    price:25000,
+    image:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=90"
+},
+
+4:{
+    name:"Luxury Party Blazer",
+    category:"جلکێن پارتی",
+    price:25000,
+    image:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=90"
+}
+
+};
+
+
+/* =====================================================
+   MODAL DATA
+===================================================== */
+
+let currentProduct=null;
+
+let quantity=1;
+
+let selectedSize="S";
+
+let selectedColor="#111";
+
+
+/* =====================================================
+   OPEN PRODUCT
+===================================================== */
+
+function openProduct(id){
+
+currentProduct=products[id];
+
+quantity=1;
+
+document
+.getElementById("quantity")
+.textContent=quantity;
+
+
+document
+.getElementById("modalImage")
+.src=
+currentProduct.image;
+
+
+document
+.getElementById("modalTitle")
+.textContent=
+currentProduct.name;
+
+
+document
+.getElementById("modalCategory")
+.textContent=
+currentProduct.category;
+
+
+document
+.getElementById("modalPrice")
+.textContent=
+formatPrice(currentProduct.price);
+
+
+document
+.getElementById("productModal")
+.classList.add("show");
+
+
+document.body.style.overflow="hidden";
+
+}
+
+
+/* =====================================================
+   CLOSE PRODUCT
+===================================================== */
+
+function closeProduct(){
+
+document
+.getElementById("productModal")
+.classList.remove("show");
+
+document.body.style.overflow="";
+
+}
+
+
+/* =====================================================
+   OPTION SELECT
+===================================================== */
+
+function selectOption(button,type){
+
+const parent=
+button.parentElement;
+
+parent
+.querySelectorAll(".option")
+.forEach(
+item=>{
+item.classList.remove("active");
+}
+);
+
+button.classList.add("active");
+
+
+if(type==="color"){ selectedColor=button.style.backgroundColor||selectedColor; }
+
+if(type==="size"){
+
+selectedSize=
+button.textContent.trim();
+
+}
+
+}
+
+
+/* =====================================================
+   QUANTITY
+===================================================== */
+
+function changeQuantity(amount){
+
+quantity+=amount;
+
+if(quantity<1)
+quantity=1;
+
+if(quantity>20)
+quantity=20;
+
+
+document
+.getElementById("quantity")
+.textContent=
+quantity;
+
+}
+
+
+/* =====================================================
+   ADD CART
+===================================================== */
+
+function addToCart(){
+
+if(!currentProduct)
+return;
+
+
+const cart=
+JSON.parse(
+localStorage.getItem("shivan_cart")||"[]"
+);
+
+
+cart.push({
+
+product:currentProduct.name,
+
+price:currentProduct.price,
+
+size:selectedSize,
+
+color:selectedColor,
+
+quantity:quantity,
+
+date:new Date().toISOString()
+
+});
+
+
+localStorage.setItem(
+"shivan_cart",
+JSON.stringify(cart)
+);
+
+
+closeProduct();
+
+showToast(
+"بەرهەمەکە چووە ناڤ سەبەتێ 🛒"
+);
+
+}
+
+
+/* =====================================================
+   FAVORITE
+===================================================== */
+
+function toggleFavorite(button){
+const favoriteId=Number(button.dataset.productId);
+let savedFavorites=[];
+try{ savedFavorites=JSON.parse(localStorage.getItem("shivan_favorites")||"[]"); }catch(error){ savedFavorites=[]; }
+if(savedFavorites.includes(favoriteId)) savedFavorites=savedFavorites.filter(id=>id!==favoriteId);
+else savedFavorites.push(favoriteId);
+localStorage.setItem("shivan_favorites",JSON.stringify(savedFavorites));
+button.classList.toggle("active",savedFavorites.includes(favoriteId));
+button.textContent=button.classList.contains("active")?"♥":"♡";
+}
+
+function loadFavorites(){
+let savedFavorites=[];
+try{ savedFavorites=JSON.parse(localStorage.getItem("shivan_favorites")||"[]"); }catch(error){ savedFavorites=[]; }
+document.querySelectorAll(".favorite[data-product-id]").forEach(button=>{
+const active=savedFavorites.includes(Number(button.dataset.productId));
+button.classList.toggle("active",active);
+button.textContent=active?"♥":"♡";
+});
+}
+/* =====================================================
+   SLIDER
+===================================================== */
+
+const slides=
+document.querySelectorAll(".slide");
+
+const dots=
+document.querySelectorAll(".dot");
+
+let currentSlide=0;
+
+
+function showSlide(index){
+
+slides.forEach(
+slide=>{
+slide.classList.remove("active");
+}
+);
+
+dots.forEach(
+dot=>{
+dot.classList.remove("active");
+}
+);
+
+
+slides[index]
+.classList.add("active");
+
+dots[index]
+.classList.add("active");
+
+}
+
+
+setInterval(()=>{
+
+currentSlide++;
+
+if(currentSlide>=slides.length)
+currentSlide=0;
+
+showSlide(currentSlide);
+
+},2500);
+
+
+/* =====================================================
+   PRICE
+===================================================== */
+
+function formatPrice(price){
+
+return new Intl.NumberFormat(
+"en-IQ"
+).format(price)+" IQD";
+
+}
+
+
+/* =====================================================
+   THEME COLOR
+===================================================== */
+
+function setTheme(main,main2,button){
+
+document.documentElement
+.style.setProperty(
+"--main",
+main
+);
+
+document.documentElement
+.style.setProperty(
+"--main2",
+main2
+);
+
+
+document
+.querySelectorAll(".theme-color")
+.forEach(
+item=>{
+item.classList.remove("active");
+}
+);
+
+button.classList.add("active");
+
+
+localStorage.setItem(
+"shivan_main_color",
+main
+);
+
+localStorage.setItem(
+"shivan_main_color2",
+main2
+);
+
+}
+
+
+/* =====================================================
+   FONT
+===================================================== */
+
+function setFont(font,button){
+
+document.body.classList.remove(
+"font-modern",
+"font-classic",
+"font-clean"
+);
+
+document.body.classList.add(
+"font-"+font
+);
+
+
+document
+.querySelectorAll(".font-button")
+.forEach(
+item=>{
+item.classList.remove("active");
+}
+);
+
+button.classList.add("active");
+
+
+localStorage.setItem(
+"shivan_font",
+font
+);
+
+
+/* Apply to app */
+
+document
+.querySelector(".app")
+.className=
+"app font-"+font;
+
+}
+
+
+/* =====================================================
+   LOAD SETTINGS
+===================================================== */
+
+function loadSettings(){
+
+const savedColor=
+localStorage.getItem(
+"shivan_main_color"
+);
+
+const savedColor2=
+localStorage.getItem(
+"shivan_main_color2"
+);
+
+const savedFont=
+localStorage.getItem(
+"shivan_font"
+);
+
+
+if(savedColor){
+
+document.documentElement
+.style.setProperty(
+"--main",
+savedColor
+);
+
+}
+
+
+if(savedColor2){
+
+document.documentElement
+.style.setProperty(
+"--main2",
+savedColor2
+);
+
+}
+
+
+if(savedFont){
+
+document.body.classList.add(
+"font-"+savedFont
+);
+
+}
+
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+function showToast(message){
+
+const toast=
+document.getElementById("toast");
+
+toast.textContent=message;
+
+toast.classList.add("show");
+
+clearTimeout(
+window.toastTimer
+);
+
+window.toastTimer=
+setTimeout(
+()=>{
+
+toast.classList.remove("show");
+
+},
+2200
+);
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+loadSettings();
+loadFavorites();
+
+</script>
+
+</body>
+</html>
+
+
+

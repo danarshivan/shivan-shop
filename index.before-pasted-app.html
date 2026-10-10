@@ -1,0 +1,4122 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Shivan Shop</title>
+
+<style>
+
+/* ==============================
+   بنەڕەت
+============================== */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --main:#ffb000;
+    --main2:#ff7a00;
+
+    --bg:#07080a;
+    --card:#121419;
+    --card2:#191c21;
+
+    --text:#ffffff;
+    --muted:#9699a1;
+
+    --border:rgba(255,255,255,.08);
+
+    --green:#25d17f;
+    --red:#ff5264;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    background:
+        radial-gradient(
+            circle at top,
+            rgba(255,176,0,.10),
+            transparent 35%
+        ),
+        var(--bg);
+
+    color:var(--text);
+
+    font-family:
+        Tahoma,
+        Arial,
+        sans-serif;
+
+    min-height:100vh;
+
+    padding-bottom:88px;
+}
+
+button,
+input{
+    font-family:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+
+/* ==============================
+   APP
+============================== */
+
+.app{
+    width:100%;
+    max-width:1200px;
+    margin:auto;
+}
+
+
+/* ==============================
+   HEADER
+============================== */
+
+.header{
+    height:70px;
+
+    position:sticky;
+    top:0;
+
+    z-index:1000;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 18px;
+
+    background:
+        rgba(7,8,10,.88);
+
+    backdrop-filter:blur(20px);
+
+    border-bottom:
+        1px solid var(--border);
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.logoIcon{
+    width:43px;
+    height:43px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:14px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:23px;
+
+    font-weight:900;
+
+    box-shadow:
+        0 8px 25px
+        rgba(255,176,0,.18);
+}
+
+.logoText{
+    font-size:19px;
+    font-weight:900;
+}
+
+.logoText span{
+    color:var(--main);
+}
+
+
+/* ==============================
+   PAGES
+============================== */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.container{
+    width:94%;
+    max-width:1150px;
+
+    margin:auto;
+}
+
+
+/* ==============================
+   HERO
+============================== */
+
+.hero{
+    height:470px;
+
+    margin-top:18px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:28px;
+
+    background:#111;
+
+    box-shadow:
+        0 25px 70px
+        rgba(0,0,0,.35);
+}
+
+.slide{
+    position:absolute;
+
+    inset:0;
+
+    background-size:cover;
+
+    background-position:center;
+
+    opacity:0;
+
+    transition:
+        opacity 1s ease;
+}
+
+.slide.active{
+    opacity:1;
+}
+
+.slide::after{
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,0,0,.85),
+            rgba(0,0,0,.43),
+            rgba(0,0,0,.12)
+        );
+}
+
+.heroContent{
+    position:absolute;
+
+    z-index:5;
+
+    left:7%;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    max-width:620px;
+}
+
+.heroBrand{
+    color:var(--main);
+
+    font-size:20px;
+
+    font-weight:900;
+
+    margin-bottom:10px;
+}
+
+.heroTitle{
+    font-size:59px;
+
+    line-height:1.08;
+
+    font-weight:900;
+
+    margin-bottom:17px;
+}
+
+.heroTitle span{
+    color:var(--main);
+}
+
+.heroText{
+    color:#ddd;
+
+    font-size:16px;
+
+    line-height:1.9;
+
+    margin-bottom:22px;
+}
+
+.mainButton{
+    border:0;
+
+    padding:14px 27px;
+
+    border-radius:14px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:15px;
+
+    font-weight:900;
+
+    box-shadow:
+        0 10px 25px
+        rgba(255,176,0,.20);
+}
+
+.dots{
+    position:absolute;
+
+    z-index:10;
+
+    bottom:17px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    display:flex;
+
+    gap:7px;
+}
+
+.dot{
+    width:8px;
+    height:8px;
+
+    border-radius:20px;
+
+    background:#777;
+
+    transition:.3s;
+}
+
+.dot.active{
+    width:28px;
+
+    background:var(--main);
+}
+
+
+/* ==============================
+   SECTION
+============================== */
+
+.section{
+    margin-top:40px;
+}
+
+.sectionHead{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:17px;
+}
+
+.sectionTitle{
+    font-size:27px;
+
+    font-weight:900;
+}
+
+.sectionTitle span{
+    color:var(--main);
+}
+
+
+/* ==============================
+   CATEGORY
+============================== */
+
+.categories{
+    display:grid;
+
+    grid-template-columns:
+        repeat(5,1fr);
+
+    gap:12px;
+}
+
+.category{
+    min-height:125px;
+
+    padding:17px;
+
+    border-radius:19px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1a1c21,
+            #101115
+        );
+
+    border:
+        1px solid var(--border);
+
+    transition:.25s;
+}
+
+.category:hover{
+    transform:translateY(-5px);
+
+    border-color:var(--main);
+}
+
+.categoryIcon{
+    font-size:32px;
+
+    margin-bottom:9px;
+}
+
+.categoryName{
+    font-size:16px;
+
+    font-weight:900;
+}
+
+.categorySmall{
+    margin-top:5px;
+
+    color:var(--muted);
+
+    font-size:11px;
+}
+
+
+/* ==============================
+   PRODUCTS
+============================== */
+
+.products{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:16px;
+}
+
+.product{
+    overflow:hidden;
+
+    border-radius:21px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #181a1f,
+            #101115
+        );
+
+    border:
+        1px solid var(--border);
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.product:hover{
+    transform:translateY(-6px);
+
+    border-color:var(--main);
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,.40);
+}
+
+.productImage{
+    height:245px;
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.productImage img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    transition:.5s;
+}
+
+.product:hover .productImage img{
+    transform:scale(1.07);
+}
+
+.favorite{
+    position:absolute;
+
+    top:10px;
+    right:10px;
+
+    width:40px;
+    height:40px;
+
+    border:0;
+
+    border-radius:12px;
+
+    background:
+        rgba(0,0,0,.62);
+
+    color:white;
+
+    font-size:21px;
+}
+
+.favorite.active{
+    color:var(--main);
+}
+
+.productInfo{
+    padding:14px;
+}
+
+.productCategory{
+    color:var(--muted);
+
+    font-size:11px;
+
+    margin-bottom:7px;
+}
+
+.productName{
+    font-size:16px;
+
+    font-weight:900;
+
+    margin-bottom:13px;
+}
+
+.productBottom{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:8px;
+}
+
+.price{
+    color:var(--main);
+
+    font-size:14px;
+
+    font-weight:900;
+}
+
+.smallButton{
+    border:0;
+
+    padding:9px 12px;
+
+    border-radius:11px;
+
+    background:var(--main);
+
+    color:#111;
+
+    font-size:11px;
+
+    font-weight:900;
+}
+
+
+/* ==============================
+   SEARCH
+============================== */
+
+.searchBox{
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-top:20px;
+
+    padding:5px 14px;
+
+    border-radius:17px;
+
+    background:var(--card);
+
+    border:
+        1px solid var(--border);
+}
+
+.searchBox span{
+    font-size:20px;
+}
+
+.searchBox input{
+    width:100%;
+
+    padding:14px 8px;
+
+    outline:none;
+
+    border:0;
+
+    background:transparent;
+
+    color:white;
+
+    font-size:15px;
+}
+
+.searchResults{
+    margin-top:22px;
+}
+
+
+/* ==============================
+   ORDERS
+============================== */
+
+.orders{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+}
+
+.order{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:15px;
+
+    padding:17px;
+
+    border-radius:18px;
+
+    background:var(--card);
+
+    border:
+        1px solid var(--border);
+}
+
+.orderInfo h3{
+    font-size:16px;
+
+    margin-bottom:7px;
+}
+
+.orderInfo p{
+    color:var(--muted);
+
+    font-size:12px;
+
+    line-height:1.8;
+}
+
+.orderStatus{
+    padding:8px 12px;
+
+    border-radius:10px;
+
+    color:var(--green);
+
+    background:
+        rgba(37,209,127,.10);
+
+    font-size:11px;
+
+    white-space:nowrap;
+}
+
+
+/* ==============================
+   EMPTY
+============================== */
+
+.empty{
+    padding:55px 20px;
+
+    text-align:center;
+
+    color:var(--muted);
+
+    border-radius:20px;
+
+    background:var(--card);
+
+    border:
+        1px solid var(--border);
+
+    line-height:1.9;
+}
+
+
+/* ==============================
+   PROFILE
+============================== */
+
+.profileCard{
+    margin-top:20px;
+
+    padding:25px;
+
+    text-align:center;
+
+    border-radius:23px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #191b20,
+            #101115
+        );
+
+    border:
+        1px solid var(--border);
+}
+
+.avatar{
+    width:84px;
+    height:84px;
+
+    margin:auto;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:34px;
+
+    font-weight:900;
+}
+
+.profileName{
+    margin-top:13px;
+
+    font-size:22px;
+
+    font-weight:900;
+}
+
+.profilePhone{
+    margin-top:6px;
+
+    color:var(--muted);
+}
+
+.profileItems{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+    margin-top:20px;
+}
+
+.profileItem{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:15px;
+
+    border-radius:15px;
+
+    background:var(--card);
+
+    border:
+        1px solid var(--border);
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.profileItem:hover{
+    border-color:var(--main);
+}
+
+.profileItemRight{
+    display:flex;
+
+    align-items:center;
+
+    gap:11px;
+}
+
+.profileIcon{
+    width:38px;
+    height:38px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:11px;
+
+    background:#20232a;
+}
+
+.logout{
+    color:var(--red);
+}
+
+
+/* ==============================
+   SETTINGS
+============================== */
+
+.settingsBox{
+    display:grid;
+
+    grid-template-columns:
+        repeat(2,1fr);
+
+    gap:14px;
+
+    margin-top:15px;
+}
+
+.setting{
+    padding:19px;
+
+    border-radius:18px;
+
+    background:var(--card);
+
+    border:
+        1px solid var(--border);
+}
+
+.setting h3{
+    margin-bottom:14px;
+}
+
+.colors{
+    display:flex;
+
+    gap:9px;
+
+    flex-wrap:wrap;
+}
+
+.color{
+    width:37px;
+    height:37px;
+
+    border:3px solid transparent;
+
+    border-radius:50%;
+}
+
+.color.active{
+    border-color:white;
+}
+
+.fonts{
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+}
+
+.font{
+    padding:9px 13px;
+
+    border-radius:11px;
+
+    border:
+        1px solid var(--border);
+
+    background:#181a1f;
+
+    color:white;
+}
+
+.font.active{
+    background:var(--main);
+
+    color:#111;
+}
+
+
+/* ==============================
+   PRODUCT MODAL
+============================== */
+
+.modal{
+    position:fixed;
+
+    inset:0;
+
+    z-index:5000;
+
+    display:none;
+
+    align-items:flex-end;
+
+    justify-content:center;
+
+    background:
+        rgba(0,0,0,.78);
+
+    backdrop-filter:blur(8px);
+}
+
+.modal.show{
+    display:flex;
+}
+
+.sheet{
+    width:100%;
+
+    max-width:650px;
+
+    max-height:94vh;
+
+    overflow:auto;
+
+    border-radius:
+        28px 28px 0 0;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1b1d22,
+            #0e0f12
+        );
+
+    animation:
+        sheetUp .3s ease;
+}
+
+@keyframes sheetUp{
+
+    from{
+        transform:translateY(100%);
+    }
+
+    to{
+        transform:translateY(0);
+    }
+
+}
+
+.sheetImage{
+    height:330px;
+
+    position:relative;
+}
+
+.sheetImage img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+}
+
+.close{
+    position:absolute;
+
+    top:14px;
+    left:14px;
+
+    width:43px;
+    height:43px;
+
+    border:0;
+
+    border-radius:13px;
+
+    background:
+        rgba(0,0,0,.65);
+
+    color:white;
+
+    font-size:24px;
+}
+
+.sheetBody{
+    padding:21px;
+}
+
+.sheetCategory{
+    color:var(--main);
+
+    font-size:12px;
+}
+
+.sheetTitle{
+    margin:7px 0;
+
+    font-size:26px;
+
+    font-weight:900;
+}
+
+.sheetPrice{
+    color:var(--main);
+
+    font-size:21px;
+
+    font-weight:900;
+
+    margin-bottom:20px;
+}
+
+.optionTitle{
+    color:#aaa;
+
+    font-size:12px;
+
+    margin-bottom:9px;
+}
+
+.options{
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-bottom:19px;
+}
+
+.option{
+    min-width:48px;
+
+    padding:10px 15px;
+
+    border-radius:11px;
+
+    border:
+        1px solid #33363d;
+
+    background:#191b20;
+
+    color:white;
+}
+
+.option.active{
+    background:var(--main);
+
+    color:#111;
+
+    border-color:var(--main);
+}
+
+.colorOption{
+    width:40px;
+    height:40px;
+
+    min-width:40px;
+
+    padding:0;
+
+    border-radius:50%;
+}
+
+.quantity{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:15px;
+
+    padding:11px;
+
+    border-radius:14px;
+
+    background:#181a1f;
+
+    border:
+        1px solid var(--border);
+}
+
+.quantityButtons{
+    display:flex;
+
+    align-items:center;
+
+    gap:13px;
+}
+
+.quantityButtons button{
+    width:37px;
+    height:37px;
+
+    border:0;
+
+    border-radius:10px;
+
+    background:#292c32;
+
+    color:white;
+
+    font-size:20px;
+}
+
+.addCart{
+    width:100%;
+
+    padding:16px;
+
+    border:0;
+
+    border-radius:15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--main),
+            var(--main2)
+        );
+
+    color:#111;
+
+    font-size:16px;
+
+    font-weight:900;
+}
+
+
+/* ==============================
+   NAVBAR
+============================== */
+
+.navbar{
+    position:fixed;
+
+    left:50%;
+    bottom:0;
+
+    transform:translateX(-50%);
+
+    z-index:4000;
+
+    width:100%;
+
+    max-width:850px;
+
+    height:76px;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    padding:8px 10px;
+
+    background:
+        rgba(15,16,19,.95);
+
+    backdrop-filter:blur(25px);
+
+    border:
+        1px solid var(--border);
+
+    box-shadow:
+        0 -12px 40px
+        rgba(0,0,0,.45);
+}
+
+.navButton{
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:4px;
+
+    border:0;
+
+    border-radius:15px;
+
+    background:transparent;
+
+    color:#777;
+
+    transition:.25s;
+}
+
+.navIcon{
+    font-size:21px;
+}
+
+.navText{
+    font-size:10px;
+
+    font-weight:700;
+}
+
+.navButton.active{
+    color:var(--main);
+
+    background:
+        rgba(255,176,0,.09);
+}
+
+
+/* ==============================
+   TOAST
+============================== */
+
+.toast{
+    position:fixed;
+
+    left:50%;
+    bottom:95px;
+
+    z-index:8000;
+
+    transform:
+        translate(-50%,100px);
+
+    padding:13px 20px;
+
+    border-radius:13px;
+
+    background:white;
+
+    color:#111;
+
+    font-weight:bold;
+
+    transition:.3s;
+}
+
+.toast.show{
+    transform:
+        translate(-50%,0);
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media(max-width:700px){
+
+    body{
+        padding-bottom:82px;
+    }
+
+    .header{
+        height:63px;
+
+        padding:0 12px;
+    }
+
+    .logoIcon{
+        width:39px;
+        height:39px;
+    }
+
+    .logoText{
+        font-size:17px;
+    }
+
+    .hero{
+        height:450px;
+
+        border-radius:22px;
+    }
+
+    .heroContent{
+        left:18px;
+        right:18px;
+
+        text-align:center;
+
+        max-width:none;
+    }
+
+    .heroTitle{
+        font-size:40px;
+    }
+
+    .heroText{
+        font-size:13px;
+    }
+
+    .categories{
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap:9px;
+    }
+
+    .category{
+        min-height:112px;
+
+        padding:14px;
+    }
+
+    .categoryIcon{
+        font-size:29px;
+    }
+
+    .categoryName{
+        font-size:14px;
+    }
+
+    .products{
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap:9px;
+    }
+
+    .productImage{
+        height:180px;
+    }
+
+    .productInfo{
+        padding:10px;
+    }
+
+    .productName{
+        font-size:13px;
+    }
+
+    .price{
+        font-size:11px;
+    }
+
+    .smallButton{
+        padding:8px 9px;
+
+        font-size:9px;
+    }
+
+    .settingsBox{
+        grid-template-columns:1fr;
+    }
+
+    .order{
+        flex-direction:column;
+
+        align-items:flex-start;
+    }
+
+    .orderStatus{
+        align-self:flex-start;
+    }
+
+    .sheetImage{
+        height:290px;
+    }
+
+    .sheetTitle{
+        font-size:23px;
+    }
+
+}
+
+@media(max-width:380px){
+
+    .productImage{
+        height:155px;
+    }
+
+    .productBottom{
+        flex-direction:column;
+
+        align-items:stretch;
+    }
+
+    .smallButton{
+        width:100%;
+    }
+
+}
+
+
+
+/* =========================
+   AUTH DESIGN
+========================= */
+
+#authPage{
+    min-height:100vh;
+    width:100%;
+
+    background:
+        radial-gradient(
+            circle at top,
+            rgba(255,176,0,.12),
+            transparent 35%
+        ),
+        #090a0c;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:25px;
+
+    color:white;
+}
+
+.auth-box{
+    width:100%;
+    max-width:430px;
+
+    text-align:center;
+}
+
+.auth-logo{
+    width:76px;
+    height:76px;
+
+    margin:0 auto 20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:23px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffb000,
+            #ff7800
+        );
+
+    color:#111;
+
+    font-size:35px;
+    font-weight:900;
+
+    box-shadow:
+        0 15px 40px
+        rgba(255,170,0,.25);
+}
+
+.auth-box h1{
+    margin:0;
+
+    font-size:30px;
+    font-weight:900;
+}
+
+.auth-box h2{
+    margin:4px 0 10px;
+
+    color:#ffb000;
+
+    font-size:30px;
+    font-weight:900;
+}
+
+.auth-subtitle{
+    color:#999;
+
+    font-size:14px;
+
+    margin-bottom:28px;
+
+    line-height:1.8;
+}
+
+
+/* TABS */
+
+.auth-tabs{
+    display:flex;
+
+    background:#151619;
+
+    padding:5px;
+
+    border-radius:17px;
+
+    margin-bottom:22px;
+}
+
+.auth-tab{
+    flex:1;
+
+    height:52px;
+
+    border:0;
+
+    border-radius:13px;
+
+    background:transparent;
+
+    color:#aaa;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    cursor:pointer;
+}
+
+.auth-tab.active{
+    background:#ffb000;
+
+    color:#111;
+}
+
+
+/* INPUTS */
+
+.auth-box label{
+    display:block;
+
+    text-align:right;
+
+    margin:15px 5px 8px;
+
+    color:#ddd;
+
+    font-size:14px;
+}
+
+.auth-box input{
+    width:100%;
+
+    height:58px;
+
+    padding:0 18px;
+
+    border-radius:16px;
+
+    border:1px solid #2b2c30;
+
+    outline:none;
+
+    background:#151619;
+
+    color:white;
+
+    font-size:16px;
+
+    direction:rtl;
+
+    box-sizing:border-box;
+}
+
+.auth-box input:focus{
+    border-color:#ffb000;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(255,176,0,.10);
+}
+
+.auth-box input::placeholder{
+    color:#777;
+}
+
+
+/* MAIN BUTTON */
+
+.main-auth-btn{
+    width:100%;
+
+    height:58px;
+
+    margin-top:24px;
+
+    border:0;
+
+    border-radius:17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffb000,
+            #ff7800
+        );
+
+    color:#111;
+
+    font-size:17px;
+
+    font-weight:900;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 10px 30px
+        rgba(255,170,0,.18);
+}
+
+
+/* FORGOT */
+
+.forgot-btn{
+    margin-top:18px;
+
+    border:0;
+
+    background:none;
+
+    color:#ffb000;
+
+    font-size:14px;
+
+    cursor:pointer;
+}
+
+.back-auth{
+    border:0;
+
+    background:none;
+
+    color:#ffb000;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+    margin-bottom:20px;
+}
+
+.forgotForm h3{
+    font-size:25px;
+}
+
+.forgot-text{
+    color:#999;
+
+    font-size:14px;
+
+    line-height:1.8;
+}
+
+
+/* MOBILE */
+
+@media(max-width:500px){
+
+    #authPage{
+        padding:20px;
+    }
+
+    .auth-logo{
+        width:68px;
+        height:68px;
+
+        font-size:30px;
+    }
+
+    .auth-box h1{
+        font-size:27px;
+    }
+
+    .auth-box h2{
+        font-size:27px;
+    }
+
+}
+
+
+
+/* Compact full-screen login and signup layout */
+body.auth-active {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+}
+body.auth-active #authPage {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px !important;
+}
+body.auth-active .auth-box {
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    max-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden !important;
+}
+body.auth-active .auth-logo {
+    width: 58px !important;
+    height: 58px !important;
+    min-height: 58px;
+    margin: 0 auto 8px !important;
+    border-radius: 18px !important;
+    font-size: 27px !important;
+}
+body.auth-active .auth-box h1,
+body.auth-active .auth-box h2 {
+    font-size: 24px !important;
+    line-height: 1.2;
+}
+body.auth-active .auth-box h1 { margin: 0 !important; }
+body.auth-active .auth-box h2 { margin: 2px 0 5px !important; }
+body.auth-active .auth-subtitle {
+    font-size: 11px !important;
+    margin: 0 0 10px !important;
+    line-height: 1.4;
+}
+body.auth-active .auth-tabs { height: 43px; min-height: 43px; margin-bottom: 8px !important; }
+body.auth-active .auth-tab { height: 43px !important; font-size: 13px !important; }
+body.auth-active .auth-box label { margin: 7px 4px 4px !important; font-size: 12px !important; }
+body.auth-active .auth-box input {
+    height: 45px !important;
+    min-height: 45px;
+    font-size: 14px !important;
+    border-radius: 13px !important;
+}
+body.auth-active .main-auth-btn {
+    height: 47px !important;
+    min-height: 47px;
+    margin-top: 12px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+}
+body.auth-active .forgot-btn { margin-top: 8px !important; font-size: 12px !important; }
+@media (max-width: 500px) {
+    body.auth-active #authPage {
+        padding: max(8px, env(safe-area-inset-top)) 15px max(8px, env(safe-area-inset-bottom)) 15px !important;
+    }
+    body.auth-active .auth-box { justify-content: center; }
+}
+
+/* Rotating fashion background on the sign-in screen */
+body.auth-active #authPage { isolation: isolate; background: #08090b; }
+.auth-ad { position: absolute; inset: 0; overflow: hidden; z-index: -1; }
+.auth-ad-slide {
+    position: absolute; inset: 0; opacity: 0; transform: scale(1.06);
+    transition: opacity 1s ease, transform 5s ease;
+}
+.auth-ad-slide.active { opacity: 1; transform: scale(1); }
+.auth-ad-slide img { width: 100%; height: 100%; object-fit: cover; }
+.auth-ad-cover {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,.82), rgba(0,0,0,.38)),
+                linear-gradient(0deg, rgba(0,0,0,.78), rgba(0,0,0,.15));
+}
+.auth-ad-text {
+    position: absolute; left: 7%; bottom: 9%; z-index: 1;
+    max-width: 380px; color: #fff; text-align: left;
+}
+.auth-ad-text small { color: #e8b84a; font-size: 15px; font-weight: 900; letter-spacing: 3px; }
+.auth-ad-text h2 { margin: 10px 0; font-size: 46px; line-height: 1.15; font-weight: 900; }
+.auth-ad-text h2 span { color: #e8b84a; }
+.auth-ad-text p { margin: 0; color: rgba(255,255,255,.8); font-size: 15px; }
+.auth-ad-dots {
+    position: absolute; bottom: 25px; left: 0; right: 0; z-index: 5;
+    display: flex; justify-content: center; gap: 7px;
+}
+.auth-ad-dots button {
+    width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%;
+    background: rgba(255,255,255,.4); cursor: pointer; transition: .3s;
+}
+.auth-ad-dots button.active { width: 25px; border-radius: 10px; background: #e8b84a; }
+body.auth-active .auth-box {
+    position: relative; z-index: 20; height: auto; max-height: 92vh; overflow-y: auto;
+    padding: 25px; border-radius: 28px;
+    background: rgba(12,13,16,.90); border: 1px solid rgba(255,255,255,.10);
+    backdrop-filter: blur(22px); box-shadow: 0 30px 80px rgba(0,0,0,.55);
+}
+@media (max-width: 650px) {
+    .auth-ad-text { display: none; }
+    body.auth-active .auth-box { max-width: 390px; max-height: 92vh; padding: 20px; background: rgba(8,9,11,.92); }
+    body.auth-active .auth-logo { width: 55px; height: 55px; }
+    body.auth-active .auth-box h1, body.auth-active .auth-box h2 { font-size: 23px !important; }
+}
+
+/* Luxury banner refinements */
+.hero { height: 430px; border-radius: 30px; }
+.slide { transform: scale(1.08); transition: opacity 1s ease, transform 5s ease; }
+.slide.active { transform: scale(1); }
+.slide::after {
+    background: linear-gradient(90deg, rgba(0,0,0,.78), rgba(0,0,0,.25)),
+                linear-gradient(0deg, rgba(0,0,0,.80), transparent 60%);
+}
+.heroContent {
+    inset: 0; left: 0; top: 0; transform: none; max-width: none; padding: 30px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+}
+.heroBrand { color: #e8b84a; font-size: 14px; letter-spacing: 4px; margin-bottom: 10px; }
+.heroLine { width: 45px; height: 2px; background: #e8b84a; margin-bottom: 20px; box-shadow: 0 0 15px rgba(232,184,74,.6); }
+.heroTitle { font-size: 42px; line-height: 1.35; margin-bottom: 0; }
+.heroTitle span { color: #e8b84a; }
+.heroText { color: rgba(255,255,255,.88); font-size: 15px; margin: 15px 0 25px; }
+.heroContent .mainButton {
+    border: 1px solid rgba(255,255,255,.3); padding: 14px 32px; border-radius: 16px;
+    background: linear-gradient(135deg, #e8b84a, #b87b16); color: #111; font-size: 14px;
+    box-shadow: 0 12px 35px rgba(232,184,74,.25);
+}
+.heroContent .mainButton:active { transform: scale(.94); }
+.dot { width: 7px; height: 7px; background: rgba(255,255,255,.45); cursor: pointer; }
+.dot.active { width: 28px; background: #e8b84a; box-shadow: 0 0 12px rgba(232,184,74,.6); }
+@media (max-width: 600px) {
+    .hero { height: 390px; border-radius: 25px; margin: 10px 0 18px; }
+    .heroContent { padding: 22px; }
+    .heroBrand { font-size: 11px; letter-spacing: 3px; }
+    .heroTitle { font-size: 32px; line-height: 1.4; }
+    .heroText { font-size: 12px; margin: 10px 0 18px; }
+    .heroContent .mainButton { padding: 12px 25px; font-size: 13px; border-radius: 14px; }
+}
+</style>
+</head>
+
+
+<body>
+<div id="authPage" dir="rtl" style="display:none;position:fixed;inset:0;z-index:10000;overflow-y:auto;">
+
+    <div class="auth-ad" aria-hidden="true">
+        <div class="auth-ad-slide active">
+            <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=90" alt="">
+            <div class="auth-ad-cover"></div>
+            <div class="auth-ad-text"><small>SHIVAN SHOP</small><h2>جوانی<br><span>بۆ تۆ</span></h2><p>هەلبژێرە و جیاواز بە</p></div>
+        </div>
+        <div class="auth-ad-slide">
+            <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=90" alt="">
+            <div class="auth-ad-cover"></div>
+            <div class="auth-ad-text"><small>SHIVAN SHOP</small><h2>شێوازی<br><span>تایبەت</span></h2><p>کوالیتییا بەرز بۆ کەسێن تایبەت</p></div>
+        </div>
+        <div class="auth-ad-slide">
+            <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1200&q=90" alt="">
+            <div class="auth-ad-cover"></div>
+            <div class="auth-ad-text"><small>SHIVAN SHOP</small><h2>جیاوازی<br><span>لە تۆ دەست پێدکات</span></h2><p>ئەو شتە هەلبژێرە کو دڵێ تە دڤێت</p></div>
+        </div>
+        <div class="auth-ad-dots" aria-label="پەڕەکانی رێکلام">
+            <button class="active" type="button" aria-label="رێکلام ١"></button>
+            <button type="button" aria-label="رێکلام ٢"></button>
+            <button type="button" aria-label="رێکلام ٣"></button>
+        </div>
+    </div>
+
+    <div class="auth-box">
+
+        <!-- لوگۆ -->
+        <div class="auth-logo">S</div>
+
+        <h1>بەخێربێیت بۆ</h1>
+        <h2>Shivan Shop</h2>
+
+        <p class="auth-subtitle">
+            خێر هاتن بۆ شوپێکی جوان و متمانەپێکراو
+        </p>
+
+
+        <!-- ================= LOGIN ================= -->
+
+        <div id="loginForm">
+
+            <div class="auth-tabs">
+                <button class="auth-tab active"
+                    onclick="showLogin()">
+                    چوونە ژوور
+                </button>
+
+                <button class="auth-tab"
+                    onclick="showSignup()">
+                    هەژمار دروست بکە
+                </button>
+            </div>
+
+            <label>ژمارا موبایل</label>
+
+            <input
+                id="loginPhone"
+                type="tel"
+                placeholder="0750 000 0000"
+            >
+
+            <label>وشەیا نهێنی</label>
+
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="وشەیا نهێنی بنڤیسە"
+            >
+
+            <button class="main-auth-btn"
+                onclick="loginUser()">
+                چوونە ژوور
+            </button>
+
+            <button class="forgot-btn"
+                onclick="showForgot()">
+                وشەیا نهێنی ژبیرکر؟
+            </button>
+
+        </div>
+
+
+        <!-- ================= SIGN UP ================= -->
+
+        <div id="signupForm" style="display:none;">
+
+            <div class="auth-tabs">
+                <button class="auth-tab"
+                    onclick="showLogin()">
+                    چوونە ژوور
+                </button>
+
+                <button class="auth-tab active">
+                    هەژمار دروست بکە
+                </button>
+            </div>
+
+            <label>ناڤ</label>
+
+            <input
+                id="signupName"
+                type="text"
+                placeholder="ناڤێ تە"
+            >
+
+            <label>ژمارا موبایل</label>
+
+            <input
+                id="signupPhone"
+                type="tel"
+                placeholder="0750 000 0000"
+            >
+
+            <label>وشەیا نهێنی</label>
+
+            <input
+                id="signupPassword"
+                type="password"
+                placeholder="وشەیا نهێنی"
+            >
+
+            <label>دوبارە وشەیا نهێنی</label>
+
+            <input
+                id="signupPassword2"
+                type="password"
+                placeholder="وشەیا نهێنی دوبارە بنڤیسە"
+            >
+
+            <button class="main-auth-btn"
+                onclick="signupUser()">
+                هەژمار دروست بکە
+            </button>
+
+        </div>
+
+
+        <!-- ================= FORGOT ================= -->
+
+        <div id="forgotForm" style="display:none;">
+
+            <button class="back-auth"
+                onclick="showLogin()">
+                ← گەڕانەوە
+            </button>
+
+            <h3>وشەیا نهێنی ژبیرکر؟</h3>
+
+            <p class="forgot-text">
+                ژمارا موبایلا خۆ بنڤیسە و وشەیا نهێنییەکا نوێ دابنێ.
+            </p>
+
+            <label>ژمارا موبایل</label>
+
+            <input
+                id="forgotPhone"
+                type="tel"
+                placeholder="0750 000 0000"
+            >
+
+            <label>وشەیا نهێنی یا نوێ</label>
+
+            <input
+                id="newPassword"
+                type="password"
+                placeholder="وشەیا نهێنی یا نوێ"
+            >
+
+            <label>دوبارە وشەیا نهێنی یا نوێ</label>
+
+            <input
+                id="newPassword2"
+                type="password"
+                placeholder="دوبارە بنڤیسە"
+            >
+
+            <button class="main-auth-btn"
+                onclick="resetPassword()">
+                گۆڕینا وشەیا نهێنی
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="app">
+
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
+<header class="header">
+
+    <div class="logo">
+
+        <div class="logoIcon">
+            S
+        </div>
+
+        <div class="logoText">
+            Shivan <span>Shop</span>
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================
+     SHOP
+========================================= -->
+
+<section
+id="shop"
+class="page active">
+
+<div class="container">
+
+
+<!-- بانەر -->
+
+<div class="hero">
+
+
+<div
+class="slide active"
+style="
+background-image:url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=90')
+">
+<div class="heroContent">
+    <div class="heroBrand">SHIVAN SHOP</div>
+    <div class="heroLine"></div>
+    <h1 class="heroTitle">شێوازی جوانی<br><span>بۆ تۆ</span></h1>
+    <p class="heroText">هەلبژێرە، دڵخۆش بە، جیاواز بە</p>
+    <button class="mainButton" onclick="scrollProducts()">بەرهەمەکان ببینە</button>
+</div>
+</div>
+
+
+<div
+class="slide"
+style="
+background-image:url('https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1400&q=90')
+">
+<div class="heroContent">
+    <div class="heroBrand">SHIVAN SHOP</div>
+    <div class="heroLine"></div>
+    <h1 class="heroTitle">هەلبژاردنەکا<br><span>تایبەت</span></h1>
+    <p class="heroText">کوالیتییا بەرز، شێوازێ تایبەت</p>
+    <button class="mainButton" onclick="scrollProducts()">ئێستا ببینە</button>
+</div>
+</div>
+
+
+<div
+class="slide"
+style="
+background-image:url('https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1400&q=90')
+">
+<div class="heroContent">
+    <div class="heroBrand">SHIVAN SHOP</div>
+    <div class="heroLine"></div>
+    <h1 class="heroTitle">جیاوازی<br><span>لە تۆ دەست پێدکات</span></h1>
+    <p class="heroText">ئەو شتە هەلبژێرە کو دڵێ تە دڤێت</p>
+    <button class="mainButton" onclick="scrollProducts()">دەست پێ بکە</button>
+</div>
+</div>
+
+
+<div class="dots">
+
+<div class="dot active"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+
+</div>
+
+</div>
+
+
+
+<!-- =========================================
+     CATEGORY
+========================================= -->
+
+<section class="section">
+
+<div class="sectionHead">
+
+<h2 class="sectionTitle">
+
+پۆلێنێن
+<span>بەرهەمان</span>
+
+</h2>
+
+</div>
+
+
+<div class="categories">
+<div class="category"><div class="categoryIcon">👗</div><div class="categoryName">جلکێن شەڤێ</div><div class="categorySmall">جلکێن جوان</div></div>
+<div class="category"><div class="categoryIcon">👚</div><div class="categoryName">جلکێن کەژوال</div><div class="categorySmall">بۆ ڕۆژانە</div></div>
+<div class="category"><div class="categoryIcon">🧥</div><div class="categoryName">جلکێن پارتی</div><div class="categorySmall">بۆ بۆنە تایبەتەکان</div></div>
+<div class="category"><div class="categoryIcon">👜</div><div class="categoryName">ئەکسسوار</div><div class="categorySmall">تەواوکرنا شێوازێ</div></div>
+<div class="category"><div class="categoryIcon">✨</div><div class="categoryName">کۆلێکشنا نوو</div><div class="categorySmall">هەڵبژاردنێن نوو</div></div>
+</div></section>
+
+
+
+<!-- =========================================
+     PRODUCTS
+========================================= -->
+
+<section
+id="productsSection"
+class="section">
+
+<div class="sectionHead">
+
+<h2 class="sectionTitle">
+
+بەرهەمێن
+<span>نوێ</span>
+
+</h2>
+
+</div>
+
+
+<div
+id="productGrid"
+class="products">
+</div>
+
+</section>
+
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================
+     SEARCH
+========================================= -->
+
+<section
+id="search"
+class="page">
+
+<div class="container">
+
+<section class="section">
+
+<div class="sectionHead">
+
+<h2 class="sectionTitle">
+
+<span>گەڕان</span>
+
+</h2>
+
+</div>
+
+
+<div class="searchBox">
+
+<span>🔎</span>
+
+<input
+id="searchInput"
+type="text"
+placeholder="ناڤێ بەرهەمێ بنڤیسە..."
+oninput="searchProducts">
+
+</div>
+
+
+<div
+id="searchResults"
+class="searchResults">
+
+<div class="empty">
+
+ناڤێ بەرهەمێ بنڤیسە دا بگەڕێیت.
+
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================
+     ORDERS
+========================================= -->
+
+<section
+id="orders"
+class="page">
+
+<div class="container">
+
+<section class="section">
+
+<div class="sectionHead">
+
+<h2 class="sectionTitle">
+
+داخوازیێن
+<span>من</span>
+
+</h2>
+
+</div>
+
+
+<div
+id="ordersList"
+class="orders">
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================
+     PROFILE
+========================================= -->
+
+<section
+id="profile"
+class="page">
+
+<div class="container">
+
+<section class="section">
+
+<div class="sectionHead">
+
+<h2 class="sectionTitle">
+
+<span>پڕۆفایل</span>
+
+</h2>
+
+</div>
+
+
+<div class="profileCard">
+
+
+<div class="avatar">
+S
+</div>
+
+
+<div
+id="profileName"
+class="profileName">
+
+دانەر
+
+</div>
+
+
+<div
+id="profilePhone"
+class="profilePhone">
+
+ژمارا موبایل
+
+</div>
+
+
+<div class="profileItems">
+
+
+<div
+class="profileItem"
+onclick="editProfile()">
+
+<div class="profileItemRight">
+
+<div class="profileIcon">
+👤
+</div>
+
+<span>
+زانیاریێن پڕۆفایل
+</span>
+
+</div>
+
+<span>‹</span>
+
+</div>
+
+
+<div
+class="profileItem"
+onclick="showSettings()">
+
+<div class="profileItemRight">
+
+<div class="profileIcon">
+⚙️
+</div>
+
+<span>
+ڕێکخستن
+</span>
+
+</div>
+
+<span>‹</span>
+
+</div>
+
+
+<div
+class="profileItem"
+onclick="goPage('orders')">
+
+<div class="profileItemRight">
+
+<div class="profileIcon">
+📦
+</div>
+
+<span>
+داخوازیێن من
+</span>
+
+</div>
+
+<span>‹</span>
+
+</div>
+
+
+<div
+class="profileItem"
+onclick="showToast('پشتگیری دێ بزڤریت')">
+
+<div class="profileItemRight">
+
+<div class="profileIcon">
+💬
+</div>
+
+<span>
+پشتگیری
+</span>
+
+</div>
+
+<span>‹</span>
+
+</div>
+
+
+<div
+class="profileItem logout"
+onclick="logout()">
+
+<div class="profileItemRight">
+
+<div class="profileIcon">
+🚪
+</div>
+
+<span>
+دەرکەفتن
+</span>
+
+</div>
+
+<span>‹</span>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+<div
+id="settingsPanel"
+style="display:none">
+
+
+<div class="settingsBox">
+
+
+<div class="setting">
+
+<h3>
+ڕەنگێ Shop
+</h3>
+
+<div class="colors">
+
+<button
+class="color active"
+style="background:#ffb000"
+onclick="changeColor('#ffb000','#ff7a00',this)">
+</button>
+
+<button
+class="color"
+style="background:#8b5cf6"
+onclick="changeColor('#8b5cf6','#6d28d9',this)">
+</button>
+
+<button
+class="color"
+style="background:#22c55e"
+onclick="changeColor('#22c55e','#15803d',this)">
+</button>
+
+<button
+class="color"
+style="background:#ef4444"
+onclick="changeColor('#ef4444','#b91c1c',this)">
+</button>
+
+<button
+class="color"
+style="background:#06b6d4"
+onclick="changeColor('#06b6d4','#0891b2',this)">
+</button>
+
+</div>
+
+</div>
+
+
+<div class="setting">
+
+<h3>
+فۆنت
+</h3>
+
+<div class="fonts">
+
+<button
+class="font active"
+onclick="changeFont('Tahoma',this)">
+مۆدێرن
+</button>
+
+<button
+class="font"
+onclick="changeFont('Arial',this)">
+پاک
+</button>
+
+<button
+class="font"
+onclick="changeFont('serif',this)">
+کلاسیک
+</button>
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+</section>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================
+     NAVBAR
+========================================= -->
+
+<nav class="navbar">
+
+
+<button
+id="navShop"
+class="navButton active"
+onclick="goPage('shop')">
+
+<div class="navIcon">
+🏠
+</div>
+
+<div class="navText">
+شۆپ
+</div>
+
+</button>
+
+
+<button
+id="navSearch"
+class="navButton"
+onclick="goPage('search')">
+
+<div class="navIcon">
+🔎
+</div>
+
+<div class="navText">
+گەڕان
+</div>
+
+</button>
+
+
+<button
+id="navOrders"
+class="navButton"
+onclick="goPage('orders')">
+
+<div class="navIcon">
+📦
+</div>
+
+<div class="navText">
+داخوازی
+</div>
+
+</button>
+
+
+<button
+id="navProfile"
+class="navButton"
+onclick="goPage('profile')">
+
+<div class="navIcon">
+👤
+</div>
+
+<div class="navText">
+پڕۆفایل
+</div>
+
+</button>
+
+
+</nav>
+
+
+
+<!-- =========================================
+     PRODUCT MODAL
+========================================= -->
+
+<div
+id="modal"
+class="modal"
+onclick="closeProduct()">
+
+
+<div
+class="sheet"
+onclick="event.stopPropagation()">
+
+
+<div class="sheetImage">
+
+<img
+id="modalImage"
+src=""
+alt="">
+
+<button
+class="close"
+onclick="closeProduct()">
+
+×
+
+</button>
+
+</div>
+
+
+<div class="sheetBody">
+
+
+<div
+id="modalCategory"
+class="sheetCategory">
+</div>
+
+
+<h2
+id="modalTitle"
+class="sheetTitle">
+</h2>
+
+
+<div
+id="modalPrice"
+class="sheetPrice">
+</div>
+
+
+<div class="optionTitle">
+قەبارە
+</div>
+
+
+<div class="options">
+
+
+<button
+class="option active"
+onclick="chooseSize(this)">
+S
+</button>
+
+<button
+class="option"
+onclick="chooseSize(this)">
+M
+</button>
+
+<button
+class="option"
+onclick="chooseSize(this)">
+L
+</button>
+
+<button
+class="option"
+onclick="chooseSize(this)">
+XL
+</button>
+
+
+</div>
+
+
+<div class="optionTitle">
+ڕەنگ
+</div>
+
+
+<div class="options">
+
+
+<button
+class="option colorOption active"
+style="background:#111"
+onclick="chooseColor(this,'ڕەش')">
+</button>
+
+<button
+class="option colorOption"
+style="background:#fff"
+onclick="chooseColor(this,'سپی')">
+</button>
+
+<button
+class="option colorOption"
+style="background:#d62828"
+onclick="chooseColor(this,'سور')">
+</button>
+
+<button
+class="option colorOption"
+style="background:#1d4ed8"
+onclick="chooseColor(this,'شین')">
+</button>
+
+<button
+class="option colorOption"
+style="background:#15803d"
+onclick="chooseColor(this,'سەوز')">
+</button>
+
+
+</div>
+
+
+<div class="quantity">
+
+<span>
+ژمارا
+</span>
+
+
+<div class="quantityButtons">
+
+<button onclick="changeQuantity(-1)">
+−
+</button>
+
+<span id="quantity">
+1
+</span>
+
+<button onclick="changeQuantity(1)">
++
+</button>
+
+</div>
+
+</div>
+
+
+<button
+class="addCart"
+onclick="addToCart()">
+
+زیاد بکە بۆ سەبەت 🛒
+
+</button>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+id="toast"
+class="toast">
+</div>
+
+
+</div>
+
+
+<script>
+
+/* Rotating fashion slides on the authentication screen */
+let authAdIndex = 0;
+const authAdSlides = document.querySelectorAll(".auth-ad-slide");
+const authAdDots = document.querySelectorAll(".auth-ad-dots button");
+
+function showAuthAd(index) {
+    authAdSlides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+    authAdDots.forEach((dot, i) => dot.classList.toggle("active", i === index));
+}
+
+authAdDots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+        authAdIndex = index;
+        showAuthAd(index);
+    });
+});
+
+if (authAdSlides.length) {
+    setInterval(() => {
+        authAdIndex = (authAdIndex + 1) % authAdSlides.length;
+        showAuthAd(authAdIndex);
+    }, 3000);
+}
+
+/* =========================================
+   بەرهەم
+========================================= */
+
+const products = [
+{id:1,name:"Royal Evening Gown",category:"جلکێن شەڤێ",price:25000,image:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=90"},
+{id:2,name:"Chic Silk Dress",category:"جلکێن شەڤێ",price:25000,image:"https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?auto=format&fit=crop&w=900&q=90"},
+{id:3,name:"Modern Casual Set",category:"جلکێن کەژوال",price:25000,image:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=90"},
+{id:4,name:"Luxury Party Blazer",category:"جلکێن پارتی",price:25000,image:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=90"}
+];
+
+
+let currentProduct = null;
+
+let quantity = 1;
+
+let selectedSize = "S";
+
+let selectedColor = "ڕەش";
+
+
+/* =========================================
+   نرخ
+========================================= */
+
+function formatPrice(price){
+
+    return new Intl.NumberFormat("en-IQ")
+        .format(price)
+        + " دینار";
+
+}
+
+
+/* =========================================
+   نیشاندانا بەرهەمان
+========================================= */
+
+function renderProducts(list = products){
+
+    const grid =
+        document.getElementById("productGrid");
+
+    grid.innerHTML = "";
+
+
+    list.forEach(product => {
+
+        grid.innerHTML += `
+
+        <div
+            class="product"
+            onclick="openProduct(${product.id})">
+
+            <div class="productImage">
+
+                <img
+                    src="${product.image}"
+                    alt="${product.name}">
+
+                <button
+                    class="favorite" data-product-id="${product.id}"
+                    onclick="
+                        event.stopPropagation();
+                        favorite(this)
+                    ">
+
+                    ♡
+
+                </button>
+
+            </div>
+
+
+            <div class="productInfo">
+
+                <div class="productCategory">
+                    ${product.category}
+                </div>
+
+                <div class="productName">
+                    ${product.name}
+                </div>
+
+
+                <div class="productBottom">
+
+                    <div class="price">
+                        ${formatPrice(product.price)}
+                    </div>
+
+                    <button
+                        class="smallButton"
+                        onclick="
+                            event.stopPropagation();
+                            openProduct(${product.id})
+                        ">
+
+                        ببینە
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+function searchProducts(){
+
+    const input =
+        document.getElementById("searchInput");
+
+    const value =
+        input.value
+            .toLowerCase()
+            .trim();
+
+
+    const box =
+        document.getElementById("searchResults");
+
+
+    if(!value){
+
+        box.innerHTML = `
+
+        <div class="empty">
+
+            ناڤێ بەرهەمێ بنڤیسە
+            دا بگەڕێیت.
+
+        </div>
+
+        `;
+
+        return;
+    }
+
+
+    const result =
+        products.filter(product =>
+
+            product.name
+                .toLowerCase()
+                .includes(value)
+
+            ||
+
+            product.category
+                .toLowerCase()
+                .includes(value)
+
+        );
+
+
+    if(result.length === 0){
+
+        box.innerHTML = `
+
+        <div class="empty">
+
+            هیچ بەرهەمەک نەهاتە دۆزینەوە.
+
+        </div>
+
+        `;
+
+        return;
+    }
+
+
+    box.innerHTML = "";
+
+
+    result.forEach(product => {
+
+        box.innerHTML += `
+
+        <div
+            class="product"
+            style="margin-bottom:12px"
+            onclick="openProduct(${product.id})">
+
+            <div class="productImage">
+
+                <img
+                    src="${product.image}"
+                    alt="${product.name}">
+
+            </div>
+
+
+            <div class="productInfo">
+
+                <div class="productCategory">
+                    ${product.category}
+                </div>
+
+                <div class="productName">
+                    ${product.name}
+                </div>
+
+                <div class="price">
+                    ${formatPrice(product.price)}
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   PRODUCT DETAILS
+========================================= */
+
+function openProduct(id){
+
+    currentProduct =
+        products.find(
+            product => product.id === id
+        );
+
+
+    quantity = 1;
+
+    selectedSize = "S";
+
+    selectedColor = "ڕەش";
+
+
+    document.getElementById(
+        "modalImage"
+    ).src = currentProduct.image;
+
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        currentProduct.name;
+
+
+    document.getElementById(
+        "modalCategory"
+    ).textContent =
+        currentProduct.category;
+
+
+    document.getElementById(
+        "modalPrice"
+    ).textContent =
+        formatPrice(currentProduct.price);
+
+
+    document.getElementById(
+        "quantity"
+    ).textContent = "1";
+
+
+    document.getElementById(
+        "modal"
+    ).classList.add("show");
+
+
+    document.body.style.overflow = "hidden";
+
+}
+
+
+function closeProduct(){
+
+    document
+        .getElementById("modal")
+        .classList.remove("show");
+
+    document.body.style.overflow = "";
+
+}
+
+
+/* =========================================
+   قەبارە
+========================================= */
+
+function chooseSize(button){
+
+    document
+        .querySelectorAll(".option")
+        .forEach(button => {
+
+            if(
+                ["S","M","L","XL"]
+                .includes(
+                    button.textContent.trim()
+                )
+            ){
+
+                button.classList.remove(
+                    "active"
+                );
+
+            }
+
+        });
+
+
+    button.classList.add("active");
+
+    selectedSize =
+        button.textContent.trim();
+
+}
+
+
+/* =========================================
+   ڕەنگ
+========================================= */
+
+function chooseColor(button,color){
+
+    document
+        .querySelectorAll(".colorOption")
+        .forEach(
+            button =>
+            button.classList.remove("active")
+        );
+
+
+    button.classList.add("active");
+
+    selectedColor = color;
+
+}
+
+
+/* =========================================
+   ژمارا
+========================================= */
+
+function changeQuantity(number){
+
+    quantity += number;
+
+
+    if(quantity < 1)
+        quantity = 1;
+
+
+    if(quantity > 20)
+        quantity = 20;
+
+
+    document.getElementById(
+        "quantity"
+    ).textContent = quantity;
+
+}
+
+
+/* =========================================
+   سەبەت
+========================================= */
+
+function addToCart(){
+
+    if(!currentProduct)
+        return;
+
+
+    let cart =
+        JSON.parse(
+            localStorage.getItem(
+                "shivan_cart"
+            ) || "[]"
+        );
+
+
+    cart.push({
+
+        name:
+            currentProduct.name,
+
+        price:
+            currentProduct.price,
+
+        size:
+            selectedSize,
+
+        color:
+            selectedColor,
+
+        quantity:
+            quantity,
+
+        date:
+            new Date().toLocaleString()
+
+    });
+
+
+    localStorage.setItem(
+        "shivan_cart",
+        JSON.stringify(cart)
+    );
+
+
+    closeProduct();
+
+
+    showToast(
+        "بەرهەمەکە چووە ناڤ سەبەتێ 🛒"
+    );
+
+}
+
+
+/* =========================================
+   ORDERS
+========================================= */
+
+function renderOrders(){
+
+    const box =
+        document.getElementById(
+            "ordersList"
+        );
+
+
+    const cart =
+        JSON.parse(
+            localStorage.getItem(
+                "shivan_cart"
+            ) || "[]"
+        );
+
+
+    if(cart.length === 0){
+
+        box.innerHTML = `
+
+        <div class="empty">
+
+            📦
+
+            <br><br>
+
+            هێشتا هیچ داخوازییەک نینە.
+
+            <br>
+
+            کاتێک بەرهەمێک زیاد بکەیت،
+            ل ڤێرە دێ دیتە.
+
+        </div>
+
+        `;
+
+        return;
+    }
+
+
+    box.innerHTML = "";
+
+
+    cart.forEach(item => {
+
+        box.innerHTML += `
+
+        <div class="order">
+
+            <div class="orderInfo">
+
+                <h3>
+                    ${item.name||item.product||"Shivan Shop product"}
+                </h3>
+
+                <p>
+
+                    قەبارە:
+                    ${item.size}
+
+                    <br>
+
+                    ڕەنگ:
+                    ${item.color}
+
+                    <br>
+
+                    ژمارا:
+                    ${item.quantity||1}
+
+                    <br>
+
+                    نرخ:
+                    ${formatPrice(
+                        item.price *
+                        (item.quantity||1)
+                    )}
+
+                </p>
+
+            </div>
+
+
+            <div class="orderStatus">
+
+                ئامادە
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   NAVBAR
+========================================= */
+
+function goPage(page){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(p => {
+
+            p.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    document
+        .getElementById(page)
+        .classList.add("active");
+
+
+    document
+        .querySelectorAll(".navButton")
+        .forEach(button => {
+
+            button.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    if(page === "shop"){
+
+        document
+            .getElementById("navShop")
+            .classList.add("active");
+
+    }
+
+
+    if(page === "search"){
+
+        document
+            .getElementById("navSearch")
+            .classList.add("active");
+
+    }
+
+
+    if(page === "orders"){
+
+        document
+            .getElementById("navOrders")
+            .classList.add("active");
+
+        renderOrders();
+
+    }
+
+
+    if(page === "profile"){
+
+        document
+            .getElementById("navProfile")
+            .classList.add("active");
+
+    }
+
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+/* =========================================
+   PROFILE
+========================================= */
+
+function editProfile(){
+
+    const oldName =
+        localStorage.getItem(
+            "shivan_name"
+        ) || "دانەر";
+
+
+    const name =
+        prompt(
+            "ناڤێ خۆ بنڤیسە:",
+            oldName
+        );
+
+
+    if(name){
+
+        localStorage.setItem(
+            "shivan_name",
+            name
+        );
+
+
+        document
+            .getElementById(
+                "profileName"
+            )
+            .textContent = name;
+
+
+        showToast(
+            "پڕۆفایل هاتە نوێکرن"
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   SETTINGS
+========================================= */
+
+function showSettings(){
+
+    const panel =
+        document.getElementById(
+            "settingsPanel"
+        );
+
+
+    panel.style.display =
+        panel.style.display === "none"
+        ?
+        "block"
+        :
+        "none";
+
+}
+
+
+function changeColor(
+    main,
+    second,
+    button
+){
+
+    document.documentElement
+        .style.setProperty(
+            "--main",
+            main
+        );
+
+
+    document.documentElement
+        .style.setProperty(
+            "--main2",
+            second
+        );
+
+
+    document
+        .querySelectorAll(".color")
+        .forEach(
+            b =>
+            b.classList.remove(
+                "active"
+            )
+        );
+
+
+    button.classList.add("active");
+
+
+    localStorage.setItem(
+        "shivan_color",
+        main
+    );
+
+
+    localStorage.setItem(
+        "shivan_color2",
+        second
+    );
+
+}
+
+
+function changeFont(
+    font,
+    button
+){
+
+    document.body.style.fontFamily =
+        font;
+
+
+    document
+        .querySelectorAll(".font")
+        .forEach(
+            b =>
+            b.classList.remove(
+                "active"
+            )
+        );
+
+
+    button.classList.add("active");
+
+
+    localStorage.setItem(
+        "shivan_font",
+        font
+    );
+
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+function logout(){
+    localStorage.removeItem("user");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("isLoggedIn");
+    document.body.classList.add("auth-active");
+    document.getElementById("authPage").style.display="flex";
+    document.querySelectorAll(".navbar").forEach(nav=>nav.style.display="none");
+    showLogin();
+    window.scrollTo(0,0);
+}
+/* =========================================
+   FAVORITE
+========================================= */
+
+function favoriteIds(){
+try{return JSON.parse(localStorage.getItem("shivan_favorites")||"[]");}catch(error){return [];}
+}
+
+function favorite(button){
+const id=Number(button.dataset.productId);
+let ids=favoriteIds();
+ids=ids.includes(id)?ids.filter(savedId=>savedId!==id):[...ids,id];
+localStorage.setItem("shivan_favorites",JSON.stringify(ids));
+const active=ids.includes(id);
+button.classList.toggle("active",active);
+button.textContent=active?"♥":"♡";
+}
+
+function restoreFavorites(){
+const ids=favoriteIds();
+document.querySelectorAll(".favorite[data-product-id]").forEach(button=>{
+const active=ids.includes(Number(button.dataset.productId));
+button.classList.toggle("active",active);
+button.textContent=active?"♥":"♡";
+});
+}
+/* =========================================
+   BANNER
+========================================= */
+
+let slideIndex = 0;
+
+const slides =
+    document.querySelectorAll(
+        ".slide"
+    );
+
+const dots =
+    document.querySelectorAll(
+        ".dot"
+    );
+
+dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+        slideIndex = index;
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+        dots.forEach((item, i) => item.classList.toggle("active", i === index));
+    });
+});
+
+
+setInterval(() => {
+
+    slideIndex++;
+
+
+    if(
+        slideIndex >=
+        slides.length
+    ){
+
+        slideIndex = 0;
+
+    }
+
+
+    slides.forEach(slide => {
+
+        slide.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    dots.forEach(dot => {
+
+        dot.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    slides[slideIndex]
+        .classList.add("active");
+
+
+    dots[slideIndex]
+        .classList.add("active");
+
+
+},2500);
+
+
+/* =========================================
+   SCROLL
+========================================= */
+
+function scrollProducts(){
+
+    document
+        .getElementById(
+            "productsSection"
+        )
+        .scrollIntoView({
+            behavior:"smooth"
+        });
+
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+function showToast(message){
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        window.toastTimer
+    );
+
+
+    window.toastTimer =
+        setTimeout(() => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        },2200);
+
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+renderProducts();
+restoreFavorites();
+renderOrders();
+if(localStorage.getItem("isLoggedIn")!=="true"){
+    document.body.classList.add("auth-active");
+    document.getElementById("authPage").style.display="flex";
+    document.querySelectorAll(".navbar").forEach(nav=>nav.style.display="none");
+}else{
+    document.body.classList.remove("auth-active");
+}
+
+
+const savedName =
+    localStorage.getItem(
+        "shivan_name"
+    );
+
+
+if(savedName){
+
+    document
+        .getElementById(
+            "profileName"
+        )
+        .textContent =
+        savedName;
+
+}
+
+
+const savedColor =
+    localStorage.getItem(
+        "shivan_color"
+    );
+
+
+const savedColor2 =
+    localStorage.getItem(
+        "shivan_color2"
+    );
+
+
+const savedFont =
+    localStorage.getItem(
+        "shivan_font"
+    );
+
+
+if(savedColor){
+
+    document.documentElement
+        .style.setProperty(
+            "--main",
+            savedColor
+        );
+
+}
+
+
+if(savedColor2){
+
+    document.documentElement
+        .style.setProperty(
+            "--main2",
+            savedColor2
+        );
+
+}
+
+
+if(savedFont){
+
+    document.body.style.fontFamily =
+        savedFont;
+
+}
+
+
+
+/* =========================
+   SHOW LOGIN
+========================= */
+
+function showLogin(){
+
+    document.getElementById("loginForm").style.display="block";
+    document.getElementById("signupForm").style.display="none";
+    document.getElementById("forgotForm").style.display="none";
+}
+
+
+/* =========================
+   SHOW SIGN UP
+========================= */
+
+function showSignup(){
+
+    document.getElementById("loginForm").style.display="none";
+    document.getElementById("signupForm").style.display="block";
+    document.getElementById("forgotForm").style.display="none";
+}
+
+
+/* =========================
+   SHOW FORGOT
+========================= */
+
+function showForgot(){
+
+    document.getElementById("loginForm").style.display="none";
+    document.getElementById("signupForm").style.display="none";
+    document.getElementById("forgotForm").style.display="block";
+}
+
+
+/* =========================
+   SIGN UP
+========================= */
+
+function signupUser(){
+
+    const name =
+        document.getElementById("signupName").value.trim();
+
+    const phone =
+        document.getElementById("signupPhone").value.trim();
+
+    const password =
+        document.getElementById("signupPassword").value;
+
+    const password2 =
+        document.getElementById("signupPassword2").value;
+
+
+    if(!name || !phone || !password || !password2){
+
+        alert("تکایە هەمی خانەکان پڕ بکە.");
+
+        return;
+    }
+
+
+    if(password.length < 6){
+
+        alert("وشەیا نهێنی دڤێت کەمتر نەبیت ژ ٦ پیت.");
+
+        return;
+    }
+
+
+    if(password !== password2){
+
+        alert("دوو وشەیێن نهێنی وەک یەک نینن.");
+
+        return;
+    }
+
+
+    const oldUser =
+        JSON.parse(localStorage.getItem("shivanUser") || "null");
+
+
+    if(oldUser && oldUser.phone === phone){
+
+        alert("ئەم ژمارا موبایلێ پێشتر هەژمارەکا هەیە.");
+
+        showLogin();
+
+        return;
+    }
+
+
+    const user = {
+
+        name:name,
+
+        phone:phone,
+
+        password:password
+
+    };
+
+
+    localStorage.setItem(
+        "shivanUser",
+        JSON.stringify(user)
+    );
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+
+    localStorage.setItem(
+        "isLoggedIn",
+        "true"
+    );
+
+
+    alert("هەژمارا تە بە سەرکەفتنەوە هاتە دروستکرن.");
+
+    location.reload();
+}
+
+
+/* =========================
+   LOGIN
+========================= */
+
+function loginUser(){
+
+    const phone =
+        document.getElementById("loginPhone").value.trim();
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+
+    if(!phone || !password){
+
+        alert("تکایە ژمارا موبایل و وشەیا نهێنی بنڤیسە.");
+
+        return;
+    }
+
+
+    const user =
+        JSON.parse(
+            localStorage.getItem("shivanUser") || "null"
+        );
+
+
+    if(!user){
+
+        alert("هەژمار نەهاتە دیتن. سەرەتا هەژمار دروست بکە.");
+
+        showSignup();
+
+        return;
+    }
+
+
+    if(
+        user.phone !== phone ||
+        user.password !== password
+    ){
+
+        alert("ژمارا موبایل یان وشەیا نهێنی دروست نینن.");
+
+        return;
+    }
+
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+
+    localStorage.setItem(
+        "isLoggedIn",
+        "true"
+    );
+
+
+    alert("بەخێرهاتی بۆ Shivan Shop ❤️");
+
+    location.reload();
+}
+
+
+/* =========================
+   FORGOT PASSWORD
+========================= */
+
+function resetPassword(){
+
+    const phone =
+        document.getElementById("forgotPhone").value.trim();
+
+    const newPassword =
+        document.getElementById("newPassword").value;
+
+    const newPassword2 =
+        document.getElementById("newPassword2").value;
+
+
+    if(!phone || !newPassword || !newPassword2){
+
+        alert("تکایە هەمی خانەکان پڕ بکە.");
+
+        return;
+    }
+
+
+    if(newPassword.length < 6){
+
+        alert("وشەیا نهێنی دڤێت کەمتر نەبیت ژ ٦ پیت.");
+
+        return;
+    }
+
+
+    if(newPassword !== newPassword2){
+
+        alert("دوو وشەیێن نهێنی وەک یەک نینن.");
+
+        return;
+    }
+
+
+    const user =
+        JSON.parse(
+            localStorage.getItem("shivanUser") || "null"
+        );
+
+
+    if(!user){
+
+        alert("هیچ هەژمارەک نەهاتە دیتن.");
+
+        return;
+    }
+
+
+    if(user.phone !== phone){
+
+        alert("ئەم ژمارا موبایلێ نە هەمان ژمارا هەژمارێیە.");
+
+        return;
+    }
+
+
+    user.password = newPassword;
+
+
+    localStorage.setItem(
+        "shivanUser",
+        JSON.stringify(user)
+    );
+
+
+    alert("وشەیا نهێنی هاتە گۆڕین. نوکە دکاری بچی ژوور.");
+
+
+    showLogin();
+
+
+    document.getElementById("loginPhone").value = phone;
+
+    document.getElementById("loginPassword").value = "";
+}
+
+
+</script>
+
+</body>
+</html>
+
+
+
+
+

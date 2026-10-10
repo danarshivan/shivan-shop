@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivan Shop</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:#08090b;
+  color:white;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  margin:auto;
+  background:#0e0f12;
+  padding-bottom:80px;
+}
+
+.screen{
+  display:none;
+  min-height:100vh;
+}
+
+.screen.active{
+  display:block;
+}
+
+/* AUTH */
+
+.auth{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:25px;
+}
+
+.auth-box{
+  width:100%;
+  text-align:center;
+}
+
+.logo{
+  width:70px;
+  height:70px;
+  border-radius:20px;
+  margin:0 auto 20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#ffb300,#ff8800);
+  color:#111;
+  font-size:32px;
+  font-weight:900;
+  box-shadow:0 10px 35px rgba(255,170,0,.25);
+}
+
+.auth h1{
+  font-size:32px;
+  margin:10px 0;
+}
+
+.auth p{
+  color:#999;
+  line-height:1.6;
+}
+
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  background:#18191d;
+  padding:5px;
+  border-radius:15px;
+  margin:25px 0 18px;
+}
+
+.tabs button{
+  border:0;
+  background:none;
+  color:#999;
+  padding:13px;
+  border-radius:11px;
+}
+
+.tabs button.active{
+  background:#ffb300;
+  color:#111;
+  font-weight:bold;
+}
+
+.field{
+  margin-bottom:15px;
+  text-align:left;
+}
+
+.field label{
+  display:block;
+  color:#aaa;
+  margin-bottom:7px;
+  font-size:13px;
+}
+
+.field input,
+.field select{
+  width:100%;
+  padding:14px;
+  border-radius:13px;
+  border:1px solid #292a2f;
+  background:#17181c;
+  color:white;
+  outline:none;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:#ffb300;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:14px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.primary{
+  background:linear-gradient(135deg,#ffb300,#ff8800);
+  color:#111;
+}
+
+.secondary{
+  background:#202126;
+  color:white;
+  border:1px solid #303136;
+}
+
+/* HEADER */
+
+.header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:rgba(14,15,18,.94);
+  backdrop-filter:blur(15px);
+  padding:17px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #222;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.small-logo{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#ffb300,#ff8800);
+  color:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:900;
+}
+
+.brand small{
+  display:block;
+  color:#777;
+  margin-top:3px;
+}
+
+.icon{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:#191a1e;
+  color:white;
+  border:1px solid #292a2e;
+}
+
+.container{
+  padding:18px;
+}
+
+/* HERO */
+
+.hero{
+  padding:23px;
+  border-radius:22px;
+  background:linear-gradient(135deg,#25262b,#121318);
+  border:1px solid #292a2f;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:27px;
+}
+
+.hero p{
+  color:#aaa;
+  line-height:1.6;
+}
+
+.section{
+  margin-top:25px;
+}
+
+.section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.section-title h2{
+  font-size:19px;
+}
+
+.section-title button{
+  border:0;
+  background:none;
+  color:#ffb300;
+}
+
+/* PRODUCTS */
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.product{
+  background:#17181c;
+  border:1px solid #292a2f;
+  border-radius:18px;
+  overflow:hidden;
+}
+
+.product-image{
+  height:145px;
+  background:#24252a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:55px;
+}
+
+.product-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.product-body{
+  padding:12px;
+}
+
+.product-name{
+  font-weight:bold;
+  font-size:14px;
+  margin-bottom:7px;
+}
+
+.category{
+  color:#888;
+  font-size:11px;
+  margin-bottom:7px;
+}
+
+.price{
+  color:#ffb300;
+  font-weight:900;
+}
+
+.product-buttons{
+  display:flex;
+  gap:7px;
+  margin-top:10px;
+}
+
+.add{
+  flex:1;
+  padding:10px;
+  border:0;
+  border-radius:10px;
+  background:#292a2f;
+  color:white;
+}
+
+.favorite{
+  width:40px;
+  border:0;
+  border-radius:10px;
+  background:#292a2f;
+  color:white;
+}
+
+.favorite.active{
+  color:#ffb300;
+}
+
+/* SEARCH */
+
+.search{
+  width:100%;
+  background:#18191d;
+  border:1px solid #292a2f;
+  padding:13px;
+  border-radius:14px;
+  color:white;
+  outline:none;
+}
+
+.chips{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:13px 0;
+}
+
+.chip{
+  white-space:nowrap;
+  padding:9px 14px;
+  border-radius:20px;
+  background:#1a1b1f;
+  color:#aaa;
+  border:1px solid #292a2f;
+}
+
+.chip.active{
+  background:#ffb300;
+  color:#111;
+}
+
+/* CART / ORDERS */
+
+.card{
+  background:#17181c;
+  border:1px solid #292a2f;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:12px;
+}
+
+.cart-item{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #292a2f;
+}
+
+.cart-image{
+  width:55px;
+  height:55px;
+  border-radius:12px;
+  background:#25262b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-size:25px;
+}
+
+.cart-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.cart-info{
+  flex:1;
+}
+
+.remove{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:#292a2f;
+  color:#ff5757;
+  border:0;
+}
+
+.total{
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+  padding:15px 0;
+}
+
+/* PROFILE */
+
+.profile{
+  text-align:center;
+  padding:25px 0;
+}
+
+.avatar{
+  width:90px;
+  height:90px;
+  margin:auto;
+  border-radius:50%;
+  background:linear-gradient(135deg,#ffb300,#ff8800);
+  color:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:35px;
+  font-weight:900;
+}
+
+.profile h2{
+  margin:13px 0 5px;
+}
+
+.profile p{
+  color:#888;
+}
+
+.menu{
+  margin-top:20px;
+  text-align:left;
+}
+
+.menu-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 0;
+  border-bottom:1px solid #292a2f;
+}
+
+.menu-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* NAV */
+
+.nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:480px;
+  height:76px;
+  background:rgba(20,21,25,.96);
+  backdrop-filter:blur(15px);
+  border-top:1px solid #292a2f;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  z-index:50;
+}
+
+.nav button{
+  border:0;
+  background:none;
+  color:#777;
+  font-size:11px;
+}
+
+.nav button span{
+  display:block;
+  font-size:21px;
+  margin-bottom:4px;
+}
+
+.nav button.active{
+  color:#ffb300;
+}
+
+/* MODAL */
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  z-index:100;
+  align-items:flex-end;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.sheet{
+  width:100%;
+  max-width:480px;
+  margin:auto auto 0;
+  background:#17181c;
+  border-radius:24px 24px 0 0;
+  padding:20px;
+  border:1px solid #292a2f;
+}
+
+/* EMPTY */
+
+.empty{
+  text-align:center;
+  padding:60px 15px;
+  color:#888;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:95px;
+  transform:translateX(-50%);
+  background:white;
+  color:#111;
+  padding:12px 18px;
+  border-radius:13px;
+  display:none;
+  z-index:200;
+  font-size:13px;
+}
+
+.toast.show{
+  display:block;
+}
+
+/* DESKTOP */
+
+@media(min-width:700px){
+  body{
+    padding:25px 0;
+  }
+
+  .app{
+    border-radius:28px;
+    box-shadow:0 20px 80px #000;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- LOGIN -->
+
+<section id="auth" class="screen active">
+
+<div class="auth">
+
+<div class="auth-box">
+
+<div class="logo">S</div>
+
+<h1>Welcome to Shivan Shop</h1>
+
+<p>
+Your easy and trusted place to shop and manage your orders.
+</p>
+
+<div class="tabs">
+
+<button
+id="loginTab"
+class="active"
+onclick="showAuth('login')">
+
+Login
+
+</button>
+
+<button
+id="signupTab"
+onclick="showAuth('signup')">
+
+Signup
+
+</button>
+
+</div>
+
+<form
+id="loginForm"
+onsubmit="login(event)">
+
+<div class="field">
+
+<label>Phone Number</label>
+
+<input
+id="loginPhone"
+type="tel"
+placeholder="0750 000 0000"
+required>
+
+</div>
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+id="loginPassword"
+type="password"
+placeholder="Password"
+required>
+
+</div>
+
+<button
+class="btn primary"
+type="submit">
+
+Login
+
+</button>
+
+</form>
+
+
+<form
+id="signupForm"
+style="display:none"
+onsubmit="signup(event)">
+
+<div class="field">
+
+<label>Full Name</label>
+
+<input
+id="signupName"
+placeholder="Your name"
+required>
+
+</div>
+
+<div class="field">
+
+<label>Phone Number</label>
+
+<input
+id="signupPhone"
+type="tel"
+placeholder="0750 000 0000"
+required>
+
+</div>
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+id="signupPassword"
+type="password"
+placeholder="Password (min. 8 characters)"
+minlength="8"
+required>
+
+</div>
+
+<button
+class="btn primary"
+type="submit">
+
+Create Account
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- HOME -->
+
+<section id="home" class="screen">
+
+<header class="header">
+
+<div class="brand">
+
+<div class="small-logo">S</div>
+
+<div>
+
+<b>Shivan Shop</b>
+
+<small>Personal marketplace</small>
+
+</div>
+
+</div>
+
+<button
+class="icon"
+onclick="go('cart')">
+
+🛒
+
+</button>
+
+</header>
+
+
+<div class="container">
+
+<div class="hero">
+
+<h1>
+Easy shopping, made simple ✨
+</h1>
+
+<p>
+Discover products, save your favorites and place your order quickly.
+</p>
+
+<button
+class="btn primary"
+onclick="go('search')">
+
+Browse Products
+
+</button>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+
+<h2>New Products</h2>
+
+<button onclick="go('search')">
+View All
+</button>
+
+</div>
+
+<div
+id="homeProducts"
+class="grid">
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- SEARCH -->
+
+<section id="search" class="screen">
+
+<header class="header">
+
+<div>
+
+<b>Search</b>
+
+<small style="display:block;color:#777;margin-top:4px">
+Find your product
+</small>
+
+</div>
+
+<button
+class="icon"
+onclick="go('cart')">
+
+🛒
+
+</button>
+
+</header>
+
+
+<div class="container">
+
+<input
+id="searchInput"
+class="search"
+placeholder="Search products..."
+oninput="renderProducts()">
+
+
+<div class="chips">
+
+<button
+class="chip active"
+onclick="setCategory('All',this)">
+
+All
+
+</button>
+
+<button
+class="chip"
+onclick="setCategory('Dresses',this)">
+
+Dresses
+
+</button>
+
+<button
+class="chip"
+onclick="setCategory('Sets',this)">
+
+Sets
+
+</button>
+
+<button
+class="chip"
+onclick="setCategory('Party Wear',this)">
+
+Party Wear
+
+</button>
+
+</div>
+
+
+<div
+id="products"
+class="grid">
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CART -->
+
+<section id="cart" class="screen">
+
+<header class="header">
+
+<div>
+
+<b>Cart</b>
+
+<small style="display:block;color:#777;margin-top:4px">
+Your selected products
+</small>
+
+</div>
+
+</header>
+
+
+<div class="container">
+
+<div id="cartList">
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ORDERS -->
+
+<section id="orders" class="screen">
+
+<header class="header">
+
+<div>
+
+<b>Orders</b>
+
+<small style="display:block;color:#777;margin-top:4px">
+Your saved orders
+</small>
+
+</div>
+
+</header>
+
+
+<div class="container">
+
+<div id="ordersList">
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PROFILE -->
+
+<section id="profile" class="screen">
+
+<header class="header">
+
+<div>
+
+<b>Profile</b>
+
+<small style="display:block;color:#777;margin-top:4px">
+Your account
+</small>
+
+</div>
+
+<button
+class="icon"
+onclick="openProfile()">
+
+✎
+
+</button>
+
+</header>
+
+
+<div class="container">
+
+<div class="profile">
+
+<div
+id="avatar"
+class="avatar">
+
+D
+
+</div>
+
+<h2 id="profileName">
+Danar
+</h2>
+
+<p id="profilePhone">
+0750 000 0000
+</p>
+
+</div>
+
+
+<div class="card menu">
+
+<div
+class="menu-item"
+onclick="openProfile()">
+
+<div class="menu-left">
+
+<span>👤</span>
+
+<div>
+
+<b>Edit Profile</b>
+
+<small style="display:block;color:#777">
+Change your information
+</small>
+
+</div>
+
+</div>
+
+<span>›</span>
+
+</div>
+
+
+<div
+class="menu-item"
+onclick="go('orders')">
+
+<div class="menu-left">
+
+<span>📦</span>
+
+<div>
+
+<b>My Orders</b>
+
+<small style="display:block;color:#777">
+View saved orders
+</small>
+
+</div>
+
+</div>
+
+<span id="orderCount">
+0
+</span>
+
+</div>
+
+
+<div
+class="menu-item"
+onclick="go('search')">
+
+<div class="menu-left">
+
+<span>❤️</span>
+
+<div>
+
+<b>Favorites</b>
+
+<small style="display:block;color:#777">
+Your saved products
+</small>
+
+</div>
+
+</div>
+
+<span>›</span>
+
+</div>
+
+
+<div
+class="menu-item"
+onclick="showToast('Your data is saved on this device.')">
+
+<div class="menu-left">
+
+<span>💾</span>
+
+<div>
+
+<b>Data Saved</b>
+
+<small style="display:block;color:#777">
+Your choices stay after refresh
+</small>
+
+</div>
+
+</div>
+
+<span>✓</span>
+
+</div>
+
+</div>
+
+
+<button
+class="btn secondary"
+onclick="logout()"
+style="color:#ff5757">
+
+Log Out
+
+</button>
+
+</div>
+
+</section>
+
+
+<!-- NAVIGATION -->
+
+<nav
+id="nav"
+class="nav"
+style="display:none">
+
+<button
+data-page="home"
+class="active"
+onclick="go('home')">
+
+<span>🏠</span>
+Home
+
+</button>
+
+
+<button
+data-page="search"
+onclick="go('search')">
+
+<span>🔎</span>
+Search
+
+</button>
+
+
+<button
+data-page="orders"
+onclick="go('orders')">
+
+<span>📦</span>
+Orders
+
+</button>
+
+
+<button
+data-page="profile"
+onclick="go('profile')">
+
+<span>👤</span>
+Profile
+
+</button>
+
+</nav>
+
+</div>
+
+
+<!-- PROFILE MODAL -->
+
+<div
+id="profileModal"
+class="modal">
+
+<div class="sheet">
+
+<h2>Edit Profile</h2>
+
+<div class="field">
+
+<label>Full Name</label>
+
+<input id="editName">
+
+</div>
+
+<div class="field">
+
+<label>Phone Number</label>
+
+<input id="editPhone">
+
+</div>
+
+<button
+class="btn primary"
+onclick="saveProfile()">
+
+Save Changes
+
+</button>
+
+<button
+class="btn secondary"
+onclick="closeProfile()">
+
+Cancel
+
+</button>
+
+</div>
+
+</div>
+
+
+<div
+id="toast"
+class="toast">
+</div>
+
+
+<script>
+
+/* =========================
+   DEFAULT PRODUCTS
+========================= */
+
+const defaultProducts=[
+{id:1,name:"Royal Evening Gown",category:"Dresses",price:25000,icon:"👗",image:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&auto=format&fit=crop&q=80",favorite:false},
+{id:2,name:"Chic Silk Dress",category:"Dresses",price:25000,icon:"👗",image:"https://images.unsplash.com/photo-1502716119720-b23a93e5fb1b?w=600&auto=format&fit=crop&q=80",favorite:false},
+{id:3,name:"Modern Casual Set",category:"Sets",price:25000,icon:"👚",image:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",favorite:false},
+{id:4,name:"Luxury Party Blazer",category:"Party Wear",price:25000,icon:"🧥",image:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&auto=format&fit=crop&q=80",favorite:false}
+];
+
+
+/* =========================
+   LOAD SAVED DATA
+========================= */
+
+function loadData(){
+
+let savedProducts=
+localStorage.getItem("shivan_products");
+
+if(savedProducts){
+
+products=
+JSON.parse(savedProducts);
+
+}else{
+
+products=
+JSON.parse(
+JSON.stringify(defaultProducts)
+);
+
+saveProducts();
+
+}
+
+
+cart=
+JSON.parse(
+localStorage.getItem("shivan_cart")||"[]"
+);
+
+
+orders=
+JSON.parse(
+localStorage.getItem("shivan_orders")||"[]"
+);
+
+
+favorites=
+JSON.parse(
+localStorage.getItem("shivan_favorites")||"[]"
+);
+
+
+user=
+JSON.parse(
+localStorage.getItem("shivan_user")||"null"
+);
+
+if(!user && localStorage.getItem("isLoggedIn")==="true"){
+try{
+const oldUser=JSON.parse(localStorage.getItem("shivanShopUser")||"null");
+if(oldUser) user={name:oldUser.name||"Shivan User",phone:oldUser.identifier||oldUser.phone||""};
+}catch(error){ user=null; }
+}
+
+}
+
+
+/* =========================
+   GLOBAL DATA
+========================= */
+
+let products=[];
+
+let cart=[];
+
+let orders=[];
+
+let favorites=[];
+
+let user=null;
+
+let selectedCategory="All";
+
+
+/* =========================
+   SAVE DATA
+========================= */
+
+function saveProducts(){
+
+localStorage.setItem(
+"shivan_products",
+JSON.stringify(products)
+);
+
+}
+
+
+function saveAll(){
+
+saveProducts();
+
+localStorage.setItem(
+"shivan_cart",
+JSON.stringify(cart)
+);
+
+localStorage.setItem(
+"shivan_orders",
+JSON.stringify(orders)
+);
+
+localStorage.setItem(
+"shivan_favorites",
+JSON.stringify(favorites)
+);
+
+localStorage.setItem(
+"shivan_user",
+JSON.stringify(user)
+);
+
+}
+
+
+/* =========================
+   MONEY
+========================= */
+
+function money(number){
+
+return new Intl.NumberFormat(
+"en-IQ"
+).format(number)+" IQD";
+
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+function showToast(message){
+
+const toast=
+document.getElementById("toast");
+
+toast.textContent=message;
+
+toast.classList.add("show");
+
+clearTimeout(window.toastTimer);
+
+window.toastTimer=
+setTimeout(
+()=>{
+toast.classList.remove("show");
+},
+2200
+);
+
+}
+
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function go(page){
+
+document
+.querySelectorAll(".screen")
+.forEach(
+screen=>{
+screen.classList.remove("active");
+}
+);
+
+document
+.getElementById(page)
+.classList.add("active");
+
+
+document
+.querySelectorAll(".nav button")
+.forEach(
+button=>{
+button.classList.toggle(
+"active",
+button.dataset.page===page
+);
+}
+);
+
+
+if(page==="home")
+renderHome();
+
+if(page==="search")
+renderProducts();
+
+if(page==="cart")
+renderCart();
+
+if(page==="orders")
+renderOrders();
+
+if(page==="profile")
+renderProfile();
+
+
+window.scrollTo(0,0);
+
+}
+
+
+/* =========================
+   AUTH
+========================= */
+
+function showAuth(type){
+
+document.getElementById("loginForm")
+.style.display=
+type==="login"
+?"block"
+:"none";
+
+
+document.getElementById("signupForm")
+.style.display=
+type==="signup"
+?"block"
+:"none";
+
+
+document.getElementById("loginTab")
+.classList.toggle(
+"active",
+type==="login"
+);
+
+
+document.getElementById("signupTab")
+.classList.toggle(
+"active",
+type==="signup"
+);
+
+}
+
+
+function login(event){
+event.preventDefault();
+const phone=document.getElementById("loginPhone").value.trim();
+const password=document.getElementById("loginPassword").value;
+let accounts=[];
+try{ accounts=JSON.parse(localStorage.getItem("shivanShopUsers")||"[]"); }catch(error){ accounts=[]; }
+let account=accounts.find(item=>(item.phone||item.identifier)===phone && item.pass===password);
+if(!account){
+try{
+const legacy=JSON.parse(localStorage.getItem("shivanShopUser")||"null");
+if(legacy && (legacy.phone||legacy.identifier)===phone && legacy.pass===password) account=legacy;
+}catch(error){}
+}
+if(!account){ showToast("Phone number or password is incorrect."); return; }
+user={name:account.name||"Shivan User",phone:account.phone||account.identifier};
+localStorage.setItem("isLoggedIn","true");
+localStorage.setItem("shivanShopUser",JSON.stringify({...account,identifier:account.identifier||account.phone}));
+saveAll();
+startApp();
+showToast("Welcome back 👋");
+}
+
+function signup(event){
+event.preventDefault();
+const name=document.getElementById("signupName").value.trim();
+const phone=document.getElementById("signupPhone").value.trim();
+const password=document.getElementById("signupPassword").value;
+if(!name||!phone||password.length<8){ showToast("Enter your name, phone number, and a password of at least 8 characters."); return; }
+let accounts=[];
+try{ accounts=JSON.parse(localStorage.getItem("shivanShopUsers")||"[]"); }catch(error){ accounts=[]; }
+if(accounts.some(item=>(item.phone||item.identifier)===phone)){
+showToast("An account with this phone number already exists.");
+return;
+}
+const account={name:name,phone:phone,pass:password};
+accounts.push(account);
+localStorage.setItem("shivanShopUsers",JSON.stringify(accounts));
+localStorage.setItem("isLoggedIn","true");
+localStorage.setItem("shivanShopUser",JSON.stringify({...account,identifier:phone}));
+user={name:name,phone:phone};
+saveAll();
+startApp();
+showToast("Your account has been created 🎉");
+}
+function logout(){
+
+localStorage.removeItem("shivan_user");
+localStorage.setItem("isLoggedIn","false");
+
+user=null;
+
+document.getElementById("nav")
+.style.display="none";
+
+go("auth");
+
+}
+
+
+function startApp(){
+
+document.getElementById("nav")
+.style.display="grid";
+
+go("home");
+
+}
+
+
+/* =========================
+   PRODUCT HTML
+========================= */
+
+function productHTML(product){
+
+const isFavorite=
+favorites.includes(product.id);
+
+
+let imageHTML="";
+
+
+if(product.image){
+
+imageHTML=
+`
+<img
+src="${product.image}"
+onerror="this.style.display='none'">
+`;
+
+}else{
+
+imageHTML=product.icon||"🛍️";
+
+}
+
+
+return `
+
+<div class="product">
+
+<div class="product-image">
+
+${imageHTML}
+
+</div>
+
+<div class="product-body">
+
+<div class="product-name">
+${escapeHTML(product.name)}
+</div>
+
+<div class="category">
+${escapeHTML(product.category)}
+</div>
+
+<div class="price">
+${money(product.price)}
+</div>
+
+<div class="product-buttons">
+
+<button
+class="add"
+onclick="addToCart(${product.id})">
+
+Add to Cart
+
+</button>
+
+<button
+class="favorite ${isFavorite?"active":""}"
+onclick="toggleFavorite(${product.id})">
+
+${isFavorite?"♥":"♡"}
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+/* =========================
+   HOME
+========================= */
+
+function renderHome(){
+
+const area=
+document.getElementById(
+"homeProducts"
+);
+
+area.innerHTML=
+products
+.slice(0,4)
+.map(productHTML)
+.join("");
+
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+function renderProducts(){
+
+const query=
+(
+document.getElementById("searchInput")
+?.value||""
+)
+.trim()
+.toLowerCase();
+
+
+const filtered=
+products.filter(product=>{
+
+const matchesCategory=
+selectedCategory==="All"||
+product.category===selectedCategory;
+
+
+const matchesSearch=
+product.name
+.toLowerCase()
+.includes(query);
+
+
+return matchesCategory&&matchesSearch;
+
+});
+
+
+const area=
+document.getElementById(
+"products"
+);
+
+
+if(!filtered.length){
+
+area.innerHTML=`
+
+<div
+class="empty"
+style="grid-column:1/-1">
+
+<h3>No products found</h3>
+
+<p>
+Try another search.
+</p>
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+area.innerHTML=
+filtered
+.map(productHTML)
+.join("");
+
+}
+
+
+function setCategory(category,button){
+
+selectedCategory=category;
+
+document
+.querySelectorAll(".chip")
+.forEach(
+chip=>{
+chip.classList.remove("active");
+}
+);
+
+button.classList.add("active");
+
+renderProducts();
+
+}
+
+
+/* =========================
+   CART
+========================= */
+
+function addToCart(id){
+
+cart.push(id);
+
+saveAll();
+
+showToast(
+"Product added to cart 🛒"
+);
+
+}
+
+
+function removeFromCart(index){
+
+cart.splice(index,1);
+
+saveAll();
+
+renderCart();
+
+}
+
+
+function renderCart(){
+
+const area=
+document.getElementById(
+"cartList"
+);
+
+
+if(!cart.length){
+
+area.innerHTML=`
+
+<div class="empty">
+
+<div style="font-size:50px">
+🛒
+</div>
+
+<h3>Your cart is empty</h3>
+
+<p>
+Products you add will stay here.
+</p>
+
+<button
+class="btn primary"
+onclick="go('search')">
+
+Start Shopping
+
+</button>
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+const items=
+cart
+.map(
+id=>
+products.find(
+product=>product.id===id
+)
+)
+.filter(Boolean);
+
+
+let total=0;
+
+
+area.innerHTML=
+items
+.map(
+(product,index)=>{
+
+total+=Number(product.price);
+
+let image=
+product.image
+?
+`<img src="${product.image}">`
+:
+(product.icon||"🛍️");
+
+
+return `
+
+<div class="cart-item">
+
+<div class="cart-image">
+
+${image}
+
+</div>
+
+<div class="cart-info">
+
+<b>
+${escapeHTML(product.name)}
+</b>
+
+<div class="price">
+${money(product.price)}
+</div>
+
+</div>
+
+<button
+class="remove"
+onclick="removeFromCart(${index})">
+
+×
+
+</button>
+
+</div>
+
+`;
+
+}
+)
+.join("");
+
+
+area.innerHTML+=`
+
+<div class="card">
+
+<div class="total">
+
+<span>Total</span>
+
+<span class="price">
+${money(total)}
+</span>
+
+</div>
+
+<button
+class="btn primary"
+onclick="placeOrder()">
+
+Place Order
+
+</button>
+
+</div>
+
+`;
+
+}
+
+
+/* =========================
+   ORDER
+========================= */
+
+function placeOrder(){
+
+if(!cart.length)
+return;
+
+
+const items=
+cart.map(
+id=>products.find(
+product=>product.id===id
+)
+)
+.filter(Boolean);
+
+
+const total=
+items.reduce(
+(sum,product)=>
+sum+Number(product.price),
+0
+);
+
+
+orders.unshift({
+
+id:Date.now(),
+
+products:items.map(
+product=>product.name
+),
+
+total:total,
+
+status:"Pending",
+
+date:new Date()
+.toLocaleString("en-IQ")
+
+});
+
+
+cart=[];
+
+saveAll();
+
+renderCart();
+
+renderOrders();
+
+go("orders");
+
+showToast(
+"Order placed successfully ✅"
+);
+
+}
+
+
+function renderOrders(){
+
+const area=
+document.getElementById(
+"ordersList"
+);
+
+
+document.getElementById(
+"orderCount"
+).textContent=
+orders.length;
+
+
+if(!orders.length){
+
+area.innerHTML=`
+
+<div class="empty">
+
+<div style="font-size:50px">
+📦
+</div>
+
+<h3>No orders yet</h3>
+
+<p>
+Your orders will stay here.
+</p>
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+area.innerHTML=
+orders.map(
+order=>`
+
+<div class="card">
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+">
+
+<b>
+Order #${String(order.id).slice(-6)}
+</b>
+
+<span
+style="
+color:#ffb300;
+background:rgba(255,179,0,.12);
+padding:6px 9px;
+border-radius:9px;
+font-size:11px;
+">
+
+${order.status}
+
+</span>
+
+</div>
+
+<small
+style="
+display:block;
+color:#777;
+margin-top:10px;
+">
+
+${order.date}
+
+</small>
+
+<div
+style="
+margin-top:10px;
+color:#aaa;
+font-size:12px;
+">
+
+${order.products.join(", ")}
+
+</div>
+
+<div class="total">
+
+<span>Total</span>
+
+<span class="price">
+${money(order.total)}
+</span>
+
+</div>
+
+</div>
+
+`
+).join("");
+
+}
+
+
+/* =========================
+   FAVORITES
+========================= */
+
+function toggleFavorite(id){
+
+if(favorites.includes(id)){
+
+favorites=
+favorites.filter(
+item=>item!==id
+);
+
+showToast(
+"Removed from favorites"
+);
+
+}else{
+
+favorites.push(id);
+
+showToast(
+"Added to favorites ❤️"
+);
+
+}
+
+
+saveAll();
+
+renderProducts();
+
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+function renderProfile(){
+
+if(!user)
+return;
+
+
+document.getElementById(
+"profileName"
+).textContent=
+user.name||"Danar";
+
+
+document.getElementById(
+"profilePhone"
+).textContent=
+user.phone||"";
+
+
+document.getElementById(
+"avatar"
+).textContent=
+(user.name||"D")
+.trim()
+.charAt(0)
+.toUpperCase();
+
+
+document.getElementById(
+"orderCount"
+).textContent=
+orders.length;
+
+}
+
+
+function openProfile(){
+
+if(!user)
+return;
+
+
+document.getElementById(
+"editName"
+).value=
+user.name||"";
+
+
+document.getElementById(
+"editPhone"
+).value=
+user.phone||"";
+
+
+document
+.getElementById("profileModal")
+.classList.add("show");
+
+}
+
+
+function closeProfile(){
+
+document
+.getElementById("profileModal")
+.classList.remove("show");
+
+}
+
+
+function saveProfile(){
+
+const name=
+document.getElementById(
+"editName"
+).value.trim();
+
+
+const phone=
+document.getElementById(
+"editPhone"
+).value.trim();
+
+
+if(!name||!phone){
+
+showToast(
+"Please enter your name and phone number."
+);
+
+return;
+
+}
+
+
+user.name=name;
+
+user.phone=phone;
+
+saveAll();
+
+renderProfile();
+
+closeProfile();
+
+showToast(
+"Profile saved successfully ✅"
+);
+
+}
+
+
+/* =========================
+   SECURITY / TEXT
+========================= */
+
+function escapeHTML(text){
+
+return String(text)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
+
+}
+
+
+/* =========================
+   START APP
+========================= */
+
+loadData();
+
+if(user){
+
+startApp();
+
+}else{
+
+document.getElementById("nav")
+.style.display="none";
+
+go("auth");
+
+}
+
+</script>
+
+</body>
+</html>
+
+
+
