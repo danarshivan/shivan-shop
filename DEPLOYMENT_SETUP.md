@@ -1,33 +1,53 @@
-# Permanent Cloudflare deployment
+# Shivan Shop deployment notes
 
-This project is prepared for a permanent Cloudflare Pages deployment with a shared D1 database, an R2 bucket for uploaded media, and a Durable Object WebSocket hub for live cross-device sync. Cloudflare Pages uses a stable `pages.dev` address; after deployment, the intended address is `https://shivan-shop-storefront.pages.dev`.
+## Current state
 
-## What sync does
+The local `wrangler.toml` declares a Pages project named `shivan-store`, a D1 database binding named `DB`, the database `shivan-shop-db`, a Durable Object binding named `SYNC_HUB`, and `FIB_ENV = "stage"`. It also still declares the legacy `MEDIA` R2 binding so old image URLs can remain readable. These local entries are not proof that the corresponding production settings are currently correct; production could not be inspected because Wrangler has no usable local Cloudflare credential in this workspace.
 
-Signed-in devices write their changes to D1. The server sends a data-free WebSocket notification to the other connected devices, which immediately fetch the latest data using their own signed-in session. A 15-second refresh remains as a recovery path if a device temporarily loses its WebSocket. Use the same owner account on both devices to edit the shared store.
+Do not run the legacy `scripts/deploy-cloudflare.ps1` for this image change. It can create Cloudflare resources, apply migrations, change owner setup, and provision R2. None of those actions is needed for D1-backed image storage.
+
+## Shared data and image storage
+
+Signed-in devices save owner and customer changes to D1. The Durable Object sends data-free realtime notifications; each device then downloads the latest state with its own session. A 15-second refresh is the recovery path if a device temporarily misses a notification.
+
+New product and banner images are cropped and compressed on the device, then saved as individual `media:` rows in the existing D1 `shop_state` table. Product and banner records contain only `/api/media/...` URLs. Image bytes are not kept only in browser storage and are filtered out of bootstrap and sync payloads. No table/schema migration is required.
+
+The API caps each product/banner image at 1,300,000 bytes before base64 encoding, leaving room below D1's documented 2,000,000-byte row limit. The D1 free plan currently documents a 500 MB database cap and 5 GB total storage per account; the current production database usage was not available to verify. Old R2 image URLs remain readable only if the existing `MEDIA` binding and bucket still work. New image uploads do not write to R2 or require creating a bucket. No automatic image cleanup is enabled, so deleting a product does not risk deleting an image still used elsewhere; unused images may consume the D1 quota over time.
+
+Existing FIB receipt image URLs remain private to the owner. New receipt image records also use D1. The `MEDIA` fallback exists only to preserve access to older R2-backed media.
+
+## Deploy the image-storage fix without migrations
+
+Deployment has not been run. Before publishing, verify the Cloudflare Pages production configuration and compare it with the local `wrangler.toml`:
+
+1. Confirm the account and `shivan-store` Pages project.
+2. Confirm the production D1 database ID and `DB` binding match `wrangler.toml` and the production database contains the existing `shop_state` table from the prior application. Do not apply migrations for this change.
+3. Confirm the `SYNC_HUB` binding and `FIB_ENV` production value. Preserve any existing production settings.
+4. If existing catalog images use R2, confirm whether the current production `MEDIA` binding must remain to keep those old URLs working. Do not create a new bucket or enable a paid service. The new D1 image route does not require `MEDIA`.
+5. Once those values are confirmed, build and deploy the Pages site and its `functions` directory from this project folder:
+
+   ```powershell
+   $wrangler = ".\.wrangler-bootstrap\install\node_modules\.bin\wrangler.cmd"
+   $productionBranch = Read-Host "Enter the production branch you verified in Cloudflare"
+   & "C:\Users\LORD TECHNOLOGY\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" scripts\build.mjs
+   & $wrangler pages deploy .\dist --project-name shivan-store --branch $productionBranch --config .\wrangler.toml
+   ```
+
+   `$wrangler` should point to the Wrangler executable already configured for your account. Do not paste API tokens or passwords into chat. If the deployment tool reports any binding difference, stop and compare with the saved production configuration before retrying.
+6. After deployment, sign in with the same owner account on the iPhone and laptop. Add one small product/banner image, save it, open the other device, and refresh. Check that its image URL starts with `/api/media/shop/` and loads after signing out and back in.
+
+This deployment only publishes the local code and Pages Function. It does not create resources, change owner setup, or run a migration. The Cloudflare account and production bindings still need to be verified before this is safe to run.
 
 ## Real FIB payments
 
-Checkout is wired to FIB Online Payments: the server computes the cart total in IQD, creates a payment with FIB, opens the HTTPS app/payment link returned by FIB, and checks FIB's status and exact amount before accepting the order. New FIB orders require a confirmed `PAID` gateway result; the mock simulation and receipt-upload fallback are removed.
+Checkout uses FIB Online Payments: the server computes the cart total in IQD, creates a payment, opens the HTTPS link returned by FIB, and verifies the payment status and exact amount before accepting an order. New FIB orders require a confirmed `PAID` result.
 
-FIB must issue merchant credentials for the chosen environment. Use `stage` only for FIB's sandbox; choose `prod` only after FIB has issued production credentials and approved the merchant for live payments. Cloudflare receives these as encrypted Pages secrets; the browser and repository never contain the secret.
+FIB must issue merchant credentials for the chosen environment. Use `stage` only for FIB's sandbox; use `prod` only after FIB issues production credentials and approves the merchant for live payments. Keep credentials in Cloudflare's encrypted Pages secrets, never in the browser or repository. FIB checkout remains unavailable until valid credentials are configured.
 
-## Deploy from this Windows workspace
+## Official references
 
-1. For real customer payments, request FIB production access and credentials. You can still deploy the storefront and live sync before FIB issues them; choose the no-FIB option in the deployment prompt and FIB checkout will stay unavailable until production credentials are configured.
-2. Authorize Wrangler with Cloudflare's official OAuth flow from this project folder. Set `$env:XDG_CONFIG_HOME = Join-Path (Get-Location) '.wrangler-bootstrap\config'`, then run `.wrangler-bootstrap\install\node_modules\.bin\wrangler.cmd login --use-keyring --device --browser=false`. Review Cloudflare's authorization screen before approving. Wrangler's OAuth grants broad account access (it does not offer granular permission scoping); `--use-keyring` stores the credential encrypted using Windows Credential Manager. The deployment helper uses the same workspace config path automatically.
-3. From this project folder, run `scripts\deploy-cloudflare.ps1` in PowerShell. It verifies that Wrangler is signed into the configured account and asks whether to configure FIB now. If you choose `no`, it publishes the storefront and real-time sync while leaving FIB checkout unavailable; if you choose `yes`, it prompts securely for merchant credentials and stores them as encrypted Pages secrets. After you confirm with `DEPLOY`, it provisions Pages, D1, R2, and the WebSocket Worker, applies database migrations, and deploys the storefront. Do not enter credentials into chat.
-4. The deployment prints a one-time owner setup code. Open the published site, create the owner account with that code and a new password, then sign in to that same account on the laptop and phone. Delete the `OWNER_SETUP_TOKEN` Pages secret after the owner account is created.
-
-The deployment script is designed for the initial provisioning run. `wrangler.toml` currently contains `PLACEHOLDER_DATABASE_ID`; the script replaces it with the new D1 database ID. `wrangler whoami` currently reports that Wrangler is not authenticated, so no Cloudflare project or production URL has been created from this workspace yet. The real payment and sync code is prepared, but no payment can run until the deployment and FIB configuration are completed.
-
-Keep FIB credentials in the local secure prompts or Cloudflare's secret settings. Do not paste them into this chat or commit them to the project. To avoid Wrangler OAuth's broad account scope, use a narrowly scoped Cloudflare API token instead; the deploy script can be adjusted to accept one if you prefer that route. Do not rerun the initial provisioning script only to add FIB credentials; configure the encrypted Pages secrets and production environment after FIB approves the merchant account.
-
-## Official docs
-
-- [FIB Web Payments](https://fib.iq/integrations/web-payments/)
-- [Cloudflare Pages bindings and secrets](https://developers.cloudflare.com/pages/functions/bindings/)
+- [Cloudflare D1 limits](https://developers.cloudflare.com/d1/platform/limits/)
+- [Cloudflare Pages bindings](https://developers.cloudflare.com/pages/functions/bindings/)
 - [Cloudflare Pages Wrangler commands](https://developers.cloudflare.com/workers/wrangler/commands/pages/)
-- [Wrangler OAuth login and keyring storage](https://developers.cloudflare.com/workers/wrangler/commands/general/)
 - [Cloudflare Durable Object WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/)
-- [Cloudflare Workers authorization](https://developers.cloudflare.com/workers/authorization/)
+- [FIB Web Payments](https://fib.iq/integrations/web-payments/)

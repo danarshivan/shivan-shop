@@ -11,6 +11,10 @@ const SHOP_KEYS = new Set([
   "shivan_shop_deleted_categories",
 ]);
 const USER_KEYS = new Set(["cart", "favorites", "settings", "support"]);
+// D1's row limit is 2,000,000 bytes. Base64 adds roughly one third, so leave
+// room for JSON, key, and timestamp bytes instead of approaching the hard cap.
+const MAX_SHOP_IMAGE_BYTES = 1_300_000;
+const MAX_RECEIPT_IMAGE_BYTES = 1_000_000;
 
 const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.stringify(value), {
   status,
@@ -56,9 +60,14 @@ async function digest(value) {
   return base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))));
 }
 
+async function digestBytes(value) {
+  return base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", value)));
+}
+
 async function passwordHash(password, salt) {
   const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: fromBase64(salt), iterations: 210000, hash: "SHA-256" }, material, 256);
+  // Cloudflare Workers rejects Web Crypto PBKDF2 iteration counts above 100,000.
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: fromBase64(salt), iterations: 100000, hash: "SHA-256" }, material, 256);
   return base64url(new Uint8Array(bits));
 }
 
@@ -100,7 +109,9 @@ async function ownerExists(env) {
 }
 
 async function getShopState(env) {
-  const result = await env.DB.prepare("SELECT key, value FROM shop_state").all();
+  // Media is stored as separate D1 rows. Never include those large values in
+  // bootstrap or realtime sync responses; shop records contain only URLs.
+  const result = await env.DB.prepare("SELECT key, value FROM shop_state WHERE key < 'media:' OR key >= 'media;'").all();
   return Object.fromEntries((result.results || []).map(row => [row.key, row.value]));
 }
 
@@ -108,22 +119,97 @@ function mediaExtension(type) {
   return ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" })[type] || "bin";
 }
 
-async function persistImages(value, env) {
+async function readImageUpload(request) {
+  const reader = request.body?.getReader();
+  if (!reader) throw new Error("Image upload is empty.");
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_SHOP_IMAGE_BYTES) {
+        await reader.cancel();
+        throw new RangeError("Image upload exceeds the 1.3 MB compressed-image limit.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
+function imageMatchesMime(bytes, mime) {
+  const ascii = (start, end) => String.fromCharCode(...bytes.subarray(start, end));
+  if (mime === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mime === "image/png") return bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte);
+  if (mime === "image/webp") return bytes.length >= 12 && ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
+  if (mime === "image/gif") return bytes.length >= 6 && ["GIF87a", "GIF89a"].includes(ascii(0, 6));
+  return false;
+}
+
+async function handleMediaUpload(request, env, account, url) {
+  if (request.method !== "POST") return error("Method not allowed.", 405);
+  if (request.headers.get("Origin") !== url.origin) return error("Cross-origin image uploads are not allowed.", 403);
+  if (!account) return error("Sign in to continue.", 401);
+  if (account.role !== "owner") return error("Only the store owner can upload shop images.", 403);
+  const mime = String(request.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
+  if (!Object.hasOwn({ "image/jpeg": true, "image/png": true, "image/webp": true, "image/gif": true }, mime)) {
+    return error("Upload a JPEG, PNG, WebP, or GIF image.", 415);
+  }
+  let bytes;
+  try { bytes = await readImageUpload(request); }
+  catch (exception) {
+    return exception instanceof RangeError
+      ? error("Image upload exceeds the 1.3 MB compressed-image limit. Crop or reduce the image and try again.", 413)
+      : error("Image upload could not be read.", 400);
+  }
+  if (!bytes.byteLength || !imageMatchesMime(bytes, mime)) return error("The uploaded file is not a valid image of the declared type.", 415);
+  const key = `shop/${await digestBytes(bytes)}.${mediaExtension(mime)}`;
+  try {
+    const value = JSON.stringify({ mime, data: toBase64(bytes) });
+    await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
+      .bind(`media:${key}`, value, now()).run();
+  } catch {
+    return error("The image could not be saved to shared cloud storage.", 503);
+  }
+  return json({ url: `/api/media/${key}` }, 201);
+}
+
+function toBase64(bytes) {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+async function persistImages(value, env, mediaWrites = new Map()) {
   if (typeof value === "string") {
     const match = value.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([a-z0-9+/=]+)$/i);
     if (!match) return value;
-    if (!env.MEDIA) throw new Error("Cloud image storage is not connected yet.");
+    if (match[2].length > Math.ceil(MAX_SHOP_IMAGE_BYTES * 4 / 3) + 4) throw new Error("An image is larger than the 1.3 MB compressed-image limit.");
     const mime = match[1].toLowerCase();
     const bytes = fromBase64(match[2]);
-    if (bytes.byteLength > 8 * 1024 * 1024) throw new Error("An image is larger than the 8 MB cloud limit.");
-    const hash = await digest(match[2]);
+    if (bytes.byteLength > MAX_SHOP_IMAGE_BYTES) throw new Error("An image is larger than the 1.3 MB compressed-image limit.");
+    const hash = await digestBytes(bytes);
     const key = `shop/${hash}.${mediaExtension(mime)}`;
-    await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: mime, cacheControl: "public, max-age=31536000, immutable" } });
+    mediaWrites.set(key, env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
+      .bind(`media:${key}`, JSON.stringify({ mime, data: toBase64(bytes) }), now()));
     return `/api/media/${key}`;
   }
-  if (Array.isArray(value)) return Promise.all(value.map(item => persistImages(item, env)));
+  if (Array.isArray(value)) return Promise.all(value.map(item => persistImages(item, env, mediaWrites)));
   if (value && typeof value === "object") {
-    const entries = await Promise.all(Object.entries(value).map(async ([key, child]) => [key, await persistImages(child, env)]));
+    const entries = await Promise.all(Object.entries(value).map(async ([key, child]) => [key, await persistImages(child, env, mediaWrites)]));
     return Object.fromEntries(entries);
   }
   return value;
@@ -135,13 +221,13 @@ async function persistReceiptImage(value, env) {
   if (/^\/api\/media\/receipts\/[A-Za-z0-9_-]{40,50}\.(?:jpg|png|webp)$/i.test(receipt)) return receipt;
   const match = receipt.match(/^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i);
   if (!match) throw new Error("The FIB receipt image is invalid.");
-  if (!env.MEDIA) throw new Error("Cloud receipt storage is not connected yet.");
   const mime = match[1].toLowerCase();
   const bytes = fromBase64(match[2]);
-  if (bytes.byteLength > 1024 * 1024) throw new Error("The receipt image exceeds the 1 MB upload limit.");
-  const hash = await digest(match[2]);
+  if (bytes.byteLength > MAX_RECEIPT_IMAGE_BYTES) throw new Error("The receipt image exceeds the 1 MB upload limit.");
+  const hash = await digestBytes(bytes);
   const key = `receipts/${hash}.${mediaExtension(mime)}`;
-  await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: mime, cacheControl: "private, no-store" } });
+  await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
+    .bind(`media:${key}`, JSON.stringify({ mime, data: toBase64(bytes) }), now()).run();
   return `/api/media/${key}`;
 }
 
@@ -282,7 +368,14 @@ async function saveShopValue(env, key, rawValue) {
   if (key === "shivan_shop_products" || key === "shivan_shop_ads") {
     const parsed = asJson(value);
     if (!Array.isArray(parsed)) throw new Error("Shop data must be a list.");
-    value = JSON.stringify(await persistImages(parsed, env));
+    const mediaWrites = new Map();
+    value = JSON.stringify(await persistImages(parsed, env, mediaWrites));
+    const statements = [...mediaWrites.values()];
+    // Keep batches small for predictable free-tier resource use. Each chunk is
+    // atomic, and the shop record is written only after all referenced media.
+    for (let index = 0; index < statements.length; index += 20) {
+      await env.DB.batch(statements.slice(index, index + 20));
+    }
   }
   await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at")
     .bind(key, value, now()).run();
@@ -584,20 +677,42 @@ export async function onRequest({ request, env }) {
   const route = url.pathname.replace(/^\/api\/?/, "").replace(/\/+$/, "");
   const secure = url.protocol === "https:";
 
+  if (route === "media/upload") return handleMediaUpload(request, env, await currentAccount(request, env), url);
+
   if (route.startsWith("media/") && request.method === "GET") {
-    if (!env.MEDIA) return error("Cloud image storage is not connected yet.", 503);
     const key = route.slice("media/".length).split("/").map(segment => decodeURIComponent(segment)).join("/");
     const privateReceipt = key.startsWith("receipts/");
+    const mediaMatch = key.match(/^(shop|receipts)\/([A-Za-z0-9_-]{43})\.(jpg|png|webp|gif)$/i);
+    if (!mediaMatch || (privateReceipt !== (mediaMatch[1] === "receipts"))) return new Response("Not found", { status: 404 });
     if (privateReceipt) {
       const mediaAccount = await currentAccount(request, env);
       if (mediaAccount?.role !== "owner") return error("Only the store owner can view payment receipts.", 403);
     }
-    const object = await env.MEDIA.get(key);
-    if (!object) return new Response("Not found", { status: 404 });
-    const headers = new Headers();
-    object.writeHttpMetadata(headers);
-    headers.set("Cache-Control", privateReceipt ? "private, no-store" : "public, max-age=31536000, immutable");
-    return new Response(object.body, { headers });
+    const mediaRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(`media:${key}`).first();
+    if (mediaRow) {
+      const media = asJson(mediaRow.value);
+      if (!media || !/^image\/(?:jpeg|png|webp|gif)$/.test(media.mime) || typeof media.data !== "string") return error("Stored image data is invalid.", 500);
+      const bytes = fromBase64(media.data);
+      const headers = new Headers({
+        "Content-Type": media.mime,
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": privateReceipt ? "private, no-store" : "public, max-age=31536000, immutable",
+      });
+      return new Response(bytes, { headers });
+    }
+    // Preserve legacy R2 URLs for existing products and receipts, but never
+    // write new images to R2. A missing binding simply means legacy media 404s.
+    if (env.MEDIA) {
+      const object = await env.MEDIA.get(key);
+      if (object) {
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set("X-Content-Type-Options", "nosniff");
+        headers.set("Cache-Control", privateReceipt ? "private, no-store" : "public, max-age=31536000, immutable");
+        return new Response(object.body, { headers });
+      }
+    }
+    return new Response("Not found", { status: 404 });
   }
 
   if (route === "bootstrap" && request.method === "GET") {
