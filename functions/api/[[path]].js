@@ -22,6 +22,14 @@ const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.strin
 });
 
 const error = (message, status = 400) => json({ error: message }, status);
+
+function requireD1WriteSuccess(result, operation) {
+  const results = Array.isArray(result) ? result : [result];
+  if (!results.length || results.some(item => item?.success !== true)) {
+    const detail = results.find(item => item?.success === false)?.error;
+    throw new Error(`${operation} was not confirmed by D1${detail ? `: ${detail}` : ""}.`);
+  }
+}
 const now = () => new Date().toISOString();
 const asJson = (value, fallback = null) => {
   try { return JSON.parse(value); } catch { return fallback; }
@@ -176,8 +184,9 @@ async function handleMediaUpload(request, env, account, url) {
   const key = `shop/${await digestBytes(bytes)}.${mediaExtension(mime)}`;
   try {
     const value = JSON.stringify({ mime, data: toBase64(bytes) });
-    await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
+    const result = await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
       .bind(`media:${key}`, value, now()).run();
+    requireD1WriteSuccess(result, "Image storage");
   } catch (exception) {
     console.error("Could not persist owner shop image to D1.", exception);
     return error("The image could not be saved to shared cloud storage.", 503);
@@ -375,11 +384,13 @@ async function saveShopValue(env, key, rawValue) {
     // Keep batches small for predictable free-tier resource use. Each chunk is
     // atomic, and the shop record is written only after all referenced media.
     for (let index = 0; index < statements.length; index += 20) {
-      await env.DB.batch(statements.slice(index, index + 20));
+      const results = await env.DB.batch(statements.slice(index, index + 20));
+      requireD1WriteSuccess(results, "Shop image storage");
     }
   }
-  await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at")
+  const result = await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at")
     .bind(key, value, now()).run();
+  requireD1WriteSuccess(result, "Shop data storage");
 }
 
 function accountView(row) {

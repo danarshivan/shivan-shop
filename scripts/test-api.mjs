@@ -17,6 +17,10 @@ for (const [index, script] of inlineScripts.entries()) {
 const productSaveSource = htmlSource.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
 assert.match(productSaveSource, /await confirmCloudShopWrite\(PRODUCTS_KEY\)/, "the Owner form must wait for the shared-save result");
 assert.match(productSaveSource, /shared database has not confirmed/i, "the Owner form must not report an unconfirmed cloud save as complete");
+const cloudFailureBranch = productSaveSource.indexOf("if(cloudSyncRequired&&!cloudSaved)");
+const productSuccessExit = productSaveSource.indexOf("editingProductId=null");
+assert.ok(cloudFailureBranch >= 0 && cloudFailureBranch < productSuccessExit, "a failed shared save must keep the Owner form open before the success navigation");
+assert.match(productSaveSource.slice(cloudFailureBranch, productSuccessExit), /editingProductId=record\.id/, "a retry must reuse the pending product ID instead of creating a duplicate");
 
 class MemoryD1 {
   shop = new Map();
@@ -24,6 +28,8 @@ class MemoryD1 {
   sessions = new Map();
   failNextProductWrite = false;
   failNextMediaWrite = false;
+  failNextProductResult = false;
+  failNextMediaResult = false;
 
   prepare(sql) {
     const statement = {
@@ -38,8 +44,21 @@ class MemoryD1 {
   }
 
   async batch(statements) {
+    const previousShop = new Map(this.shop);
     const results = [];
-    for (const statement of statements) results.push(await statement.run());
+    try {
+      for (const statement of statements) {
+        const result = await statement.run();
+        results.push(result);
+        if (result?.success !== true) {
+          this.shop = previousShop;
+          break;
+        }
+      }
+    } catch (exception) {
+      this.shop = previousShop;
+      throw exception;
+    }
     return results;
   }
 
@@ -89,9 +108,17 @@ class MemoryD1 {
     }
     if (sql.includes("INSERT INTO shop_state")) {
       const [key, value] = values;
+      if (key.startsWith("media:") && this.failNextMediaResult) {
+        this.failNextMediaResult = false;
+        return { success: false, error: "Simulated D1 media result failure" };
+      }
       if (key.startsWith("media:") && this.failNextMediaWrite) {
         this.failNextMediaWrite = false;
         throw new Error("Simulated D1 media write failure");
+      }
+      if (key === "shivan_shop_products" && this.failNextProductResult) {
+        this.failNextProductResult = false;
+        return { success: false, error: "Simulated D1 product result failure" };
       }
       if (key === "shivan_shop_products" && this.failNextProductWrite) {
         this.failNextProductWrite = false;
@@ -139,6 +166,17 @@ try {
 assert.equal(failedImageUpload.status, 503, "D1 image-write failures should be reported as shared-storage errors");
 assert.match((await failedImageUpload.json()).error, /could not be saved to shared cloud storage/i);
 
+DB.failNextMediaResult = true;
+let unconfirmedImageUpload;
+try {
+  console.error = () => {};
+  unconfirmedImageUpload = await context(uploadRequest());
+} finally {
+  console.error = originalConsoleError;
+}
+assert.equal(unconfirmedImageUpload.status, 503, "D1 success:false must not return an image URL as if the upload succeeded");
+assert.match((await unconfirmedImageUpload.json()).error, /could not be saved to shared cloud storage/i);
+
 const imageResponse = await context(new Request(`https://shop.test${imageUrl}`));
 assert.equal(imageResponse.status, 200, "a shared shop image should be readable without an account");
 assert.equal(imageResponse.headers.get("Content-Type"), "image/webp");
@@ -149,14 +187,15 @@ const productId = 1791835200123;
 const save = await context(new Request("https://shop.test/api/sync", {
   method: "PUT",
   headers: { "Content-Type": "application/json", Cookie: cookie },
-  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId, name: "Test product", image: inlineImage }]) }),
+  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId, name: "Test product", image: imageUrl, images: [{ src: imageUrl, color: "" }] }]) }),
 }));
-assert.equal(save.status, 200, "owner product data and inline legacy photos should save into D1");
+assert.equal(save.status, 200, "owner product data referencing an uploaded crop should save into D1");
 assert.deepEqual(await save.json(), { ok: true, key: "shivan_shop_products", persisted: true }, "the save API should explicitly acknowledge the saved shop key");
 const storedProducts = JSON.parse(DB.shop.get("shivan_shop_products"));
 assert.equal(storedProducts.length, 1);
 assert.equal(storedProducts[0].id, productId, "D1 persistence must preserve the numeric product ID");
 assert.match(storedProducts[0].image, /^\/api\/media\/shop\//);
+assert.equal(storedProducts[0].images[0].src, imageUrl, "the saved product must keep the uploaded cropped-image URL");
 
 const reloaded = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: cookie } }));
 assert.equal(reloaded.status, 200);
@@ -164,6 +203,49 @@ const reloadedData = await reloaded.json();
 const reloadedProducts = JSON.parse(reloadedData.shop.shivan_shop_products);
 assert.equal(reloadedProducts.length, 1, "a new product must still exist after a server reload");
 assert.equal(reloadedProducts[0].id, productId, "the product ID must survive a server reload unchanged");
+assert.equal(reloadedProducts[0].images[0].src, imageUrl, "the cropped image reference must survive a server reload");
+const secondDevice = await context(new Request("https://shop.test/api/sync"));
+assert.equal(secondDevice.status, 200, "a separate device can load the public shop data from shared D1");
+assert.equal(JSON.parse((await secondDevice.json()).shop.shivan_shop_products)[0].images[0].src, imageUrl, "the product and cropped image URL must be shared across devices");
+const reloadedProductImage = await context(new Request(`https://shop.test${reloadedProducts[0].images[0].src}`));
+assert.equal(reloadedProductImage.status, 200, "the product's cropped image must remain readable after a D1 reload");
+assert.deepEqual(new Uint8Array(await reloadedProductImage.arrayBuffer()), imageBytes);
+
+DB.failNextProductResult = true;
+let unconfirmedProductSave;
+try {
+  console.error = () => {};
+  unconfirmedProductSave = await context(new Request("https://shop.test/api/sync", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 1, name: "Unconfirmed product", image: imageUrl }]) }),
+  }));
+} finally {
+  console.error = originalConsoleError;
+}
+assert.equal(unconfirmedProductSave.status, 503, "D1 success:false must not return persisted:true for a product write");
+assert.match((await unconfirmedProductSave.json()).error, /shared database could not confirm/i);
+assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].id, productId, "an unconfirmed product write must leave the previous product data intact");
+
+const otherBytes = Uint8Array.from([...imageBytes, 1]);
+const otherInlineImage = `data:image/webp;base64,${Buffer.from(otherBytes).toString("base64")}`;
+const mediaRowsBeforeBatchFailure = [...DB.shop.keys()].filter(key => key.startsWith("media:")).length;
+DB.failNextMediaResult = true;
+let unconfirmedCroppedImageReference;
+try {
+  console.error = () => {};
+  unconfirmedCroppedImageReference = await context(new Request("https://shop.test/api/sync", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 2, name: "Product with unconfirmed crop", image: otherInlineImage }]) }),
+  }));
+} finally {
+  console.error = originalConsoleError;
+}
+assert.equal(unconfirmedCroppedImageReference.status, 503, "a failed D1 media batch must block product persistence and return an error");
+assert.match((await unconfirmedCroppedImageReference.json()).error, /shared database could not confirm/i);
+assert.equal([...DB.shop.keys()].filter(key => key.startsWith("media:")).length, mediaRowsBeforeBatchFailure, "a failed D1 media batch must not leave a media row behind in the test database");
+assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].id, productId, "product data must not update when a referenced image write failed");
 
 const bannerSave = await context(new Request("https://shop.test/api/sync", {
   method: "PUT",
@@ -258,4 +340,4 @@ const customerShopWrite = await context(new Request("https://shop.test/api/sync"
 }));
 assert.equal(customerShopWrite.status, 403, "a customer account must not edit shared shop data");
 
-console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, explicit product-save acknowledgment, product and banner image persistence in D1, D1 reload with numeric ID preserved, legacy R2 image read compatibility, no new R2 writes, simulated D1 failure handling, public shop image retrieval, sync payload filtering, and image size limit.`);
+console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, explicit product-save acknowledgment, retry-safe Owner form behavior, successful cropped-image and product persistence in D1, refresh and second-device reads, D1 success:false handling for image uploads, image batches, and product writes, legacy R2 image read compatibility, no new R2 writes, simulated D1 exceptions, public shop image retrieval, sync payload filtering, and image size limit.`);

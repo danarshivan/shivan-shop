@@ -6836,9 +6836,20 @@ async function saveOwnerProduct(event){
   if(form)form.dataset.saving="true";
   const submitButton=form?.querySelector('button[type="submit"]');
   if(submitButton)submitButton.disabled=true;
-  let cloudSaved=false;
-  try{cloudSaved=await confirmCloudShopWrite(PRODUCTS_KEY);}catch(error){
+  const cloudSyncRequired=Boolean(cloudMode&&cloudAccount?.role==="owner");
+  let cloudSaved=!cloudSyncRequired;
+  try{if(cloudSyncRequired)cloudSaved=await confirmCloudShopWrite(PRODUCTS_KEY);}catch(error){
     if(!cloudWriteFailureNoticeShown){showToast(error.message||"The shared database has not confirmed this product yet.");cloudWriteFailureNoticeShown=true;}
+  }
+  if(cloudSyncRequired&&!cloudSaved){
+    // Keep the form open and reuse this ID on retry. The local copy and outbox
+    // remain available for automatic retry, but the UI must not imply success.
+    editingProductId=record.id;
+    ownerProductMode="form";
+    if(form)form.dataset.saving="false";
+    if(submitButton)submitButton.disabled=false;
+    showToast("The shared database has not confirmed this product. It remains on this device; keep this form open and press Save again to retry.");
+    return;
   }
   editingProductId=null;
   ownerProductMode="list";
