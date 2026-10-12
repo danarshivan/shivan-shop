@@ -14,11 +14,16 @@ for (const [index, script] of inlineScripts.entries()) {
   try { new Function(script); }
   catch (exception) { throw new Error(`Storefront script ${index + 1} has a syntax error: ${exception.message}`); }
 }
+const productSaveSource = htmlSource.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
+assert.match(productSaveSource, /await confirmCloudShopWrite\(PRODUCTS_KEY\)/, "the Owner form must wait for the shared-save result");
+assert.match(productSaveSource, /shared database has not confirmed/i, "the Owner form must not report an unconfirmed cloud save as complete");
 
 class MemoryD1 {
   shop = new Map();
   accounts = new Map();
   sessions = new Map();
+  failNextProductWrite = false;
+  failNextMediaWrite = false;
 
   prepare(sql) {
     const statement = {
@@ -84,6 +89,14 @@ class MemoryD1 {
     }
     if (sql.includes("INSERT INTO shop_state")) {
       const [key, value] = values;
+      if (key.startsWith("media:") && this.failNextMediaWrite) {
+        this.failNextMediaWrite = false;
+        throw new Error("Simulated D1 media write failure");
+      }
+      if (key === "shivan_shop_products" && this.failNextProductWrite) {
+        this.failNextProductWrite = false;
+        throw new Error("Simulated D1 write failure");
+      }
       if (sql.includes("DO NOTHING") && this.shop.has(key)) return { success: true };
       this.shop.set(key, value);
       return { success: true };
@@ -114,20 +127,94 @@ assert.equal(upload.status, 201, "an authenticated owner should upload without a
 const { url: imageUrl } = await upload.json();
 assert.match(imageUrl, /^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.webp$/);
 
+DB.failNextMediaWrite = true;
+const originalConsoleError = console.error;
+let failedImageUpload;
+try {
+  console.error = () => {};
+  failedImageUpload = await context(uploadRequest());
+} finally {
+  console.error = originalConsoleError;
+}
+assert.equal(failedImageUpload.status, 503, "D1 image-write failures should be reported as shared-storage errors");
+assert.match((await failedImageUpload.json()).error, /could not be saved to shared cloud storage/i);
+
 const imageResponse = await context(new Request(`https://shop.test${imageUrl}`));
 assert.equal(imageResponse.status, 200, "a shared shop image should be readable without an account");
 assert.equal(imageResponse.headers.get("Content-Type"), "image/webp");
 assert.deepEqual(new Uint8Array(await imageResponse.arrayBuffer()), imageBytes);
 
 const inlineImage = `data:image/webp;base64,${Buffer.from(imageBytes).toString("base64")}`;
+const productId = 1791835200123;
 const save = await context(new Request("https://shop.test/api/sync", {
   method: "PUT",
   headers: { "Content-Type": "application/json", Cookie: cookie },
-  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: 1, image: inlineImage }]) }),
+  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId, name: "Test product", image: inlineImage }]) }),
 }));
 assert.equal(save.status, 200, "owner product data and inline legacy photos should save into D1");
+assert.deepEqual(await save.json(), { ok: true, key: "shivan_shop_products", persisted: true }, "the save API should explicitly acknowledge the saved shop key");
 const storedProducts = JSON.parse(DB.shop.get("shivan_shop_products"));
+assert.equal(storedProducts.length, 1);
+assert.equal(storedProducts[0].id, productId, "D1 persistence must preserve the numeric product ID");
 assert.match(storedProducts[0].image, /^\/api\/media\/shop\//);
+
+const reloaded = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: cookie } }));
+assert.equal(reloaded.status, 200);
+const reloadedData = await reloaded.json();
+const reloadedProducts = JSON.parse(reloadedData.shop.shivan_shop_products);
+assert.equal(reloadedProducts.length, 1, "a new product must still exist after a server reload");
+assert.equal(reloadedProducts[0].id, productId, "the product ID must survive a server reload unchanged");
+
+const bannerSave = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT",
+  headers: { "Content-Type": "application/json", Cookie: cookie },
+  body: JSON.stringify({ key: "shivan_shop_ads", value: JSON.stringify([{ id: "banner-1", title: "Test banner", image: inlineImage }]) }),
+}));
+assert.equal(bannerSave.status, 200, "owner banner data and inline photos should save into D1");
+assert.deepEqual(await bannerSave.json(), { ok: true, key: "shivan_shop_ads", persisted: true });
+const storedBanners = JSON.parse(DB.shop.get("shivan_shop_ads"));
+assert.match(storedBanners[0].image, /^\/api\/media\/shop\//, "banner records should reference their shared D1 image");
+const bannerImageResponse = await context(new Request(`https://shop.test${storedBanners[0].image}`));
+assert.equal(bannerImageResponse.status, 200, "a saved banner image should load from D1");
+assert.deepEqual(new Uint8Array(await bannerImageResponse.arrayBuffer()), imageBytes);
+
+// Existing catalog URLs are kept intact. Simulate a legacy R2 object to ensure
+// the read fallback remains available without using R2 for new uploads.
+const legacyMediaKey = `shop/${"B".repeat(43)}.png`;
+let legacyMediaReads = 0;
+let legacyMediaWrites = 0;
+env.MEDIA = {
+  get: async key => {
+    if (key !== legacyMediaKey) return null;
+    legacyMediaReads++;
+    return {
+      body: imageBytes,
+      writeHttpMetadata: headers => headers.set("Content-Type", "image/png"),
+    };
+  },
+  put: async () => { legacyMediaWrites++; throw new Error("New media must not be written to R2"); },
+};
+const legacyImageResponse = await context(new Request(`https://shop.test/api/media/${legacyMediaKey}`));
+assert.equal(legacyImageResponse.status, 200, "existing R2-backed image URLs should remain readable when MEDIA is configured");
+assert.equal(legacyImageResponse.headers.get("Content-Type"), "image/png");
+assert.equal(legacyMediaReads, 1);
+assert.equal(legacyMediaWrites, 0, "new media uploads must not write to R2");
+
+DB.failNextProductWrite = true;
+let failedSave;
+try {
+  console.error = () => {};
+  failedSave = await context(new Request("https://shop.test/api/sync", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 1, name: "Unsaved product" }]) }),
+  }));
+} finally {
+  console.error = originalConsoleError;
+}
+assert.equal(failedSave.status, 503, "D1 failures should be reported as a shared-storage error, not an image-size error");
+assert.match((await failedSave.json()).error, /shared database could not confirm/i);
+assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].id, productId, "a failed D1 write must not replace the previous product list");
 
 const bootstrap = await context(new Request("https://shop.test/api/bootstrap"));
 assert.equal(bootstrap.status, 200);
@@ -171,4 +258,4 @@ const customerShopWrite = await context(new Request("https://shop.test/api/sync"
 }));
 assert.equal(customerShopWrite.status, 403, "a customer account must not edit shared shop data");
 
-console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, D1 image persistence, public shop image retrieval, sync payload filtering, and image size limit.`);
+console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, explicit product-save acknowledgment, product and banner image persistence in D1, D1 reload with numeric ID preserved, legacy R2 image read compatibility, no new R2 writes, simulated D1 failure handling, public shop image retrieval, sync payload filtering, and image size limit.`);

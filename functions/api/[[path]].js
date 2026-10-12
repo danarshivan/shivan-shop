@@ -178,7 +178,8 @@ async function handleMediaUpload(request, env, account, url) {
     const value = JSON.stringify({ mime, data: toBase64(bytes) });
     await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
       .bind(`media:${key}`, value, now()).run();
-  } catch {
+  } catch (exception) {
+    console.error("Could not persist owner shop image to D1.", exception);
     return error("The image could not be saved to shared cloud storage.", 503);
   }
   return json({ url: `/api/media/${key}` }, 201);
@@ -197,10 +198,10 @@ async function persistImages(value, env, mediaWrites = new Map()) {
   if (typeof value === "string") {
     const match = value.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([a-z0-9+/=]+)$/i);
     if (!match) return value;
-    if (match[2].length > Math.ceil(MAX_SHOP_IMAGE_BYTES * 4 / 3) + 4) throw new Error("An image is larger than the 1.3 MB compressed-image limit.");
+    if (match[2].length > Math.ceil(MAX_SHOP_IMAGE_BYTES * 4 / 3) + 4) throw new RangeError("An image is larger than the 1.3 MB compressed-image limit.");
     const mime = match[1].toLowerCase();
     const bytes = fromBase64(match[2]);
-    if (bytes.byteLength > MAX_SHOP_IMAGE_BYTES) throw new Error("An image is larger than the 1.3 MB compressed-image limit.");
+    if (bytes.byteLength > MAX_SHOP_IMAGE_BYTES) throw new RangeError("An image is larger than the 1.3 MB compressed-image limit.");
     const hash = await digestBytes(bytes);
     const key = `shop/${hash}.${mediaExtension(mime)}`;
     mediaWrites.set(key, env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
@@ -491,7 +492,7 @@ async function handleSync(request, env, account) {
       if (account.role !== "owner") return error("Only the store owner can change shop settings.", 403);
       await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, '', ?) ON CONFLICT(key) DO UPDATE SET value='', updated_at=excluded.updated_at").bind(key, now()).run();
       await broadcastSync(env);
-      return json({ ok: true });
+      return json({ ok: true, key });
     }
     const userKey = key === "shivan_shop_support" ? "support" : key === "shivan_shop_settings" ? "settings" : key.startsWith("shivan_shop_cart_") ? "cart" : key.startsWith("shivan_shop_favorites_") ? "favorites" : "";
     if (!USER_KEYS.has(userKey)) return error("Unsupported sync key.");
@@ -507,9 +508,13 @@ async function handleSync(request, env, account) {
   if (SHOP_KEYS.has(key)) {
     if (account.role !== "owner") return error("Only the store owner can change shop settings.", 403);
     try { await saveShopValue(env, key, value); }
-    catch (exception) { return error(exception.message || "Could not save shop data.", 413); }
+    catch (exception) {
+      if (exception instanceof RangeError) return error(exception.message || "Shop images exceed the shared storage limit.", 413);
+      console.error("Could not persist owner shop data to D1.", exception);
+      return error("The shared database could not confirm this shop update. Your device will keep it queued for retry.", 503);
+    }
     await broadcastSync(env);
-    return json({ ok: true });
+    return json({ ok: true, key, persisted: true });
   }
 
   if (key === "shivan_shop_orders") {

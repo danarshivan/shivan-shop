@@ -3398,6 +3398,7 @@ const OWNER_CATEGORY_META_KEY = "shivan_shop_category_meta";
 const OWNER_CATEGORY_RENAMES_KEY = "shivan_shop_category_renames";
 const OWNER_CATEGORY_DELETED_KEY = "shivan_shop_deleted_categories";
 const CLOUD_OUTBOX_KEY = "shivan_shop_cloud_outbox";
+const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY]);
 const MAX_CLOUD_IMAGE_BYTES = 1300000;
 const OWNER_IDENTIFIER = "07502342153";
 const OWNER_PASSWORD = "";
@@ -3427,7 +3428,7 @@ const originalStorageSetItem=Storage.prototype.setItem;
 const originalStorageRemoveItem=Storage.prototype.removeItem;
 
 function cloudStorageKey(key){
-  if([PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY,ORDERS_KEY,SETTINGS_KEY,SUPPORT_KEY].includes(key))return key;
+  if(CLOUD_OWNER_KEYS.has(key)||[ORDERS_KEY,SETTINGS_KEY,SUPPORT_KEY].includes(key))return key;
   if(key.startsWith(CART_KEY+"_"))return key;
   if(key.startsWith(FAVORITES_KEY+"_"))return key;
   return "";
@@ -3494,7 +3495,7 @@ function scheduleCloudRetry(){
 
 function queueCloudWrite(key,value){
   if(!cloudMode||!cloudAccount||!cloudStorageKey(key))return;
-  if([PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY].includes(key)&&cloudAccount.role!=="owner")return;
+  if(CLOUD_OWNER_KEYS.has(key)&&cloudAccount.role!=="owner")return;
   const outbox=readCloudOutbox();
   outbox[key]={accountId:String(cloudAccount.id),remove:value===null};
   if(!saveCloudOutbox(outbox)){
@@ -3512,7 +3513,7 @@ async function flushCloudWrites(){
   cloudFlushPromise=(async()=>{
     while(cloudMode&&cloudAccount){
       const pending=readCloudOutbox();
-      const entries=Object.entries(pending).filter(([key,marker])=>marker.accountId===String(cloudAccount.id)&&(cloudAccount.role==="owner"||![PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY].includes(key)));
+      const entries=Object.entries(pending).filter(([key,marker])=>marker.accountId===String(cloudAccount.id)&&(cloudAccount.role==="owner"||!CLOUD_OWNER_KEYS.has(key)));
       if(!entries.length)break;
       for(const [key,marker] of entries){
         const currentValue=localStorage.getItem(key);
@@ -3520,8 +3521,13 @@ async function flushCloudWrites(){
         const expectedMarker={accountId:String(cloudAccount.id),remove:deleting};
         const value=deleting?null:currentValue;
         try{
-          if(deleting)await cloudRequest(`/api/sync?key=${encodeURIComponent(key)}`,{method:"DELETE"});
-          else await cloudRequest("/api/sync",{method:"PUT",body:JSON.stringify({key,value})});
+          const confirmation=deleting
+            ?await cloudRequest(`/api/sync?key=${encodeURIComponent(key)}`,{method:"DELETE"})
+            :await cloudRequest("/api/sync",{method:"PUT",body:JSON.stringify({key,value})});
+          if(confirmation?.ok!==true)throw new Error("The shared service did not confirm the save.");
+          if(CLOUD_OWNER_KEYS.has(key)&&(confirmation.key!==key||!deleting&&confirmation.persisted!==true)){
+            throw new Error("The live API did not confirm saving this shop change to the shared database. It will retry automatically.");
+          }
         }catch(error){
           if(!cloudWriteFailureNoticeShown){showToast(error.message||"Cloud sync is unavailable. Your changes remain saved on this device and will retry.");cloudWriteFailureNoticeShown=true;}
           scheduleCloudRetry();
@@ -3543,12 +3549,21 @@ async function flushCloudWrites(){
   return cloudFlushPromise;
 }
 
+async function confirmCloudShopWrite(key){
+  if(!cloudMode||!cloudAccount||cloudAccount.role!=="owner")return false;
+  const accountId=String(cloudAccount.id);
+  const queued=readCloudOutbox()[key];
+  if(!queued||queued.accountId!==accountId||queued.remove)return false;
+  const flushed=await flushCloudWrites();
+  const remaining=readCloudOutbox()[key];
+  return flushed&&(!remaining||remaining.accountId!==accountId);
+}
+
 function applyCloudData(data){
   if(!data)return;
   let changed=false;
   const pending=readCloudOutbox();
-  const ownerKeys=[PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY];
-  const hasPendingForCurrentAccount=key=>Boolean(pending[key]&&(ownerKeys.includes(key)||pending[key].accountId===String(cloudAccount?.id||"")));
+  const hasPendingForCurrentAccount=key=>Boolean(pending[key]&&(CLOUD_OWNER_KEYS.has(key)||pending[key].accountId===String(cloudAccount?.id||"")));
   cloudHydrating=true;
   try{
     const shop=data.shop||{};
@@ -6769,9 +6784,18 @@ function updateOwnerInventoryTotal(){
   if(output)output.textContent=`کۆی گشتی: ${total} دانە`;
 }
 
-function saveOwnerProduct(event){
+function createOwnerProductId(){
+  const usedIds=new Set(products.map(item=>String(item.id)));
+  let id=Date.now();
+  while(usedIds.has(String(id)))id+=1;
+  return id;
+}
+
+async function saveOwnerProduct(event){
   event.preventDefault();
   if(!isOwner()) return;
+  const form=event.currentTarget;
+  if(form?.dataset.saving==="true")return;
   const names={
     en:document.getElementById("ownerProductNameEn").value.trim(),
     ar:document.getElementById("ownerProductNameAr").value.trim(),
@@ -6800,7 +6824,7 @@ function saveOwnerProduct(event){
     return;
   }
   const stock=variants.reduce((sum,item)=>sum+item.stock,0);
-  const record={id:editingProductId??Date.now(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
+  const record={id:editingProductId??createOwnerProductId(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
   const index=products.findIndex(item=>item.id===record.id);
   const previous=index<0?null:products[index];
   if(index<0) products.unshift(record); else products[index]=record;
@@ -6809,6 +6833,13 @@ function saveOwnerProduct(event){
     showToast("وێنەکان زۆر گەورەن بۆ پاشەکەفتی براوزەر؛ وێنەی بچووکتر هەڵبژێرە.");
     return;
   }
+  if(form)form.dataset.saving="true";
+  const submitButton=form?.querySelector('button[type="submit"]');
+  if(submitButton)submitButton.disabled=true;
+  let cloudSaved=false;
+  try{cloudSaved=await confirmCloudShopWrite(PRODUCTS_KEY);}catch(error){
+    if(!cloudWriteFailureNoticeShown){showToast(error.message||"The shared database has not confirmed this product yet.");cloudWriteFailureNoticeShown=true;}
+  }
   editingProductId=null;
   ownerProductMode="list";
   ownerInventoryDraft.clear();
@@ -6816,7 +6847,7 @@ function saveOwnerProduct(event){
   renderProducts(products);
   renderOwnerPanel("products");
   scrollOwnerTo("ownerProductList");
-  showToast("زانیاریێن بەرهەم پاشەکەفت بوون.");
+  showToast(cloudSaved?"Product saved and synced to the shared shop.":"Product is saved on this device, but the shared database has not confirmed it yet. Sync will retry automatically.");
 }
 
 function editOwnerProduct(id){
