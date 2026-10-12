@@ -1258,6 +1258,8 @@ button{
 .crop-color-row select{min-height:38px;border:1px solid #34394e;border-radius:10px;padding:7px;background:#141722;color:#fff;font:inherit}
 .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .crop-actions .main-btn{margin:0}
+.crop-modal button[data-crop-action]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(pointer:coarse){.crop-modal button[data-crop-action]{min-height:48px}}
 @media(max-height:680px){.crop-modal-hint{display:none}}
 .stock-line{color:#aaa;font-size:12px;margin-top:4px}
 .stock-line.out-of-stock{color:#ff8b96;font-weight:800}
@@ -2962,7 +2964,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   <div class="crop-modal-card">
     <div class="crop-modal-head">
       <h2>بڕینی وێنە</h2>
-      <button class="modal-close" type="button" onclick="finishImageCrop(false)" aria-label="داخستن">×</button>
+      <button class="modal-close" type="button" data-crop-action="cancel" aria-label="داخستن">×</button>
     </div>
     <p class="crop-modal-hint">وێنەکە بکشە بۆ ڕێکخستن؛ زووم بکە و قەبارەی بڕین هەڵبژێرە.</p>
     <div id="cropViewport" class="crop-viewport" onpointerdown="cropPointerDown(event)" onpointermove="cropPointerMove(event)" onpointerup="cropPointerUp(event)" onpointercancel="cropPointerUp(event)">
@@ -2977,8 +2979,8 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
     <label id="cropColorRow" class="crop-color-row" for="cropImageColor"><span>ڕەنگێ وێنە</span><select id="cropImageColor"></select></label>
     <label class="crop-zoom-row" for="cropZoom"><span>زووم</span><input id="cropZoom" type="range" min="1" max="5" step="0.01" value="1" oninput="setCropZoom(this.value)"></label>
     <div class="crop-actions">
-      <button type="button" onclick="finishImageCrop(false)">هەڵوەشاندنەوە</button>
-      <button type="button" class="main-btn" onclick="finishImageCrop(true)">بڕین و پاشەکەفتکردن</button>
+      <button type="button" data-crop-action="cancel">هەڵوەشاندنەوە</button>
+      <button type="button" class="main-btn" data-crop-action="apply">بڕین و پاشەکەفتکردن</button>
     </div>
   </div>
 </div>
@@ -3457,11 +3459,11 @@ async function cloudRequest(path,options={}){
   return data;
 }
 
-async function uploadOwnerImageToCloud(blob){
+async function uploadOwnerImageToCloud(blob,signal){
   if(!cloudMode||!cloudAccount||cloudAccount.role!=="owner")throw new Error("Sign in to the shared cloud owner account before uploading shop images.");
   if(!(blob instanceof Blob)||!/^image\/(?:jpeg|png|webp|gif)$/i.test(blob.type))throw new Error("Choose a JPEG, PNG, WebP, or GIF image.");
   if(blob.size>MAX_CLOUD_IMAGE_BYTES)throw new Error("The compressed image exceeds the shared-storage limit. Crop closer to the product and try again.");
-  const data=await cloudRequest("/api/media/upload",{method:"POST",headers:{"Content-Type":blob.type},body:blob});
+  const data=await cloudRequest("/api/media/upload",{method:"POST",headers:{"Content-Type":blob.type},body:blob,signal});
   const imageUrl=String(data.url||"");
   if(!/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(?:jpg|png|webp|gif)$/i.test(imageUrl))throw new Error("The cloud returned an invalid image address.");
   return imageUrl;
@@ -4055,12 +4057,48 @@ function readAsDataUrl(blob){
   });
 }
 
-function canvasBlob(canvas,type,quality){
-  return new Promise(resolve=>canvas.toBlob(resolve,type,quality));
+function canvasBlob(canvas,type,quality,{signal,timeoutMs=15000}={}){
+  return new Promise((resolve,reject)=>{
+    if(typeof canvas?.toBlob!=="function"){reject(new Error("This browser cannot prepare the cropped image. Try another photo or browser."));return;}
+    let settled=false;
+    let timeout=null;
+    const finish=(callback,value)=>{
+      if(settled)return;
+      settled=true;
+      if(timeout!==null)clearTimeout(timeout);
+      signal?.removeEventListener("abort",abort);
+      callback(value);
+    };
+    const abort=()=>{const error=new Error("Image processing was cancelled.");error.name="AbortError";finish(reject,error);};
+    if(signal?.aborted){abort();return;}
+    signal?.addEventListener("abort",abort,{once:true});
+    timeout=setTimeout(()=>finish(reject,new Error("Image processing took too long. Choose a smaller photo and try again.")),timeoutMs);
+    try{canvas.toBlob(blob=>finish(resolve,blob),type,quality);}
+    catch(error){finish(reject,error);}
+  });
 }
 
 let pendingImageCrop=null;
 let ownerProductImageQueue=null;
+
+function bindImageCropActions(){
+  const modal=document.getElementById("imageCropModal");
+  if(!modal||modal.dataset.cropActionsBound==="true")return;
+  modal.dataset.cropActionsBound="true";
+  modal.addEventListener("click",event=>{
+    const button=event.target?.closest?.("[data-crop-action]");
+    if(!button||!modal.contains(button))return;
+    event.preventDefault();
+    if(button.dataset.cropAction==="cancel")finishImageCrop(false);
+    else if(button.dataset.cropAction==="apply")finishImageCrop(true);
+  });
+}
+
+function setImageCropBusy(busy){
+  document.querySelectorAll("#imageCropModal button").forEach(button=>{
+    button.disabled=Boolean(busy)&&button.dataset.cropAction!=="cancel";
+  });
+}
 
 function releaseCropForm(state,clearInput=true){
   if(state?.input){state.input.disabled=false;if(clearInput)state.input.value="";}
@@ -4249,10 +4287,13 @@ function cropPointerMove(event){
 
 function cropPointerUp(){if(pendingImageCrop)pendingImageCrop.drag=null;}
 
+bindImageCropActions();
+
 function closeImageCrop(){
   const state=pendingImageCrop;
   document.getElementById("imageCropModal").classList.remove("show");
   document.getElementById("imageCropModal").setAttribute("aria-hidden","true");
+  setImageCropBusy(false);
   const image=document.getElementById("cropImage");
   image.onload=null;image.onerror=null;image.removeAttribute("src");
   pendingImageCrop=null;
@@ -4261,8 +4302,11 @@ function closeImageCrop(){
 
 async function finishImageCrop(apply){
   const state=pendingImageCrop;
-  if(!state||state.uploading)return;
+  if(!state)return;
   if(!apply){
+    if(state.cancelled)return;
+    state.cancelled=true;
+    state.processingController?.abort();
     if(state.queue){
       const queue=ownerProductImageQueue;
       ownerProductImageQueue=null;
@@ -4272,9 +4316,11 @@ async function finishImageCrop(apply){
     }else closeImageCrop();
     return;
   }
+  if(state.uploading)return;
   state.uploading=true;
-  const cropButtons=[...document.querySelectorAll("#imageCropModal button")];
-  cropButtons.forEach(button=>button.disabled=true);
+  state.cancelled=false;
+  state.processingController=new AbortController();
+  setImageCropBusy(true);
   try{
     const viewport=document.getElementById("cropViewport");
     const image=document.getElementById("cropImage");
@@ -4295,12 +4341,15 @@ async function finishImageCrop(apply){
       canvas.width=outputWidth;canvas.height=outputHeight;
       context.drawImage(image,sourceX,sourceY,sourceWidth,sourceHeight,0,0,outputWidth,outputHeight);
       for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){
-        const candidate=await canvasBlob(canvas,type,quality);
+        const candidate=await canvasBlob(canvas,type,quality,{signal:state.processingController.signal});
+        if(state.cancelled)return;
         if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}
       }
     }
     if(!blob)throw new Error("The image could not be compressed below the shared-storage limit. Choose a smaller crop.");
-    const imageUrl=await uploadOwnerImageToCloud(blob);
+    if(state.cancelled)return;
+    const imageUrl=await uploadOwnerImageToCloud(blob,state.processingController.signal);
+    if(state.cancelled)return;
     if(state.queue){
       const target=document.getElementById("ownerProductImagesData");
       if(!target)throw new Error("فۆرمی وێنە نەدۆزرایەوە.");
@@ -4323,7 +4372,8 @@ async function finishImageCrop(apply){
       showToast("وێنە بڕدرا و ئامادەیە؛ فۆرمەکە پاشەکەفت بکە.");
     }
   }catch(error){
-    if(pendingImageCrop===state){state.uploading=false;cropButtons.forEach(button=>button.disabled=false);}
+    if(state.cancelled)return;
+    if(pendingImageCrop===state){state.uploading=false;state.processingController=null;setImageCropBusy(false);}
     showToast(error.message||"بڕینی وێنە سەرکەفتوو نەبوو.");
   }
 }
