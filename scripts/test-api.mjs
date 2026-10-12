@@ -15,12 +15,22 @@ for (const [index, script] of inlineScripts.entries()) {
   catch (exception) { throw new Error(`Storefront script ${index + 1} has a syntax error: ${exception.message}`); }
 }
 const productSaveSource = htmlSource.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
+const inventoryRendererSource = htmlSource.match(/function renderOwnerInventoryMatrix\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+const cropCompressionSource = htmlSource.match(/async function finishImageCrop\(apply\)\{[\s\S]*?\n\}/)?.[0] || "";
 assert.match(productSaveSource, /await confirmCloudShopWrite\(PRODUCTS_KEY\)/, "the Owner form must wait for the shared-save result");
 assert.match(productSaveSource, /shared database has not confirmed/i, "the Owner form must not report an unconfirmed cloud save as complete");
 const cloudFailureBranch = productSaveSource.indexOf("if(cloudSyncRequired&&!cloudSaved)");
 const productSuccessExit = productSaveSource.indexOf("editingProductId=null");
 assert.ok(cloudFailureBranch >= 0 && cloudFailureBranch < productSuccessExit, "a failed shared save must keep the Owner form open before the success navigation");
 assert.match(productSaveSource.slice(cloudFailureBranch, productSuccessExit), /editingProductId=record\.id/, "a retry must reuse the pending product ID instead of creating a duplicate");
+assert.doesNotMatch(productSaveSource, /renderOwnerInventoryMatrix\(\)/, "saving a product must not rebuild the stock table");
+assert.match(htmlSource, /const MAX_OWNER_PRODUCT_VARIANTS = 120;/, "the Owner form must cap color and size combinations");
+assert.match(inventoryRendererSource, /type="number" min="0" step="1" inputmode="numeric"/, "stock quantity controls should be lightweight numeric inputs");
+assert.doesNotMatch(inventoryRendererSource, /<select|<option/, "stock rendering must not generate large dropdown option lists");
+assert.match(inventoryRendererSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "the stock table must stop rendering over the variant limit");
+assert.match(productSaveSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "Save must reject over-limit variants before creating the product record");
+assert.match(cropCompressionSource, /for\(const maxOutput of \[1000,760\]\)/, "crop encoding should use two bounded output sizes");
+assert.match(cropCompressionSource, /\[\["image\/webp",\.76\],\["image\/jpeg",\.7\]\]/, "crop encoding should try one quality per format and output size");
 
 class MemoryD1 {
   shop = new Map();
@@ -340,4 +350,4 @@ const customerShopWrite = await context(new Request("https://shop.test/api/sync"
 }));
 assert.equal(customerShopWrite.status, 403, "a customer account must not edit shared shop data");
 
-console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, explicit product-save acknowledgment, retry-safe Owner form behavior, successful cropped-image and product persistence in D1, refresh and second-device reads, D1 success:false handling for image uploads, image batches, and product writes, legacy R2 image read compatibility, no new R2 writes, simulated D1 exceptions, public shop image retrieval, sync payload filtering, and image size limit.`);
+console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer authorization, explicit product-save acknowledgment, retry-safe Owner form behavior, successful cropped-image and product persistence in D1, refresh and second-device reads, D1 success:false handling for image uploads, image batches, and product writes, legacy R2 image read compatibility, no new R2 writes, simulated D1 exceptions, public shop image retrieval, sync payload filtering, and image size limit, bounded stock controls, variant limits, and reduced crop encoding attempts.`);
