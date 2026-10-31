@@ -5723,10 +5723,7 @@ function resumeAuthenticationIntent(){
   pendingAuthenticationIntent=null;
   if(!intent)return;
   openView("home");
-  if(intent.type==="profile"){
-    openView("profile");
-    return;
-  }
+  if(intent.type==="profile")return;
   if(intent.type==="product"){
     const product=products.find(item=>String(item.id)===String(intent.productId));
     if(!product){showToast("That product is no longer available.");return;}

@@ -4,11 +4,16 @@ import { runInNewContext } from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const profileMarkup = html.match(/<div id="profileView"[\s\S]*?<\/div>\s*<!-- OWNER -->/)?.[0] || "";
+const signupSource = html.match(/async function signup\(\)[\s\S]*?\n\}/)?.[0] || "";
+const loginSource = html.match(/async function login\(\)[\s\S]*?\n\}/)?.[0] || "";
 assert.match(profileMarkup, /id="profileGuestAccess"/);
 assert.match(profileMarkup, /onclick="beginProfileAuthentication\('login'\)"/);
 assert.match(profileMarkup, /onclick="beginProfileAuthentication\('signup'\)"/);
 assert.match(html, /onclick="backToProfileAuthChoices\(\)"[^>]*aria-label="Back to Login or Sign Up choices"/);
 assert.match(html, /#profileGuestAuthMount \.auth-form\{max-height:min\(68dvh,680px\);overflow:auto/);
+assert.match(signupSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful Sign Up must enter shared post-auth navigation");
+assert.match(loginSource, /currentUser=data\.account;[\s\S]*?openMain\(\)/, "successful cloud Login must enter shared post-auth navigation");
+assert.match(loginSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful local Login must enter shared post-auth navigation");
 
 function element(id, className = "") {
   const classes = new Set(className.split(/\s+/).filter(Boolean));
@@ -63,6 +68,14 @@ const nav = element("bottom-nav");
 const body = element("body");
 const root = element("html");
 const loginChoice = element("profileLoginChoice");
+const makeStorage = () => ({
+  values: new Map(),
+  setItem(key, value) { this.values.set(key, String(value)); },
+  removeItem(key) { this.values.delete(key); },
+  getItem(key) { return this.values.get(key) || null; },
+});
+const localSession = makeStorage();
+const sessionSession = makeStorage();
 
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
@@ -73,12 +86,37 @@ const functionSources = functionNames.map(name => {
   assert.ok(source, `the ${name} flow should exist`);
   return source;
 }).join("\n");
+const logoutSource = html.match(/async function logout\(\)[\s\S]*?\n\}/)?.[0];
+assert.ok(logoutSource, "the async Logout flow should exist");
 
 const context = {
   currentUser: null,
   cloudAccount: null,
   pendingAuthenticationIntent: null,
+  SESSION_KEY: "offline-test-session",
+  cloudMode: false,
   ownerPanel: "products",
+  products: [],
+  cart: [],
+  selectedSize: "",
+  selectedColor: "",
+  currentQty: 1,
+  localStorage: localSession,
+  sessionStorage: sessionSession,
+  normalizeHexColor: color => String(color || "").toLowerCase(),
+  variantStock: product => Number(product.variants?.[0]?.stock || 0),
+  cartVariantCount: () => 0,
+  openProduct(productId) { context.lastOpenedProductId = productId; },
+  addDetailToCart() { context.cart.push({ productId: context.lastOpenedProductId, size: context.selectedSize, color: context.selectedColor, qty: context.currentQty }); },
+  mergeGuestCartAfterAuthentication(items) { context.mergedGuestCart = items; },
+  openCheckout() { context.checkoutOpened = true; },
+  renderSizeOptions() {},
+  renderColorOptions() {},
+  updateDetailAvailability() {},
+  stopCloudSync() {},
+  resetShopOnboardingCompletion() {},
+  showShopOnboarding() {},
+  showToast() {},
   document: {
     body,
     documentElement: root,
@@ -103,7 +141,7 @@ const context = {
   updateProfile() { context.profileUpdated = true; },
   renderCart() {},
 };
-runInNewContext(`${functionSources}\nthis.testApi={openView,beginProfileAuthentication,backToProfileAuthChoices,resumeAuthenticationIntent};`, context);
+runInNewContext(`${functionSources}\n${logoutSource}\nthis.testApi={openView,beginProfileAuthentication,backToProfileAuthChoices,resumeAuthenticationIntent,logout};`, context);
 
 context.testApi.openView("profile");
 assert.equal(get("profileGuestAccess").hidden, false, "guest Profile opens the two choices first");
@@ -127,13 +165,59 @@ assert.equal(get("signupForm").classList.contains("active"), true);
 assert.equal(get("loginForm").classList.contains("active"), false);
 assert.equal(authCard.parentNode, get("profileGuestAuthMount"));
 
-context.currentUser = { id: "offline-test-customer", role: "customer" };
+const preservedCart = [{ productId: "dress-1", size: "M", color: "#123456", qty: 1 }];
+context.cart = preservedCart;
+context.currentUser = { id: "offline-login-customer", role: "customer" };
+localSession.setItem(context.SESSION_KEY, JSON.stringify({ accountId: context.currentUser.id }));
 context.testApi.resumeAuthenticationIntent();
-assert.equal(get("profileView").classList.contains("active"), true, "successful auth returns to Profile");
+assert.equal(get("homeView").classList.contains("active"), true, "successful Login returns to Shop / Models");
+assert.equal(get("profileView").classList.contains("active"), false, "successful Login does not redirect to Profile");
+assert.equal(context.currentUser.id, "offline-login-customer", "Login session stays active after redirect");
+assert.ok(localSession.getItem(context.SESSION_KEY), "Login session storage remains intact after redirect");
+assert.equal(context.cart, preservedCart, "the existing cart remains intact after Login");
 assert.equal(get("profileGuestAccess").hidden, true);
 assert.equal(get("profileGuestAuthMount").hidden, true);
-assert.equal(get("authenticatedProfileCard").hidden, false, "successful auth shows the customer's Profile");
 assert.equal(authCard.parentNode, host);
 assert.equal(context.pendingAuthenticationIntent, null);
 
-console.log("Offline Profile authentication checks passed: guest choice screen, in-Profile Login, in-Profile Sign Up, Back navigation, and authenticated Profile return.");
+context.testApi.openView("profile");
+assert.equal(get("profileView").classList.contains("active"), true, "authenticated customers can still open Profile from navigation");
+assert.equal(get("authenticatedProfileCard").hidden, false, "authenticated navigation shows the customer's Profile");
+
+await context.testApi.logout();
+assert.equal(context.currentUser, null, "Logout clears the active account");
+assert.equal(localSession.getItem(context.SESSION_KEY), null, "Logout clears the persistent session");
+assert.equal(sessionSession.getItem(context.SESSION_KEY), null, "Logout clears the temporary session");
+assert.equal(context.pendingAuthenticationIntent, null, "Logout clears any pending redirect intent");
+assert.equal(context.cart, preservedCart, "Logout does not discard the cart");
+
+context.testApi.openView("profile");
+assert.equal(context.pendingAuthenticationIntent.type, "profile");
+assert.equal(context.testApi.beginProfileAuthentication("signup"), true);
+context.currentUser = { id: "offline-signup-customer", role: "customer" };
+sessionSession.setItem(context.SESSION_KEY, JSON.stringify({ accountId: context.currentUser.id }));
+context.testApi.resumeAuthenticationIntent();
+assert.equal(get("homeView").classList.contains("active"), true, "successful Sign Up returns to Shop / Models");
+assert.equal(get("profileView").classList.contains("active"), false, "successful Sign Up does not redirect to Profile");
+assert.equal(context.currentUser.id, "offline-signup-customer", "Sign Up session stays active after redirect");
+assert.ok(sessionSession.getItem(context.SESSION_KEY), "Sign Up session storage remains intact after redirect");
+assert.equal(context.cart, preservedCart, "the existing cart remains intact after Sign Up");
+
+context.products = [{ id: "dress-variant-7", variants: [{ size: "L", color: "#abcdef", stock: 8 }] }];
+context.pendingAuthenticationIntent = { type: "product", productId: "dress-variant-7", size: "L", color: "#ABCDEF", quantity: 2 };
+context.cart = [];
+context.testApi.resumeAuthenticationIntent();
+assert.equal(context.lastOpenedProductId, "dress-variant-7", "a saved product intent reopens the exact product");
+assert.deepEqual(context.cart, [{ productId: "dress-variant-7", size: "L", color: "#abcdef", qty: 2 }], "the selected variant and quantity survive authentication");
+
+const checkoutCart = [{ productId: "dress-checkout", size: "S", color: "#654321", qty: 2 }];
+context.pendingAuthenticationIntent = { type: "checkout", cart: checkoutCart };
+context.testApi.resumeAuthenticationIntent();
+assert.equal(context.mergedGuestCart, checkoutCart, "checkout merges the guest cart after authentication");
+assert.equal(context.checkoutOpened, true, "checkout resumes after authentication");
+
+await context.testApi.logout();
+assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
+assert.equal(context.pendingAuthenticationIntent, null);
+
+console.log("Offline Profile authentication checks passed: Login and Sign Up return to Shop, sessions and cart remain active, Profile stays accessible, product/variant and checkout intents resume, and Logout clears sessions safely.");
