@@ -44,6 +44,8 @@ assert.match(extractFunction("saveShopOnboardingImages"), /SHOP_ONBOARDING_IMAGE
 assert.match(extractFunction("saveShopOnboardingImages"), /originalStorageSetItem\.call\(localStorage,SHOP_ONBOARDING_IMAGES_KEY,value\)/, "a confirmed save should update the local mirror used by the existing sync flow");
 assert.match(extractFunction("renderOwnerPanel"), /section==="onboarding"\) renderShopOnboardingOwnerEditor/);
 assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingStartupView/);
+assert.match(extractFunction("completeShopOnboardingChoice"), /route==="shop"\)\{\s*openMain\(\{resumeIntent:false\}\);\s*openView\("home"\);\s*\}/, "Explore Models must enter Shop without replaying an intent or keeping a prior active view");
+assert.match(extractFunction("openMain"), /if\(options\.resumeIntent!==false\)resumeAuthenticationIntent\(\)/, "other app entry points must keep their existing authentication-intent behavior");
 assert.match(extractFunction("logout"), /resetShopOnboardingCompletion\(\)[\s\S]*showShopOnboarding\(\)/, "logout must clear completion and show the slides again");
 assert.match(html, /if\(!cloudMode\)await restoreSession\(\);\s*showShopOnboardingIfNeeded\(\)/, "startup must check restored authentication before deciding to show onboarding");
 
@@ -51,7 +53,7 @@ const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
   "getShopOnboardingChoiceRoute", "isShopOnboardingCompleted", "markShopOnboardingCompleted",
   "resetShopOnboardingCompletion", "renderShopOnboardingSlide", "advanceShopOnboarding", "skipShopOnboarding",
-  "completeShopOnboardingChoice", "setupShopOnboardingGestures",
+  "completeShopOnboardingChoice", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded",
 ];
 const flowSource = [
   `const SHOP_ONBOARDING_IMAGES_KEY = "${sharedImageKey}";`,
@@ -61,9 +63,9 @@ const flowSource = [
   "let shopOnboardingSlideIndex=0;",
   "let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
-  "({advance:advanceShopOnboarding,skip:skipShopOnboarding,choose:completeShopOnboardingChoice,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,completed:isShopOnboardingCompleted,mark:markShopOnboardingCompleted,reset:resetShopOnboardingCompletion,view:getShopOnboardingStartupView,swipeTarget:getShopOnboardingSwipeTarget,choiceRoute:getShopOnboardingChoiceRoute,readImages:readShopOnboardingImages})",
+  "({advance:advanceShopOnboarding,skip:skipShopOnboarding,choose:completeShopOnboardingChoice,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,completed:isShopOnboardingCompleted,mark:markShopOnboardingCompleted,reset:resetShopOnboardingCompletion,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,swipeTarget:getShopOnboardingSwipeTarget,choiceRoute:getShopOnboardingChoiceRoute,readImages:readShopOnboardingImages})",
 ].join("\n");
-function createFlow(){
+function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home"}={}){
   const values = new Map();
   const storage = {
     getItem: key => values.has(key) ? values.get(key) : null,
@@ -73,6 +75,9 @@ function createFlow(){
   const listeners = new Map();
   let renderedDots="";
   let renderCount=0;
+  let openedView=activeView;
+  let openedOnboarding=false;
+  let openMainOptions=null;
   const layer = {
     hidden: false,
     dataset: {},
@@ -94,18 +99,22 @@ function createFlow(){
   ]);
   let authScreen = "";
   let openedShop = false;
-  const flow = runInNewContext(flowSource, {
+  const runtime = {
     localStorage: storage,
     safeImageUrl: value => /^(https:\/\/|\/api\/media\/shop\/)/i.test(String(value || "")) ? String(value) : "",
-    currentUser: null,
-    cloudAccount: null,
+    currentUser,
+    cloudAccount,
+    pendingAuthenticationIntent,
     document: { getElementById: id => elements.get(id)||null },
     requestAnimationFrame: callback => callback(),
     hideShopOnboarding: () => { layer.hidden = true; },
+    showShopOnboarding: () => { layer.hidden = false; openedOnboarding = true; },
     showAuth: type => { authScreen = type; },
-    openMain: () => { openedShop = true; },
-  });
-  return { flow, storage, layer, image, dots, elements, listeners, get authScreen(){return authScreen;}, get openedShop(){return openedShop;}, get renderCount(){return renderCount;} };
+    openMain: options => { openedShop = true; openMainOptions = options; if(options?.resumeIntent!==false&&runtime.pendingAuthenticationIntent?.type==="profile")openedView="profile"; },
+    openView: view => { openedView = view; },
+  };
+  const flow = runInNewContext(flowSource, runtime);
+  return { flow, runtime, storage, layer, image, dots, elements, listeners, get authScreen(){return authScreen;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;}, get renderCount(){return renderCount;} };
 }
 
 const signupFlow = createFlow();
@@ -134,7 +143,7 @@ assert.equal(signupFlow.flow.view(true, false), "main", "authenticated users sho
 signupFlow.flow.reset();
 assert.equal(signupFlow.flow.view(false, signupFlow.flow.completed()), "onboarding", "logout should make the slides appear again");
 
-const exploreFlow = createFlow();
+const exploreFlow = createFlow({pendingAuthenticationIntent:{type:"profile"},activeView:"profile"});
 exploreFlow.flow.advance();
 assert.equal(exploreFlow.flow.index(), 1, "left navigation should reveal screen two");
 assert.equal(exploreFlow.image.src, "https://fallback.example.test/2.jpg", "screen two should show its single fashion image");
@@ -146,8 +155,25 @@ assert.equal(exploreFlow.flow.completed(), false, "swiping to welcome should not
 assert.equal(exploreFlow.flow.choose("explore"), true, "Explore Models should be accepted on the welcome screen");
 assert.equal(exploreFlow.flow.completed(), true, "Explore Models should persist onboarding completion");
 assert.equal(exploreFlow.openedShop, true, "Explore Models should open the existing shop view without registration");
+assert.equal(exploreFlow.openMainOptions.resumeIntent, false, "Explore Models must bypass pending authentication redirects");
+assert.equal(exploreFlow.openedView, "home", "Explore Models must remain on Shop even if a stale Profile intent exists");
+assert.equal(exploreFlow.runtime.pendingAuthenticationIntent.type, "profile", "Explore Models does not erase a pending intent or customer data");
 assert.equal(exploreFlow.authScreen, "", "Explore Models must not open Login or Sign Up");
 assert.equal(exploreFlow.flow.choiceRoute("invalid"), "", "unknown actions must not route or complete onboarding");
+
+const savedCustomer = { id: "saved-customer", name: "Existing Customer", role: "customer" };
+const savedSession = JSON.stringify({ accountId: savedCustomer.id });
+const signedInFlow = createFlow({currentUser:savedCustomer});
+signedInFlow.storage.setItem("test-account-session", savedSession);
+signedInFlow.layer.hidden = true;
+signedInFlow.flow.showIfNeeded();
+assert.equal(signedInFlow.layer.hidden, true, "an existing signed-in customer bypasses onboarding");
+assert.equal(signedInFlow.openedOnboarding, false, "a saved session does not show the guest onboarding choices");
+assert.equal(signedInFlow.runtime.currentUser, savedCustomer, "the restored account remains the same signed-in account");
+assert.equal(signedInFlow.storage.getItem("test-account-session"), savedSession, "onboarding does not overwrite or remove the saved session");
+assert.equal(signedInFlow.flow.choose("explore"), false, "an authenticated user cannot be redirected by a guest onboarding choice");
+assert.equal(signedInFlow.runtime.currentUser, savedCustomer, "an ignored Explore action preserves the authenticated user");
+assert.equal(signedInFlow.storage.getItem("test-account-session"), savedSession, "an ignored Explore action preserves the saved session");
 
 const swipeFlow = createFlow();
 swipeFlow.flow.setup(swipeFlow.layer);

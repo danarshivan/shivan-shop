@@ -5588,7 +5588,10 @@ function completeShopOnboardingChoice(choice){
   markShopOnboardingCompleted();
   hideShopOnboarding();
   if(route==="signup")showAuth("signup");
-  else if(route==="shop")openMain();
+  else if(route==="shop"){
+    openMain({resumeIntent:false});
+    openView("home");
+  }
   return Boolean(route);
 }
 
@@ -6048,7 +6051,7 @@ function resetPassword(){
    MAIN
 ========================================= */
 
-function openMain(){
+function openMain(options={}){
 
   restoreProfileAuthCard();
   hideShopOnboarding();
@@ -6063,7 +6066,7 @@ function openMain(){
   updateCartBadge();
   renderOrders();
   updateProfile();
-  resumeAuthenticationIntent();
+  if(options.resumeIntent!==false)resumeAuthenticationIntent();
 
 }
 
