@@ -1070,6 +1070,29 @@ button{
   color:#ff6f7b!important;
 }
 
+.profile-guest-access{
+  width:min(100%,560px);
+  margin:0 auto;
+  padding:clamp(18px,5vw,28px);
+  border:1px solid rgba(119,88,197,.3);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(18,21,39,.98),rgba(9,12,25,.98));
+  box-shadow:0 20px 55px rgba(0,0,0,.28);
+  text-align:center;
+}
+.profile-guest-access h2{margin:0 0 8px;font-size:clamp(21px,5vw,27px)}
+.profile-guest-access p{margin:0 0 20px;color:#b9b5ca;line-height:1.6}
+.profile-guest-choices{display:grid;gap:12px}
+.profile-guest-choices button{min-height:54px;border-radius:15px;border:1px solid #6550ad;background:#121529;color:#fff;font-weight:750;font-size:16px;touch-action:manipulation}
+.profile-guest-choices button:first-child{border:0;background:linear-gradient(110deg,#7447ff,#514cff);box-shadow:0 10px 26px rgba(103,75,255,.28)}
+.profile-auth-mount{width:min(100%,560px);margin:0 auto}
+#profileView .profile-guest-access[hidden],#profileView .profile-auth-mount[hidden],#profileView .profile-card[hidden],#profileAuthBack[hidden]{display:none!important}
+#profileGuestAuthMount .auth-card{width:100%;max-width:none;margin:0;padding:clamp(14px,4vw,22px);border-radius:24px;background:linear-gradient(150deg,rgba(12,15,31,.98),rgba(7,10,23,.98));border-color:rgba(142,82,255,.55)}
+#profileGuestAuthMount .tabs,#profileGuestAuthMount .social-divider,#profileGuestAuthMount .social-row,#profileGuestAuthMount .auth-switch{display:none}
+#profileAuthBack{width:100%;min-height:44px;margin:0 0 14px;border:1px solid #34364c;border-radius:12px;background:#111522;color:#eee;font-weight:700;touch-action:manipulation}
+#profileGuestAuthMount .auth-form{max-height:min(68dvh,680px);overflow:auto;overscroll-behavior:contain;padding:2px 2px max(8px,env(safe-area-inset-bottom))}
+#profileGuestAuthMount .auth-form .main-btn{min-height:48px}
+
 /* =========================
    MODAL
 ========================= */
@@ -1658,6 +1681,8 @@ iframe{
   -webkit-backdrop-filter:blur(22px);
   backdrop-filter:blur(22px);
 }
+
+#authPage #authCardHost{display:contents}
 
 #authPage .tabs{
   display:grid;
@@ -2469,7 +2494,10 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
     <div class="auth-handwritten">Good Things<br> Ahead <span>♡</span></div>
   </div>
 
+  <div id="authCardHost">
   <div class="auth-card">
+
+    <button id="profileAuthBack" type="button" onclick="backToProfileAuthChoices()" aria-label="Back to Login or Sign Up choices" hidden>← Back to Login / Sign Up</button>
 
     <div class="tabs">
       <button id="loginTab" class="active" onclick="showAuth('login')">Login</button>
@@ -2572,6 +2600,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 
     </div>
 
+  </div>
   </div>
 </section>
 
@@ -2726,7 +2755,18 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 
     <h1 class="page-title">پڕۆفایل</h1>
 
-    <div class="profile-card">
+    <section id="profileGuestAccess" class="profile-guest-access" aria-labelledby="profileGuestHeading" hidden>
+      <h2 id="profileGuestHeading">Welcome to Shivan Shop</h2>
+      <p>Sign in to view your profile, or create an account to get started.</p>
+      <div class="profile-guest-choices">
+        <button type="button" onclick="beginProfileAuthentication('login')">Login</button>
+        <button type="button" onclick="beginProfileAuthentication('signup')">Sign Up</button>
+      </div>
+    </section>
+
+    <div id="profileGuestAuthMount" class="profile-auth-mount" hidden aria-live="polite"></div>
+
+    <div id="authenticatedProfileCard" class="profile-card" hidden>
 
       <div id="avatar" class="avatar">S</div>
 
@@ -5592,6 +5632,55 @@ function requireAuthentication(intent, message="Please sign in or create an acco
   return true;
 }
 
+function restoreProfileAuthCard(){
+  const mount=document.getElementById("profileGuestAuthMount");
+  const host=document.getElementById("authCardHost");
+  const card=mount?.querySelector(".auth-card");
+  if(card&&host)host.appendChild(card);
+  const back=document.getElementById("profileAuthBack");
+  if(back)back.hidden=true;
+  if(mount)mount.hidden=true;
+}
+
+function showGuestProfileChoices(){
+  restoreProfileAuthCard();
+  const choices=document.getElementById("profileGuestAccess");
+  const card=document.getElementById("authenticatedProfileCard");
+  if(choices)choices.hidden=false;
+  if(card)card.hidden=true;
+}
+
+function beginProfileAuthentication(type){
+  if(currentUser||cloudAccount){openView("profile");return false;}
+  if(type!=="login"&&type!=="signup")return false;
+  pendingAuthenticationIntent={type:"profile"};
+  const choices=document.getElementById("profileGuestAccess");
+  const mount=document.getElementById("profileGuestAuthMount");
+  const host=document.getElementById("authCardHost");
+  const card=host?.querySelector(".auth-card");
+  if(!mount||!card)return false;
+  mount.appendChild(card);
+  mount.hidden=false;
+  if(choices)choices.hidden=true;
+  const profile=document.getElementById("authenticatedProfileCard");
+  if(profile)profile.hidden=true;
+  const back=document.getElementById("profileAuthBack");
+  if(back)back.hidden=false;
+  showAuth(type);
+  const field=document.getElementById(type==="login"?"loginId":"signupName");
+  requestAnimationFrame(()=>field?.focus({preventScroll:true}));
+  return true;
+}
+
+function backToProfileAuthChoices(){
+  if(currentUser||cloudAccount){restoreProfileAuthCard();openView("profile");return;}
+  restoreProfileAuthCard();
+  const loginMessage=document.getElementById("loginMsg");if(loginMessage)loginMessage.textContent="";
+  const signupMessage=document.getElementById("signupMsg");if(signupMessage)signupMessage.textContent="";
+  showGuestProfileChoices();
+  document.querySelector("#profileGuestAccess button")?.focus({preventScroll:true});
+}
+
 function snapshotCartForAuthentication(){
   return getCart().map(item=>({
     productId:item.productId,size:String(item.size||""),color:normalizeHexColor(item.color),qty:Math.max(1,Math.floor(Number(item.qty)||1))
@@ -5964,6 +6053,7 @@ function resetPassword(){
 
 function openMain(){
 
+  restoreProfileAuthCard();
   hideShopOnboarding();
 
   document.querySelector(".app")?.classList.remove("auth-mode");
@@ -5983,10 +6073,9 @@ function openMain(){
 
 function openView(view){
 
-  if(view==="profile"&&!currentUser&&!cloudAccount){
-    requireAuthentication({type:"profile"});
-    return;
-  }
+  const guestProfile=view==="profile"&&!currentUser&&!cloudAccount;
+  if(view!=="profile")restoreProfileAuthCard();
+  if(guestProfile){pendingAuthenticationIntent={type:"profile"};hideShopOnboarding();}
 
   closeDetailImageFullscreen(false);
 
@@ -6045,7 +6134,13 @@ function openView(view){
   }
 
   if(view==="profile"){
-    updateProfile();
+    const profile=document.getElementById("authenticatedProfileCard");
+    if(currentUser||cloudAccount){
+      restoreProfileAuthCard();
+      const choices=document.getElementById("profileGuestAccess");if(choices)choices.hidden=true;
+      if(profile)profile.hidden=false;
+      updateProfile();
+    }else showGuestProfileChoices();
   }
 
 }

@@ -22,7 +22,7 @@ for (const [index, script] of [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/scr
 assert.match(html, /data-owner-tab="inventory"/, "QR inventory must be reachable only through the Owner panel tab");
 assert.match(html, /if\(!isOwner\(\)\)return;[\s\S]*?async function renderOwnerInventory/, "client inventory actions should check the Owner session");
 assert.match(html, /requireAuthentication\(\{type:"product"/, "product purchase actions should capture a guest's exact variant before showing login");
-assert.match(html, /requireAuthentication\(\{type:"profile"\}\)/, "guest Profile navigation should show the existing authentication screen");
+assert.match(html, /id="profileGuestAccess"[\s\S]*?beginProfileAuthentication\('login'\)[\s\S]*?beginProfileAuthentication\('signup'\)/, "guest Profile navigation should offer Login and Sign Up before opening either form");
 assert.match(html, /resumeAuthenticationIntent\(\);/, "successful authentication should resume the stored guest intent");
 assert.match(html, /if\(!currentUser&&!cloudAccount\)\{[\s\S]*?Sign in before placing an order/, "placing an order must require authentication");
 assert.ok(apiSource.includes('if (account.role !== "owner") return error("Only the store owner can manage inventory.", 403);'), "the server must deny customer QR inventory access");
