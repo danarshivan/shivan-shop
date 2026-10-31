@@ -2391,6 +2391,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .shop-promo-onboarding-open{overflow:hidden}
 .shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:8px;background:#03050d;color:#fff;text-align:center;padding:24px}
 .shop-startup-splash[hidden]{display:none!important}
+.shop-startup-logo{display:grid;place-items:center;width:68px;height:68px;margin:0 auto 8px;border:1px solid rgba(194,169,255,.65);border-radius:22px;background:linear-gradient(145deg,#8b5cff,#4d2da9);box-shadow:0 12px 42px rgba(112,69,255,.4);color:#fff;font-size:36px;font-weight:900;line-height:1}
 .shop-startup-splash strong{font-size:30px;font-weight:900;letter-spacing:-1px}
 .shop-startup-splash strong span{color:#c2a9ff}
 .shop-startup-splash p{margin:0;color:#d3d4df;font-size:13px}
@@ -2606,6 +2607,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 
 
 <section id="shopStartupSplash" class="shop-startup-splash" role="status" aria-live="polite">
+  <span class="shop-startup-logo" aria-hidden="true">S</span>
   <strong>Shivan <span>Shop</span></strong>
   <p>Loading your shop…</p>
 </section>
@@ -3549,6 +3551,25 @@ const OWNER_PASSWORD = "";
 const LEGACY_OWNER_IDENTIFIER = "owner@shivanshop.com";
 let cloudMode=false;
 let cloudInitializationComplete=false;
+const SHOP_BRANDED_SPLASH_MS=2200;
+const SHOP_STARTUP_REQUEST_TIMEOUT_MS=10000;
+const shopStartupStartedAt=performance.now();
+let shopStartupSplashTimer=null;
+let cloudRefreshPromise=null;
+function finishShopStartupSplash(){
+  const splash=document.getElementById("shopStartupSplash");
+  if(!splash)return;
+  const remaining=SHOP_BRANDED_SPLASH_MS-(performance.now()-shopStartupStartedAt);
+  if(remaining>0){
+    if(!shopStartupSplashTimer)shopStartupSplashTimer=setTimeout(()=>{
+      shopStartupSplashTimer=null;
+      finishShopStartupSplash();
+    },remaining);
+    return;
+  }
+  if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
+  splash.hidden=true;
+}
 let cloudOwnerSetupRequired=false;
 let cloudAccount=null;
 let cloudHydrating=false;
@@ -3843,33 +3864,38 @@ async function confirmCloudShopWrite(key,requestId=""){
 function applyCloudData(data){
   if(!data)return;
   let changed=false;
+  const changedKeys=new Set();
   const pending=readCloudOutbox();
   const hasPendingForCurrentAccount=key=>Boolean(pending[key]&&(CLOUD_OWNER_KEYS.has(key)||pending[key].accountId===String(cloudAccount?.id||"")));
   cloudHydrating=true;
   try{
     const shop=data.shop||{};
     for(const [key,value] of Object.entries(shop)){
-      if(!hasPendingForCurrentAccount(key)&&cloudStorageKey(key)&&typeof value==="string"&&localStorage.getItem(key)!==value){originalStorageSetItem.call(localStorage,key,value);changed=true;}
+      if(!hasPendingForCurrentAccount(key)&&cloudStorageKey(key)&&typeof value==="string"&&localStorage.getItem(key)!==value){originalStorageSetItem.call(localStorage,key,value);changed=true;changedKeys.add(key);}
     }
     const user=data.user||{};
     if(cloudAccount){
       const userKeyMap={cart:`${CART_KEY}_${cloudAccount.id}`,favorites:`${FAVORITES_KEY}_${cloudAccount.id}`,settings:SETTINGS_KEY,support:SUPPORT_KEY};
       for(const [cloudKey,storageKey] of Object.entries(userKeyMap)){
-        if(!hasPendingForCurrentAccount(storageKey)&&typeof user[cloudKey]==="string"&&localStorage.getItem(storageKey)!==user[cloudKey]){originalStorageSetItem.call(localStorage,storageKey,user[cloudKey]);changed=true;}
+        if(!hasPendingForCurrentAccount(storageKey)&&typeof user[cloudKey]==="string"&&localStorage.getItem(storageKey)!==user[cloudKey]){originalStorageSetItem.call(localStorage,storageKey,user[cloudKey]);changed=true;changedKeys.add(storageKey);}
       }
-      if(cloudAccount.role==="owner"&&!hasPendingForCurrentAccount(SUPPORT_KEY)&&typeof user.shivan_shop_support==="string"&&localStorage.getItem(SUPPORT_KEY)!==user.shivan_shop_support){originalStorageSetItem.call(localStorage,SUPPORT_KEY,user.shivan_shop_support);changed=true;}
-      if(!hasPendingForCurrentAccount(ORDERS_KEY)&&typeof user.shivan_shop_orders==="string"&&localStorage.getItem(ORDERS_KEY)!==user.shivan_shop_orders){originalStorageSetItem.call(localStorage,ORDERS_KEY,user.shivan_shop_orders);changed=true;}
-      if(cloudAccount.role==="owner"&&typeof user.accounts==="string"&&localStorage.getItem(ACCOUNT_KEY)!==user.accounts){originalStorageSetItem.call(localStorage,ACCOUNT_KEY,user.accounts);changed=true;}
+      if(cloudAccount.role==="owner"&&!hasPendingForCurrentAccount(SUPPORT_KEY)&&typeof user.shivan_shop_support==="string"&&localStorage.getItem(SUPPORT_KEY)!==user.shivan_shop_support){originalStorageSetItem.call(localStorage,SUPPORT_KEY,user.shivan_shop_support);changed=true;changedKeys.add(SUPPORT_KEY);}
+      if(!hasPendingForCurrentAccount(ORDERS_KEY)&&typeof user.shivan_shop_orders==="string"&&localStorage.getItem(ORDERS_KEY)!==user.shivan_shop_orders){originalStorageSetItem.call(localStorage,ORDERS_KEY,user.shivan_shop_orders);changed=true;changedKeys.add(ORDERS_KEY);}
+      if(cloudAccount.role==="owner"&&typeof user.accounts==="string"&&localStorage.getItem(ACCOUNT_KEY)!==user.accounts){originalStorageSetItem.call(localStorage,ACCOUNT_KEY,user.accounts);changed=true;changedKeys.add(ACCOUNT_KEY);}
     }
   }finally{cloudHydrating=false;}
   if(!changed)return;
-  renderShopOnboardingSlide();
-  loadProducts();
-  loadOwnerAppearance();
-  advertisements=getAdvertisements();
-  renderAdvertisements();
-  renderCategoryButtons();
-  renderProducts(products);
+  const productsChanged=changedKeys.has(PRODUCTS_KEY);
+  const favoritesChanged=[...changedKeys].some(key=>key.startsWith(FAVORITES_KEY+"_"));
+  const categoriesChanged=[OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY].some(key=>changedKeys.has(key));
+  const bannersChanged=changedKeys.has(ADS_KEY);
+  const appearanceChanged=changedKeys.has(OWNER_APPEARANCE_KEY);
+  if(changedKeys.has(SHOP_ONBOARDING_IMAGES_KEY))renderShopOnboardingSlide();
+  if(productsChanged)loadProducts();
+  if(appearanceChanged)loadOwnerAppearance();
+  if(bannersChanged||appearanceChanged){advertisements=getAdvertisements();renderAdvertisements();}
+  if(productsChanged||categoriesChanged)renderCategoryButtons();
+  if(productsChanged||favoritesChanged)renderProducts(products);
   updateCartBadge();
   if(document.getElementById("mainApp")?.style.display!=="none"){
     renderOrders();
@@ -3880,27 +3906,36 @@ function applyCloudData(data){
 
 window.addEventListener("storage",event=>{
   if(event.storageArea!==localStorage||!event.key||!cloudStorageKey(event.key)||event.newValue===event.oldValue)return;
-  if(event.key===SHOP_ONBOARDING_IMAGES_KEY)renderShopOnboardingSlide();
-  loadProducts();
-  loadOwnerAppearance();
-  advertisements=getAdvertisements();
-  renderAdvertisements();
-  renderCategoryButtons();
-  renderProducts(products);
+  const key=event.key;
+  const productsChanged=key===PRODUCTS_KEY;
+  const favoritesChanged=key.startsWith(FAVORITES_KEY+"_");
+  const categoriesChanged=[OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY].includes(key);
+  if(key===SHOP_ONBOARDING_IMAGES_KEY)renderShopOnboardingSlide();
+  if(productsChanged)loadProducts();
+  if(key===OWNER_APPEARANCE_KEY)loadOwnerAppearance();
+  if(key===ADS_KEY||key===OWNER_APPEARANCE_KEY){advertisements=getAdvertisements();renderAdvertisements();}
+  if(productsChanged||categoriesChanged)renderCategoryButtons();
+  if(productsChanged||favoritesChanged)renderProducts(products);
   updateCartBadge();
   if(document.getElementById("mainApp")?.style.display!=="none"){
-    renderOrders();
-    updateProfile();
-    if(isOwner()&&ownerPanel)renderOwnerPanel(ownerPanel);
+    if(key===ORDERS_KEY)renderOrders();
+    if([ACCOUNT_KEY,SETTINGS_KEY,SUPPORT_KEY].includes(key))updateProfile();
+    if(isOwner()&&ownerPanel&&CLOUD_OWNER_KEYS.has(key))renderOwnerPanel(ownerPanel);
   }
 });
 
 async function refreshCloudData(){
   if(!cloudMode)return;
-  await flushCloudWrites();
-  const data=await cloudRequest("/api/sync");
-  if(data.account){cloudAccount=data.account;currentUser=data.account;applyCloudData(data);}
-  else if(cloudAccount)applyCloudData(data);
+  if(cloudRefreshPromise)return cloudRefreshPromise;
+  cloudRefreshPromise=(async()=>{
+    await flushCloudWrites();
+    const data=await cloudRequest("/api/sync");
+    if(data.account){cloudAccount=data.account;currentUser=data.account;applyCloudData(data);}
+    else if(cloudAccount)applyCloudData(data);
+    return data;
+  })();
+  try{return await cloudRefreshPromise;}
+  finally{cloudRefreshPromise=null;}
 }
 
 function connectCloudRealtime(){
@@ -3967,18 +4002,47 @@ window.addEventListener("online",()=>{
 });
 
 async function initializeCloud(){
-  try{
-    const bootstrap=await cloudRequest("/api/bootstrap");
+  const hasCachedShop=(()=>{try{const cached=JSON.parse(localStorage.getItem(PRODUCTS_KEY)||"null");return Array.isArray(cached)&&cached.length>0;}catch(error){return false;}})();
+  const bootstrapPromise=cloudRequest("/api/bootstrap",{timeoutMs:SHOP_STARTUP_REQUEST_TIMEOUT_MS}).then(bootstrap=>{
     if(typeof bootstrap.ownerSetupRequired!=="boolean"||!bootstrap.shop)throw new Error("Cloud sync API is not ready.");
     cloudMode=true;
     cloudOwnerSetupRequired=Boolean(bootstrap.ownerSetupRequired);
-    applyCloudData({shop:bootstrap.shop||{},user:{}});
-    try{
-      const auth=await cloudRequest("/api/auth/me");
-      if(auth.account){cloudAccount=auth.account;currentUser=auth.account;await refreshCloudData();openMain();startCloudSync();}
-    }catch(error){console.warn("Cloud session check failed.",error);}
-  }catch(error){cloudMode=false;cloudAccount=null;}
-  finally{cloudInitializationComplete=true;}
+    if(!cloudAccount)applyCloudData({shop:bootstrap.shop||{},user:{}});
+    return {ok:true,bootstrap};
+  }).catch(error=>{
+    if(!cloudAccount)cloudMode=false;
+    return {ok:false,error};
+  });
+  const authPromise=cloudRequest("/api/auth/me",{timeoutMs:SHOP_STARTUP_REQUEST_TIMEOUT_MS})
+    .then(auth=>({ok:true,auth}))
+    .catch(error=>({ok:false,error}));
+  const cachedShopWasOpened=hasCachedShop&&isShopOnboardingCompleted();
+  if(cachedShopWasOpened){
+    openMain({resumeIntent:false});
+    finishShopStartupSplash();
+  }
+  try{
+    const authResult=await authPromise;
+    if(authResult.ok&&authResult.auth?.account){
+      cloudAccount=authResult.auth.account;currentUser=authResult.auth.account;cloudMode=true;
+      if(hasCachedShop){
+        openMain({preserveProductGrid:cachedShopWasOpened});
+        startCloudSync();
+        refreshCloudData().catch(error=>console.warn("Initial shared data refresh failed.",ownerSaveDiagnosticCode(error)));
+        return;
+      }
+      startCloudSync();
+      try{await refreshCloudData();}
+      catch(error){
+        console.warn("Initial shared data refresh failed.",ownerSaveDiagnosticCode(error));
+        const bootstrapResult=await bootstrapPromise;
+        if(bootstrapResult.ok)applyCloudData({shop:bootstrapResult.bootstrap.shop||{},user:{}});
+      }
+      openMain();
+      return;
+    }
+    await bootstrapPromise;
+  }finally{cloudInitializationComplete=true;}
 }
 
 function showCloudOwnerSetup(){
@@ -6062,7 +6126,7 @@ function openMain(options={}){
   document.getElementById("ownerPanelButton").classList.toggle("visible",isOwner());
   document.querySelector(".bottom-nav")?.classList.toggle("owner-mode",isOwner());
 
-  renderProducts(products);
+  if(!options.preserveProductGrid)renderProducts(products);
   updateCartBadge();
   renderOrders();
   updateProfile();
@@ -8533,11 +8597,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   updateCartBadge();
 
-  initializeCloud().then(async()=>{
+  initializeCloud().catch(error=>console.warn("Shop startup failed; keeping saved shop content available.",ownerSaveDiagnosticCode(error))).then(async()=>{
     if(!cloudMode)await restoreSession();
     showShopOnboardingIfNeeded();
-    const splash=document.getElementById("shopStartupSplash");
-    if(splash)splash.hidden=true;
+    finishShopStartupSplash();
   });
 
 });
