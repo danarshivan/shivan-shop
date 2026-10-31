@@ -1155,6 +1155,22 @@ button{
 .owner-tabs{display:flex;gap:8px;overflow:auto;margin:0 0 14px;padding-bottom:3px}
 .owner-tab,.owner-action{border:1px solid #302b4b;background:#11131f;color:#eee;border-radius:12px;padding:10px 13px;white-space:nowrap}
 .owner-tab.active{background:#7045ff;border-color:#7045ff}
+.owner-inventory-tools{display:grid;gap:12px;margin:12px 0}
+.owner-inventory-scanner,.owner-inventory-result,.owner-qr-card{padding:14px;border:1px solid #282d40;border-radius:16px;background:#0b0e18}
+.owner-inventory-actions{display:flex;flex-wrap:wrap;gap:8px}
+.owner-inventory-tools button,.owner-qr-card button{min-height:44px;padding:9px 14px;border:1px solid #3a3650;border-radius:12px;background:#171725;color:#fff;font:inherit;touch-action:manipulation}
+.owner-inventory-tools button:disabled{opacity:.55}
+.owner-inventory-scanner video{display:block;width:100%;max-height:42vh;min-height:180px;object-fit:cover;border-radius:12px;background:#03050d}
+.owner-inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:10px;margin-top:12px}
+.owner-qr-card{min-width:0;display:grid;gap:8px;align-content:start}
+.owner-qr-card strong,.owner-qr-card small{overflow-wrap:anywhere}
+.owner-qr-art{display:grid;place-items:center;min-height:160px;background:#fff;border-radius:12px;padding:8px}
+.owner-qr-art svg{width:min(100%,180px);height:auto;display:block}
+.owner-qr-card .owner-inventory-actions button{flex:1;min-width:85px}
+.owner-inventory-status{min-height:24px;color:#c9bbff;line-height:1.5}
+.owner-inventory-out{color:#ff8585;font-weight:800}
+@media(max-width:440px){.owner-qr-card{grid-template-columns:88px 1fr;align-items:center}.owner-qr-art{grid-row:span 2;min-height:88px;padding:4px}.owner-qr-art svg{width:80px}.owner-qr-card .owner-inventory-actions{grid-column:1/-1}}
+@media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print [data-qr-print-target="true"],body.owner-qr-print [data-qr-print-target="true"] *{visibility:visible!important}body.owner-qr-print [data-qr-print-target="true"]{position:absolute;inset:0 auto auto 0;width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:16px;background:white!important;color:black!important}body.owner-qr-print .owner-qr-card{break-inside:avoid;background:white!important;color:black!important;border:1px solid #bbb!important}body.owner-qr-print .owner-qr-art{min-height:190px}}
 .owner-form{display:grid;gap:10px;background:#0b0e18;border:1px solid #282d40;border-radius:17px;padding:14px;margin-bottom:16px}
 .owner-form input,.owner-form textarea,.owner-form select,.settings-select{width:100%;min-height:44px;border-radius:12px;border:1px solid #292d40;background:#10121c;color:white;padding:10px 12px;font:inherit}
 .owner-product-name-fields{display:grid;gap:8px;padding:10px;border:1px solid #282d40;border-radius:13px;background:#080b14}
@@ -1198,6 +1214,7 @@ button{
 @media (min-width:700px){.owner-color-palette{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .owner-image-pick{display:grid;gap:7px}
 .owner-image-pick input[type="file"]{min-height:44px;padding:8px}
+.owner-image-status{min-height:18px;margin:0;color:#c9bbff;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
 .owner-category-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
 .owner-category-add button{border:1px solid #514080;background:#17132a;color:#e9ddff;border-radius:11px;padding:0 12px;min-height:44px;white-space:nowrap}
 .owner-category-add{grid-template-columns:minmax(0,1fr) 58px auto}
@@ -1240,16 +1257,17 @@ button{
 #ownerProductForm,#ownerCategoryAddRow,#ownerCategoryManager,.owner-category-edit-row{scroll-margin-top:70px}
 .owner-image-preview{display:none;width:100%;max-height:220px;object-fit:contain;border:1px solid #292d40;border-radius:12px;background:#080a12}
 .owner-image-preview.has-image{display:block}
-.crop-modal{align-items:center;padding:calc(8px + env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
-.crop-modal-card{width:min(520px,100%);max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#0b0e17;border:1px solid #34304f;border-radius:22px;padding:clamp(10px,1.7dvh,16px);box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.crop-modal{align-items:center;padding:calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+.crop-modal-card{width:min(520px,100%);max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#0b0e17;border:1px solid #34304f;border-radius:22px;padding:clamp(10px,1.7dvh,16px);box-shadow:0 20px 60px rgba(0,0,0,.55);margin-block:auto}
 .crop-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .crop-modal-head h2{font-size:18px;margin:0}
 .crop-modal-head .modal-close{float:none;flex:0 0 35px}
 .crop-modal-hint{color:#aaa;font-size:12px;line-height:1.5;margin:6px 0 8px}
 .crop-viewport{position:relative;overflow:hidden;margin:0 auto 8px;border:2px solid #8b61ff;border-radius:12px;background:#03050d;touch-action:none;user-select:none;box-shadow:0 0 0 1px rgba(139,97,255,.28)}
 .crop-viewport img{position:absolute;max-width:none;max-height:none;pointer-events:none;user-select:none}
-.crop-ratios{display:flex;justify-content:center;gap:8px;margin:5px 0;flex-wrap:wrap}
-.crop-ratios button,.crop-actions button{border:1px solid #34394e;background:#141722;color:#fff;border-radius:10px;padding:9px 13px}
+.crop-ratios{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:5px 0;width:100%}
+.crop-ratios button,.crop-actions button{min-width:0;min-height:44px;border:1px solid #34394e;background:#141722;color:#fff;border-radius:10px;padding:8px 5px;font:inherit;font-size:12px;line-height:1.2;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+.crop-modal button[data-crop-action]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .crop-ratios button.active{background:#7045ff;border-color:#7045ff}
 .crop-zoom-row{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;color:#ddd;font-size:13px;margin:7px 0}
 .crop-zoom-row input{width:100%;accent-color:#7045ff}
@@ -1258,8 +1276,10 @@ button{
 .crop-color-row select{min-height:38px;border:1px solid #34394e;border-radius:10px;padding:7px;background:#141722;color:#fff;font:inherit}
 .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .crop-actions .main-btn{margin:0}
-.crop-modal button[data-crop-action]{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-@media(pointer:coarse){.crop-modal button[data-crop-action]{min-height:48px}}
+.crop-status{min-height:18px;margin:4px 0;color:#c9bbff;font-size:12px;line-height:1.4;text-align:center;overflow-wrap:anywhere}
+.crop-actions button{min-height:48px}
+@media(max-width:380px){.crop-modal-card{padding:10px}.crop-ratios{gap:4px}.crop-ratios button,.crop-actions button{font-size:11px;padding-inline:3px}.crop-actions{gap:7px}}
+@media(max-height:740px){.crop-modal{align-items:flex-start}.crop-modal-card{margin-block:auto}}
 @media(max-height:680px){.crop-modal-hint{display:none}}
 .stock-line{color:#aaa;font-size:12px;margin-top:4px}
 .stock-line.out-of-stock{color:#ff8b96;font-weight:800}
@@ -2343,6 +2363,45 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   .app.detail-mode #detailView .detail-color-option{width:26px;height:26px;min-width:26px;min-height:26px;flex-basis:26px}
   .app.detail-mode #detailView .detail-color-option .detail-color-swatch{width:16px;height:16px;flex-basis:16px}
 }
+.shop-promo-onboarding-open{overflow:hidden}
+.shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:8px;background:#03050d;color:#fff;text-align:center;padding:24px}
+.shop-startup-splash[hidden]{display:none!important}
+.shop-startup-splash strong{font-size:30px;font-weight:900;letter-spacing:-1px}
+.shop-startup-splash strong span{color:#c2a9ff}
+.shop-startup-splash p{margin:0;color:#d3d4df;font-size:13px}
+.shop-promo-onboarding{--onboarding-electric:#278bff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;background:#050a1c;color:#fff;isolation:isolate;touch-action:pan-y}
+.shop-promo-onboarding[hidden]{display:none!important}
+.shop-promo-onboarding-image,.shop-promo-onboarding-shade{position:absolute;inset:0;width:100%;height:100%}
+.shop-promo-onboarding-image{z-index:-2;object-fit:cover;object-position:center;background:#101a36;transition:opacity .22s ease,transform .28s ease}
+.shop-promo-onboarding-shade{z-index:-1;background:linear-gradient(180deg,rgba(3,8,24,.66),rgba(3,8,24,.04) 32%,rgba(3,8,24,.18) 58%,rgba(3,8,24,.9) 100%);pointer-events:none}
+.shop-promo-onboarding-content{display:flex;min-height:100vh;min-height:100dvh;flex-direction:column;align-items:center;justify-content:space-between;gap:18px;padding:calc(env(safe-area-inset-top) + clamp(22px,5vh,42px)) clamp(20px,6vw,42px) calc(env(safe-area-inset-bottom) + clamp(18px,4vh,34px));text-align:center}
+.shop-promo-onboarding-brand{margin:0;font-size:clamp(28px,8vw,42px);font-weight:900;letter-spacing:-1px;text-shadow:0 2px 16px rgba(0,0,0,.5)}
+.shop-promo-onboarding-brand span{color:#67b3ff;text-shadow:0 0 22px rgba(39,139,255,.7)}
+.shop-promo-onboarding-step{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.shop-promo-onboarding-welcome{margin:auto 0;max-width:520px;text-align:center}
+.shop-promo-onboarding-welcome[hidden],.shop-promo-onboarding-choice[hidden],.shop-promo-onboarding-skip[hidden],.shop-promo-onboarding-image[hidden]{display:none!important}
+.shop-promo-onboarding-eyebrow{margin:0 0 10px;color:#8dc8ff;font-size:12px;font-weight:900;letter-spacing:.24em;text-transform:uppercase}
+.shop-promo-onboarding-title{margin:0;color:#fff;font-size:clamp(38px,10vw,64px);font-weight:950;letter-spacing:-.055em;line-height:.98;text-shadow:0 4px 32px rgba(0,0,0,.45)}
+.shop-promo-onboarding-copy{max-width:390px;margin:16px auto 0;color:#dceaff;font-size:clamp(15px,4vw,18px);line-height:1.55}
+.shop-promo-onboarding-dots{display:flex;align-items:center;justify-content:center;gap:9px;min-height:14px}
+.shop-promo-onboarding-dots span{width:9px;height:9px;border-radius:99px;background:rgba(225,239,255,.48);transition:width .2s ease,background .2s ease,box-shadow .2s ease}
+.shop-promo-onboarding-dots span.active{width:25px;background:#3d9cff;box-shadow:0 0 16px rgba(39,139,255,.78)}
+.shop-promo-onboarding-actions{display:grid;gap:12px;width:min(100%,420px)}
+.shop-promo-onboarding-skip,.shop-promo-onboarding-choice{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:54px;border:1px solid rgba(218,235,255,.76);border-radius:16px;background:rgba(5,12,31,.78);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(12px)}
+.shop-promo-onboarding-skip:focus-visible,.shop-promo-onboarding-choice:focus-visible{outline:3px solid #72baff;outline-offset:3px}
+.shop-promo-onboarding-choice.primary{border-color:#5aabff;background:linear-gradient(135deg,#1686ff,#3159ed);box-shadow:0 10px 30px rgba(28,112,255,.28)}
+.shop-promo-onboarding-choice.secondary{background:rgba(7,16,38,.78)}
+.shop-promo-onboarding[data-screen="3"]{background:radial-gradient(ellipse at 50% 43%,rgba(24,111,234,.28),transparent 49%),linear-gradient(155deg,#07142e,#050918 70%)}
+.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-shade{display:none}
+.shop-promo-onboarding.is-transitioning .shop-promo-onboarding-image{opacity:.72;transform:scale(1.025)}
+@media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}}
+.owner-promo-slides{display:grid;gap:12px}
+.owner-promo-slide{display:grid;gap:8px;padding:12px;border:1px solid #282d40;border-radius:14px;background:#080b14}
+.owner-promo-slide label{font-size:13px;font-weight:700;color:#d8cbff}
+.owner-promo-slide input[type=file]{width:100%;min-height:44px}
+.owner-promo-slide .owner-image-preview{display:block;max-height:220px}
+.owner-promo-status{min-height:22px;color:#d8cbff;font-size:13px;line-height:1.5}
+@media(max-height:560px){.shop-promo-onboarding-content{gap:10px;padding-top:calc(env(safe-area-inset-top) + 14px);padding-bottom:calc(env(safe-area-inset-bottom) + 14px)}.shop-promo-onboarding-brand{font-size:27px}.shop-promo-onboarding-title{font-size:38px}.shop-promo-onboarding-copy{margin-top:9px}}
 </style>
 </head>
 
@@ -2517,6 +2576,32 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 </section>
 
 
+<section id="shopStartupSplash" class="shop-startup-splash" role="status" aria-live="polite">
+  <strong>Shivan <span>Shop</span></strong>
+  <p>Loading your shop…</p>
+</section>
+
+<section id="shopPromoOnboarding" class="shop-promo-onboarding" role="dialog" aria-modal="true" aria-label="Shivan Shop introduction" aria-hidden="true" hidden>
+  <img id="shopPromoOnboardingImage" class="shop-promo-onboarding-image" src="" alt="Shivan Shop promotional slide 1">
+  <div class="shop-promo-onboarding-shade" aria-hidden="true"></div>
+  <div class="shop-promo-onboarding-content">
+    <div class="shop-promo-onboarding-brand" aria-label="Shivan Shop">Shivan <span>Shop</span></div>
+    <div id="shopPromoOnboardingWelcome" class="shop-promo-onboarding-welcome" hidden>
+      <p class="shop-promo-onboarding-eyebrow">Welcome to</p>
+      <h1 class="shop-promo-onboarding-title">Shivan Shop</h1>
+      <p class="shop-promo-onboarding-copy">Discover elegant women’s fashion, made to feel like you.</p>
+    </div>
+    <p id="shopPromoOnboardingStep" class="shop-promo-onboarding-step" aria-live="polite">Slide 1 of 3</p>
+    <div id="shopPromoOnboardingDots" class="shop-promo-onboarding-dots" role="group" aria-label="Screen 1 of 3"></div>
+    <div class="shop-promo-onboarding-actions">
+      <button id="shopPromoOnboardingSkip" class="shop-promo-onboarding-skip" type="button" onclick="skipShopOnboarding()" aria-label="Skip to welcome choices">Skip <span aria-hidden="true">→</span></button>
+      <button id="shopPromoOnboardingCreateAccount" class="shop-promo-onboarding-choice primary" type="button" onclick="completeShopOnboardingChoice('signup')" hidden>Create Account <span aria-hidden="true">→</span></button>
+      <button id="shopPromoOnboardingExplore" class="shop-promo-onboarding-choice secondary" type="button" onclick="completeShopOnboardingChoice('explore')" hidden>Explore Models <span aria-hidden="true">↗</span></button>
+    </div>
+  </div>
+</section>
+
+
 <!-- ================= MAIN APP ================= -->
 
 <section id="mainApp">
@@ -2684,7 +2769,9 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
       <button class="owner-tab active" data-owner-tab="products" onclick="renderOwnerPanel('products')">بەرهەم</button>
       <button class="owner-tab" data-owner-tab="ads" onclick="renderOwnerPanel('ads')">ڕیکلام</button>
       <button class="owner-tab" data-owner-tab="orders" onclick="renderOwnerPanel('orders')">داخوازی</button>
+      <button class="owner-tab" data-owner-tab="inventory" onclick="renderOwnerPanel('inventory')" aria-label="QR variant inventory">QR ستۆک</button>
       <button class="owner-tab" data-owner-tab="appearance" onclick="renderOwnerPanel('appearance')">ڕەنگ و فۆنت</button>
+      <button class="owner-tab" data-owner-tab="onboarding" aria-label="Manage promotional onboarding images" onclick="renderOwnerPanel('onboarding')">پێشبینی</button>
     </div>
     <div id="ownerPanelContent"></div>
   </div>
@@ -2978,6 +3065,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
     </div>
     <label id="cropColorRow" class="crop-color-row" for="cropImageColor"><span>ڕەنگێ وێنە</span><select id="cropImageColor"></select></label>
     <label class="crop-zoom-row" for="cropZoom"><span>زووم</span><input id="cropZoom" type="range" min="1" max="5" step="0.01" value="1" oninput="setCropZoom(this.value)"></label>
+    <p id="cropStatus" class="crop-status" role="status" aria-live="polite"></p>
     <div class="crop-actions">
       <button type="button" data-crop-action="cancel">هەڵوەشاندنەوە</button>
       <button type="button" class="main-btn" data-crop-action="apply">بڕین و پاشەکەفتکردن</button>
@@ -3392,6 +3480,14 @@ const CART_KEY = "shivan_shop_cart";
 const ORDERS_KEY = "shivan_shop_orders";
 const PRODUCTS_KEY = "shivan_shop_products";
 const ADS_KEY = "shivan_shop_ads";
+const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";
+const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_web_onboarding_completed";
+const SHOP_ONBOARDING_SLIDE_COUNT = 3;
+const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze([
+  "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
+  "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1000&q=75",
+  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1000&q=75",
+]);
 const FAVORITES_KEY = "shivan_shop_favorites";
 const SETTINGS_KEY = "shivan_shop_settings";
 const SUPPORT_KEY = "shivan_shop_support";
@@ -3401,8 +3497,12 @@ const OWNER_CATEGORY_META_KEY = "shivan_shop_category_meta";
 const OWNER_CATEGORY_RENAMES_KEY = "shivan_shop_category_renames";
 const OWNER_CATEGORY_DELETED_KEY = "shivan_shop_deleted_categories";
 const CLOUD_OUTBOX_KEY = "shivan_shop_cloud_outbox";
-const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY]);
+const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,SHOP_ONBOARDING_IMAGES_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY]);
 const MAX_CLOUD_IMAGE_BYTES = 1300000;
+const MAX_OWNER_IMAGE_INPUT_BYTES = 15*1024*1024;
+const MAX_CROP_SOURCE_EDGE = 2048;
+const MAX_CROP_SOURCE_PIXELS = 4194304;
+const MAX_CROP_PREVIEW_EDGE = 1200;
 const MAX_OWNER_PRODUCT_VARIANTS = 120;
 const OWNER_IDENTIFIER = "07502342153";
 const OWNER_PASSWORD = "";
@@ -3422,12 +3522,26 @@ let cloudFlushPromise=null;
 let cloudSyncRetryTimer=null;
 let cloudSyncRetryDelay=1000;
 let cloudWriteFailureNoticeShown=false;
+let shopOnboardingSlideIndex=0;
+let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
+let ownerProductWorkflowId="";
+let ownerAdWorkflowId="";
 let checkoutSubmitting=false;
 let checkoutOrderId="";
 let checkoutCartSignature="";
 let checkoutFibPayment=null;
 let checkoutFibPaymentPending=false;
 let checkoutFibPaymentError="";
+let pendingAuthenticationIntent=null;
+let ownerInventoryVariants=[];
+let ownerQrRenderQueue=[];
+let ownerQrSvgById=new Map();
+let ownerInventoryStream=null;
+let ownerInventoryScanTimer=null;
+let ownerInventoryScanBusy=false;
+let ownerInventoryScannedVariant=null;
+const INVENTORY_PENDING_OPERATION_KEY="shivan_shop_inventory_pending_operation";
+const GUEST_CART_MERGE_KEY="shivan_shop_guest_cart_merge_fingerprints";
 const originalStorageSetItem=Storage.prototype.setItem;
 const originalStorageRemoveItem=Storage.prototype.removeItem;
 
@@ -3447,25 +3561,76 @@ Storage.prototype.removeItem=function(key){
   if(this===localStorage&&!cloudHydrating)queueCloudWrite(String(key),null);
 };
 
-async function cloudRequest(path,options={}){
-  const response=await fetch(path,{credentials:"same-origin",cache:"no-store",...options,headers:{"Content-Type":"application/json",...(options.headers||{})}});
-  const contentType=response.headers.get("content-type")||"missing content type";
-  if(!contentType.toLowerCase().includes("application/json")){
-    const responseUrl=new URL(response.url||path,location.href);
-    throw new Error(`Cloud API response from ${responseUrl.origin}${responseUrl.pathname}: HTTP ${response.status} (${contentType}).`);
-  }
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||`Cloud request failed (${response.status}).`);
-  return data;
+function createOwnerSaveRequestId(){
+  return globalThis.crypto?.randomUUID?.()||`ss-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,10)}`;
 }
 
-async function uploadOwnerImageToCloud(blob,signal){
+function ownerSaveDiagnostic(stage,details={}){
+  try{console.info("[shivan-shop-owner-save]",JSON.stringify({stage,...details}));}catch(error){}
+}
+
+function ownerSaveDiagnosticCode(error){
+  const code=String(error?.code||"");
+  if(/^[A-Z0-9_]{1,50}$/.test(code))return code;
+  if(error?.name==="AbortError")return "REQUEST_TIMEOUT";
+  if(error?.name==="TypeError")return "NETWORK_ERROR";
+  return "REQUEST_FAILED";
+}
+
+async function cloudRequest(path,options={}){
+  const {timeoutMs=30000,requestId="",ownerSaveStage="",...requestOptions}=options;
+  const traceId=requestId||createOwnerSaveRequestId();
+  const requestUrl=new URL(path,location.href);
+  const method=String(requestOptions.method||"GET").toUpperCase();
+  const requestBodyBytes=typeof requestOptions.body==="string"?new TextEncoder().encode(requestOptions.body).byteLength:requestOptions.body instanceof Blob?requestOptions.body.size:0;
+  const controller=typeof AbortController==="function"?new AbortController():null;
+  const timeout=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
+  const headers={"Content-Type":"application/json",...(requestOptions.headers||{})};
+  if(ownerSaveStage)headers["X-Client-Request-ID"]=traceId;
+  if(ownerSaveStage)ownerSaveDiagnostic("api.request",{requestId:traceId,stage:ownerSaveStage,path:requestUrl.pathname,method,bytes:requestBodyBytes});
+  try{
+    const response=await fetch(path,{
+      credentials:"same-origin",cache:"no-store",...requestOptions,
+      ...(requestOptions.signal||!controller?{}:{signal:controller.signal}),
+      headers
+    });
+    const contentType=response.headers.get("content-type")||"missing content type";
+    if(!contentType.toLowerCase().includes("application/json")){
+      const responseUrl=new URL(response.url||path,location.href);
+      const failure=new Error(`Cloud API response from ${responseUrl.origin}${responseUrl.pathname}: HTTP ${response.status} (${contentType}).`);
+      failure.status=response.status;failure.code=`HTTP_${response.status}`;failure.requestId=traceId;
+      throw failure;
+    }
+    const data=await response.json().catch(()=>({}));
+    if(ownerSaveStage)ownerSaveDiagnostic("api.response",{requestId:data.requestId||traceId,stage:data.stage||ownerSaveStage,status:response.status,code:data.code||"OK"});
+    if(!response.ok){
+      const failure=new Error(data.error||`Cloud request failed (${response.status}).`);
+      failure.status=response.status;failure.code=data.code||`HTTP_${response.status}`;failure.requestId=data.requestId||traceId;
+      throw failure;
+    }
+    return data;
+  }catch(error){
+    if(error?.name==="AbortError"){
+      const timeoutError=new Error("The cloud request timed out. Your draft is still on this device; try Save again when the connection is stable.");
+      timeoutError.code="REQUEST_TIMEOUT";timeoutError.status=0;timeoutError.requestId=traceId;
+      error=timeoutError;
+    }
+    if(ownerSaveStage)ownerSaveDiagnostic("api.failed",{requestId:error?.requestId||traceId,stage:ownerSaveStage,status:Number(error?.status)||0,code:ownerSaveDiagnosticCode(error)});
+    throw error;
+  }finally{if(timeout)clearTimeout(timeout);}
+}
+
+async function uploadOwnerImageToCloud(blob,requestId="",signal){
   if(!cloudMode||!cloudAccount||cloudAccount.role!=="owner")throw new Error("Sign in to the shared cloud owner account before uploading shop images.");
   if(!(blob instanceof Blob)||!/^image\/(?:jpeg|png|webp|gif)$/i.test(blob.type))throw new Error("Choose a JPEG, PNG, WebP, or GIF image.");
   if(blob.size>MAX_CLOUD_IMAGE_BYTES)throw new Error("The compressed image exceeds the shared-storage limit. Crop closer to the product and try again.");
-  const data=await cloudRequest("/api/media/upload",{method:"POST",headers:{"Content-Type":blob.type},body:blob,signal});
+  const traceId=requestId||createOwnerSaveRequestId();
+  ownerSaveDiagnostic("image.upload.start",{requestId:traceId,mime:blob.type,bytes:blob.size});
+  const data=await cloudRequest("/api/media/upload",{method:"POST",headers:{"Content-Type":blob.type},body:blob,signal,requestId:traceId,ownerSaveStage:"image.upload",timeoutMs:30000});
   const imageUrl=String(data.url||"");
   if(!/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(?:jpg|png|webp|gif)$/i.test(imageUrl))throw new Error("The cloud returned an invalid image address.");
+  if(data.persisted!==true)throw new Error("The cloud did not confirm saving the image to shared storage.");
+  ownerSaveDiagnostic("image.upload.persisted",{requestId:data.requestId||traceId,bytes:blob.size,mime:blob.type});
   return imageUrl;
 }
 
@@ -3553,14 +3718,86 @@ async function flushCloudWrites(){
   return cloudFlushPromise;
 }
 
-async function confirmCloudShopWrite(key){
+function clearAcknowledgedCloudWrite(key,accountId,value){
+  if(localStorage.getItem(key)!==value)return;
+  const outbox=readCloudOutbox();
+  const marker=outbox[key];
+  if(marker?.accountId===accountId&&!marker.remove){
+    delete outbox[key];
+    saveCloudOutbox(outbox);
+  }
+}
+
+async function persistOwnerShopValue(key,value,requestId){
+  const traceId=requestId||createOwnerSaveRequestId();
+  ownerSaveDiagnostic("owner.save.request_start",{requestId:traceId,stage:"shop.sync",bytes:new TextEncoder().encode(value).byteLength});
+  const confirmation=await cloudRequest("/api/sync",{
+    method:"PUT",
+    body:JSON.stringify({key,value}),
+    requestId:traceId,
+    ownerSaveStage:"shop.sync",
+    timeoutMs:30000
+  });
+  if(confirmation?.ok!==true||confirmation.key!==key||confirmation.persisted!==true){
+    const failure=new Error("The live API did not confirm saving this shop change to the shared database.");
+    failure.code="SAVE_NOT_CONFIRMED";failure.requestId=confirmation?.requestId||traceId;
+    throw failure;
+  }
+  clearAcknowledgedCloudWrite(key,String(cloudAccount.id),value);
+  ownerSaveDiagnostic("owner.save.request_confirmed",{requestId:confirmation.requestId||traceId,stage:"shop.sync",status:200});
+  return true;
+}
+
+function clearAcknowledgedCloudDelete(key,accountId){
+  if(localStorage.getItem(key)!==null)return;
+  const outbox=readCloudOutbox();
+  const marker=outbox[key];
+  if(marker?.accountId===accountId&&marker.remove){
+    delete outbox[key];
+    saveCloudOutbox(outbox);
+  }
+}
+
+async function persistOwnerShopDelete(key,requestId){
+  const traceId=requestId||createOwnerSaveRequestId();
+  const confirmation=await cloudRequest(`/api/sync?key=${encodeURIComponent(key)}`,{
+    method:"DELETE",requestId:traceId,ownerSaveStage:"shop.sync.delete",timeoutMs:30000
+  });
+  if(confirmation?.ok!==true||confirmation.key!==key||confirmation.persisted!==true){
+    const failure=new Error("The live API did not confirm removing this shop setting from the shared database.");
+    failure.code="DELETE_NOT_CONFIRMED";failure.requestId=confirmation?.requestId||traceId;
+    throw failure;
+  }
+  clearAcknowledgedCloudDelete(key,String(cloudAccount.id));
+  return true;
+}
+
+async function confirmCloudShopWrites(keys,requestId=""){
   if(!cloudMode||!cloudAccount||cloudAccount.role!=="owner")return false;
   const accountId=String(cloudAccount.id);
-  const queued=readCloudOutbox()[key];
-  if(!queued||queued.accountId!==accountId||queued.remove)return false;
+  const targets=[...new Set(keys)].filter(key=>CLOUD_OWNER_KEYS.has(key));
+  if(!targets.length)return false;
+  const initialOutbox=readCloudOutbox();
+  const initialValues=new Map(targets.map(key=>[key,localStorage.getItem(key)]));
   const flushed=await flushCloudWrites();
-  const remaining=readCloudOutbox()[key];
-  return flushed&&(!remaining||remaining.accountId!==accountId);
+  const remainingOutbox=readCloudOutbox();
+  for(const key of targets){
+    const initialValue=initialValues.get(key);
+    const initialMarker=initialOutbox[key];
+    const markerMatched=initialMarker?.accountId===accountId&&initialMarker.remove===(initialValue===null);
+    const latestValue=localStorage.getItem(key);
+    const remaining=remainingOutbox[key];
+    const flushConfirmed=markerMatched&&flushed&&(!remaining||remaining.accountId!==accountId)&&latestValue===initialValue;
+    if(flushConfirmed)continue;
+    ownerSaveDiagnostic("owner.save.direct_fallback",{requestId:requestId||createOwnerSaveRequestId(),stage:"outbox_missing_or_unconfirmed"});
+    if(latestValue===null)await persistOwnerShopDelete(key,requestId);
+    else await persistOwnerShopValue(key,latestValue,requestId);
+  }
+  return true;
+}
+
+async function confirmCloudShopWrite(key,requestId=""){
+  return confirmCloudShopWrites([key],requestId);
 }
 
 function applyCloudData(data){
@@ -3586,6 +3823,7 @@ function applyCloudData(data){
     }
   }finally{cloudHydrating=false;}
   if(!changed)return;
+  renderShopOnboardingSlide();
   loadProducts();
   loadOwnerAppearance();
   advertisements=getAdvertisements();
@@ -3602,6 +3840,7 @@ function applyCloudData(data){
 
 window.addEventListener("storage",event=>{
   if(event.storageArea!==localStorage||!event.key||!cloudStorageKey(event.key)||event.newValue===event.oldValue)return;
+  if(event.key===SHOP_ONBOARDING_IMAGES_KEY)renderShopOnboardingSlide();
   loadProducts();
   loadOwnerAppearance();
   advertisements=getAdvertisements();
@@ -4048,38 +4287,31 @@ function safeReceiptUrl(value){
   return /^\/api\/media\/receipts\/[A-Za-z0-9_-]{40,50}\.(?:jpg|png|webp)$/i.test(url)?url:"";
 }
 
-function readAsDataUrl(blob){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>resolve(String(reader.result||""));
-    reader.onerror=()=>reject(new Error("خوێندنەوەی وێنە سەرکەفتوو نەبوو."));
-    reader.readAsDataURL(blob);
-  });
-}
-
 function canvasBlob(canvas,type,quality,{signal,timeoutMs=15000}={}){
   return new Promise((resolve,reject)=>{
-    if(typeof canvas?.toBlob!=="function"){reject(new Error("This browser cannot prepare the cropped image. Try another photo or browser."));return;}
     let settled=false;
-    let timeout=null;
-    const finish=(callback,value)=>{
+    let timer=null;
+    const finish=(error,blob)=>{
       if(settled)return;
       settled=true;
-      if(timeout!==null)clearTimeout(timeout);
-      signal?.removeEventListener("abort",abort);
-      callback(value);
+      if(timer)clearTimeout(timer);
+      signal?.removeEventListener("abort",onAbort);
+      if(error)reject(error);else resolve(blob);
     };
-    const abort=()=>{const error=new Error("Image processing was cancelled.");error.name="AbortError";finish(reject,error);};
-    if(signal?.aborted){abort();return;}
-    signal?.addEventListener("abort",abort,{once:true});
-    timeout=setTimeout(()=>finish(reject,new Error("Image processing took too long. Choose a smaller photo and try again.")),timeoutMs);
-    try{canvas.toBlob(blob=>finish(resolve,blob),type,quality);}
-    catch(error){finish(reject,error);}
+    const onAbort=()=>{
+      const error=new Error("Photo processing was cancelled.");
+      error.name="AbortError";
+      finish(error);
+    };
+    if(signal?.aborted){onAbort();return;}
+    signal?.addEventListener("abort",onAbort,{once:true});
+    timer=setTimeout(()=>finish(new Error("Photo compression took too long. Choose a smaller photo and try again.")),timeoutMs);
+    try{
+      if(typeof canvas?.toBlob!=="function")throw new Error("This browser cannot compress the photo. Update Safari or choose a smaller image.");
+      canvas.toBlob(blob=>finish(null,blob),type,quality);
+    }catch(error){finish(error instanceof Error?error:new Error("Photo compression failed. Choose a smaller image and try again."));}
   });
 }
-
-let pendingImageCrop=null;
-let ownerProductImageQueue=null;
 
 function bindImageCropActions(){
   const modal=document.getElementById("imageCropModal");
@@ -4087,33 +4319,142 @@ function bindImageCropActions(){
   modal.dataset.cropActionsBound="true";
   modal.addEventListener("click",event=>{
     const button=event.target?.closest?.("[data-crop-action]");
-    if(!button||!modal.contains(button))return;
+    if(!button||button.disabled||!modal.contains(button))return;
     event.preventDefault();
-    if(button.dataset.cropAction==="cancel")finishImageCrop(false);
-    else if(button.dataset.cropAction==="apply")finishImageCrop(true);
+    if(button.dataset.cropAction==="cancel")void finishImageCrop(false);
+    else if(button.dataset.cropAction==="apply")void finishImageCrop(true);
   });
 }
 
 function setImageCropBusy(busy){
-  document.querySelectorAll("#imageCropModal button").forEach(button=>{
-    button.disabled=Boolean(busy)&&button.dataset.cropAction!=="cancel";
-  });
+  document.querySelectorAll('#imageCropModal button:not([data-crop-action="cancel"])').forEach(button=>button.disabled=busy);
+  const zoom=document.getElementById("cropZoom");
+  const color=document.getElementById("cropImageColor");
+  if(zoom)zoom.disabled=busy;
+  if(color)color.disabled=busy;
 }
+
+bindImageCropActions();
+
+async function prepareOwnerCropSource(file){
+  if(!file||!Number.isFinite(file.size)||file.size>MAX_OWNER_IMAGE_INPUT_BYTES)throw new Error("Choose an image smaller than 15 MB.");
+  if(typeof createImageBitmap!=="function")throw new Error("This browser cannot safely resize photos before cropping. Update Safari or use a supported browser, then try again.");
+  let bitmap=null;
+  let previewCanvas=null;
+  try{
+    const dimensions=await readOwnerImageDimensions(file);
+    const sourceLongEdge=Math.max(dimensions.width,dimensions.height);
+    const sourcePixels=dimensions.width*dimensions.height;
+    const resizeScale=Math.min(1,MAX_CROP_SOURCE_EDGE/sourceLongEdge,Math.sqrt(MAX_CROP_SOURCE_PIXELS/sourcePixels));
+    const resizeLongEdge=Math.max(1,Math.floor(sourceLongEdge*resizeScale));
+    const resizeOptions={resizeQuality:"high"};
+    if(dimensions.width>=dimensions.height)resizeOptions.resizeWidth=resizeLongEdge;
+    else resizeOptions.resizeHeight=resizeLongEdge;
+    bitmap=await createImageBitmap(file,resizeOptions);
+    if(!bitmap?.width||!bitmap?.height||bitmap.width*bitmap.height>MAX_CROP_SOURCE_PIXELS||bitmap.width>MAX_CROP_SOURCE_EDGE||bitmap.height>MAX_CROP_SOURCE_EDGE){
+      throw new Error("This photo is too large for safe mobile cropping. Choose a smaller image or resize it before uploading.");
+    }
+    const previewScale=Math.min(1,MAX_CROP_PREVIEW_EDGE/Math.max(bitmap.width,bitmap.height));
+    const previewWidth=Math.max(1,Math.round(bitmap.width*previewScale));
+    const previewHeight=Math.max(1,Math.round(bitmap.height*previewScale));
+    previewCanvas=document.createElement("canvas");
+    previewCanvas.width=previewWidth;
+    previewCanvas.height=previewHeight;
+    const previewContext=previewCanvas.getContext("2d");
+    if(!previewContext)throw new Error("Photo preview could not be prepared. Try a smaller image.");
+    previewContext.drawImage(bitmap,0,0,previewWidth,previewHeight);
+    let previewBlob=await canvasBlob(previewCanvas,"image/webp",.82);
+    if(!previewBlob||previewBlob.type!=="image/webp")previewBlob=await canvasBlob(previewCanvas,"image/jpeg",.82);
+    if(!previewBlob||!/^image\/(?:webp|jpeg)$/i.test(previewBlob.type))throw new Error("Photo preview could not be compressed. Try another image.");
+    return {bitmap,objectUrl:URL.createObjectURL(previewBlob),width:bitmap.width,height:bitmap.height};
+  }catch(error){
+    bitmap?.close?.();
+    throw error;
+  }finally{
+    if(previewCanvas){previewCanvas.width=0;previewCanvas.height=0;}
+  }
+}
+
+async function readOwnerImageDimensions(file){
+  if(typeof file.slice!=="function")throw new Error("This image cannot be safely inspected before resizing. Choose a JPEG, PNG, WebP, or HEIC photo.");
+  const bytes=new Uint8Array(await file.slice(0,Math.min(file.size,1024*1024)).arrayBuffer());
+  const is=(offset,value)=>value.every((byte,index)=>bytes[offset+index]===byte);
+  const u16be=offset=>(bytes[offset]<<8)|bytes[offset+1];
+  const u24le=offset=>bytes[offset]|(bytes[offset+1]<<8)|(bytes[offset+2]<<16);
+  const u32be=offset=>(bytes[offset]*0x1000000)+(bytes[offset+1]<<16)+(bytes[offset+2]<<8)+bytes[offset+3];
+  let width=0,height=0;
+  if(is(0,[0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])){
+    width=u32be(16);height=u32be(20);
+  }else if(is(0,[0x47,0x49,0x46,0x38])&&is(5,[0x61])){
+    width=bytes[6]|(bytes[7]<<8);height=bytes[8]|(bytes[9]<<8);
+  }else if(is(0,[0xff,0xd8])){
+    const sofMarkers=new Set([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf]);
+    for(let offset=2;offset+8<bytes.length;){
+      if(bytes[offset]!==0xff){offset++;continue;}
+      while(bytes[offset]===0xff)offset++;
+      const marker=bytes[offset++];
+      if(marker===0xd9||marker===0xda)break;
+      if(marker===0x01||(marker>=0xd0&&marker<=0xd7))continue;
+      if(offset+2>bytes.length)break;
+      const segmentLength=u16be(offset);
+      if(segmentLength<2||offset+segmentLength>bytes.length)break;
+      if(sofMarkers.has(marker)){
+        height=u16be(offset+3);width=u16be(offset+5);break;
+      }
+      offset+=segmentLength;
+    }
+  }else if(is(0,[0x52,0x49,0x46,0x46])&&is(8,[0x57,0x45,0x42,0x50])){
+    if(is(12,[0x56,0x50,0x38,0x58])){
+      width=u24le(24)+1;height=u24le(27)+1;
+    }else if(is(12,[0x56,0x50,0x38,0x4c])&&bytes[20]===0x2f){
+      const bits=(bytes[21]|(bytes[22]<<8)|(bytes[23]<<16)|(bytes[24]<<24))>>>0;
+      width=(bits&0x3fff)+1;height=((bits>>>14)&0x3fff)+1;
+    }else if(is(12,[0x56,0x50,0x38,0x20])&&is(23,[0x9d,0x01,0x2a])){
+      width=(bytes[26]|(bytes[27]<<8))&0x3fff;height=(bytes[28]|(bytes[29]<<8))&0x3fff;
+    }
+  }else{
+    for(let offset=4;offset+16<=bytes.length;offset++){
+      if(is(offset,[0x69,0x73,0x70,0x65])){
+        width=u32be(offset+8);height=u32be(offset+12);break;
+      }
+    }
+  }
+  if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1){
+    throw new Error("This photo format could not be safely inspected before decoding. Choose a JPEG, PNG, WebP, or HEIC image.");
+  }
+  return {width,height};
+}
+
+function releasePreparedCropSource(source){
+  try{source?.bitmap?.close?.();}catch{}
+  if(source?.objectUrl){URL.revokeObjectURL(source.objectUrl);source.objectUrl="";}
+}
+
+let pendingImageCrop=null;
+let ownerProductImageQueue=null;
 
 function releaseCropForm(state,clearInput=true){
   if(state?.input){state.input.disabled=false;if(clearInput)state.input.value="";}
   if(state?.submit)state.submit.disabled=false;
 }
 
+function setOwnerImageStatus(message){
+  const status=document.getElementById("ownerImageStatus");
+  if(status)status.textContent=message||"";
+}
+
 function showImageCrop(source,details){
   const image=document.getElementById("cropImage");
   image.onload=()=>{
-    const sourceRatio=image.naturalWidth/image.naturalHeight;
+    const sourceRatio=source.width/source.height;
     const defaultRatioMode=details.kind==="ad"?"1.7777778":"0.8";
-    pendingImageCrop={...details,sourceRatio,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:0.8,zoom:1,left:null,top:null,scale:null,drag:null};
+    pendingImageCrop={...details,...source,sourceRatio,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:0.8,zoom:1,left:null,top:null,scale:null,drag:null};
     const modal=document.getElementById("imageCropModal");
     modal.classList.add("show");
     modal.setAttribute("aria-hidden","false");
+    setImageCropBusy(false);
+    const cropStatus=document.getElementById("cropStatus");
+    if(cropStatus)cropStatus.textContent=details.queue?`Photo ${details.queueIndex+1} of ${ownerProductImageQueue?.files.length||details.queueIndex+1}: drag or zoom, then save the crop.`:"Drag or zoom the photo, then save the crop.";
     document.querySelectorAll("[data-crop-ratio]").forEach(button=>button.classList.toggle("active",button.dataset.cropRatio===pendingImageCrop.ratioMode));
     document.getElementById("cropZoom").value="1";
     const colorRow=document.getElementById("cropColorRow");
@@ -4131,18 +4472,40 @@ function showImageCrop(source,details){
     });
   };
   image.onerror=()=>{
+    releasePreparedCropSource(source);
     const queue=ownerProductImageQueue;
     const state=details;
     if(queue){
+      queue.failed=(queue.failed||0)+1;
       queue.index++;
-      showToast("وێنەیەک نەکرایەوە؛ وێنەی دواتر دەکرێتەوە.");
+      showToast("A photo preview could not be opened. The next photo will open.");
       startNextQueuedProductImage();
     }else{
       releaseCropForm(state);
       showToast("ئەم فایلە وەک وێنە نەکرایەوە.");
     }
   };
-  image.src=source;
+  image.src=source.objectUrl;
+}
+
+function openOwnerImageCrop(file,details){
+  if(details.queue){
+    const queue=ownerProductImageQueue;
+    setOwnerImageStatus(`Preparing photo ${queue.index+1} of ${queue.files.length} for cropping…`);
+  }
+  showToast("Preparing photo for crop…");
+  return prepareOwnerCropSource(file).then(source=>showImageCrop(source,details)).catch(error=>{
+    if(details.queue&&ownerProductImageQueue){
+      ownerProductImageQueue.failed=(ownerProductImageQueue.failed||0)+1;
+      ownerProductImageQueue.index++;
+      setOwnerImageStatus(`Photo ${details.queueIndex+1} could not be prepared. Trying the next photo…`);
+      showToast(error.message||"This photo could not be prepared. The next photo will open.");
+      startNextQueuedProductImage();
+    }else{
+      releaseCropForm(details);
+      showToast(error.message||"This photo could not be prepared for cropping.");
+    }
+  });
 }
 
 function uploadOwnerImage(input,hiddenId,previewId,kind){
@@ -4150,22 +4513,23 @@ function uploadOwnerImage(input,hiddenId,previewId,kind){
   const file=input.files?.[0];
   if(!file)return;
   if(!file.type.startsWith("image/")){input.value="";showToast("تکایە فایلێکی وێنە هەڵبژێرە.");return;}
-  if(file.size>15*1024*1024){input.value="";showToast("قەبارەی وێنە زۆرە؛ وێنەیەکی کەمتر لە ١٥ مێگابایت هەڵبژێرە.");return;}
+  if(file.size>MAX_OWNER_IMAGE_INPUT_BYTES){input.value="";showToast("قەبارەی وێنە زۆرە؛ وێنەیەکی کەمتر لە ١٥ مێگابایت هەڵبژێرە.");return;}
   const submit=input.closest("form")?.querySelector('[type="submit"]');
   input.disabled=true;
   if(submit)submit.disabled=true;
-  readAsDataUrl(file).then(source=>showImageCrop(source,{input,submit,hiddenId,previewId,kind}))
-    .catch(error=>{releaseCropForm({input,submit});showToast(error.message||"هەڵبژاردنی وێنە سەرکەفتوو نەبوو.");});
+  const requestId=kind==="ad"?(ownerAdWorkflowId|| (ownerAdWorkflowId=createOwnerSaveRequestId())):"";
+  openOwnerImageCrop(file,{input,submit,hiddenId,previewId,kind,requestId});
 }
 
 function uploadOwnerProductImages(input){
   if(!isOwner()){input.value="";return;}
   const files=[...(input.files||[])];
   if(!files.length)return;
-  const bad=files.find(file=>!file.type.startsWith("image/")||file.size>15*1024*1024);
-  if(bad){input.value="";showToast(bad.size>15*1024*1024?"قەبارەی وێنە زۆرە؛ وێنەیەکی کەمتر لە ١٥ مێگابایت هەڵبژێرە.":"تکایە فایلێکی وێنە هەڵبژێرە.");return;}
+  const bad=files.find(file=>!file.type.startsWith("image/")||file.size>MAX_OWNER_IMAGE_INPUT_BYTES);
+  if(bad){input.value="";showToast(bad.size>MAX_OWNER_IMAGE_INPUT_BYTES?"قەبارەی وێنە زۆرە؛ وێنەیەکی کەمتر لە ١٥ مێگابایت هەڵبژێرە.":"تکایە فایلێکی وێنە هەڵبژێرە.");return;}
   const colors=parseOwnerColorEntries(document.getElementById("ownerProductColors")?.value||"").map(item=>item.value);
-  ownerProductImageQueue={files,index:0,input,submit:input.closest("form")?.querySelector('[type="submit"]'),colors};
+  ownerProductWorkflowId=ownerProductWorkflowId||createOwnerSaveRequestId();
+  ownerProductImageQueue={files,index:0,failed:0,input,submit:input.closest("form")?.querySelector('[type="submit"]'),colors,requestId:ownerProductWorkflowId};
   input.disabled=true;
   if(ownerProductImageQueue.submit)ownerProductImageQueue.submit.disabled=true;
   startNextQueuedProductImage();
@@ -4177,19 +4541,14 @@ function startNextQueuedProductImage(){
   if(queue.index>=queue.files.length){
     releaseCropForm(queue);
     ownerProductImageQueue=null;
-    showToast("هەموو وێنەکان ئامادەن؛ فۆرمەکە پاشەکەفت بکە.");
+    setOwnerImageStatus(queue.failed?`${queue.failed} photo(s) could not be prepared. The other photos are ready; Save is available.`:"Photos are ready. Save the product when finished.");
+    showToast(queue.failed?`${queue.failed} photo(s) could not be prepared. The other photos are ready; you can add another photo or save the product.`:"All photos are ready. Save the product when finished.");
     return;
   }
   const file=queue.files[queue.index];
   const autoAssignColors=queue.colors.length===1||queue.files.length>=queue.colors.length;
   const defaultColor=autoAssignColors&&queue.colors.length?queue.colors[queue.index%queue.colors.length]:"";
-  readAsDataUrl(file).then(source=>{
-    showImageCrop(source,{input:queue.input,submit:queue.submit,kind:"product",queue:true,queueIndex:queue.index,defaultColor});
-  }).catch(()=>{
-    queue.index++;
-    showToast("وێنەیەک نەخوێندرایەوە؛ وێنەی دواتر دەکرێتەوە.");
-    startNextQueuedProductImage();
-  });
+  openOwnerImageCrop(file,{input:queue.input,submit:queue.submit,kind:"product",queue:true,queueIndex:queue.index,defaultColor,requestId:queue.requestId});
 }
 
 function sizeCropViewport(){
@@ -4197,9 +4556,9 @@ function sizeCropViewport(){
   const viewport=document.getElementById("cropViewport");
   const card=document.querySelector(".crop-modal-card");
   const ratio=pendingImageCrop.ratio;
-  const maxWidth=Math.max(180,Math.min(420,(card?.clientWidth||460)-32));
+  const maxWidth=Math.max(150,Math.min(420,(card?.clientWidth||460)-32));
   const visibleHeight=window.visualViewport?.height||window.innerHeight;
-  const maxHeight=Math.max(140,Math.min(360,visibleHeight*.34));
+  const maxHeight=Math.max(130,Math.min(320,visibleHeight*.3));
   const width=Math.min(maxWidth,maxHeight*ratio);
   viewport.style.width=`${width}px`;
   viewport.style.height=`${width/ratio}px`;
@@ -4240,6 +4599,11 @@ function layoutCropImage(reset=false){
 }
 
 window.addEventListener("resize",()=>{
+  if(!pendingImageCrop)return;
+  sizeCropViewport();
+  layoutCropImage(false);
+});
+window.visualViewport?.addEventListener("resize",()=>{
   if(!pendingImageCrop)return;
   sizeCropViewport();
   layoutCropImage(false);
@@ -4287,15 +4651,16 @@ function cropPointerMove(event){
 
 function cropPointerUp(){if(pendingImageCrop)pendingImageCrop.drag=null;}
 
-bindImageCropActions();
-
 function closeImageCrop(){
   const state=pendingImageCrop;
+  setImageCropBusy(false);
   document.getElementById("imageCropModal").classList.remove("show");
   document.getElementById("imageCropModal").setAttribute("aria-hidden","true");
-  setImageCropBusy(false);
   const image=document.getElementById("cropImage");
   image.onload=null;image.onerror=null;image.removeAttribute("src");
+  releasePreparedCropSource(state);
+  const status=document.getElementById("cropStatus");
+  if(status)status.textContent="";
   pendingImageCrop=null;
   if(!state?.queue)releaseCropForm(state);
 }
@@ -4304,52 +4669,77 @@ async function finishImageCrop(apply){
   const state=pendingImageCrop;
   if(!state)return;
   if(!apply){
-    if(state.cancelled)return;
     state.cancelled=true;
-    state.processingController?.abort();
+    state.abortController?.abort();
+    state.uploading=false;
+    setImageCropBusy(false);
     if(state.queue){
       const queue=ownerProductImageQueue;
       ownerProductImageQueue=null;
       closeImageCrop();
       releaseCropForm(queue);
+      setOwnerImageStatus("Photo selection canceled. Existing product photos are unchanged.");
       showToast("هەڵبژاردنی وێنەکان هەڵوەشایەوە.");
     }else closeImageCrop();
+    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
+      const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
+      if(ownerStatus)ownerStatus.textContent="Image selection canceled. The previous slide image is unchanged.";
+    }
     return;
   }
   if(state.uploading)return;
   state.uploading=true;
   state.cancelled=false;
-  state.processingController=new AbortController();
+  state.abortController=typeof AbortController==="function"?new AbortController():null;
+  const status=document.getElementById("cropStatus");
+  if(status)status.textContent="Preparing the cropped photo…";
+  ownerSaveDiagnostic("image.crop.start",{requestId:state.requestId||"",stage:state.kind||"image",ratio:state.ratioMode||""});
   setImageCropBusy(true);
   try{
     const viewport=document.getElementById("cropViewport");
     const image=document.getElementById("cropImage");
     const viewWidth=viewport.clientWidth,viewHeight=viewport.clientHeight;
     if(!state.scale||!viewWidth||!viewHeight)throw new Error("پێشبینینی crop ئامادە نییە؛ دووبارە هەوڵ بدە.");
-    const sourceWidth=viewWidth/state.scale;
-    const sourceHeight=viewHeight/state.scale;
-    const sourceX=Math.max(0,Math.min(image.naturalWidth-sourceWidth,-state.left/state.scale));
-    const sourceY=Math.max(0,Math.min(image.naturalHeight-sourceHeight,-state.top/state.scale));
+    const cropSource=state.bitmap||image;
+    const previewWidth=image.naturalWidth;
+    const previewHeight=image.naturalHeight;
+    const sourceScaleX=(cropSource.width||previewWidth)/previewWidth;
+    const sourceScaleY=(cropSource.height||previewHeight)/previewHeight;
+    const previewCropWidth=viewWidth/state.scale;
+    const previewCropHeight=viewHeight/state.scale;
+    const previewX=Math.max(0,Math.min(previewWidth-previewCropWidth,-state.left/state.scale));
+    const previewY=Math.max(0,Math.min(previewHeight-previewCropHeight,-state.top/state.scale));
+    const sourceWidth=previewCropWidth*sourceScaleX;
+    const sourceHeight=previewCropHeight*sourceScaleY;
+    const sourceX=previewX*sourceScaleX;
+    const sourceY=previewY*sourceScaleY;
     const canvas=document.createElement("canvas");
     const context=canvas.getContext("2d");
     if(!context)throw new Error("ئامادەکردنی وێنە سەرکەفتوو نەبوو.");
     let blob=null;
-    for(const maxOutput of [1000,760]){
-      if(blob)break;
-      const outputWidth=Math.max(1,Math.round(state.ratio>=1?maxOutput:maxOutput*state.ratio));
-      const outputHeight=Math.max(1,Math.round(state.ratio>=1?maxOutput/state.ratio:maxOutput));
-      canvas.width=outputWidth;canvas.height=outputHeight;
-      context.drawImage(image,sourceX,sourceY,sourceWidth,sourceHeight,0,0,outputWidth,outputHeight);
-      for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){
-        const candidate=await canvasBlob(canvas,type,quality,{signal:state.processingController.signal});
-        if(state.cancelled)return;
-        if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}
+    let outputWidth=0,outputHeight=0;
+    try{
+      for(const maxOutput of [1000,760]){
+        if(blob)break;
+        outputWidth=Math.max(1,Math.round(state.ratio>=1?maxOutput:maxOutput*state.ratio));
+        outputHeight=Math.max(1,Math.round(state.ratio>=1?maxOutput/state.ratio:maxOutput));
+        canvas.width=outputWidth;canvas.height=outputHeight;
+        context.drawImage(cropSource,sourceX,sourceY,sourceWidth,sourceHeight,0,0,outputWidth,outputHeight);
+        for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){
+          const candidate=await canvasBlob(canvas,type,quality,{signal:state.abortController?.signal});
+          if(state.cancelled||pendingImageCrop!==state)return;
+          if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}
+          if(blob)break;
+        }
       }
+    }finally{
+      canvas.width=0;canvas.height=0;
     }
     if(!blob)throw new Error("The image could not be compressed below the shared-storage limit. Choose a smaller crop.");
-    if(state.cancelled)return;
-    const imageUrl=await uploadOwnerImageToCloud(blob,state.processingController.signal);
-    if(state.cancelled)return;
+    ownerSaveDiagnostic("image.crop.compressed",{requestId:state.requestId||"",mime:blob.type,bytes:blob.size,width:outputWidth,height:outputHeight});
+    if(status)status.textContent="Uploading the photo to the shared shop…";
+    const imageUrl=await uploadOwnerImageToCloud(blob,state.requestId||"",state.abortController?.signal);
+    if(state.cancelled||pendingImageCrop!==state)return;
     if(state.queue){
       const target=document.getElementById("ownerProductImagesData");
       if(!target)throw new Error("فۆرمی وێنە نەدۆزرایەوە.");
@@ -4369,12 +4759,28 @@ async function finishImageCrop(apply){
       preview.src=imageUrl;
       preview.classList.add("has-image");
       closeImageCrop();
+      if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
+        const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
+        if(ownerStatus)ownerStatus.textContent="Cropped image saved to shared storage. Press Save promotional slides to publish it.";
+      }
       showToast("وێنە بڕدرا و ئامادەیە؛ فۆرمەکە پاشەکەفت بکە.");
     }
   }catch(error){
-    if(state.cancelled)return;
-    if(pendingImageCrop===state){state.uploading=false;state.processingController=null;setImageCropBusy(false);}
-    showToast(error.message||"بڕینی وێنە سەرکەفتوو نەبوو.");
+    if(state.cancelled||pendingImageCrop!==state)return;
+    if(pendingImageCrop===state){
+      state.uploading=false;
+      state.abortController=null;
+      if(status)status.textContent=error.message||"The crop could not be saved. Try again.";
+      setImageCropBusy(false);
+      if(state.queue&&ownerProductImageQueue?.submit)ownerProductImageQueue.submit.disabled=false;
+      else if(state.submit)state.submit.disabled=false;
+    }
+    ownerSaveDiagnostic("image.crop.failed",{requestId:state.requestId||error?.requestId||"",stage:"image.crop_or_upload",code:ownerSaveDiagnosticCode(error)});
+    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
+      const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
+      if(ownerStatus)ownerStatus.textContent=`Image upload failed: ${error.message||"Could not prepare the image."}`;
+    }
+    showToast(`${error.message||"بڕینی وێنە سەرکەفتوو نەبوو."}${state.requestId?` (${state.requestId})`:""}`);
   }
 }
 
@@ -4584,7 +4990,7 @@ function normalizeProductInventory(product){
   if(savedVariants.length){
     normalized.variants=pairs.map(pair=>{
       const match=savedVariants.find(item=>normalizeHexColor(item.color)===pair.color&&String(item.size)===pair.size);
-      return {...pair,stock:Math.max(0,Math.floor(Number(match?.stock)||0))};
+      return {...pair,qrId:match?.qrId||"",stock:Math.max(0,Math.floor(Number(match?.stock)||0))};
     });
   }else{
     let remaining=Math.max(0,Math.floor(Number(product.stock)||0));
@@ -4702,7 +5108,7 @@ function bindOwnerCategoryManager(){
   document.querySelectorAll("#ownerCategoryManager [data-delete-category]").forEach(button=>button.addEventListener("click",()=>deleteOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"")));
 }
 
-function saveOwnerCategory(row){
+async function saveOwnerCategory(row){
   if(!isOwner()||!row)return;
   const oldName=String(row.dataset.categoryEdit||"");
   const selectedProductCategory=document.getElementById("ownerProductCategory")?.value||"";
@@ -4749,6 +5155,18 @@ function saveOwnerCategory(row){
   renderCategoryButtons();
   renderProducts(currentCategory==="هەموو"?products:products.filter(product=>product.category===currentCategory));
   populateOwnerCategorySelect(selectedProductCategory===oldName?name:selectedProductCategory);
+  const requestId=createOwnerSaveRequestId();
+  try{
+    const keys=[OWNER_CATEGORIES_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY];
+    if(oldName!==name)keys.push(PRODUCTS_KEY);
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites(keys,requestId);
+  }catch(error){
+    ownerSaveDiagnostic("owner.category.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
+    showToast(`جۆرەکە ل ئامێرێ تە ما؛ هاوبەشکردن پەسەند نەبوو. Reference: ${error?.requestId||requestId}`);
+    const retryManager=document.getElementById("ownerCategoryManager");
+    if(retryManager){retryManager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
+    return;
+  }
   const manager=document.getElementById("ownerCategoryManager");
   if(manager){manager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
   scrollOwnerTo("ownerCategoryManager");
@@ -4833,6 +5251,23 @@ async function deleteOwnerCategory(category){
     return;
   }
 
+  const requestId=createOwnerSaveRequestId();
+  try{
+    const keys=[OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY];
+    if(assigned.length)keys.push(PRODUCTS_KEY);
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites(keys,requestId);
+  }catch(error){
+    products.forEach((product,index)=>product.category=previousProducts[index]);
+    if(assigned.length)saveProducts();
+    [[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});
+    renderCategoryButtons();
+    renderProducts(currentCategory==="هەموو"?products:products.filter(product=>product.category===currentCategory));
+    const retryManager=document.getElementById("ownerCategoryManager");
+    if(retryManager){retryManager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
+    showToast(`سڕینەوەی جۆر ل داتابەیسی هاوبەش پەسەند نەبوو؛ داتاکە هێشتا ماوە. Reference: ${error?.requestId||requestId}`);
+    return;
+  }
+
   if(currentCategory===category)currentCategory="هەموو";
   renderCategoryButtons();
   renderProducts(currentCategory==="هەموو"?products:products.filter(product=>product.category===currentCategory));
@@ -4851,7 +5286,7 @@ function populateOwnerCategorySelect(selected=""){
   if(selected)select.value=selected;
 }
 
-function addOwnerCategory(){
+async function addOwnerCategory(){
   if(!isOwner())return;
   const input=document.getElementById("ownerNewCategory");
   const category=String(input?.value||"").trim().replace(/\s+/g," ");
@@ -4871,6 +5306,16 @@ function addOwnerCategory(){
   const selected=existing||category;
   const deleted=getDeletedOwnerCategories().filter(item=>resolveCategoryName(item)!==selected);
   try{localStorage.setItem(OWNER_CATEGORIES_KEY,JSON.stringify(categories));localStorage.setItem(OWNER_CATEGORY_META_KEY,JSON.stringify(meta));localStorage.setItem(OWNER_CATEGORY_DELETED_KEY,JSON.stringify(deleted));}catch(error){showToast("جۆرەکە پاشەکەفت نەبوو.");return;}
+  const requestId=createOwnerSaveRequestId();
+  try{if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites([OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY],requestId);}
+  catch(error){
+    ownerSaveDiagnostic("owner.category.add_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
+    renderCategoryButtons();populateOwnerCategorySelect(selected);
+    const retryManager=document.getElementById("ownerCategoryManager");
+    if(retryManager){retryManager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
+    showToast(`جۆر ل ئامێرێ تە ما؛ هاوبەشکردن پەسەند نەبوو. Reference: ${error?.requestId||requestId}`);
+    return;
+  }
   renderCategoryButtons();
   populateOwnerCategorySelect(selected);
   const manager=document.getElementById("ownerCategoryManager");
@@ -4942,6 +5387,171 @@ function renderHomeAdvertisements(){
    AUTH
 ========================================= */
 
+function getShopOnboardingStartupView(authenticated,completed){
+  if(authenticated)return "main";
+  return completed?"auth":"onboarding";
+}
+
+function getNextShopOnboardingStep(index,total=SHOP_ONBOARDING_SLIDE_COUNT){
+  const count=Math.max(1,Math.floor(Number(total)||SHOP_ONBOARDING_SLIDE_COUNT));
+  const next=Math.max(0,Math.floor(Number(index)||0))+1;
+  return next>=count?{index:count-1,completed:true}:{index:next,completed:false};
+}
+
+function getShopOnboardingSwipeTarget(index,startX,startY,endX,endY,total=SHOP_ONBOARDING_SLIDE_COUNT){
+  const count=Math.max(1,Math.floor(Number(total)||SHOP_ONBOARDING_SLIDE_COUNT));
+  const current=Math.max(0,Math.min(count-1,Math.floor(Number(index)||0)));
+  const deltaX=Number(endX)-Number(startX);
+  const deltaY=Number(endY)-Number(startY);
+  if(Math.abs(deltaX)<48||Math.abs(deltaX)<=Math.abs(deltaY)*1.15)return current;
+  return Math.max(0,Math.min(count-1,current+(deltaX<0?1:-1)));
+}
+
+function getShopOnboardingChoiceRoute(choice){
+  if(choice==="signup")return "signup";
+  if(choice==="explore")return "shop";
+  return "";
+}
+
+function isShopOnboardingCompleted(storage=localStorage){
+  try{return storage.getItem(SHOP_ONBOARDING_COMPLETED_KEY)==="1";}catch(error){return false;}
+}
+
+function markShopOnboardingCompleted(storage=localStorage){
+  try{storage.setItem(SHOP_ONBOARDING_COMPLETED_KEY,"1");return true;}catch(error){return false;}
+}
+
+function resetShopOnboardingCompletion(storage=localStorage){
+  try{storage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);}catch(error){}
+}
+
+function readShopOnboardingImages(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(SHOP_ONBOARDING_IMAGES_KEY)||"null");}catch(error){}
+  if(!Array.isArray(saved)||saved.length!==SHOP_ONBOARDING_SLIDE_COUNT)return [...SHOP_ONBOARDING_DEFAULT_IMAGES];
+  return SHOP_ONBOARDING_DEFAULT_IMAGES.map((fallback,index)=>safeImageUrl(saved[index])||fallback);
+}
+
+function renderShopOnboardingSlide(){
+  const layer=document.getElementById("shopPromoOnboarding");
+  const image=document.getElementById("shopPromoOnboardingImage");
+  const step=document.getElementById("shopPromoOnboardingStep");
+  const dots=document.getElementById("shopPromoOnboardingDots");
+  const skip=document.getElementById("shopPromoOnboardingSkip");
+  const welcome=document.getElementById("shopPromoOnboardingWelcome");
+  const createAccount=document.getElementById("shopPromoOnboardingCreateAccount");
+  const explore=document.getElementById("shopPromoOnboardingExplore");
+  if(!image||!step||!dots)return;
+  shopOnboardingImages=readShopOnboardingImages();
+  const index=Math.max(0,Math.min(SHOP_ONBOARDING_SLIDE_COUNT-1,shopOnboardingSlideIndex));
+  const sourceIndex=index===1?1:0;
+  const screenImage=shopOnboardingImages[sourceIndex];
+  if(layer){
+    layer.dataset.screen=String(index+1);
+    layer.setAttribute("aria-label",index===2?"Shivan Shop welcome":"Shivan Shop fashion introduction");
+    layer.classList.add("is-transitioning");
+    requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.remove("is-transitioning")));
+  }
+  image.hidden=index===2;
+  if(index<2){
+    if(image.getAttribute("src")!==screenImage)image.src=screenImage;
+    image.alt=index===0?"Woman wearing an elegant fashion look":"Women’s fashion in a clothing boutique";
+  }else image.alt="";
+  step.textContent=`Screen ${index+1} of ${SHOP_ONBOARDING_SLIDE_COUNT}`;
+  dots.setAttribute("aria-label",`Screen ${index+1} of ${SHOP_ONBOARDING_SLIDE_COUNT}`);
+  dots.innerHTML=SHOP_ONBOARDING_DEFAULT_IMAGES.map((_,dotIndex)=>`<span class="${dotIndex<=index?"active":""}"></span>`).join("");
+  if(welcome)welcome.hidden=index!==2;
+  if(skip){skip.hidden=index===2;skip.setAttribute("aria-label","Skip to the welcome choices");}
+  if(createAccount)createAccount.hidden=index!==2;
+  if(explore)explore.hidden=index!==2;
+}
+
+function setupShopOnboardingGestures(layer){
+  if(!layer||layer.dataset.shopGestureReady==="true")return;
+  layer.dataset.shopGestureReady="true";
+  let start=null;
+  layer.addEventListener("pointerdown",event=>{
+    if(event.isPrimary===false)return;
+    start={x:event.clientX,y:event.clientY,pointerId:event.pointerId,interactive:Boolean(event.target?.closest?.("button"))};
+  },{passive:true});
+  layer.addEventListener("pointerup",event=>{
+    if(!start||layer.hidden||currentUser||cloudAccount){start=null;return;}
+    const gesture=start;start=null;
+    if(gesture.interactive||event.isPrimary===false||(gesture.pointerId!==undefined&&event.pointerId!==gesture.pointerId)||event.target?.closest?.("button"))return;
+    const target=getShopOnboardingSwipeTarget(shopOnboardingSlideIndex,gesture.x,gesture.y,event.clientX,event.clientY);
+    if(target===shopOnboardingSlideIndex)return;
+    shopOnboardingSlideIndex=target;
+    renderShopOnboardingSlide();
+  },{passive:true});
+  layer.addEventListener("pointercancel",()=>{start=null;},{passive:true});
+}
+
+function hideShopOnboarding(){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer)return;
+  layer.hidden=true;
+  layer.setAttribute("aria-hidden","true");
+  document.body?.classList.remove("shop-promo-onboarding-open");
+  const authPage=document.getElementById("authPage");
+  const mainApp=document.getElementById("mainApp");
+  if(authPage)authPage.inert=false;
+  if(mainApp)mainApp.inert=false;
+}
+
+function showShopOnboarding(){
+  if(currentUser||cloudAccount)return false;
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer)return false;
+  shopOnboardingSlideIndex=0;
+  shopOnboardingImages=readShopOnboardingImages();
+  layer.hidden=false;
+  layer.setAttribute("aria-hidden","false");
+  document.body?.classList.add("shop-promo-onboarding-open");
+  const authPage=document.getElementById("authPage");
+  const mainApp=document.getElementById("mainApp");
+  if(authPage)authPage.inert=true;
+  if(mainApp)mainApp.inert=true;
+  setupShopOnboardingGestures(layer);
+  renderShopOnboardingSlide();
+  requestAnimationFrame(()=>document.getElementById("shopPromoOnboardingSkip")?.focus({preventScroll:true}));
+  return true;
+}
+
+function showShopOnboardingIfNeeded(){
+  const view=getShopOnboardingStartupView(Boolean(currentUser||cloudAccount),isShopOnboardingCompleted());
+  if(view==="main"){hideShopOnboarding();return;}
+  if(view==="auth"){hideShopOnboarding();showAuth("login");return;}
+  showShopOnboarding();
+}
+
+function advanceShopOnboarding(){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer||layer.hidden||currentUser||cloudAccount)return;
+  const next=getNextShopOnboardingStep(shopOnboardingSlideIndex);
+  shopOnboardingSlideIndex=next.index;
+  renderShopOnboardingSlide();
+}
+
+function skipShopOnboarding(){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer||layer.hidden||currentUser||cloudAccount)return;
+  shopOnboardingSlideIndex=SHOP_ONBOARDING_SLIDE_COUNT-1;
+  renderShopOnboardingSlide();
+  requestAnimationFrame(()=>document.getElementById("shopPromoOnboardingCreateAccount")?.focus({preventScroll:true}));
+}
+
+function completeShopOnboardingChoice(choice){
+  if(currentUser||cloudAccount)return false;
+  const route=getShopOnboardingChoiceRoute(choice);
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!route||!layer||layer.hidden||shopOnboardingSlideIndex!==SHOP_ONBOARDING_SLIDE_COUNT-1)return false;
+  markShopOnboardingCompleted();
+  hideShopOnboarding();
+  if(route==="signup")showAuth("signup");
+  else if(route==="shop")openMain();
+  return Boolean(route);
+}
+
 function showAuth(type){
 
   document.getElementById("loginForm").classList.toggle("active",type==="login");
@@ -4967,6 +5577,86 @@ function showAuth(type){
   const authScroller=document.getElementById("authPage");
   if(authScroller) authScroller.scrollTop=0;
 
+}
+
+function requireAuthentication(intent, message="Please sign in or create an account to continue."){
+  if(currentUser||cloudAccount)return false;
+  pendingAuthenticationIntent=intent&&typeof intent==="object"?intent:null;
+  hideShopOnboarding();
+  document.querySelector(".app")?.classList.add("auth-mode");
+  document.getElementById("mainApp").style.display="none";
+  document.getElementById("authPage").style.display="";
+  showAuth("login");
+  const loginMessage=document.getElementById("loginMsg");
+  if(loginMessage)loginMessage.textContent=message;
+  return true;
+}
+
+function snapshotCartForAuthentication(){
+  return getCart().map(item=>({
+    productId:item.productId,size:String(item.size||""),color:normalizeHexColor(item.color),qty:Math.max(1,Math.floor(Number(item.qty)||1))
+  })).filter(item=>item.productId!==undefined&&item.size&&item.color);
+}
+
+function mergeGuestCartAfterAuthentication(snapshot){
+  if(!currentUser||!Array.isArray(snapshot)||!snapshot.length)return;
+  const normalized=snapshot.map(item=>({productId:String(item.productId),size:String(item.size),color:normalizeHexColor(item.color),qty:Math.max(1,Math.floor(Number(item.qty)||1))}));
+  const fingerprint=JSON.stringify(normalized);
+  let fingerprints={};
+  try{fingerprints=JSON.parse(localStorage.getItem(GUEST_CART_MERGE_KEY)||"{}");}catch(error){}
+  if(!fingerprints||typeof fingerprints!=="object"||Array.isArray(fingerprints))fingerprints={};
+  const accountKey=String(currentUser.id);
+  if(fingerprints[accountKey]===fingerprint)return;
+  const cart=getCart();
+  for(const item of normalized){
+    const product=products.find(entry=>String(entry.id)===item.productId);
+    if(!product)continue;
+    const variant=product.variants?.find(entry=>String(entry.size)===item.size&&normalizeHexColor(entry.color)===item.color);
+    if(!variant)continue;
+    const matching=cart.filter(entry=>String(entry.productId)===item.productId&&String(entry.size)===item.size&&normalizeHexColor(entry.color)===item.color);
+    const currentQty=matching.reduce((sum,entry)=>sum+Math.max(0,Math.floor(Number(entry.qty)||0)),0);
+    const accepted=Math.min(item.qty,Math.max(0,Number(variant.stock)-currentQty));
+    if(!accepted)continue;
+    if(matching.length){matching[0].qty=Math.min(Number(variant.stock),currentQty+accepted);}
+    else cart.push({
+      id:Date.now()+cart.length,productId:product.id,name:getProductName(product),names:{...(product.names||{}),ku:product.names?.ku||product.name||""},
+      price:product.price,image:productPhotos(product).find(photo=>normalizeHexColor(photo.color)===item.color)?.src||product.image,
+      size:item.size,color:item.color,colorName:getProductColorLabel(product,item.color),qty:accepted
+    });
+  }
+  saveCart(cart);
+  fingerprints[accountKey]=fingerprint;
+  try{localStorage.setItem(GUEST_CART_MERGE_KEY,JSON.stringify(fingerprints));}catch(error){}
+}
+
+function resumeAuthenticationIntent(){
+  const intent=pendingAuthenticationIntent;
+  pendingAuthenticationIntent=null;
+  if(!intent)return;
+  openView("home");
+  if(intent.type==="profile"){
+    openView("profile");
+    return;
+  }
+  if(intent.type==="product"){
+    const product=products.find(item=>String(item.id)===String(intent.productId));
+    if(!product){showToast("That product is no longer available.");return;}
+    openProduct(product.id);
+    const variant=product.variants?.find(item=>String(item.size)===String(intent.size)&&normalizeHexColor(item.color)===normalizeHexColor(intent.color));
+    if(!variant){showToast("The selected color or size is no longer available. Choose another variant.");return;}
+    selectedSize=String(intent.size);selectedColor=normalizeHexColor(intent.color);currentQty=Math.max(1,Math.floor(Number(intent.quantity)||1));
+    renderSizeOptions();renderColorOptions();updateDetailAvailability();
+    if(currentQty>variantStock(product,selectedColor,selectedSize)-cartVariantCount(product.id,selectedSize,selectedColor)){
+      showToast("The selected quantity is no longer available. Adjust it before adding to your cart.");
+      return;
+    }
+    addDetailToCart();
+    return;
+  }
+  if(intent.type==="checkout"){
+    mergeGuestCartAfterAuthentication(intent.cart||[]);
+    openCheckout();
+  }
 }
 
 function togglePassword(id,button){
@@ -5185,12 +5875,15 @@ async function logout(){
   sessionStorage.removeItem(SESSION_KEY);
 
   currentUser = null;
+  pendingAuthenticationIntent=null;
+  resetShopOnboardingCompletion();
 
   document.querySelector(".app")?.classList.add("auth-mode");
   document.getElementById("mainApp").style.display="none";
   document.getElementById("authPage").style.display="";
 
   showAuth("login");
+  showShopOnboarding();
 
   showToast("دەرکەفتی.");
 
@@ -5271,6 +5964,8 @@ function resetPassword(){
 
 function openMain(){
 
+  hideShopOnboarding();
+
   document.querySelector(".app")?.classList.remove("auth-mode");
   document.getElementById("authPage").style.display="none";
   document.getElementById("mainApp").style.display="block";
@@ -5281,11 +5976,17 @@ function openMain(){
   updateCartBadge();
   renderOrders();
   updateProfile();
+  resumeAuthenticationIntent();
 
 }
 
 
 function openView(view){
+
+  if(view==="profile"&&!currentUser&&!cloudAccount){
+    requireAuthentication({type:"profile"});
+    return;
+  }
 
   closeDetailImageFullscreen(false);
 
@@ -5900,6 +6601,8 @@ function addDetailToCart(){
     return;
   }
 
+  if(requireAuthentication({type:"product",productId:currentProduct.id,size:selectedSize,color:selectedColor,quantity:currentQty}))return;
+
   const cart=getCart();
 
   cart.push({
@@ -5934,6 +6637,8 @@ function quickAdd(id){
     showToast("ئەم بەرهەمە لە کۆگا نەماوە.");
     return;
   }
+
+  if(requireAuthentication({type:"product",productId:p.id,size:variant.size,color:variant.color,quantity:1}))return;
 
   const cart=getCart();
 
@@ -6253,6 +6958,12 @@ function updateCheckoutFibPaymentUi(){
 
 function openCheckout(){
 
+  const guestCart=snapshotCartForAuthentication();
+  if(!currentUser&&!cloudAccount&&guestCart.length){
+    requireAuthentication({type:"checkout",cart:guestCart});
+    return;
+  }
+
   if(!getCart().length){
     showToast("سەبەتەکەت بەتاڵە.");
     return;
@@ -6302,6 +7013,7 @@ function validateFibCheckoutDetails(){
 
 
 async function startFibPayment(){
+  if(!currentUser&&!cloudAccount){requireAuthentication({type:"checkout",cart:snapshotCartForAuthentication()});return;}
   if(checkoutFibPaymentPending||checkoutSubmitting)return;
   if(!validateFibCheckoutDetails())return;
   if(!cloudMode){
@@ -6384,6 +7096,13 @@ function paymentMethodLabel(method,order=null){
 
 
 async function placeOrder(autoFib=false){
+
+  if(!currentUser&&!cloudAccount){
+    const guestCart=snapshotCartForAuthentication();
+    if(guestCart.length)requireAuthentication({type:"checkout",cart:guestCart});
+    else showToast("Sign in before placing an order.");
+    return;
+  }
 
   if(checkoutSubmitting)return;
   if(checkoutFibPaymentPending&&!autoFib){
@@ -6571,6 +7290,84 @@ function renderOrders(){
    OWNER TOOLS
 ========================================= */
 
+function uploadShopOnboardingImage(input,index){
+  if(!isOwner()){input.value="";return;}
+  if(!input.files?.[0])return;
+  const status=document.getElementById("shopOnboardingOwnerStatus");
+  if(status)status.textContent=`Crop slide ${index+1} and save the image to shared storage.`;
+  uploadOwnerImage(input,`shopPromoImageData${index}`,`shopPromoImagePreview${index}`,"ad");
+}
+
+function renderShopOnboardingOwnerEditor(box){
+  if(!isOwner()){
+    box.textContent="Only the store owner can manage promotional slides.";
+    return;
+  }
+  const images=readShopOnboardingImages();
+  box.innerHTML=`<form class="owner-form" id="shopOnboardingOwnerForm" onsubmit="saveShopOnboardingImages(event)">
+    <h3>Promotional welcome slides</h3>
+    <p class="owner-promo-status">Replace any slide image, crop it, then save all three slides to shared storage.</p>
+    <div class="owner-promo-slides">${images.map((image,index)=>`<div class="owner-promo-slide">
+      <label for="shopPromoImageFile${index}">Slide ${index+1} image</label>
+      <input id="shopPromoImageFile${index}" type="file" accept="image/*" aria-label="Choose promotional image for slide ${index+1}" onchange="uploadShopOnboardingImage(this,${index})">
+      <input id="shopPromoImageData${index}" type="hidden" value="${escapeHtml(image)}">
+      <img id="shopPromoImagePreview${index}" class="owner-image-preview has-image" src="${escapeHtml(image)}" alt="Preview of promotional slide ${index+1}">
+    </div>`).join("")}</div>
+    <p id="shopOnboardingOwnerStatus" class="owner-promo-status" role="status" aria-live="polite"></p>
+    <button class="main-btn" type="submit">Save promotional slides</button>
+  </form>`;
+}
+
+async function saveShopOnboardingImages(event){
+  event?.preventDefault?.();
+  if(!isOwner())return;
+  const form=event?.currentTarget||document.getElementById("shopOnboardingOwnerForm");
+  if(!form||form.dataset.saving==="true")return;
+  const status=document.getElementById("shopOnboardingOwnerStatus");
+  const button=form.querySelector("button[type='submit']");
+  const images=Array.from({length:SHOP_ONBOARDING_SLIDE_COUNT},(_,index)=>safeImageUrl(document.getElementById(`shopPromoImageData${index}`)?.value));
+  if(images.some(image=>!image)){
+    if(status)status.textContent="Choose or keep a valid image for all three slides before saving.";
+    return;
+  }
+  if(!cloudMode||cloudAccount?.role!=="owner"){
+    if(status)status.textContent="Sign in to the shared Owner account before saving promotional slides.";
+    return;
+  }
+  const requestId=createOwnerSaveRequestId();
+  const value=JSON.stringify(images);
+  form.dataset.saving="true";
+  if(button){button.disabled=true;button.setAttribute("aria-busy","true");}
+  if(status)status.textContent="Saving all three slides to the shared shop…";
+  try{
+    const result=await cloudRequest("/api/sync",{
+      method:"PUT",
+      body:JSON.stringify({key:SHOP_ONBOARDING_IMAGES_KEY,value}),
+      requestId,
+      ownerSaveStage:"shop.onboarding.save",
+      timeoutMs:30000,
+    });
+    if(result?.ok!==true||result.key!==SHOP_ONBOARDING_IMAGES_KEY||result.persisted!==true){
+      const failure=new Error("The shared database did not confirm saving the promotional slides.");
+      failure.requestId=result?.requestId||requestId;
+      throw failure;
+    }
+    cloudHydrating=true;
+    try{originalStorageSetItem.call(localStorage,SHOP_ONBOARDING_IMAGES_KEY,value);}
+    finally{cloudHydrating=false;}
+    shopOnboardingImages=images;
+    renderShopOnboardingSlide();
+    if(status)status.textContent="All three promotional slides were saved and synced to the shared shop.";
+    showToast("Promotional slides saved and synced.");
+  }catch(error){
+    if(status)status.textContent=`${error?.message||"The promotional slides could not be saved."} Reference: ${error?.requestId||requestId}`;
+    showToast(`${error?.message||"The promotional slides could not be saved."} Reference: ${error?.requestId||requestId}`);
+  }finally{
+    form.dataset.saving="false";
+    if(button){button.disabled=false;button.removeAttribute("aria-busy");}
+  }
+}
+
 function renderOwnerPanel(section=ownerPanel){
   if(!isOwner()){
     showToast("تەنێ خاوەنێ فرۆشگەیێ دەتوانیت ڤێ بەشێ ببینیت.");
@@ -6578,14 +7375,258 @@ function renderOwnerPanel(section=ownerPanel){
     return;
   }
   const previousPanel=ownerPanel;
+  if(previousPanel==="inventory"&&section!=="inventory")stopOwnerQrScanner();
   ownerPanel=section;
   document.querySelectorAll(".owner-tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.ownerTab===section));
   const box=document.getElementById("ownerPanelContent");
   if(section==="products") renderOwnerProducts(box);
   if(section==="ads") renderOwnerAds(box);
   if(section==="orders") renderOwnerOrders(box);
+  if(section==="inventory") renderOwnerInventory(box);
   if(section==="appearance") renderOwnerAppearance(box);
+  if(section==="onboarding") renderShopOnboardingOwnerEditor(box);
   if(section!==previousPanel&&document.getElementById("ownerView").classList.contains("active"))scrollOwnerTo("ownerView");
+}
+
+function loadQrVendorScript(file,globalName){
+  if(window[globalName])return Promise.resolve(window[globalName]);
+  const existing=[...document.scripts].find(script=>script.dataset.qrVendor===file);
+  if(existing)return new Promise((resolve,reject)=>{
+    existing.addEventListener("load",()=>resolve(window[globalName]),{once:true});
+    existing.addEventListener("error",()=>reject(new Error("Local QR tools could not be loaded.")),{once:true});
+    if(window[globalName])resolve(window[globalName]);
+  });
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src=new URL(`/qr-vendor/${file}`,location.origin).href;
+    script.dataset.qrVendor=file;
+    script.onload=()=>window[globalName]?resolve(window[globalName]):reject(new Error("Local QR tools could not be loaded."));
+    script.onerror=()=>reject(new Error("Local QR tools could not be loaded. Rebuild the website and try again."));
+    document.head.appendChild(script);
+  });
+}
+
+async function renderOwnerInventory(box){
+  if(!isOwner()||!box)return;
+  stopOwnerQrScanner();
+  ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;
+  box.innerHTML=`<section class="owner-inventory-tools"><h3>QR product inventory</h3><p>Each product, color, and size has its own permanent QR code. Scanning shows the shared stock for that exact variant.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button><button type="button" onclick="printAllVariantQrs()">Print all QR codes</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div id="ownerInventoryQrGrid" class="owner-inventory-grid"></div></section>`;
+  try{
+    const data=await cloudRequest("/api/inventory/qr/ensure",{method:"POST",body:"{}",timeoutMs:30000});
+    if(ownerPanel!=="inventory"||!isOwner())return;
+    if(!Array.isArray(data.products))throw new Error("The shared inventory response was invalid.");
+    await loadQrVendorScript("qrcode-generator.js","qrcode");
+    if(ownerPanel!=="inventory"||!isOwner())return;
+    products=data.products.map(normalizeProductInventory);
+    cloudHydrating=true;
+    try{originalStorageSetItem.call(localStorage,PRODUCTS_KEY,JSON.stringify(products));}finally{cloudHydrating=false;}
+    renderProducts(products);
+    const variants=products.flatMap(product=>(product.variants||[]).map(variant=>({...inventoryVariantViewForClient(product,variant)})));
+    ownerInventoryVariants=variants;
+    const status=document.getElementById("ownerInventoryStatus");
+    if(status)status.textContent=`${variants.length} unique product variants loaded from the shared database.`;
+    const grid=document.getElementById("ownerInventoryQrGrid");
+    if(!grid)return;
+    if(!variants.length){grid.innerHTML="<p>No product variants are available yet. Add product colors and sizes first.</p>";return;}
+    grid.innerHTML=variants.map(variant=>`<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(variant.qrId)}"><div class="owner-qr-art" data-qr-image="${escapeHtml(variant.qrId)}" aria-label="QR code for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}"><small>Preparing QR…</small></div><strong>${escapeHtml(variant.productName)}</strong><small>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)} · ${variant.stock} in stock${variant.stock===0?' · OUT OF STOCK':''}</small><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(variant.qrId)}')">Download</button><button type="button" onclick="printVariantQr('${escapeHtml(variant.qrId)}')">Print</button></div></article>`).join("");
+    ownerQrRenderQueue=variants.map(variant=>({id:variant.qrId,payload:variant.qr}));
+    const pending=readPendingInventoryOperation();
+    if(pending){const banner=document.getElementById("ownerInventoryPending");if(banner)banner.innerHTML=`<p class="owner-inventory-status">A previous stock change still needs confirmation. Retry it with its original request ID to prevent a duplicate sale.</p><button type="button" onclick="retryPendingInventoryOperation()">Check / retry previous stock change</button>`;}
+    requestAnimationFrame(renderNextOwnerQrBatch);
+  }catch(error){
+    if(ownerPanel!=="inventory")return;
+    const status=document.getElementById("ownerInventoryStatus");
+    if(status)status.textContent=`Shared inventory could not be loaded: ${error.message||"Please retry."}`;
+  }
+}
+
+function inventoryVariantViewForClient(product,variant){
+  const colorIndex=(product.colors||[]).findIndex(color=>normalizeHexColor(color)===normalizeHexColor(variant.color));
+  return {qrId:String(variant.qrId||""),qr:`SHIVAN-VARIANT:1:${String(variant.qrId||"")}`,productId:product.id,productName:getProductName(product),color:variant.color,colorName:product.colorNames?.[colorIndex]||String(variant.color||""),size:String(variant.size||""),stock:Math.max(0,Math.floor(Number(variant.stock)||0))};
+}
+
+function renderNextOwnerQrBatch(){
+  if(ownerPanel!=="inventory"||!ownerQrRenderQueue.length)return;
+  let rendered=0;
+  while(ownerQrRenderQueue.length&&rendered<6){
+    const item=ownerQrRenderQueue.shift();
+    try{
+      const code=window.qrcode(0,"M");code.addData(item.payload);code.make();
+      const svg=code.createSvgTag(4,8,"Shivan Shop product variant QR code");
+      ownerQrSvgById.set(item.id,svg);
+      const art=document.querySelector(`[data-qr-image="${item.id}"]`);
+      if(art)art.innerHTML=svg;
+    }catch(error){
+      const art=document.querySelector(`[data-qr-image="${item.id}"]`);
+      if(art)art.textContent="QR generation failed";
+    }
+    rendered++;
+  }
+  if(ownerQrRenderQueue.length)requestAnimationFrame(renderNextOwnerQrBatch);
+}
+
+function downloadVariantQr(qrId){
+  if(!isOwner())return;
+  const svg=ownerQrSvgById.get(qrId);if(!svg){showToast("This QR code is still being prepared.");return;}
+  const variant=ownerInventoryVariants.find(item=>item.qrId===qrId);
+  const blob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const link=document.createElement("a");
+  link.href=url;link.download=`shivan-shop-${String(variant?.productId||"variant")}-${String(variant?.size||"size")}-${qrId.slice(0,8)}.svg`;link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function printVariantQr(qrId){
+  if(!isOwner())return;
+  const card=document.querySelector(`[data-qr-card="${qrId}"]`);
+  if(!card||!ownerQrSvgById.has(qrId)){showToast("This QR code is still being prepared.");return;}
+  document.querySelectorAll("[data-qr-print-target]").forEach(item=>item.dataset.qrPrintTarget="false");
+  card.dataset.qrPrintTarget="true";document.body.classList.add("owner-qr-print");
+  window.print();setTimeout(()=>{document.body.classList.remove("owner-qr-print");card.dataset.qrPrintTarget="false";},250);
+}
+
+function printAllVariantQrs(){
+  if(!isOwner())return;
+  if(ownerQrRenderQueue.length){showToast("Please wait while the QR codes finish preparing.");return;}
+  document.querySelectorAll("[data-qr-print-target]").forEach(item=>item.dataset.qrPrintTarget="true");
+  document.body.classList.add("owner-qr-print");window.print();
+  setTimeout(()=>{document.body.classList.remove("owner-qr-print");document.querySelectorAll("[data-qr-print-target]").forEach(item=>item.dataset.qrPrintTarget="false");},250);
+}
+
+function stopOwnerQrScanner(){
+  if(ownerInventoryScanTimer){clearTimeout(ownerInventoryScanTimer);ownerInventoryScanTimer=null;}
+  ownerInventoryScanBusy=false;
+  const video=document.getElementById("ownerInventoryVideo");
+  if(ownerInventoryStream){ownerInventoryStream.getTracks().forEach(track=>track.stop());ownerInventoryStream=null;}
+  if(video){video.pause?.();video.srcObject=null;video.hidden=true;}
+}
+
+async function startOwnerQrScanner(){
+  if(!isOwner())return;
+  if(!navigator.mediaDevices?.getUserMedia){showToast("Camera scanning needs a secure HTTPS page or localhost preview.");return;}
+  try{
+    await loadQrVendorScript("jsQR.js","jsQR");
+    const video=document.getElementById("ownerInventoryVideo");const canvas=document.getElementById("ownerInventoryCanvas");
+    if(!video||!canvas)throw new Error("The scanner view is not available.");
+    stopOwnerQrScanner();
+    ownerInventoryStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:640},height:{ideal:480}},audio:false});
+    video.srcObject=ownerInventoryStream;video.hidden=false;await video.play();
+    scanOwnerInventoryFrame();
+  }catch(error){stopOwnerQrScanner();showToast(error.name==="NotAllowedError"?"Camera permission was denied. Allow camera access and try again.":error.message||"The camera scanner could not start.");}
+}
+
+function scanOwnerInventoryFrame(){
+  const video=document.getElementById("ownerInventoryVideo");const canvas=document.getElementById("ownerInventoryCanvas");
+  if(!ownerInventoryStream||!video||!canvas||ownerPanel!=="inventory")return;
+  if(video.readyState>=2&&!ownerInventoryScanBusy){
+    ownerInventoryScanBusy=true;
+    const width=Math.min(640,video.videoWidth||640);const height=Math.max(1,Math.round(width*(video.videoHeight||480)/(video.videoWidth||640)));
+    canvas.width=width;canvas.height=height;
+    const context=canvas.getContext("2d",{willReadFrequently:true});context.drawImage(video,0,0,width,height);
+    const pixels=context.getImageData(0,0,width,height);
+    const result=window.jsQR(pixels.data,width,height,{inversionAttempts:"dontInvert"});
+    ownerInventoryScanBusy=false;
+    if(result?.data){stopOwnerQrScanner();lookupOwnerInventoryQr(result.data);return;}
+  }
+  ownerInventoryScanTimer=setTimeout(scanOwnerInventoryFrame,250);
+}
+
+async function lookupOwnerInventoryQr(value){
+  if(!isOwner())return;
+  const result=document.getElementById("ownerInventoryResult");
+  if(result)result.textContent="Looking up the exact variant in shared inventory…";
+  try{
+    const data=await cloudRequest(`/api/inventory/variant?qr=${encodeURIComponent(value)}`);
+    ownerInventoryScannedVariant=data.variant;
+    renderOwnerInventoryScanResult();
+  }catch(error){ownerInventoryScannedVariant=null;renderOwnerInventoryScanResult(error.message||"This QR code is not in the shared inventory.");}
+}
+
+function renderOwnerInventoryScanResult(errorMessage=""){
+  const result=document.getElementById("ownerInventoryResult");
+  const sale=document.getElementById("ownerInventorySale");const restock=document.getElementById("ownerInventoryRestock");
+  if(errorMessage){if(result)result.textContent=errorMessage;if(sale)sale.disabled=true;if(restock)restock.disabled=true;return;}
+  const variant=ownerInventoryScannedVariant;if(!variant){if(sale)sale.disabled=true;if(restock)restock.disabled=true;return;}
+  if(result)result.innerHTML=`<strong>${escapeHtml(variant.productName)}</strong><br>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)}<br><strong class="${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":"Stock: "+variant.stock}</strong>`;
+  if(sale)sale.disabled=variant.stock<=0;if(restock)restock.disabled=false;
+}
+
+function createInventoryOperationId(){
+  if(!globalThis.crypto?.getRandomValues)throw new Error("Secure random IDs are not available in this browser.");
+  const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+  const hex=[...bytes].map(value=>value.toString(16).padStart(2,"0")).join("");
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
+function readPendingInventoryOperation(){
+  try{const value=JSON.parse(localStorage.getItem(INVENTORY_PENDING_OPERATION_KEY)||"null");return value&&/^[0-9a-f-]{36}$/i.test(value.operationId||"")?value:null;}catch(error){return null;}
+}
+
+function clearPendingInventoryOperation(){try{localStorage.removeItem(INVENTORY_PENDING_OPERATION_KEY);}catch(error){}}
+
+function applyConfirmedInventoryOperation(data){
+  const variant=data.variant;if(!variant)return;
+  if(ownerInventoryScannedVariant?.qrId===variant.qrId)ownerInventoryScannedVariant=variant;
+  for(const product of products){
+    if(String(product.id)!==String(variant.productId))continue;
+    const match=product.variants?.find(item=>item.qrId===variant.qrId);
+    if(match){match.stock=variant.stock;refreshProductTotalStock(product);}
+  }
+  cloudHydrating=true;try{originalStorageSetItem.call(localStorage,PRODUCTS_KEY,JSON.stringify(products));}finally{cloudHydrating=false;}
+  renderProducts(products);renderOwnerInventoryScanResult();
+  const card=document.querySelector(`[data-qr-card="${variant.qrId}"]`);
+  const summary=card?.querySelector("small");if(summary)summary.textContent=`${variant.colorName} · ${variant.size} · ${variant.stock} in stock${variant.stock===0?" · OUT OF STOCK":""}`;
+  const status=document.getElementById("ownerInventoryActionStatus");if(status)status.textContent=`${data.action==="sale"?"Sale recorded":"Stock added"}. Shared quantity is now ${variant.stock}.`;
+  clearPendingInventoryOperation();
+}
+
+async function sendOwnerInventoryOperation(operation){
+  const status=document.getElementById("ownerInventoryActionStatus");
+  const sale=document.getElementById("ownerInventorySale");const restock=document.getElementById("ownerInventoryRestock");
+  if(sale)sale.disabled=true;if(restock)restock.disabled=true;
+  if(status)status.textContent="Saving the stock change to shared inventory…";
+  try{
+    const data=await cloudRequest("/api/inventory/adjust",{method:"POST",body:JSON.stringify(operation),timeoutMs:30000});
+    applyConfirmedInventoryOperation(data);
+  }catch(error){
+    if(error.status&&error.status<500){
+      try{
+        const statusData=await cloudRequest(`/api/inventory/operation?operationId=${encodeURIComponent(operation.operationId)}`);
+        if(statusData.found&&!statusData.pending){applyConfirmedInventoryOperation({action:statusData.operation.action,variant:statusData.operation.variant});return;}
+        if(!statusData.found)clearPendingInventoryOperation();
+      }catch(checkError){}
+    }
+    if(status)status.textContent=`Stock change was not confirmed: ${error.message||"check the shared inventory before retrying"}. Keep this panel open and retry the same action; its request ID prevents a duplicate sale.`;
+    const pending=readPendingInventoryOperation();if(pending){if(sale)sale.disabled=false;if(restock)restock.disabled=false;}
+  }
+}
+
+async function adjustInventoryStock(action){
+  if(!isOwner())return;
+  const pending=readPendingInventoryOperation();
+  if(pending){
+    if(pending.qrId===ownerInventoryScannedVariant?.qrId&&pending.action===action){await sendOwnerInventoryOperation(pending);return;}
+    const status=document.getElementById("ownerInventoryActionStatus");if(status)status.textContent="Confirm the previous stock change first; it is being protected from duplicate submission.";
+    return;
+  }
+  const variant=ownerInventoryScannedVariant;
+  const quantity=Number(document.getElementById("ownerInventoryQuantity")?.value);
+  if(!variant||!Number.isSafeInteger(quantity)||quantity<1||quantity>999999){showToast("Scan a variant and enter a whole quantity from 1 to 999,999.");return;}
+  if(action==="sale"&&quantity>variant.stock){showToast(variant.stock===0?"This variant is out of stock.":"The sale quantity is above current stock.");return;}
+  let operation;
+  try{operation={operationId:createInventoryOperationId(),qrId:variant.qrId,action,quantity};localStorage.setItem(INVENTORY_PENDING_OPERATION_KEY,JSON.stringify(operation));}
+  catch(error){showToast(error.message||"The stock change could not be prepared safely.");return;}
+  await sendOwnerInventoryOperation(operation);
+}
+
+async function retryPendingInventoryOperation(){
+  if(!isOwner())return;
+  const pending=readPendingInventoryOperation();if(!pending)return;
+  try{
+    const status=await cloudRequest(`/api/inventory/operation?operationId=${encodeURIComponent(pending.operationId)}`);
+    if(status.found&&!status.pending){applyConfirmedInventoryOperation({action:status.operation.action,variant:status.operation.variant});return;}
+    if(status.pending){showToast("That stock change is still being processed. Wait a moment and check again.");return;}
+    await sendOwnerInventoryOperation(pending);
+  }catch(error){showToast(error.message||"The previous stock change status could not be checked.");}
 }
 
 function scrollOwnerTo(target,focusId=""){
@@ -6600,6 +7641,7 @@ function scrollOwnerTo(target,focusId=""){
 function startNewOwnerProduct(){
   if(!isOwner())return;
   editingProductId=null;
+  ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
   ownerPanel="products";
   ownerProductMode="form";
@@ -6676,25 +7718,56 @@ function previewOwnerAppearance(){
   applyOwnerAppearance(true);
 }
 
-function saveOwnerAppearance(event){
+async function saveOwnerAppearance(event){
   event.preventDefault();
   if(!isOwner())return;
+  const form=event.currentTarget;
+  const submitButton=form?.querySelector('button[type="submit"]');
+  const requestId=createOwnerSaveRequestId();
   ownerAppearance={...ownerAppearance,...readOwnerAppearanceForm()};
   ownerAppearanceSaved=true;
   try{localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));}
   catch(e){showToast("ڕێکخستن لە ئامێرەکە پاشەکەفت نەبوو.");return;}
+  if(form)form.dataset.saving="true";
+  if(submitButton)submitButton.disabled=true;
   applyOwnerAppearance();
-  showToast("ڕەنگ و فۆنت و دەق پاشەکەفت بوون.");
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
+    showToast(cloudMode&&cloudAccount?.role==="owner"?"ڕەنگ و فۆنت و دەق پاشەکەفت و هاوبەش کران.":"ڕێکخستنەکان تەنها لەم ئامێرە پاشەکەفت کران.");
+  }catch(error){
+    ownerSaveDiagnostic("owner.appearance.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
+    showToast(`ڕێکخستن ل ئامێرێ تە ما؛ پاشەکەفت ل داتابەیسی هاوبەش پەسەند نەبوو. Reference: ${error?.requestId||requestId}`);
+  }finally{if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}}
 }
 
-function resetOwnerAppearance(){
+async function resetOwnerAppearance(){
   if(!isOwner())return;
+  const previousAppearance={...ownerAppearance};
+  const previousSaved=ownerAppearanceSaved;
+  const previousValue=localStorage.getItem(OWNER_APPEARANCE_KEY);
+  const requestId=createOwnerSaveRequestId();
   ownerAppearance={accent:"#7045ff",background:"#03050d",surface:"#0b0e18",text:"#ffffff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:""};
   ownerAppearanceSaved=false;
-  try{localStorage.removeItem(OWNER_APPEARANCE_KEY);}catch(e){}
+  try{
+    localStorage.removeItem(OWNER_APPEARANCE_KEY);
+    if(localStorage.getItem(OWNER_APPEARANCE_KEY)!==null)throw new Error("The device could not remove its saved appearance.");
+  }catch(error){
+    ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
+    renderAdvertisements();renderOwnerPanel("appearance");
+    showToast("ڕێکخستنی پێشوو نەگۆڕا؛ ئامێر نەیتوانی ڕێکخستنەکە پاشەکەفت بکات.");
+    return;
+  }
   renderAdvertisements();
   renderOwnerPanel("appearance");
-  showToast("دیزاین گەڕایەوە سەر بنەڕەت.");
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
+    showToast(cloudMode&&cloudAccount?.role==="owner"?"دیزاین گەڕایەوە سەر بنەڕەت و هاوبەش کرا.":"دیزاین لەم ئامێرە گەڕایەوە سەر بنەڕەت.");
+  }catch(error){
+    ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
+    try{if(previousValue===null)localStorage.removeItem(OWNER_APPEARANCE_KEY);else localStorage.setItem(OWNER_APPEARANCE_KEY,previousValue);}catch(restoreError){}
+    renderAdvertisements();renderOwnerPanel("appearance");
+    showToast(`گەڕاندنەوەی دیزاین ل داتابەیسی هاوبەش پەسەند نەبوو؛ گۆڕانکارییەکانی پێشوو پاراسترا. Reference: ${error?.requestId||requestId}`);
+  }
 }
 
 function renderOwnerProducts(box){
@@ -6742,6 +7815,7 @@ function renderOwnerProducts(box){
         <label for="ownerProductImageFile">چەند وێنەی بەرهەم هەڵبژێرە</label>
         <small>سەرەتا ڕەنگەکان هەڵبژێرە؛ لە پێشبینینی هەر وێنەدا ڕەنگی گونجاو دیاری بکە تا کاتی کلیک لەسەر ڕەنگ وێنەکەی پیشان بدرێت.</small>
         <input id="ownerProductImageFile" type="file" accept="image/*" multiple onchange="uploadOwnerProductImages(this)">
+        <p id="ownerImageStatus" class="owner-image-status" role="status" aria-live="polite"></p>
         <input id="ownerProductImagesData" type="hidden" value="${escapeHtml(photoJson)}">
         <div id="ownerProductPhotoList" class="owner-photo-list"></div>
       </div>
@@ -6854,101 +7928,144 @@ async function saveOwnerProduct(event){
   if(!isOwner()) return;
   const form=event.currentTarget;
   if(form?.dataset.saving==="true")return;
-  const names={
-    en:document.getElementById("ownerProductNameEn").value.trim(),
-    ar:document.getElementById("ownerProductNameAr").value.trim(),
-    ku:document.getElementById("ownerProductNameKu").value.trim()
-  };
-  const name=names.ku||names.en||names.ar;
-  const price=Number(document.getElementById("ownerProductPrice").value);
-  const images=readOwnerProductPhotos();
-  const image=images[0]?.src||"";
-  const category=document.getElementById("ownerProductCategory").value.trim();
-  const sizes=document.getElementById("ownerProductSizes").value.split(",").map(item=>item.trim()).filter(Boolean);
-  const colorEntries=parseOwnerColorEntries(document.getElementById("ownerProductColors").value);
-  const colorTokens=document.getElementById("ownerProductColors").value.split(",").map(item=>item.trim()).filter(Boolean);
-  const colors=colorEntries.map(item=>item.value);
-  const colorNames=colorEntries.map(item=>item.name);
-  const inventoryDraft=readOwnerInventoryDraft();
-  const description=document.getElementById("ownerProductDescription").value.trim();
-  const validSizes=sizes.length>0&&new Set(sizes).size===sizes.length&&sizes.every(size=>/^[A-Za-z0-9][A-Za-z0-9 .\/_-]{0,11}$/.test(size));
-  const combinationCount=colors.length*sizes.length;
-  const validCombinationCount=Number.isSafeInteger(combinationCount)&&combinationCount>0&&combinationCount<=MAX_OWNER_PRODUCT_VARIANTS;
-  if(!Number.isSafeInteger(combinationCount)||combinationCount>MAX_OWNER_PRODUCT_VARIANTS){
-    const limitMessage=document.getElementById("ownerInventoryLimitMessage");
-    if(limitMessage)limitMessage.textContent=`A product can have at most ${MAX_OWNER_PRODUCT_VARIANTS} color and size combinations. Reduce the colors or sizes to continue.`;
-    showToast(`A product can have at most ${MAX_OWNER_PRODUCT_VARIANTS} color and size combinations. Reduce the colors or sizes to continue.`);
-    return;
-  }
-  const variants=colors.flatMap(color=>sizes.map(size=>({color,size,stock:Number(inventoryDraft.get(JSON.stringify([color,size])))})));
-  const validInventory=variants.length===colors.length*sizes.length&&variants.every(item=>Number.isInteger(item.stock)&&item.stock>=0);
-  const validColors=colors.length>0&&new Set(colors).size===colors.length&&colorTokens.length===colors.length;
-  const validImages=images.length>0&&images.every(photo=>safeImageUrl(photo.src)&&(!photo.color||colors.includes(photo.color)));
-  if(!names.en||!names.ar||!names.ku||!Number.isFinite(price)||price<0||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
-    showToast("تکایە هەموو زانیارییێن دروست بنڤیسە.");
-    return;
-  }
-  const stock=variants.reduce((sum,item)=>sum+item.stock,0);
-  const record={id:editingProductId??createOwnerProductId(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
-  const index=products.findIndex(item=>item.id===record.id);
-  const previous=index<0?null:products[index];
-  if(index<0) products.unshift(record); else products[index]=record;
-  if(!saveProducts()){
-    if(index<0)products.shift();else products[index]=previous;
-    showToast("وێنەکان زۆر گەورەن بۆ پاشەکەفتی براوزەر؛ وێنەی بچووکتر هەڵبژێرە.");
-    return;
-  }
-  if(form)form.dataset.saving="true";
   const submitButton=form?.querySelector('button[type="submit"]');
-  if(submitButton)submitButton.disabled=true;
-  const cloudSyncRequired=Boolean(cloudMode&&cloudAccount?.role==="owner");
-  let cloudSaved=!cloudSyncRequired;
-  try{if(cloudSyncRequired)cloudSaved=await confirmCloudShopWrite(PRODUCTS_KEY);}catch(error){
-    if(!cloudWriteFailureNoticeShown){showToast(error.message||"The shared database has not confirmed this product yet.");cloudWriteFailureNoticeShown=true;}
+  const requestId=ownerProductWorkflowId||createOwnerSaveRequestId();
+  ownerProductWorkflowId=requestId;
+  let record=null;
+  ownerSaveDiagnostic("product.submit",{requestId,stage:"handler_entered"});
+  try{
+    const names={
+      en:document.getElementById("ownerProductNameEn").value.trim(),
+      ar:document.getElementById("ownerProductNameAr").value.trim(),
+      ku:document.getElementById("ownerProductNameKu").value.trim()
+    };
+    const name=names.ku||names.en||names.ar;
+    const price=Number(document.getElementById("ownerProductPrice").value);
+    const images=readOwnerProductPhotos();
+    const image=images[0]?.src||"";
+    const category=document.getElementById("ownerProductCategory").value.trim();
+    const sizes=document.getElementById("ownerProductSizes").value.split(",").map(item=>item.trim()).filter(Boolean);
+    const colorEntries=parseOwnerColorEntries(document.getElementById("ownerProductColors").value);
+    const colorTokens=document.getElementById("ownerProductColors").value.split(",").map(item=>item.trim()).filter(Boolean);
+    const colors=colorEntries.map(item=>item.value);
+    const colorNames=colorEntries.map(item=>item.name);
+    const inventoryDraft=readOwnerInventoryDraft();
+    const description=document.getElementById("ownerProductDescription").value.trim();
+    const validSizes=sizes.length>0&&new Set(sizes).size===sizes.length&&sizes.every(size=>/^[A-Za-z0-9][A-Za-z0-9 .\/_-]{0,11}$/.test(size));
+    const combinationCount=colors.length*sizes.length;
+    const validCombinationCount=Number.isSafeInteger(combinationCount)&&combinationCount>0&&combinationCount<=MAX_OWNER_PRODUCT_VARIANTS;
+    if(!Number.isSafeInteger(combinationCount)||combinationCount>MAX_OWNER_PRODUCT_VARIANTS){
+      const limitMessage=document.getElementById("ownerInventoryLimitMessage");
+      if(limitMessage)limitMessage.textContent=`A product can have at most ${MAX_OWNER_PRODUCT_VARIANTS} color and size combinations. Reduce the colors or sizes to continue.`;
+      ownerSaveDiagnostic("product.validation_failed",{requestId,stage:"owner_form",code:"VARIANT_LIMIT_EXCEEDED",combinationCount});
+      showToast(`A product can have at most ${MAX_OWNER_PRODUCT_VARIANTS} color and size combinations. Reduce the colors or sizes to continue.`);
+      return;
+    }
+    const variants=colors.flatMap(color=>sizes.map(size=>({color,size,stock:Number(inventoryDraft.get(JSON.stringify([color,size])))})));
+    const validInventory=variants.length===colors.length*sizes.length&&variants.every(item=>Number.isInteger(item.stock)&&item.stock>=0);
+    const validColors=colors.length>0&&new Set(colors).size===colors.length&&colorTokens.length===colors.length;
+    const validImages=images.length>0&&images.every(photo=>safeImageUrl(photo.src)&&(!photo.color||colors.includes(photo.color)));
+    if(!names.en||!names.ar||!names.ku||!Number.isFinite(price)||price<0||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
+      ownerSaveDiagnostic("product.validation_failed",{requestId,stage:"owner_form",code:"INVALID_PRODUCT_FIELDS"});
+      showToast("تکایە هەموو زانیارییێن دروست بنڤیسە.");
+      return;
+    }
+    const stock=variants.reduce((sum,item)=>sum+item.stock,0);
+    record={id:editingProductId??createOwnerProductId(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
+    const index=products.findIndex(item=>item.id===record.id);
+    const previous=index<0?null:products[index];
+    if(index<0) products.unshift(record); else products[index]=record;
+    if(!saveProducts()){
+      if(index<0)products.shift();else products[index]=previous;
+      ownerSaveDiagnostic("product.local_save_failed",{requestId,stage:"local_storage",code:"LOCAL_STORAGE_WRITE_FAILED"});
+      showToast("وێنەکان زۆر گەورەن بۆ پاشەکەفتی براوزەر؛ وێنەی بچووکتر هەڵبژێرە.");
+      return;
+    }
+    if(form)form.dataset.saving="true";
+    if(submitButton)submitButton.disabled=true;
+    const cloudSyncRequired=Boolean(cloudMode&&cloudAccount?.role==="owner");
+    let cloudSaved=false;
+    ownerSaveDiagnostic("product.local_save_confirmed",{requestId,stage:"local_storage",productCount:products.length,imageCount:images.length});
+    if(cloudSyncRequired){
+      try{cloudSaved=await confirmCloudShopWrite(PRODUCTS_KEY,requestId);}
+      catch(error){
+        ownerSaveDiagnostic("product.shared_save_failed",{requestId:error?.requestId||requestId,stage:"product.sync",status:Number(error?.status)||0,code:ownerSaveDiagnosticCode(error)});
+        if(!cloudWriteFailureNoticeShown){showToast(`${error.message||"The shared database has not confirmed this product yet."} (${error.requestId||requestId})`);cloudWriteFailureNoticeShown=true;}
+      }
+    }
+    if(cloudSyncRequired&&!cloudSaved){
+      // Keep the form open and reuse this ID on retry. The local copy and outbox
+      // remain available for automatic retry, but the UI must not imply success.
+      editingProductId=record.id;
+      ownerProductMode="form";
+      ownerSaveDiagnostic("product.retry_ready",{requestId,stage:"user_action_required",code:"SHARED_SAVE_UNCONFIRMED"});
+      showToast(`The shared database did not confirm this product. Your draft is still on this device; keep this form open and press Save again. Reference: ${requestId}`);
+      return;
+    }
+    editingProductId=null;
+    ownerProductWorkflowId="";
+    ownerProductMode="list";
+    ownerInventoryDraft.clear();
+    renderCategoryButtons();
+    renderProducts(products);
+    renderOwnerPanel("products");
+    scrollOwnerTo("ownerProductList");
+    ownerSaveDiagnostic("product.save.complete",{requestId,stage:cloudSaved?"shared_database":"local_only",productCount:products.length,imageCount:images.length});
+    showToast(cloudSaved?"Product saved and synced to the shared shop.":"Product saved on this device only; the shared cloud account is not active.");
+  }catch(error){
+    ownerSaveDiagnostic("product.client_error",{requestId:error?.requestId||requestId,stage:"owner_form",status:Number(error?.status)||0,code:ownerSaveDiagnosticCode(error)});
+    if(record){editingProductId=record.id;ownerProductMode="form";}
+    showToast(`Could not finish saving this product. Your draft remains on this device. Reference: ${error?.requestId||requestId}`);
+  }finally{
+    if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}
   }
-  if(cloudSyncRequired&&!cloudSaved){
-    // Keep the form open and reuse this ID on retry. The local copy and outbox
-    // remain available for automatic retry, but the UI must not imply success.
-    editingProductId=record.id;
-    ownerProductMode="form";
-    if(form)form.dataset.saving="false";
-    if(submitButton)submitButton.disabled=false;
-    showToast("The shared database has not confirmed this product. It remains on this device; keep this form open and press Save again to retry.");
-    return;
-  }
-  editingProductId=null;
-  ownerProductMode="list";
-  ownerInventoryDraft.clear();
-  renderCategoryButtons();
-  renderProducts(products);
-  renderOwnerPanel("products");
-  scrollOwnerTo("ownerProductList");
-  showToast(cloudSaved?"Product saved and synced to the shared shop.":"Product is saved on this device, but the shared database has not confirmed it yet. Sync will retry automatically.");
 }
 
 function editOwnerProduct(id){
   if(!isOwner()) return;
   editingProductId=id;
+  ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
   ownerProductMode="form";
   renderOwnerPanel("products");
   scrollOwnerTo("ownerProductForm");
 }
 
-function cancelProductEdit(){editingProductId=null;ownerInventoryDraft.clear();ownerProductMode="list";renderOwnerPanel("products");scrollOwnerTo("ownerProductList")}
+function cancelProductEdit(){editingProductId=null;ownerProductWorkflowId="";ownerInventoryDraft.clear();ownerProductMode="list";renderOwnerPanel("products");scrollOwnerTo("ownerProductList")}
 
-function deleteOwnerProduct(id){
+async function deleteOwnerProduct(id){
   if(!isOwner()) return;
-  if(editingProductId===id) editingProductId=null;
+  const previousProducts=products;
+  const previousEditingId=editingProductId;
+  const requestId=createOwnerSaveRequestId();
+  if(!await showOwnerConfirm("دەتەوێت ئەم بەرهەمە بسڕیتەوە؟"))return;
   products=products.filter(item=>item.id!==id);
+  if(!saveProducts()){
+    products=previousProducts;
+    showToast("بەرهەم ل ئامێرێ تە نەهاتە پاشەکەفتکرن.");
+    return;
+  }
+  if(editingProductId===id) editingProductId=null;
   ownerProductMode="list";
-  saveProducts();
   renderProducts(products);
   renderOwnerPanel("products");
-  showToast("بەرهەم ژ کۆگایێ هاتە سڕینەوە.");
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(PRODUCTS_KEY,requestId);
+    ownerProductWorkflowId="";
+    showToast("بەرهەم ل فرۆشگا و داتابەیسی هاوبەش هاتە سڕینەوە.");
+  }catch(error){
+    products=previousProducts;
+    editingProductId=previousEditingId;
+    ownerProductMode="list";
+    saveProducts();
+    renderProducts(products);
+    renderOwnerPanel("products");
+    showToast(`سڕینەوە ل داتابەیسی هاوبەش پەسەند نەبوو؛ بەرهەم پاراسترا. Reference: ${error?.requestId||requestId}`);
+  }
 }
 
 function renderOwnerAds(box){
+  ownerAdWorkflowId=ownerAdWorkflowId||createOwnerSaveRequestId();
   const ad=Number.isInteger(editingAdIndex)?advertisements[editingAdIndex]:null;
   box.innerHTML=`
     <form class="owner-form" onsubmit="saveOwnerAd(event)">
@@ -6970,14 +8087,20 @@ function renderOwnerAds(box){
   `;
 }
 
-function saveOwnerAd(event){
+async function saveOwnerAd(event){
   event.preventDefault();
   if(!isOwner()) return;
+  const form=event.currentTarget;
+  if(form?.dataset.saving==="true")return;
+  const submitButton=form?.querySelector('button[type="submit"]');
+  const requestId=ownerAdWorkflowId||createOwnerSaveRequestId();
+  ownerAdWorkflowId=requestId;
   const image=safeImageUrl(document.getElementById("ownerAdImageData").value);
   const title=document.getElementById("ownerAdTitle").value.trim();
   if(!image||!title){showToast("وێنە و سەردێر پێدڤینە.");return;}
   const ad={image,title,eyebrow:document.getElementById("ownerAdEyebrow").value.trim()||"SHIVAN SHOP",description:document.getElementById("ownerAdDescription").value.trim()};
   const previous=[...advertisements];
+  const index=Number.isInteger(editingAdIndex)?editingAdIndex:advertisements.length;
   if(Number.isInteger(editingAdIndex)) advertisements[editingAdIndex]=ad; else advertisements.push(ad);
   authSlide=0;
   heroSlide=0;
@@ -6987,19 +8110,51 @@ function saveOwnerAd(event){
     renderOwnerPanel("ads");
     return;
   }
+  if(form)form.dataset.saving="true";
+  if(submitButton)submitButton.disabled=true;
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(ADS_KEY,requestId);
+  }catch(error){
+    editingAdIndex=index;
+    ownerSaveDiagnostic("owner.banner.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
+    renderOwnerPanel("ads");
+    showToast(`ڕیکلام ل ئامێرێ تە ما؛ داتابەیسی هاوبەش پەسەندی نەکرد. Reference: ${error?.requestId||requestId}`);
+    return;
+  }finally{if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}}
   editingAdIndex=null;
+  ownerAdWorkflowId="";
   renderOwnerPanel("ads");
-  showToast("ڕیکلام پاشەکەفت بوو.");
+  showToast("ڕیکلام پاشەکەفت و هاوبەش کرا.");
 }
 
-function editOwnerAd(index){if(!isOwner())return;editingAdIndex=index;renderOwnerPanel("ads")}
-function cancelAdEdit(){editingAdIndex=null;renderOwnerPanel("ads")}
-function deleteOwnerAd(index){
+function editOwnerAd(index){if(!isOwner())return;editingAdIndex=index;ownerAdWorkflowId=createOwnerSaveRequestId();renderOwnerPanel("ads")}
+function cancelAdEdit(){editingAdIndex=null;ownerAdWorkflowId="";renderOwnerPanel("ads")}
+async function deleteOwnerAd(index){
   if(!isOwner())return;
   if(advertisements.length<=1){showToast("پێدڤیە لانیکەم یەک ڕیکلام بمینیت.");return;}
+  if(!await showOwnerConfirm("دەتەوێت ئەم ڕیکلامە بسڕیتەوە؟"))return;
+  const previous=[...advertisements];
   if(editingAdIndex===index) editingAdIndex=null;
   else if(Number.isInteger(editingAdIndex)&&editingAdIndex>index) editingAdIndex--;
-  advertisements.splice(index,1);authSlide=0;heroSlide=0;saveAdvertisements();renderOwnerPanel("ads");
+  advertisements.splice(index,1);authSlide=0;heroSlide=0;
+  if(!saveAdvertisements()){
+    advertisements=previous;
+    renderOwnerPanel("ads");
+    showToast("ڕیکلام ل ئامێرێ تە نەهاتە پاشەکەفتکرن؛ داتا گۆڕی نەبوو.");
+    return;
+  }
+  renderOwnerPanel("ads");
+  const requestId=createOwnerSaveRequestId();
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(ADS_KEY,requestId);
+    ownerAdWorkflowId="";
+    showToast("ڕیکلام سڕایەوە و هاوبەش کرا.");
+  }catch(error){
+    advertisements=previous;
+    saveAdvertisements();
+    renderOwnerPanel("ads");
+    showToast(`سڕینەوە ل داتابەیسی هاوبەش پەسەند نەبوو؛ ڕیکلام پاراسترا. Reference: ${error?.requestId||requestId}`);
+  }
 }
 
 function renderOwnerOrders(box){
@@ -7283,7 +8438,12 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   updateCartBadge();
 
-  initializeCloud().then(()=>{if(!cloudMode)restoreSession();});
+  initializeCloud().then(async()=>{
+    if(!cloudMode)await restoreSession();
+    showShopOnboardingIfNeeded();
+    const splash=document.getElementById("shopStartupSplash");
+    if(splash)splash.hidden=true;
+  });
 
 });
 

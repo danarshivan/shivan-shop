@@ -57,18 +57,21 @@ function install(context, name) {
 const cropMarkup = html.slice(html.indexOf('<div id="imageCropModal"'), html.indexOf('<div id="ownerConfirmModal"'));
 assert.match(cropMarkup, /data-crop-action="cancel"/);
 assert.match(cropMarkup, /data-crop-action="apply"/);
+assert.match(cropMarkup, /aria-label=/);
 assert.doesNotMatch(cropMarkup, /onclick\s*=\s*["']finishImageCrop/);
 assert.match(html, /touch-action:manipulation/);
-assert.match(html, /@media\(pointer:coarse\).*min-height:48px/);
+assert.match(html, /\.crop-actions button\{min-height:48px\}/);
 
 const actionCalls = [];
-const cancelButton = { dataset: { cropAction: "cancel" } };
-const applyButton = { dataset: { cropAction: "apply" } };
+const cancelButton = { dataset: { cropAction: "cancel" }, disabled: false };
+const applyButton = { dataset: { cropAction: "apply" }, disabled: false };
+const disabledButton = { dataset: { cropAction: "apply" }, disabled: true };
+const outsideButton = { dataset: { cropAction: "apply" }, disabled: false };
 const modalListeners = {};
 const modal = {
   dataset: {},
   addEventListener: (type, callback) => { modalListeners[type] = callback; },
-  contains: () => true
+  contains: button => button !== outsideButton
 };
 const actionContext = vm.createContext({
   document: { getElementById: () => modal },
@@ -82,6 +85,11 @@ for (const button of [cancelButton, applyButton]) {
   let prevented = false;
   modalListeners.click({ target: { closest: () => button }, preventDefault: () => { prevented = true; } });
   assert.equal(prevented, true);
+}
+for (const button of [disabledButton, outsideButton]) {
+  let prevented = false;
+  modalListeners.click({ target: { closest: () => button }, preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, false, "disabled or out-of-modal crop actions are ignored");
 }
 assert.deepEqual(actionCalls, [false, true], "delegated Cancel and Crop buttons dispatch the right actions");
 
@@ -103,6 +111,9 @@ function makeHarness(canvasFactory) {
     imageCropModal: modalElement,
     cropImage,
     cropViewport: viewport,
+    cropZoom: { disabled: false },
+    cropImageColor: { disabled: false },
+    cropStatus: { textContent: "" },
     hidden: { value: "" },
     preview: { src: "", classList: { add(value) { this[value] = true; } } }
   };
@@ -112,8 +123,11 @@ function makeHarness(canvasFactory) {
     MAX_CLOUD_IMAGE_BYTES: 1300000,
     pendingImageCrop: null,
     ownerProductImageQueue: null,
+    ownerSaveDiagnostic: () => {},
+    ownerSaveDiagnosticCode: () => "TEST_ERROR",
     showToast: message => toasts.push(String(message)),
-    uploadOwnerImageToCloud: async () => { throw new Error("Unexpected upload"); },
+    releasePreparedCropSource: () => {},
+    setOwnerImageStatus: () => {},
     document: {
       getElementById: id => elements[id],
       querySelectorAll: () => buttonSet,
@@ -133,7 +147,7 @@ const cancelledInput = { disabled: true, value: "photo.jpg" };
 const cancelledSubmit = { disabled: true };
 const queue = { input: cancelledInput, submit: cancelledSubmit };
 const controller = new AbortController();
-const queuedCrop = { uploading: true, queue: true, input: cancelledInput, submit: cancelledSubmit, processingController: controller };
+const queuedCrop = { uploading: true, queue: true, input: cancelledInput, submit: cancelledSubmit, abortController: controller };
 abortHarness.context.pendingImageCrop = queuedCrop;
 abortHarness.context.ownerProductImageQueue = queue;
 await abortHarness.context.finishImageCrop(false);
@@ -145,6 +159,7 @@ assert.equal(cancelledInput.value, "");
 assert.equal(cancelledSubmit.disabled, false);
 assert.equal(uploadCalls, 0, "Cancel never uploads or saves the crop");
 assert.ok(abortHarness.toasts.some(message => message.includes("هەڵوەشایەوە")));
+assert.ok(abortHarness.buttonSet.every(button => button.disabled === false), "Cancel restores crop controls");
 
 const successHarness = makeHarness(() => ({
   getContext: () => ({ drawImage() {} }),
@@ -187,10 +202,10 @@ assert.equal(timeoutHarness.context.pendingImageCrop, failedCrop, "failure leave
 assert.ok(timeoutHarness.toasts.some(message => message.includes("took too long")), "failure has a clear timeout message");
 assert.equal(timeoutHarness.buttonSet[0].disabled, false, "Cancel stays available during and after failure");
 assert.equal(timeoutHarness.buttonSet[1].disabled, false, "Crop can be retried after failure");
-assert.equal(failedSubmit.disabled, true, "the product form remains protected until the crop is completed or cancelled");
+assert.equal(failedSubmit.disabled, false, "a failed crop releases the form submit lock while the modal stays available for retry or cancel");
 await timeoutHarness.context.finishImageCrop(false);
 assert.equal(timeoutHarness.context.pendingImageCrop, null, "Cancel closes after a processing error");
 assert.equal(failedInput.disabled, false);
 assert.equal(failedSubmit.disabled, false, "Cancel releases the product form after a failed crop");
 
-console.log("Crop modal regression tests passed: iPhone touch delegation, cancel/abort, successful crop upload, timeout error, retry/cancel recovery.");
+console.log("Crop modal regression tests passed: touch delegation, modal containment, cancel/abort, successful crop upload, timeout error, retry/cancel recovery.");
