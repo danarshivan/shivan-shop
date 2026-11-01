@@ -2511,30 +2511,15 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
   button:not(:disabled):active,a[href]:active,[role="button"]:not([aria-disabled="true"]):active,.category:active,.shop-promo-onboarding-skip:active,.shop-promo-onboarding-choice:active{transform:none!important;filter:none!important}
   .view.active,#mainApp .view.active #productsGrid>.product,#mainApp .view.active #searchGrid>.product,#mainApp .view.active .detail-recommendation-grid>.product,#mainApp .view.active #categoryButtons>.category,#mainApp .view.active #cartList>*,#mainApp .view.active #ordersList>*,#mainApp .view.active #ownerPanelContent>*,#mainApp .view.active .profile-guest-access,#mainApp .view.active .profile-card,#authPage .auth-card,#authPage.is-signup .auth-card,.hero-copy,.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-welcome,.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choice,#detailView.active .detail-gallery,#detailView.active .detail-title,#detailView.active .detail-price,#detailView.active .detail-options .detail-box,#detailView.active .detail-gallery-dots,#detailView.active .detail-content-section,#detailView.active .detail-actions-row>*,#detailView.product-detail-closing{animation:none!important}
   .product:hover,.product:hover .product-img,button:not(:disabled):hover,a[href]:hover{transform:none;filter:none;box-shadow:none}
-  ::view-transition-group(shivan-product-image),::view-transition-old(shivan-product-image),::view-transition-new(shivan-product-image){animation-duration:.01ms!important}
 }
 
-/* Product detail motion: shared image transitions where supported, staggered content everywhere. */
-@supports(view-transition-name:shivan-product-image){
-  ::view-transition-group(shivan-product-image){animation-duration:460ms;animation-timing-function:var(--shop-motion-ease)}
-  ::view-transition-image-pair(shivan-product-image){isolation:isolate}
-  ::view-transition-old(shivan-product-image),::view-transition-new(shivan-product-image){width:100%;height:100%;object-fit:cover}
-}
+/* Product details use one quick, restrained entrance/exit instead of a shared-image effect. */
 #mainApp.detail-mode #detailView.active{animation:none}
-#detailView.active #detailName{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 35ms backwards}
-#detailView.active #detailPrice{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 75ms backwards}
-#detailView.active .detail-options .detail-box:first-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 90ms backwards}
-#detailView.active .detail-options .detail-box:last-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 130ms backwards}
-#detailView.active .detail-gallery-dots{animation:shopMotionDetailIn 280ms var(--shop-motion-ease) 110ms backwards}
-#detailView.active .detail-content-section:first-of-type{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 145ms backwards}
-#detailView.active .detail-content-section:nth-of-type(2){animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 185ms backwards}
-#detailView.active .detail-actions-row>*:first-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 210ms backwards}
-#detailView.active .detail-actions-row>*:last-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 245ms backwards}
-@supports not (view-transition-name:shivan-product-image){#detailView.active .detail-gallery{animation:shopMotionDetailImageIn 420ms var(--shop-motion-ease)}}
-#detailView.product-detail-closing{animation:shopMotionDetailOut 180ms ease-in both;pointer-events:none}
-@keyframes shopMotionDetailIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
-@keyframes shopMotionDetailImageIn{from{opacity:.72;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
-@keyframes shopMotionDetailOut{to{opacity:0;transform:translate3d(0,7px,0) scale(.996)}}
+#mainApp.detail-mode #detailView.active.product-detail-entering{animation:shopMotionProductOpen 190ms var(--shop-motion-ease)}
+#mainApp.detail-mode #detailView.active.product-detail-closing{animation:shopMotionProductClose 170ms ease-in;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#mainApp.detail-mode #detailView.active.product-detail-entering,#mainApp.detail-mode #detailView.active.product-detail-closing{animation:none!important;pointer-events:auto}}
+@keyframes shopMotionProductOpen{from{opacity:0;transform:translate3d(0,5px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionProductClose{to{opacity:0;transform:translate3d(0,3px,0)}}
 </style>
 </head>
 
@@ -4368,8 +4353,8 @@ let detailPhotoAnimationFrames=new WeakMap();
 let detailRecommendationPool=[];
 let detailRecommendationCursor=0;
 let detailRecommendationObserver=null;
-let detailOriginImage=null;
-let productTransitionCleanup=null;
+let productDetailCloseTimer=0;
+let productDetailCloseHandler=null;
 let currentCategory = "هەموو";
 let previousView = "home";
 let editingProductId = null;
@@ -6331,7 +6316,7 @@ function renderProducts(list, target="productsGrid", append=false){
 
   const cards=list.map(p=>`
 
-    <div class="product" onclick="openProduct(${p.id},event)">
+    <div class="product" onclick="openProduct(${p.id})">
 
       <button
         class="heart ${isFavorite(p.id)?"liked":""}"
@@ -6387,94 +6372,46 @@ function renderProducts(list, target="productsGrid", append=false){
 }
 
 
-function productViewTransitionEnabled(){
-  return typeof document.startViewTransition==="function"&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+function prefersReducedProductMotion(){
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
 }
 
-function runProductViewTransition(update,fromElement=null,toElement=null){
-  if(!productViewTransitionEnabled()){
-    update();
-    return false;
-  }
-  productTransitionCleanup?.();
-  productTransitionCleanup=null;
-  const transitionName="shivan-product-image";
-  const originalFromName=fromElement?.style?.viewTransitionName||"";
-  let destination=null;
-  let originalDestinationName="";
-  let cleaned=false;
-  const cleanup=()=>{
-    if(cleaned)return;
-    cleaned=true;
-    if(fromElement?.style)fromElement.style.viewTransitionName=originalFromName;
-    if(destination?.style)destination.style.viewTransitionName=originalDestinationName;
-    if(productTransitionCleanup===cleanup)productTransitionCleanup=null;
-  };
-  productTransitionCleanup=cleanup;
-  if(fromElement?.style)fromElement.style.viewTransitionName=transitionName;
-  let updateStarted=false;
-  let transition;
-  try{
-    transition=document.startViewTransition(()=>{
-      updateStarted=true;
-      if(fromElement?.style)fromElement.style.viewTransitionName="none";
-      update();
-      destination=typeof toElement==="function"?toElement():toElement;
-      originalDestinationName=destination?.style?.viewTransitionName||"";
-      if(destination?.style)destination.style.viewTransitionName=transitionName;
-    });
-  }catch(error){
-    cleanup();
-    if(!updateStarted)update();
-    return false;
-  }
-  transition?.updateCallbackDone?.catch?.(error=>{
-    cleanup();
-    console.warn("Product view transition update failed.",error);
-  });
-  Promise.resolve(transition?.finished).then(cleanup,cleanup);
-  return true;
+function clearProductDetailMotion(detailView=document.getElementById("detailView")){
+  if(productDetailCloseTimer)clearTimeout(productDetailCloseTimer);
+  if(productDetailCloseHandler&&detailView)detailView.removeEventListener("animationend",productDetailCloseHandler);
+  productDetailCloseTimer=0;
+  productDetailCloseHandler=null;
+  detailView?.classList.remove("product-detail-entering","product-detail-closing");
 }
 
-function openProduct(id,event=null){
+function openProduct(id){
   const p=products.find(x=>x.id===id);
   if(!p)return;
 
-  const card=event?.currentTarget?.closest?.(".product")||event?.target?.closest?.(".product");
-  const originImage=card?.querySelector?.(".product-img")||null;
-  detailOriginImage=originImage?.isConnected?originImage:null;
-  const sharedSource=originImage?.complete&&originImage.naturalWidth>0?originImage:null;
-  const openDetails=()=>{
-    currentProduct=p;
-    currentQty=1;
-    const detailView=document.getElementById("detailView");
-    detailView.classList.remove("product-detail-closing");
-    detailView.classList.toggle("many-colors",p.colors.length>=7);
+  const detailView=document.getElementById("detailView");
+  clearProductDetailMotion(detailView);
+  currentProduct=p;
+  currentQty=1;
+  detailView.classList.toggle("many-colors",p.colors.length>=7);
 
-    const firstAvailable=p.variants.find(variant=>variant.stock>0);
-    selectedSize=firstAvailable?.size||p.sizes[0]||"";
-    selectedColor=firstAvailable?.color||p.colors[0]||"";
-    previousView=["home","search"].find(view=>document.getElementById(`${view}View`).classList.contains("active"))||"home";
+  const firstAvailable=p.variants.find(variant=>variant.stock>0);
+  selectedSize=firstAvailable?.size||p.sizes[0]||"";
+  selectedColor=firstAvailable?.color||p.colors[0]||"";
+  previousView=["home","search"].find(view=>document.getElementById(`${view}View`).classList.contains("active"))||"home";
 
-    document.getElementById("detailName").textContent=getProductName(p);
-    document.getElementById("detailPrice").textContent=formatPrice(p.price);
-    document.getElementById("detailDescription").textContent=p.description;
-    renderDetailGallery(true,selectedColor);
-    renderSizeOptions();
-    renderColorOptions();
-    updateDetailAvailability();
+  document.getElementById("detailName").textContent=getProductName(p);
+  document.getElementById("detailPrice").textContent=formatPrice(p.price);
+  document.getElementById("detailDescription").textContent=p.description;
+  renderDetailGallery(true,selectedColor);
+  renderSizeOptions();
+  renderColorOptions();
+  updateDetailAvailability();
 
-    openView("detail");
-    renderDetailReviews();
-    resetDetailRecommendations();
-    window.scrollTo({top:0,behavior:"smooth"});
-  };
-
-  runProductViewTransition(openDetails,sharedSource,()=>{
-    const destination=document.getElementById("detailImage");
-    if(!sharedSource||!destination?.complete||destination.naturalWidth<=0)return null;
-    return destination;
-  });
+  openView("detail");
+  if(!prefersReducedProductMotion())detailView.classList.add("product-detail-entering");
+  renderDetailReviews();
+  resetDetailRecommendations();
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function detailPhotosForProduct(){
@@ -6994,37 +6931,27 @@ function toggleFavorite(id){
 function closeProductDetails(){
   const destinationView=previousView;
   const detailView=document.getElementById("detailView");
-  const detailImage=document.getElementById("detailImage");
-  const originImage=detailOriginImage;
-  const canShareImage=Boolean(originImage?.isConnected&&originImage.complete&&originImage.naturalWidth>0&&detailImage?.complete&&detailImage.naturalWidth>0&&originImage.currentSrc===detailImage.currentSrc);
-  detailOriginImage=null;
-
   if(!detailView?.classList.contains("active")){
     openView(destinationView);
     return;
   }
 
-  if(productViewTransitionEnabled()){
-    runProductViewTransition(()=>openView(destinationView),canShareImage?detailImage:null,canShareImage?originImage:null);
-    return;
-  }
-
-  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
-  if(reducedMotion||detailView.classList.contains("product-detail-closing")){
+  if(detailView.classList.contains("product-detail-closing"))return;
+  clearProductDetailMotion(detailView);
+  if(prefersReducedProductMotion()){
     openView(destinationView);
     return;
   }
 
   const finishClose=event=>{
-    if(event&&(event.target!==detailView||event.animationName!=="shopMotionDetailOut"))return;
-    detailView.removeEventListener("animationend",finishClose);
-    clearTimeout(closeFallbackTimer);
-    detailView.classList.remove("product-detail-closing");
+    if(event&&(event.target!==detailView||event.animationName!=="shopMotionProductClose"))return;
+    clearProductDetailMotion(detailView);
     openView(destinationView);
   };
-  const closeFallbackTimer=setTimeout(()=>finishClose(),240);
+  productDetailCloseHandler=finishClose;
   detailView.addEventListener("animationend",finishClose);
   detailView.classList.add("product-detail-closing");
+  productDetailCloseTimer=setTimeout(()=>finishClose(),230);
 }
 
 function goBack(){
