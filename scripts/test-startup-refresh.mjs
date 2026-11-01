@@ -16,8 +16,13 @@ const finishSplash = sourceOf(/function finishShopStartupSplash\(\)\{[\s\S]*?\n\
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
 
 assert.match(html, /SHOP_BRANDED_SPLASH_MS=2200/, "the branded logo should cover the first 2.2 seconds");
+assert.match(html, /window\.__SHIVAN_STARTUP_STARTED_AT=performance\.now\(\)/, "startup timing should begin in the document head, before cloud requests");
 assert.match(html, /shop-startup-logo/, "the startup screen should render the Shivan Shop mark");
+assert.ok(html.indexOf('<body>') < html.indexOf('id="shopStartupSplash"') && html.indexOf('id="shopStartupSplash"') < html.indexOf('class="language-switcher"'), "the splash should paint before the rest of the page markup");
+assert.match(html, /@keyframes shopStartupLogoGlow[\s\S]*?@keyframes shopStartupLightSweep/, "the splash should include logo glow and a soft light sweep");
+assert.match(html, /@keyframes shopStartupShopIn/, "the shop should use a fade-and-slide entrance");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
+assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded/, "the branded splash should lead directly to Shop / Models");
 assert.ok(startup.indexOf('cloudRequest("/api/bootstrap"') < startup.indexOf('cloudRequest("/api/auth/me"'), "both startup requests should begin together");
 assert.ok(startup.indexOf('cloudRequest("/api/auth/me"') < startup.indexOf("await authPromise"), "auth should be awaited only after both startup requests have started");
 assert.match(startup, /if\(cachedShopWasOpened\)\{[\s\S]*?openMain\(\{resumeIntent:false\}\)[\s\S]*?finishShopStartupSplash\(\)/, "a returning visitor should see cached shop content before cloud checks finish");
@@ -37,14 +42,21 @@ function deferred() {
 
 const splashEvents = [];
 let now = 1000;
-const splashNode = { hidden: false };
+const splashClasses = new Set();
+const mainClasses = new Set();
+const splashNode = { hidden: false, classList: { add: name => splashClasses.add(name), remove: name => splashClasses.delete(name) } };
+const mainNode = { style: { display: "none" }, classList: { add: name => mainClasses.add(name), remove: name => mainClasses.delete(name) } };
+const openedWith = [];
 const splashSandbox = {
   SHOP_BRANDED_SPLASH_MS: 2200,
   shopStartupStartedAt: 1000,
   shopStartupSplashTimer: null,
+  shopStartupHideTimer: null,
+  shopStartupCompleted: false,
   performance: { now: () => now },
-  document: { getElementById: id => id === "shopStartupSplash" ? splashNode : null },
-  setTimeout: (callback, ms) => { splashEvents.push({ callback, ms }); return 1; },
+  document: { getElementById: id => id === "shopStartupSplash" ? splashNode : id === "mainApp" ? mainNode : null },
+  openMain: options => { openedWith.push(options); mainNode.style.display = "block"; },
+  setTimeout: (callback, ms) => { splashEvents.push({ callback, ms }); return splashEvents.length; },
   clearTimeout: () => {},
 };
 runInNewContext(finishSplash + "\nglobalThis.finishSplash=finishShopStartupSplash;", splashSandbox);
@@ -53,7 +65,16 @@ assert.equal(splashNode.hidden, false, "the logo remains visible until its brand
 assert.equal(splashEvents[0]?.ms, 2200, "the splash timer should be measured from startup, not data completion");
 now = 3200;
 splashEvents[0].callback();
-assert.equal(splashNode.hidden, true, "the splash closes as soon as both data and the branded interval are ready");
+assert.equal(openedWith.length, 1, "the 2.2-second timer should open Shop once");
+assert.equal(openedWith[0]?.resumeIntent, false, "the startup transition should not resume an unverified purchase");
+assert.equal(splashNode.hidden, false, "the logo should fade away smoothly after the 2.2-second mark");
+assert.ok(splashClasses.has("is-exiting"), "the splash should fade out as the shop enters");
+assert.ok(mainClasses.has("shop-startup-enter"), "the shop should fade and slide into view");
+assert.equal(splashEvents[1]?.ms, 380, "the visual handoff should use a short exit animation");
+now = 3580;
+splashEvents[1].callback();
+assert.equal(splashNode.hidden, true, "the splash should be removed after its transition completes");
+assert.equal(splashSandbox.shopStartupCompleted, true, "the startup handoff should run only once");
 
 const bootstrap = deferred();
 const auth = deferred();

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#050509">
 <title>Shivan Shop</title>
+<script>window.__SHIVAN_STARTUP_STARTED_AT=performance.now();</script>
 
 <style>
 *{
@@ -2389,12 +2390,22 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   .app.detail-mode #detailView .detail-color-option .detail-color-swatch{width:16px;height:16px;flex-basis:16px}
 }
 .shop-promo-onboarding-open{overflow:hidden}
-.shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:8px;background:#03050d;color:#fff;text-align:center;padding:24px}
+.shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-content:center;gap:8px;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 43%,rgba(96,68,208,.18),transparent 36%),#03050d;color:#fff;text-align:center;padding:24px;opacity:1}
+.shop-startup-splash::before{content:"";position:absolute;inset:-55%;z-index:-1;pointer-events:none;background:linear-gradient(112deg,transparent 43%,rgba(130,165,255,.025) 47%,rgba(188,170,255,.16) 50%,rgba(96,140,255,.045) 53%,transparent 58%);transform:translateX(-46%) rotate(-8deg);animation:shopStartupLightSweep 2.8s ease-in-out infinite}
 .shop-startup-splash[hidden]{display:none!important}
-.shop-startup-logo{display:grid;place-items:center;width:68px;height:68px;margin:0 auto 8px;border:1px solid rgba(194,169,255,.65);border-radius:22px;background:linear-gradient(145deg,#8b5cff,#4d2da9);box-shadow:0 12px 42px rgba(112,69,255,.4);color:#fff;font-size:36px;font-weight:900;line-height:1}
-.shop-startup-splash strong{font-size:30px;font-weight:900;letter-spacing:-1px}
+.shop-startup-splash>*{position:relative}
+.shop-startup-logo{display:grid;place-items:center;width:68px;height:68px;margin:0 auto 8px;border:1px solid rgba(210,197,255,.78);border-radius:22px;background:linear-gradient(145deg,#956dff,#4d2da9);box-shadow:0 12px 42px rgba(112,69,255,.42),0 0 26px rgba(166,139,255,.34),inset 0 1px 0 rgba(255,255,255,.32);color:#fff;font-size:36px;font-weight:900;line-height:1;animation:shopStartupLogoGlow 2.2s ease-in-out infinite}
+.shop-startup-splash strong{font-size:30px;font-weight:900;letter-spacing:-1px;text-shadow:0 0 24px rgba(164,143,255,.18);animation:shopStartupTitleIn .55s cubic-bezier(.2,.72,.24,1) both}
 .shop-startup-splash strong span{color:#c2a9ff}
-.shop-startup-splash p{margin:0;color:#d3d4df;font-size:13px}
+.shop-startup-splash p{margin:0;color:#d3d4df;font-size:13px;letter-spacing:.025em;animation:shopStartupTitleIn .65s .08s cubic-bezier(.2,.72,.24,1) both}
+.shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut .38s ease-in both}
+#mainApp.shop-startup-enter{animation:shopStartupShopIn .48s cubic-bezier(.2,.72,.24,1) both}
+@keyframes shopStartupLogoGlow{0%,100%{transform:scale(.985);box-shadow:0 12px 36px rgba(112,69,255,.34),0 0 20px rgba(166,139,255,.24),inset 0 1px 0 rgba(255,255,255,.32)}50%{transform:scale(1.035);box-shadow:0 16px 48px rgba(112,69,255,.48),0 0 34px rgba(166,139,255,.5),inset 0 1px 0 rgba(255,255,255,.42)}}
+@keyframes shopStartupLightSweep{0%,20%{transform:translateX(-46%) rotate(-8deg);opacity:0}42%{opacity:1}78%,100%{transform:translateX(46%) rotate(-8deg);opacity:0}}
+@keyframes shopStartupTitleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shopStartupSplashOut{to{opacity:0;transform:scale(1.015);filter:blur(3px)}}
+@keyframes shopStartupShopIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.shop-startup-logo,.shop-startup-splash::before,.shop-startup-splash strong,.shop-startup-splash p,#mainApp.shop-startup-enter{animation:none!important}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}}
 .shop-promo-onboarding{--onboarding-electric:#278bff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;background:#050a1c;color:#fff;isolation:isolate;touch-action:pan-y}
 .shop-promo-onboarding[hidden]{display:none!important}
 .shop-promo-onboarding-image,.shop-promo-onboarding-shade{position:absolute;inset:0;width:100%;height:100%}
@@ -2432,6 +2443,12 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 </head>
 
 <body>
+
+<section id="shopStartupSplash" class="shop-startup-splash" role="status" aria-live="polite">
+  <span class="shop-startup-logo" aria-hidden="true">S</span>
+  <strong>Shivan <span>Shop</span></strong>
+  <p>Loading your shop…</p>
+</section>
 
 <label class="language-switcher" for="languageSelect">
   <span aria-hidden="true">🌐</span>
@@ -2605,12 +2622,6 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   </div>
 </section>
 
-
-<section id="shopStartupSplash" class="shop-startup-splash" role="status" aria-live="polite">
-  <span class="shop-startup-logo" aria-hidden="true">S</span>
-  <strong>Shivan <span>Shop</span></strong>
-  <p>Loading your shop…</p>
-</section>
 
 <section id="shopPromoOnboarding" class="shop-promo-onboarding" role="dialog" aria-modal="true" aria-label="Shivan Shop introduction" aria-hidden="true" hidden>
   <img id="shopPromoOnboardingImage" class="shop-promo-onboarding-image" src="" alt="Shivan Shop promotional slide 1">
@@ -3553,10 +3564,13 @@ let cloudMode=false;
 let cloudInitializationComplete=false;
 const SHOP_BRANDED_SPLASH_MS=2200;
 const SHOP_STARTUP_REQUEST_TIMEOUT_MS=10000;
-const shopStartupStartedAt=performance.now();
+const recordedShopStartupAt=Number(window.__SHIVAN_STARTUP_STARTED_AT);
+const shopStartupStartedAt=Number.isFinite(recordedShopStartupAt)?recordedShopStartupAt:performance.now();
 let shopStartupSplashTimer=null;
+let shopStartupCompleted=false;
 let cloudRefreshPromise=null;
 function finishShopStartupSplash(){
+  if(shopStartupCompleted)return;
   const splash=document.getElementById("shopStartupSplash");
   if(!splash)return;
   const remaining=SHOP_BRANDED_SPLASH_MS-(performance.now()-shopStartupStartedAt);
@@ -3568,8 +3582,18 @@ function finishShopStartupSplash(){
     return;
   }
   if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
-  splash.hidden=true;
+  const mainApp=document.getElementById("mainApp");
+  if(mainApp&&mainApp.style.display!=="block")openMain({resumeIntent:false});
+  mainApp?.classList.add("shop-startup-enter");
+  splash.classList.add("is-exiting");
+  shopStartupCompleted=true;
+  setTimeout(()=>{
+    splash.hidden=true;
+    splash.classList.remove("is-exiting");
+    mainApp?.classList.remove("shop-startup-enter");
+  },380);
 }
+finishShopStartupSplash();
 let cloudOwnerSetupRequired=false;
 let cloudAccount=null;
 let cloudHydrating=false;
@@ -8599,8 +8623,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   initializeCloud().catch(error=>console.warn("Shop startup failed; keeping saved shop content available.",ownerSaveDiagnosticCode(error))).then(async()=>{
     if(!cloudMode)await restoreSession();
-    showShopOnboardingIfNeeded();
-    finishShopStartupSplash();
   });
 
 });

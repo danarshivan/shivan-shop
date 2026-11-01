@@ -47,7 +47,11 @@ assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingSt
 assert.match(extractFunction("completeShopOnboardingChoice"), /route==="shop"\)\{\s*openMain\(\{resumeIntent:false\}\);\s*openView\("home"\);\s*\}/, "Explore Models must enter Shop without replaying an intent or keeping a prior active view");
 assert.match(extractFunction("openMain"), /if\(options\.resumeIntent!==false\)resumeAuthenticationIntent\(\)/, "other app entry points must keep their existing authentication-intent behavior");
 assert.match(extractFunction("logout"), /resetShopOnboardingCompletion\(\)[\s\S]*showShopOnboarding\(\)/, "logout must clear completion and show the slides again");
-assert.match(html, /if\(!cloudMode\)await restoreSession\(\);\s*showShopOnboardingIfNeeded\(\)/, "startup must check restored authentication before deciding to show onboarding");
+assert.match(html, /if\(!cloudMode\)await restoreSession\(\);/, "startup should still restore any saved session after cloud initialization");
+const startupHandler = html.match(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] || "";
+assert.ok(startupHandler, "the website should retain its startup handler");
+assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded\(\)/, "initial startup should enter Shop / Models after the branded splash");
+assert.match(html, /function logout\(\)\{[\s\S]*?showShopOnboarding\(\)/, "logout should keep the existing onboarding replay behavior");
 
 const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
