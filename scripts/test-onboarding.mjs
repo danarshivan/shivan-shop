@@ -24,6 +24,14 @@ assert.equal(sharedImageKey, "shivan_shop_ios_onboarding_images", "website and i
 assert.doesNotMatch(html, /SHOP_ONBOARDING_COMPLETED_KEY|markShopOnboardingCompleted|resetShopOnboardingCompletion/, "onboarding completion must not be persisted");
 
 assert.match(html, /id="shopPromoOnboarding"[^>]*role="dialog"[^>]*aria-modal="true"/);
+const defaultPageScrollCss=html.match(/html,body\{[^}]*\}/)?.[0]||"";
+const onboardingScrollLockCss=html.match(/html\.shop-promo-onboarding-open,body\.shop-promo-onboarding-open\{[^}]*\}/)?.[0]||"";
+const onboardingShellCss=html.match(/\.shop-promo-onboarding\{[^}]*\}/)?.[0]||"";
+assert.ok(defaultPageScrollCss.includes("overflow-y:auto"), "normal shop scrolling should remain enabled outside onboarding");
+assert.ok(html.includes("html{scrollbar-gutter:stable}"), "scrollbar width should remain stable when the onboarding lock toggles");
+assert.ok(onboardingScrollLockCss.includes("overflow:hidden!important")&&onboardingScrollLockCss.includes("overscroll-behavior:none"), "both the root and body must stop scrolling only during onboarding");
+assert.ok(onboardingShellCss.includes("position:fixed;inset:0")&&onboardingShellCss.includes("touch-action:none")&&onboardingShellCss.includes("overscroll-behavior:contain"), "the viewport-filling onboarding layer should block vertical panning while JavaScript handles horizontal swipes");
+assert.match(html, /height:100vh;height:100dvh;min-height:0;[^}]*env\(safe-area-inset-top\)[^}]*env\(safe-area-inset-bottom\)/, "slide content should fit the dynamic viewport and retain iPhone safe-area padding");
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
 assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length, 1, "the onboarding overlay should contain a single reusable fashion image element");
 const mediaMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-media">[\s\S]*?<\/div>/)?.[0]||"";
@@ -85,6 +93,8 @@ assert.match(extractFunction("saveShopOnboardingImages"), /SHOP_ONBOARDING_IMAGE
 assert.match(extractFunction("saveShopOnboardingImages"), /originalStorageSetItem\.call\(localStorage,SHOP_ONBOARDING_IMAGES_KEY,value\)/, "a confirmed save should update the local mirror used by the existing sync flow");
 assert.match(extractFunction("renderOwnerPanel"), /section==="onboarding"\) renderShopOnboardingOwnerEditor/);
 assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingStartupView/);
+assert.match(extractFunction("showShopOnboarding"), /document\.documentElement\?\.classList\.add\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.add\("shop-promo-onboarding-open"\)/, "showing onboarding should lock both root and body before reveal");
+assert.match(extractFunction("hideShopOnboarding"), /document\.documentElement\?\.classList\.remove\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.remove\("shop-promo-onboarding-open"\)/, "closing onboarding should restore normal root and body scrolling");
 assert.match(extractFunction("finishShopOnboarding"), /openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "Explore Models must enter Shop without replaying a pending intent");
 assert.match(extractFunction("startShopOnboardingSignup"), /showAuth\("signup"\)/, "Create Account should use the existing sign-up screen");
 assert.match(extractFunction("startShopOnboardingSignup"), /hideShopOnboarding\(\)[\s\S]*?mainApp\.style\.display="none"[\s\S]*?authPage\.style\.display=""/, "registration should replace onboarding without recreating account state");
@@ -101,7 +111,7 @@ const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
   "getShopOnboardingVisibilityAction", "prefersReducedShopOnboardingMotion", "warmShopOnboardingImages", "renderShopOnboardingSlide", "moveShopOnboardingTo",
   "advanceShopOnboarding", "startShopOnboardingSignup",
-  "finishShopOnboarding", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded", "showShopOnboarding",
+  "finishShopOnboarding", "hideShopOnboarding", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded", "showShopOnboarding",
   "handleShopOnboardingVisibilityChange",
 ];
 const flowSource = [
@@ -132,6 +142,9 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   const listeners = new Map();
   const timers=new Map();
   const classes=new Set();
+  const rootClasses=new Set();
+  const bodyClasses=new Set();
+  const pageClassList=target=>({add(name){target.add(name);},remove(name){target.delete(name);},contains(name){return target.has(name);}});
   const preloadedImageUrls=[];
   class WarmImage {
     decoding="";
@@ -182,22 +195,23 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     Image: WarmImage,
     setTimeout: (callback,delay) => { const id=++timerSequence; timers.set(id,{callback,delay}); return id; },
     clearTimeout: id => timers.delete(id),
-    document: { getElementById: id => elements.get(id)||null, querySelector: selector => selector===".app"?app:null, body:{classList:{add(){},remove(){}}} },
+    document: { documentElement:{classList:pageClassList(rootClasses)}, getElementById: id => elements.get(id)||null, querySelector: selector => selector===".app"?app:null, body:{classList:pageClassList(bodyClasses)} },
     requestAnimationFrame: callback => callback(),
-    hideShopOnboarding: () => { layer.hidden = true; },
     showShopOnboarding: () => { layer.hidden = false; openedOnboarding = true; },
     showAuth: type => { authScreen = type; },
     openMain: options => { openedShop = true; openMainOptions = options; if(options?.resumeIntent!==false&&runtime.pendingAuthenticationIntent?.type==="profile")openedView="profile"; },
     openView: view => { openedView = view; },
   };
   const flow = runInNewContext(flowSource, runtime);
-  return { flow, runtime, storage, layer, image, dots, nextButton, choices, authPage, mainApp, elements, listeners, classes, preloadedImageUrls, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;}, get renderCount(){return renderCount;} };
+  return { flow, runtime, storage, layer, image, dots, nextButton, choices, authPage, mainApp, elements, listeners, classes, rootClasses, bodyClasses, preloadedImageUrls, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;}, get renderCount(){return renderCount;} };
 }
 
 const guestFlow = createFlow();
 guestFlow.storage.setItem('shivan_shop_web_onboarding_completed', '1');
 assert.equal(guestFlow.flow.view(), 'onboarding', 'every page launch starts onboarding even if an old persistent completion flag exists');
 guestFlow.flow.showIfNeeded();
+assert.equal(guestFlow.rootClasses.has("shop-promo-onboarding-open"), true, "startup should lock the document root against scrolling");
+assert.equal(guestFlow.bodyClasses.has("shop-promo-onboarding-open"), true, "startup should lock the body against scrolling");
 guestFlow.flow.render();
 assert.deepEqual(guestFlow.preloadedImageUrls, ["https://fallback.example.test/1.jpg", "https://fallback.example.test/2.jpg", "https://fallback.example.test/3.jpg"], "the existing images should be warmed once to reduce blank frames during slide changes");
 assert.equal(guestFlow.layer.hidden, false, 'the first slide should show at startup');
@@ -237,6 +251,8 @@ exploreFlow.runTimers();
 exploreFlow.flow.advance();
 exploreFlow.flow.finish();
 assert.equal(exploreFlow.layer.hidden, true, 'Explore Models should dismiss the promotional slides');
+assert.equal(exploreFlow.rootClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore root scrolling");
+assert.equal(exploreFlow.bodyClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore body scrolling");
 assert.equal(exploreFlow.openedShop, true, 'Explore Models should open the existing shop');
 assert.equal(exploreFlow.openedView, 'home', 'Explore Models should land on model selection');
 assert.equal(exploreFlow.openMainOptions.resumeIntent, false, 'onboarding must not resume stale authentication redirects');
@@ -254,6 +270,8 @@ accountFlow.flow.advance();
 accountFlow.runTimers();
 accountFlow.flow.signup();
 assert.equal(accountFlow.layer.hidden,true,'Create Account should close the slide overlay');
+assert.equal(accountFlow.rootClasses.has("shop-promo-onboarding-open"), false, "Create Account should restore root scrolling");
+assert.equal(accountFlow.bodyClasses.has("shop-promo-onboarding-open"), false, "Create Account should restore body scrolling");
 assert.equal(accountFlow.authMode,true,'Create Account should open the existing full-screen account flow');
 assert.equal(accountFlow.authScreen,'signup','Create Account should select the existing registration form');
 assert.equal(accountFlow.mainApp.style.display,'none','registration should replace the shop behind onboarding');
