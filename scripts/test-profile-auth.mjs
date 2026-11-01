@@ -90,6 +90,7 @@ const logoutSource = html.match(/async function logout\(\)[\s\S]*?\n\}/)?.[0];
 assert.ok(logoutSource, "the async Logout flow should exist");
 
 const context = {
+  productDetailClosing: false,
   currentUser: null,
   cloudAccount: null,
   pendingAuthenticationIntent: null,
