@@ -7,8 +7,10 @@ assert.match(html, /<div class="product" onclick="openProduct\(\$\{p\.id\}\)">/,
 assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product details should fade and slide in within the requested fast range");
 assert.match(html, /#mainApp \.view\.active\.product-list-returning\{animation:shopMotionProductListReturn 100ms/, "returning to a product list should use a 100 ms transition");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the detail close button should avoid tap-gesture delay on mobile");
+assert.match(html, /html\{scrollbar-gutter:stable\}/, "locking detail scrolling should preserve the page scrollbar gutter");
+assert.match(html, /\.view\.active\.product-list-returning\{[^}]*overflow-anchor:none/, "scroll anchoring should not move the list during its return");
 assert.match(html, /@keyframes shopMotionProductOpen\{from\{opacity:0;transform:translate3d\(0,5px,0\)\}to\{opacity:1;transform:none\}\}/, "opening should use only a short, subtle slide with a fade");
-assert.match(html, /@keyframes shopMotionProductListReturn\{from\{opacity:\.94;transform:translate3d\(0,3px,0\)\}to\{opacity:1;transform:none\}\}/, "the quick return should be subtle and visually restrained");
+assert.match(html, /@keyframes shopMotionProductListReturn\{from\{opacity:\.985\}to\{opacity:1\}\}/, "the quick return should fade without moving the list or its contents");
 assert.match(html, /prefers-reduced-motion:reduce\)\{#mainApp\.detail-mode #detailView\.active\.product-detail-entering,[\s\S]*?animation:none!important/, "the product detail transition should respect reduced-motion settings");
 assert.doesNotMatch(html, /shopMotionProductClose|product-detail-closing/, "the old delayed detail-exit animation should be removed");
 assert.doesNotMatch(html, /view-transition-name:shivan-product-image|startViewTransition|runProductViewTransition|shopMotionDetailIn|shopMotionDetailImageIn/, "the prior shared-image and staggered product transition should be removed");
@@ -27,12 +29,12 @@ const closeProductSource = html.slice(closeStart, backStart).trim();
 assert.doesNotMatch(openProductSource, /startViewTransition|requestAnimationFrame|setTimeout|await /, "opening must remain immediate and must not wait for an animation callback");
 assert.match(openProductSource, /currentProduct=p;[\s\S]*?openView\("detail"\);[\s\S]*?classList\.add\("product-detail-entering"\)/, "the existing product detail state should open immediately before its brief animation");
 assert.match(openProductSource, /previousViewScrollY=Math\.max\(0,Number\(window\.scrollY\|\|document\.documentElement\.scrollTop\|\|document\.body\.scrollTop\|\|0\)\)/, "opening should remember the product list scroll position");
-assert.match(closeProductSource, /openView\(destinationView\);\s*window\.scrollTo\(0,previousViewScrollY\)/, "closing should return to the prior list and restore its scroll position synchronously");
+assert.match(closeProductSource, /root\.style\.scrollBehavior="auto";[\s\S]*?openView\(destinationView\);\s*window\.scrollTo\(0,previousViewScrollY\);[\s\S]*?root\.style\.scrollBehavior=previousScrollBehavior/, "closing should switch views and restore scroll instantly while holding smooth-scroll behavior off");
 assert.doesNotMatch(closeProductSource, /animationend|product-detail-closing|await |requestAnimationFrame/, "closing must not wait for an animation callback");
 assert.match(closeProductSource, /},130\)/, "the short timer should only clear the return animation state");
 assert.match(html, /function goBack\(\)\{\s*closeProductDetails\(\);/, "the existing back control should use the product close flow");
 
-function createHarness({ reducedMotion = false } = {}) {
+function createHarness({ reducedMotion = false, width = 390, height = 844 } = {}) {
   const state = {
     openedViews: [],
     detailView: null,
@@ -40,6 +42,7 @@ function createHarness({ reducedMotion = false } = {}) {
     pendingDelay: null,
     scrollY: 421,
     scrollCalls: [],
+    scrollBehaviorObserved: [],
     cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }],
   };
   const detailClasses = new Set();
@@ -64,6 +67,8 @@ function createHarness({ reducedMotion = false } = {}) {
   const searchView=makeView(searchClasses);
   state.homeView=homeView;
   state.searchView=searchView;
+  const root={scrollTop:0,style:{scrollBehavior:"smooth"}};
+  const body={scrollTop:0};
   const elements = new Map([
     ["detailView", detailView],
     ["detailName", { textContent: "" }],
@@ -72,7 +77,7 @@ function createHarness({ reducedMotion = false } = {}) {
     ["homeView", homeView],
     ["searchView", searchView],
   ]);
-  const document = { getElementById: id => elements.get(id) };
+  const document = { getElementById: id => elements.get(id), documentElement:root, body };
   const product = {
     id: 1,
     name: "Purple Dress",
@@ -88,8 +93,10 @@ function createHarness({ reducedMotion = false } = {}) {
     document,
     window: {
       matchMedia: () => ({ matches: reducedMotion }),
+      innerWidth:width,
+      innerHeight:height,
       get scrollY(){return state.scrollY;},
-      scrollTo(...args){state.scrollCalls.push(args);state.scrollY=typeof args[0]==="number"?(Number(args[1])||0):(Number(args[0]?.top)||0);},
+      scrollTo(...args){state.scrollCalls.push(args);state.scrollY=typeof args[0]==="number"?(Number(args[1])||0):(Number(args[0]?.top)||0);root.scrollTop=state.scrollY;body.scrollTop=state.scrollY;},
     },
     console,
     products: [product,secondProduct],
@@ -111,6 +118,7 @@ function createHarness({ reducedMotion = false } = {}) {
     resetDetailRecommendations() {},
     openView(view) {
       state.openedViews.push(view);
+      state.scrollBehaviorObserved.push(root.style.scrollBehavior);
       detailClasses.delete("active");
       if (view === "detail") { detailClasses.add("active"); homeClasses.delete("active"); searchClasses.delete("active"); }
       if (view === "home") { homeClasses.add("active"); searchClasses.delete("active"); }
@@ -150,6 +158,8 @@ assert.equal(standard.context.previousViewScrollY,421,"opening should capture th
 standard.closeProductDetails();
 assert.deepEqual(standard.state.openedViews,["detail","home"],"closing should return to the previous list synchronously");
 assert.equal(standard.state.scrollY,421,"closing should restore the exact prior list scroll position immediately");
+assert.equal(standard.state.scrollBehaviorObserved.at(-1),"auto","the list should be restored with smooth scrolling temporarily disabled");
+assert.equal(standard.context.document.documentElement.style.scrollBehavior,"smooth","the existing scroll behavior should be restored after the synchronous handoff");
 assert.equal(standard.state.homeView.classList.contains("product-list-returning"),true,"the restored list should use its tiny return animation");
 assert.equal(standard.state.pendingDelay,130,"the cleanup timer must not delay the view switch");
 standard.closeProductDetails();
@@ -176,6 +186,21 @@ assert.deepEqual(search.state.openedViews,["detail","search"],"closing should re
 assert.equal(search.state.scrollY,638,"Search scroll position should be restored exactly");
 const searchCloseCleanup=search.state.pendingClose;search.state.pendingClose=null;searchCloseCleanup();
 
+const desktop=createHarness({width:1440,height:960});
+desktop.state.scrollY=512;
+desktop.openProduct(1);
+desktop.closeProductDetails();
+assert.equal(desktop.state.scrollY,512,"desktop Home should return to the exact previous scroll position");
+assert.equal(desktop.state.homeView.classList.contains("product-list-returning"),true,"desktop Home should use the same stable 100 ms return");
+const desktopHomeCleanup=desktop.state.pendingClose;desktop.state.pendingClose=null;desktopHomeCleanup();
+desktop.activateSearch();
+desktop.state.scrollY=934;
+desktop.openProduct(2);
+desktop.closeProductDetails();
+assert.equal(desktop.state.scrollY,934,"desktop Search should return to its exact previous scroll position");
+assert.equal(desktop.state.searchView.classList.contains("product-list-returning"),true,"desktop Search should use the same stable return transition");
+const desktopSearchCleanup=desktop.state.pendingClose;desktop.state.pendingClose=null;desktopSearchCleanup();
+
 const reduced = createHarness({ reducedMotion: true });
 reduced.state.scrollY=290;
 reduced.openProduct(1);
@@ -185,4 +210,4 @@ assert.deepEqual(reduced.state.openedViews,["detail","home"],"reduced-motion use
 assert.equal(reduced.state.scrollY,290,"reduced-motion closing should also restore the prior scroll position");
 assert.equal(reduced.state.pendingClose,null,"reduced-motion closing should not schedule animation cleanup");
 
-console.log("Product transition tests passed: unchanged 190 ms opening, synchronous close and list restoration, 100 ms return animation, exact home/search scroll restoration, double-tap guard, multiple products, reduced motion, existing variants, and cart preservation.");
+console.log("Product transition tests passed: unchanged 190 ms opening; stable 100 ms return on mobile/desktop Home and Search; scrollbar/scroll-anchor protections; instant scroll restoration; repeated opens/closes; double-tap guard; reduced motion; variants and cart preservation.");

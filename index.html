@@ -25,6 +25,7 @@ html,body{
   color:#fff;
   font-family:Tahoma,Arial,sans-serif;
 }
+html{scrollbar-gutter:stable}
 
 body{
   display:flex;
@@ -2516,10 +2517,10 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 /* Product details use one quick, restrained entrance/exit instead of a shared-image effect. */
 #mainApp.detail-mode #detailView.active{animation:none}
 #mainApp.detail-mode #detailView.active.product-detail-entering{animation:shopMotionProductOpen 190ms var(--shop-motion-ease)}
-#mainApp .view.active.product-list-returning{animation:shopMotionProductListReturn 100ms var(--shop-motion-ease)}
+#mainApp .view.active.product-list-returning{animation:shopMotionProductListReturn 100ms var(--shop-motion-ease);overflow-anchor:none}
 @media(prefers-reduced-motion:reduce){#mainApp.detail-mode #detailView.active.product-detail-entering,#mainApp .view.active.product-list-returning{animation:none!important}}
 @keyframes shopMotionProductOpen{from{opacity:0;transform:translate3d(0,5px,0)}to{opacity:1;transform:none}}
-@keyframes shopMotionProductListReturn{from{opacity:.94;transform:translate3d(0,3px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionProductListReturn{from{opacity:.985}to{opacity:1}}
 </style>
 </head>
 
@@ -6938,8 +6939,15 @@ function closeProductDetails(){
   if(!detailView?.classList.contains("active"))return;
 
   clearProductDetailMotion(detailView);
-  openView(destinationView);
-  window.scrollTo(0,previousViewScrollY);
+  const root=document.documentElement;
+  const previousScrollBehavior=root.style.scrollBehavior;
+  root.style.scrollBehavior="auto";
+  try{
+    openView(destinationView);
+    window.scrollTo(0,previousViewScrollY);
+  }finally{
+    root.style.scrollBehavior=previousScrollBehavior;
+  }
 
   if(prefersReducedProductMotion())return;
   const destination=document.getElementById(`${destinationView}View`);
