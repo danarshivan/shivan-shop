@@ -2392,18 +2392,18 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .shop-promo-onboarding-open{overflow:hidden}
 .shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 43%,rgba(96,68,208,.2),transparent 38%),#03050d;opacity:1}
 .shop-startup-splash[hidden]{display:none!important}
-.shop-startup-aura{position:absolute;width:min(62vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(142,93,255,.4),rgba(99,67,214,.16) 42%,transparent 72%);filter:blur(9px);opacity:.34;pointer-events:none;animation:shopStartupAuraIn .62s ease-out both}
+.shop-startup-aura{position:absolute;width:min(62vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(142,93,255,.4),rgba(99,67,214,.16) 42%,transparent 72%);filter:blur(9px);opacity:.22;pointer-events:none;animation:shopStartupAuraIn 1.8s ease-out both}
 .shop-startup-lockup{position:relative;display:grid;justify-items:center;gap:16px}
-.shop-startup-logo{display:grid;place-items:center;width:82px;height:82px;border:1px solid rgba(222,211,255,.88);border-radius:25px;background:linear-gradient(145deg,#986fff,#542fb3);box-shadow:0 12px 42px rgba(112,69,255,.42),0 0 26px rgba(166,139,255,.34),inset 0 1px 0 rgba(255,255,255,.36);color:#fff;font-size:27px;font-weight:900;letter-spacing:.09em;line-height:1;opacity:0;transform:scale(.74);animation:shopStartupLogoIn 1.12s cubic-bezier(.2,.72,.24,1) .14s both,shopStartupLogoPulse .86s ease-in-out 1.28s 1}
-.shop-startup-brand{color:#f6f2ff;font-size:12px;font-weight:800;letter-spacing:.2em;text-indent:.2em;text-shadow:0 0 20px rgba(164,143,255,.24);opacity:0;transform:translateY(10px);animation:shopStartupBrandIn .55s cubic-bezier(.2,.72,.24,1) .82s both}
-.shop-startup-sparkle{position:absolute;top:calc(50% - 66px);left:calc(50% + 48px);width:5px;height:5px;border-radius:1px;background:#fff8dc;box-shadow:0 0 8px 2px rgba(233,220,255,.8);opacity:0;transform:rotate(45deg) scale(.2);pointer-events:none;animation:shopStartupSparkle .68s ease-out 1.08s 1 both}
-.shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut .38s ease-in both}
-#mainApp.shop-startup-enter{animation:shopStartupShopIn .48s cubic-bezier(.2,.72,.24,1) both}
-@keyframes shopStartupAuraIn{from{opacity:0;transform:scale(.78)}to{opacity:.34;transform:scale(1.08)}}
+.shop-startup-logo{display:grid;place-items:center;width:82px;height:82px;border:1px solid rgba(222,211,255,.88);border-radius:25px;background:linear-gradient(145deg,#986fff,#542fb3);box-shadow:0 12px 42px rgba(112,69,255,.25),0 0 24px rgba(166,139,255,.18),inset 0 1px 0 rgba(255,255,255,.36);color:#fff;font-size:27px;font-weight:900;letter-spacing:.09em;line-height:1;opacity:0;transform:scale(.74);animation:shopStartupLogoIn 1.8s cubic-bezier(.2,.72,.24,1) .12s both,shopStartupLogoPulse 2.2s ease-in-out .15s 1 both}
+.shop-startup-brand{color:#f6f2ff;font-size:12px;font-weight:800;letter-spacing:.2em;text-indent:.2em;text-shadow:0 0 20px rgba(164,143,255,.24);opacity:0;transform:translateY(10px);animation:shopStartupBrandIn .85s cubic-bezier(.2,.72,.24,1) 1.15s both}
+.shop-startup-sparkle{position:absolute;top:calc(50% - 66px);left:calc(50% + 48px);width:5px;height:5px;border-radius:1px;background:#fff8dc;box-shadow:0 0 8px 2px rgba(233,220,255,.8);opacity:0;transform:rotate(45deg) scale(.2);pointer-events:none;animation:shopStartupSparkle 1.35s ease-out .55s 1 both}
+.shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut .55s ease-in-out both}
+#mainApp.shop-startup-enter{animation:shopStartupShopIn .65s cubic-bezier(.2,.72,.24,1) both}
+@keyframes shopStartupAuraIn{from{opacity:0;transform:scale(.78)}to{opacity:.22;transform:scale(1.08)}}
 @keyframes shopStartupLogoIn{from{opacity:0;transform:scale(.74);filter:blur(3px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
-@keyframes shopStartupLogoPulse{0%,100%{box-shadow:0 12px 42px rgba(112,69,255,.42),0 0 26px rgba(166,139,255,.34),inset 0 1px 0 rgba(255,255,255,.36)}50%{box-shadow:0 15px 48px rgba(112,69,255,.5),0 0 36px rgba(181,158,255,.48),inset 0 1px 0 rgba(255,255,255,.42)}}
+@keyframes shopStartupLogoPulse{0%,100%{box-shadow:0 12px 42px rgba(112,69,255,.25),0 0 24px rgba(166,139,255,.18),inset 0 1px 0 rgba(255,255,255,.36)}50%{box-shadow:0 14px 46px rgba(112,69,255,.29),0 0 30px rgba(181,158,255,.22),inset 0 1px 0 rgba(255,255,255,.38)}}
 @keyframes shopStartupBrandIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes shopStartupSparkle{0%,100%{opacity:0;transform:rotate(45deg) scale(.2)}35%{opacity:.9;transform:rotate(45deg) scale(1.15)}65%{opacity:.65;transform:rotate(45deg) scale(.72)}}
+@keyframes shopStartupSparkle{0%,100%{opacity:0;transform:rotate(45deg) scale(.2)}35%{opacity:.3;transform:rotate(45deg) scale(.9)}65%{opacity:.18;transform:rotate(45deg) scale(.72)}}
 @keyframes shopStartupSplashOut{to{opacity:0;transform:scale(1.015);filter:blur(3px)}}
 @keyframes shopStartupShopIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.shop-startup-aura,.shop-startup-logo,.shop-startup-brand,#mainApp.shop-startup-enter{animation:none!important;opacity:1;transform:none;filter:none}.shop-startup-sparkle{animation:none!important;opacity:0}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}}
@@ -3566,7 +3566,7 @@ const OWNER_PASSWORD = "";
 const LEGACY_OWNER_IDENTIFIER = "owner@shivanshop.com";
 let cloudMode=false;
 let cloudInitializationComplete=false;
-const SHOP_BRANDED_SPLASH_MS=2200;
+const SHOP_BRANDED_SPLASH_MS=2800;
 const SHOP_STARTUP_REQUEST_TIMEOUT_MS=10000;
 const recordedShopStartupAt=Number(window.__SHIVAN_STARTUP_STARTED_AT);
 const shopStartupStartedAt=Number.isFinite(recordedShopStartupAt)?recordedShopStartupAt:performance.now();
@@ -3595,7 +3595,7 @@ function finishShopStartupSplash(){
     splash.hidden=true;
     splash.classList.remove("is-exiting");
     mainApp?.classList.remove("shop-startup-enter");
-  },380);
+  },550);
 }
 finishShopStartupSplash();
 let cloudOwnerSetupRequired=false;

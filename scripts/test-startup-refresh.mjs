@@ -16,7 +16,7 @@ const finishSplash = sourceOf(/function finishShopStartupSplash\(\)\{[\s\S]*?\n\
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
 const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "animated brand startup screen");
 
-assert.match(html, /SHOP_BRANDED_SPLASH_MS=2200/, "the branded logo should cover the first 2.2 seconds");
+assert.match(html, /SHOP_BRANDED_SPLASH_MS=2800/, "the branded logo should cover exactly 2.8 seconds");
 assert.match(html, /window\.__SHIVAN_STARTUP_STARTED_AT=performance\.now\(\)/, "startup timing should begin in the document head, before cloud requests");
 assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop monogram">SH<\/span>/, "the startup screen should render the approved white SH monogram");
 assert.match(splashMarkup, /<strong class="shop-startup-brand">BRAND SHIVAN SHOP<\/strong>/, "the startup screen should show the approved brand text");
@@ -26,10 +26,12 @@ assert.match(html, /\.shop-startup-splash\{[^}]*place-items:center/, "the logo s
 assert.match(html, /\.shop-startup-splash\{[^}]*background:radial-gradient\([^}]*#03050d/, "the splash should retain its dark background with a soft purple glow");
 assert.match(html, /\.shop-startup-logo\{[^}]*border-radius:25px[^}]*color:#fff/, "the SH mark should remain white inside a rounded purple logo");
 assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft purple glow should appear first");
-assert.match(html, /animation:shopStartupLogoIn 1\.12s cubic-bezier\(\.2,\.72,\.24,1\) \.14s both,shopStartupLogoPulse \.86s ease-in-out 1\.28s 1/, "the logo should fade and scale in slowly, then pulse gently");
-assert.match(html, /animation:shopStartupBrandIn \.55s[^}]*\.82s both/, "the brand text should slide up and fade in after the logo");
-assert.match(html, /animation:shopStartupSparkle \.68s ease-out 1\.08s 1 both/, "the splash should include one short sparkle after the logo appears");
-assert.ok(.14 + 1.12 < 1.28 && 1.28 + .86 < 2.2 && 1.08 + .68 < 2.2, "the logo should finish before its pulse, and all effects should finish before the 2.2-second transition");
+assert.match(html, /animation:shopStartupLogoIn 1\.8s cubic-bezier\(\.2,\.72,\.24,1\) \.12s both,shopStartupLogoPulse 2\.2s ease-in-out \.15s 1 both/, "the logo should fade and scale in over 1.8 seconds with a very gentle purple glow");
+assert.match(html, /animation:shopStartupBrandIn \.85s[^}]*1\.15s both/, "the unchanged brand text should fade and slide gently into view");
+assert.match(html, /animation:shopStartupSparkle 1\.35s ease-out \.55s 1 both/, "any sparkle should remain faint and slow rather than flash");
+assert.match(html, /animation:shopStartupSplashOut \.55s ease-in-out/, "the splash should transition smoothly after its timed display");
+assert.ok(html.includes("SHOP_BRANDED_SPLASH_MS=2800") && html.includes("},550);"), "the 2.8-second splash should transition smoothly into Shop");
+assert.ok(.12 + 1.8 < 2.8 && .15 + 2.2 < 2.8 && 1.15 + .85 < 2.8 && .55 + 1.35 < 2.8, "the logo and gentle effects should finish before the 2.8-second transition");
 assert.doesNotMatch(html, /shopStartupLightSweep|shopStartupLogoReveal/, "the splash should not use the superseded sweeping or logo-only animation");
 assert.match(html, /@keyframes shopStartupShopIn/, "the shop should use a fade-and-slide entrance");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
@@ -59,7 +61,7 @@ const splashNode = { hidden: false, classList: { add: name => splashClasses.add(
 const mainNode = { style: { display: "none" }, classList: { add: name => mainClasses.add(name), remove: name => mainClasses.delete(name) } };
 const openedWith = [];
 const splashSandbox = {
-  SHOP_BRANDED_SPLASH_MS: 2200,
+  SHOP_BRANDED_SPLASH_MS: 2800,
   shopStartupStartedAt: 1000,
   shopStartupSplashTimer: null,
   shopStartupHideTimer: null,
@@ -73,16 +75,16 @@ const splashSandbox = {
 runInNewContext(finishSplash + "\nglobalThis.finishSplash=finishShopStartupSplash;", splashSandbox);
 splashSandbox.finishSplash();
 assert.equal(splashNode.hidden, false, "the logo remains visible until its branded interval ends");
-assert.equal(splashEvents[0]?.ms, 2200, "the splash timer should be measured from startup, not data completion");
-now = 3200;
+assert.equal(splashEvents[0]?.ms, 2800, "the splash timer should be measured from startup, not data completion");
+now = 3800;
 splashEvents[0].callback();
-assert.equal(openedWith.length, 1, "the 2.2-second timer should open Shop once");
+assert.equal(openedWith.length, 1, "the 2.8-second timer should open Shop once");
 assert.equal(openedWith[0]?.resumeIntent, false, "the startup transition should not resume an unverified purchase");
-assert.equal(splashNode.hidden, false, "the logo should fade away smoothly after the 2.2-second mark");
+assert.equal(splashNode.hidden, false, "the logo should fade away smoothly after the 2.8-second mark");
 assert.ok(splashClasses.has("is-exiting"), "the splash should fade out as the shop enters");
 assert.ok(mainClasses.has("shop-startup-enter"), "the shop should fade and slide into view");
-assert.equal(splashEvents[1]?.ms, 380, "the visual handoff should use a short exit animation");
-now = 3580;
+assert.equal(splashEvents[1]?.ms, 550, "the visual handoff should use the smooth exit animation");
+now = 4350;
 splashEvents[1].callback();
 assert.equal(splashNode.hidden, true, "the splash should be removed after its transition completes");
 assert.equal(splashSandbox.shopStartupCompleted, true, "the startup handoff should run only once");
@@ -200,4 +202,4 @@ syncResponse.resolve({ shop: {}, user: {} });
 await Promise.all([refreshOne, refreshTwo]);
 assert.equal(refreshSandbox.cloudRefreshPromise, null, "the refresh lock should clear after completion");
 
-console.log("Website startup checks passed: cached first render, parallel startup requests, 2.2-second branded splash timing, nonblocking background sync, banner refresh without product-image rebuilds, and single-flight refresh.");
+console.log("Website startup checks passed: cached first render, parallel startup requests, exactly 2.8-second branded splash timing, nonblocking background sync, banner refresh without product-image rebuilds, and single-flight refresh.");
