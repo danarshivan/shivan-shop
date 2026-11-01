@@ -8,7 +8,9 @@ assert.ok(motionBlock, "the website should include the shared motion layer");
 for (const [pattern, message] of [
   [/button:not\(:disabled\):active/, "buttons should provide gentle press feedback"],
   [/\.shop-promo-onboarding-image\{transition:/, "onboarding slides should cross-fade and scale smoothly"],
-  [/\.shop-promo-onboarding\[data-screen="3"\].*shopMotionWelcomeIn/, "the welcome slide should enter smoothly"],
+  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="forward"\].*shopMotionOnboardingForward 240ms/, "forward onboarding steps should use a short horizontal transition"],
+  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="backward"\].*shopMotionOnboardingBackward 240ms/, "backward onboarding steps should use the matching reverse transition"],
+  [/\.shop-promo-onboarding\[data-screen="3"\].*shopMotionChoiceIn/, "the final onboarding choices should enter smoothly"],
   [/\.view\.active\{animation:shopMotionViewIn/, "screen navigation should animate when a view opens"],
   [/#productsGrid>\.product:nth-child\(-n\+8\)/, "the visible product cards should use a short stagger"],
   [/\.hero-slide\.active img/, "banner images should transition gently"],
@@ -54,6 +56,6 @@ assert.match(html, /\.shop-startup-splash\{/, "the existing logo splash should r
 
 const finish = html.match(/function finishShopOnboarding\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 assert.match(finish, /hideShopOnboarding\(\);\s*openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "finishing onboarding should still open Shop / Models immediately");
-assert.doesNotMatch(finish, /setTimeout|requestAnimationFrame|await /, "the animation layer must not delay Skip or the final onboarding handoff");
+assert.doesNotMatch(finish, /setTimeout|requestAnimationFrame|await /, "the animation layer must not delay the final Explore Models handoff");
 
-console.log("Website motion checks passed: screen and list entrances, onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and immediate Skip/completion handoff.");
+console.log("Website motion checks passed: screen and list entrances, directional onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and immediate Explore Models handoff.");
