@@ -45,6 +45,7 @@ assert.doesNotMatch(startup, /location\.reload\(/, "startup and refresh must not
 assert.match(html, /if\(!changed\)return;/, "unchanged cloud data should not trigger a rerender");
 assert.match(apply, /if\(productsChanged\)loadProducts\(\)/, "only product changes should re-read the product cache");
 assert.match(apply, /if\(productsChanged\|\|favoritesChanged\)renderProducts\(products\)/, "banner-only refreshes should not rebuild the product image grid");
+assert.match(finishSplash, /shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/, "the model-selection flow should show onboarding after the branded splash");
 
 function deferred() {
   let resolve;
@@ -54,6 +55,7 @@ function deferred() {
 }
 
 const splashEvents = [];
+let onboardingShown = 0;
 let now = 1000;
 const splashClasses = new Set();
 const mainClasses = new Set();
@@ -69,6 +71,7 @@ const splashSandbox = {
   performance: { now: () => now },
   document: { getElementById: id => id === "shopStartupSplash" ? splashNode : id === "mainApp" ? mainNode : null },
   openMain: options => { openedWith.push(options); mainNode.style.display = "block"; },
+  showShopOnboardingIfNeeded: () => { onboardingShown += 1; },
   setTimeout: (callback, ms) => { splashEvents.push({ callback, ms }); return splashEvents.length; },
   clearTimeout: () => {},
 };
@@ -80,6 +83,7 @@ now = 3800;
 splashEvents[0].callback();
 assert.equal(openedWith.length, 1, "the 2.8-second timer should open Shop once");
 assert.equal(openedWith[0]?.resumeIntent, false, "the startup transition should not resume an unverified purchase");
+assert.equal(onboardingShown, 1, "the first onboarding slide should show as the splash hands off to the shop");
 assert.equal(splashNode.hidden, false, "the logo should fade away smoothly after the 2.8-second mark");
 assert.ok(splashClasses.has("is-exiting"), "the splash should fade out as the shop enters");
 assert.ok(mainClasses.has("shop-startup-enter"), "the shop should fade and slide into view");

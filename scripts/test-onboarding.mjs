@@ -19,20 +19,16 @@ const extractFunction = name => {
   assert.ok(source, `the website should define ${name}`);
   return source;
 };
-const completionKey = html.match(/const SHOP_ONBOARDING_COMPLETED_KEY = "([^"]+)";/)?.[1];
 const sharedImageKey = html.match(/const SHOP_ONBOARDING_IMAGES_KEY = "([^"]+)";/)?.[1];
 assert.equal(sharedImageKey, "shivan_shop_ios_onboarding_images", "website and iOS app must share the same Owner-managed slide image key");
-assert.ok(completionKey, "the web onboarding completion state should have its own saved key");
+assert.doesNotMatch(html, /SHOP_ONBOARDING_COMPLETED_KEY|markShopOnboardingCompleted|resetShopOnboardingCompletion/, "onboarding completion must not be persisted");
 
 assert.match(html, /id="shopPromoOnboarding"[^>]*role="dialog"[^>]*aria-modal="true"/);
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
 assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length, 1, "the onboarding overlay should contain a single reusable fashion image element");
-assert.match(html, /onclick="skipShopOnboarding\(\)" aria-label="Skip to welcome choices"/);
-assert.equal((html.match(/class="shop-promo-onboarding-choice/g) || []).length, 2, "the welcome screen should offer exactly Create Account and Explore Models");
-assert.match(html, /onclick="completeShopOnboardingChoice\('signup'\)"[^>]*hidden>Create Account/);
-assert.match(html, /onclick="completeShopOnboardingChoice\('explore'\)"[^>]*hidden>Explore Models/);
-assert.match(html, /shop-promo-onboarding-choice primary/);
-assert.match(html, /Women’s fashion in a clothing boutique/);
+assert.match(html, /onclick="skipShopOnboarding\(\)" aria-label="Skip onboarding and browse models"/);
+assert.doesNotMatch(onboardingMarkup, /shopPromoOnboardingWelcome|Create Account|Explore Models/);
+assert.match(html, /Women’s fashion collection, slide 3/);
 assert.match(html, /pointerdown/);
 assert.match(html, /pointerup/);
 assert.match(html, /safe-area-inset-bottom/);
@@ -44,30 +40,33 @@ assert.match(extractFunction("saveShopOnboardingImages"), /SHOP_ONBOARDING_IMAGE
 assert.match(extractFunction("saveShopOnboardingImages"), /originalStorageSetItem\.call\(localStorage,SHOP_ONBOARDING_IMAGES_KEY,value\)/, "a confirmed save should update the local mirror used by the existing sync flow");
 assert.match(extractFunction("renderOwnerPanel"), /section==="onboarding"\) renderShopOnboardingOwnerEditor/);
 assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingStartupView/);
-assert.match(extractFunction("completeShopOnboardingChoice"), /route==="shop"\)\{\s*openMain\(\{resumeIntent:false\}\);\s*openView\("home"\);\s*\}/, "Explore Models must enter Shop without replaying an intent or keeping a prior active view");
-assert.match(extractFunction("openMain"), /if\(options\.resumeIntent!==false\)resumeAuthenticationIntent\(\)/, "other app entry points must keep their existing authentication-intent behavior");
-assert.match(extractFunction("logout"), /resetShopOnboardingCompletion\(\)[\s\S]*showShopOnboarding\(\)/, "logout must clear completion and show the slides again");
+assert.match(extractFunction("finishShopOnboarding"), /openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "finishing or skipping must enter Shop without replaying a pending intent");
+assert.match(extractFunction("openMain"), /if\(!shopOnboardingActive\)hideShopOnboarding\(\)/, "cloud session restoration must not close an active onboarding overlay");
+assert.match(extractFunction("logout"), /showShopOnboarding\(\)/, "logout should show the same three-slide introduction");
 assert.match(html, /if\(!cloudMode\)await restoreSession\(\);/, "startup should still restore any saved session after cloud initialization");
 const startupHandler = html.match(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] || "";
 assert.ok(startupHandler, "the website should retain its startup handler");
 assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded\(\)/, "initial startup should enter Shop / Models after the branded splash");
+assert.match(extractFunction("finishShopStartupSplash"), /shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/, "the three-slide introduction should appear after the branded splash");
 assert.match(html, /function logout\(\)\{[\s\S]*?showShopOnboarding\(\)/, "logout should keep the existing onboarding replay behavior");
 
 const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
-  "getShopOnboardingChoiceRoute", "isShopOnboardingCompleted", "markShopOnboardingCompleted",
-  "resetShopOnboardingCompletion", "renderShopOnboardingSlide", "advanceShopOnboarding", "skipShopOnboarding",
-  "completeShopOnboardingChoice", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded",
+  "getShopOnboardingVisibilityAction", "renderShopOnboardingSlide", "advanceShopOnboarding", "skipShopOnboarding",
+  "finishShopOnboarding", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded", "showShopOnboarding",
+  "handleShopOnboardingVisibilityChange",
 ];
 const flowSource = [
   `const SHOP_ONBOARDING_IMAGES_KEY = "${sharedImageKey}";`,
-  `const SHOP_ONBOARDING_COMPLETED_KEY = "${completionKey}";`,
   "const SHOP_ONBOARDING_SLIDE_COUNT = 3;",
   'const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze(["https://fallback.example.test/1.jpg", "https://fallback.example.test/2.jpg", "https://fallback.example.test/3.jpg"]);',
   "let shopOnboardingSlideIndex=0;",
   "let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];",
+  "let shopOnboardingActive=false;",
+  "let shopAppWasHidden=false;",
+  "let shopStartupCompleted=true;",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
-  "({advance:advanceShopOnboarding,skip:skipShopOnboarding,choose:completeShopOnboardingChoice,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,completed:isShopOnboardingCompleted,mark:markShopOnboardingCompleted,reset:resetShopOnboardingCompletion,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,swipeTarget:getShopOnboardingSwipeTarget,choiceRoute:getShopOnboardingChoiceRoute,readImages:readShopOnboardingImages})",
+  "({advance:advanceShopOnboarding,skip:skipShopOnboarding,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive})",
 ].join("\n");
 function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home"}={}){
   const values = new Map();
@@ -96,10 +95,9 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     ["shopPromoOnboardingImage",image],
     ["shopPromoOnboardingStep",{textContent:""}],
     ["shopPromoOnboardingDots",dots],
-    ["shopPromoOnboardingSkip",{hidden:false,setAttribute(){}}],
-    ["shopPromoOnboardingWelcome",{hidden:true}],
-    ["shopPromoOnboardingCreateAccount",{hidden:true,focus(){}}],
-    ["shopPromoOnboardingExplore",{hidden:true}],
+    ["shopPromoOnboardingSkip",{hidden:false,setAttribute(){},focus(){}}],
+    ["authPage",{inert:false}],
+    ["mainApp",{inert:false}],
   ]);
   let authScreen = "";
   let openedShop = false;
@@ -109,7 +107,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     currentUser,
     cloudAccount,
     pendingAuthenticationIntent,
-    document: { getElementById: id => elements.get(id)||null },
+    document: { getElementById: id => elements.get(id)||null, body:{classList:{add(){},remove(){}}} },
     requestAnimationFrame: callback => callback(),
     hideShopOnboarding: () => { layer.hidden = true; },
     showShopOnboarding: () => { layer.hidden = false; openedOnboarding = true; },
@@ -121,89 +119,100 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   return { flow, runtime, storage, layer, image, dots, elements, listeners, get authScreen(){return authScreen;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;}, get renderCount(){return renderCount;} };
 }
 
-const signupFlow = createFlow();
-assert.equal(signupFlow.flow.view(false, signupFlow.flow.completed()), "onboarding", "a fresh logged-out visit should start the slideshow");
-signupFlow.flow.render();
-assert.equal(signupFlow.image.hidden, false, "screen one should show the fashion image");
-assert.equal(signupFlow.image.src, "https://fallback.example.test/1.jpg", "screen one should use the first saved/default image");
-assert.equal((signupFlow.dots.innerHTML.match(/active/g)||[]).length, 1, "screen one should show one active progress indicator");
-assert.equal(signupFlow.elements.get("shopPromoOnboardingSkip").hidden, false, "Skip should remain visible on screen one");
-signupFlow.flow.skip();
-assert.equal(signupFlow.flow.index(), 2, "Skip should go directly to the welcome screen");
-assert.equal(signupFlow.layer.hidden, false, "Skip should leave the two welcome choices visible");
-assert.equal(signupFlow.image.hidden, true, "the welcome screen should not display a promotional image");
-assert.equal(signupFlow.elements.get("shopPromoOnboardingWelcome").hidden, false, "the welcome message should be visible on screen three");
-assert.equal(signupFlow.elements.get("shopPromoOnboardingSkip").hidden, true, "Skip should be replaced by the two choices on screen three");
-assert.equal(signupFlow.elements.get("shopPromoOnboardingCreateAccount").hidden, false);
-assert.equal(signupFlow.elements.get("shopPromoOnboardingExplore").hidden, false);
-assert.equal((signupFlow.dots.innerHTML.match(/active/g)||[]).length, 3, "screen three should show all three progress indicators active");
-assert.equal(signupFlow.flow.completed(), false, "arriving at the welcome screen is not completion until a choice is selected");
-assert.equal(signupFlow.flow.choose("signup"), true, "Create Account should be accepted on the welcome screen");
-assert.equal(signupFlow.storage.getItem(completionKey), "1", "choosing Create Account should persist completion");
-assert.equal(signupFlow.layer.hidden, true, "Create Account should close the slideshow");
-assert.equal(signupFlow.authScreen, "signup", "Create Account should open the existing signup screen");
-assert.equal(signupFlow.flow.view(false, signupFlow.flow.completed()), "auth", "an ordinary refresh after completion should skip the slides");
-assert.equal(signupFlow.flow.view(true, false), "main", "authenticated users should bypass onboarding");
-signupFlow.flow.reset();
-assert.equal(signupFlow.flow.view(false, signupFlow.flow.completed()), "onboarding", "logout should make the slides appear again");
+const guestFlow = createFlow();
+guestFlow.storage.setItem('shivan_shop_web_onboarding_completed', '1');
+assert.equal(guestFlow.flow.view(), 'onboarding', 'every page launch starts onboarding even if an old persistent completion flag exists');
+guestFlow.flow.showIfNeeded();
+guestFlow.flow.render();
+assert.equal(guestFlow.layer.hidden, false, 'the first slide should show at startup');
+assert.equal(guestFlow.image.src, 'https://fallback.example.test/1.jpg', 'slide one should show the first shared image');
+assert.equal((guestFlow.dots.innerHTML.match(/active/g)||[]).length, 1, 'slide one should have one active progress indicator');
+assert.equal(guestFlow.elements.get('shopPromoOnboardingSkip').hidden, false, 'Skip should stay available on every slide');
+guestFlow.flow.advance();
+assert.equal(guestFlow.image.src, 'https://fallback.example.test/2.jpg', 'slide two should show the second shared image');
+assert.equal((guestFlow.dots.innerHTML.match(/active/g)||[]).length, 2, 'slide two should have two active progress indicators');
+guestFlow.flow.advance();
+assert.equal(guestFlow.flow.index(), 2, 'navigation should reach the third slide');
+assert.equal(guestFlow.image.src, 'https://fallback.example.test/3.jpg', 'slide three should show the third shared image');
+assert.equal((guestFlow.dots.innerHTML.match(/active/g)||[]).length, 3, 'slide three should show all progress indicators');
+assert.equal(guestFlow.storage.getItem('shivan_shop_web_onboarding_completed'), '1', 'an old marker is ignored and left untouched');
 
-const exploreFlow = createFlow({pendingAuthenticationIntent:{type:"profile"},activeView:"profile"});
-exploreFlow.flow.advance();
-assert.equal(exploreFlow.flow.index(), 1, "left navigation should reveal screen two");
-assert.equal(exploreFlow.image.src, "https://fallback.example.test/2.jpg", "screen two should show its single fashion image");
-assert.equal((exploreFlow.dots.innerHTML.match(/active/g)||[]).length, 2, "screen two should show two progress indicators active");
-assert.equal(exploreFlow.image.hidden, false, "screen two should display its fashion image");
-exploreFlow.flow.advance();
-assert.equal(exploreFlow.flow.index(), 2, "left navigation should reveal the welcome screen");
-assert.equal(exploreFlow.flow.completed(), false, "swiping to welcome should not force a choice");
-assert.equal(exploreFlow.flow.choose("explore"), true, "Explore Models should be accepted on the welcome screen");
-assert.equal(exploreFlow.flow.completed(), true, "Explore Models should persist onboarding completion");
-assert.equal(exploreFlow.openedShop, true, "Explore Models should open the existing shop view without registration");
-assert.equal(exploreFlow.openMainOptions.resumeIntent, false, "Explore Models must bypass pending authentication redirects");
-assert.equal(exploreFlow.openedView, "home", "Explore Models must remain on Shop even if a stale Profile intent exists");
-assert.equal(exploreFlow.runtime.pendingAuthenticationIntent.type, "profile", "Explore Models does not erase a pending intent or customer data");
-assert.equal(exploreFlow.authScreen, "", "Explore Models must not open Login or Sign Up");
-assert.equal(exploreFlow.flow.choiceRoute("invalid"), "", "unknown actions must not route or complete onboarding");
+const skipFlow = createFlow({pendingAuthenticationIntent:{type:'profile'},activeView:'profile'});
+skipFlow.flow.showIfNeeded();
+skipFlow.flow.skip();
+assert.equal(skipFlow.layer.hidden, true, 'Skip should dismiss the promotional slides');
+assert.equal(skipFlow.openedShop, true, 'Skip should open the model selection shop');
+assert.equal(skipFlow.openedView, 'home', 'Skip should land on model selection');
+assert.equal(skipFlow.openMainOptions.resumeIntent, false, 'onboarding must not resume stale authentication redirects');
+assert.equal(skipFlow.runtime.pendingAuthenticationIntent.type, 'profile', 'onboarding does not erase pending account data');
 
-const savedCustomer = { id: "saved-customer", name: "Existing Customer", role: "customer" };
-const savedSession = JSON.stringify({ accountId: savedCustomer.id });
-const signedInFlow = createFlow({currentUser:savedCustomer});
-signedInFlow.storage.setItem("test-account-session", savedSession);
-signedInFlow.layer.hidden = true;
+const savedCustomer = { id:'saved-customer', name:'Existing Customer', role:'customer' };
+const savedSession = JSON.stringify({ accountId:savedCustomer.id });
+const signedInFlow = createFlow({currentUser:savedCustomer,activeView:'profile'});
+signedInFlow.storage.setItem('test-account-session', savedSession);
+signedInFlow.storage.setItem('test-cart', JSON.stringify([{productId:'p1',qty:2}]));
 signedInFlow.flow.showIfNeeded();
-assert.equal(signedInFlow.layer.hidden, true, "an existing signed-in customer bypasses onboarding");
-assert.equal(signedInFlow.openedOnboarding, false, "a saved session does not show the guest onboarding choices");
-assert.equal(signedInFlow.runtime.currentUser, savedCustomer, "the restored account remains the same signed-in account");
-assert.equal(signedInFlow.storage.getItem("test-account-session"), savedSession, "onboarding does not overwrite or remove the saved session");
-assert.equal(signedInFlow.flow.choose("explore"), false, "an authenticated user cannot be redirected by a guest onboarding choice");
-assert.equal(signedInFlow.runtime.currentUser, savedCustomer, "an ignored Explore action preserves the authenticated user");
-assert.equal(signedInFlow.storage.getItem("test-account-session"), savedSession, "an ignored Explore action preserves the saved session");
+assert.equal(signedInFlow.layer.hidden, false, 'signed-in customers also see onboarding on a new app entry');
+assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'the existing signed-in account remains active behind onboarding');
+assert.equal(signedInFlow.storage.getItem('test-account-session'), savedSession, 'onboarding preserves the saved account session');
+assert.equal(signedInFlow.storage.getItem('test-cart'), JSON.stringify([{productId:'p1',qty:2}]), 'onboarding preserves the cart');
+signedInFlow.flow.advance();
+signedInFlow.flow.advance();
+signedInFlow.flow.advance();
+assert.equal(signedInFlow.layer.hidden, true, 'completing all slides dismisses onboarding');
+assert.equal(signedInFlow.openedView, 'home', 'completion opens model selection');
+assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'completion preserves the signed-in account');
+assert.equal(signedInFlow.storage.getItem('test-account-session'), savedSession, 'completion does not rewrite account storage');
+assert.equal(signedInFlow.storage.getItem('test-cart'), JSON.stringify([{productId:'p1',qty:2}]), 'completion preserves the cart');
 
 const swipeFlow = createFlow();
+swipeFlow.flow.show();
 swipeFlow.flow.setup(swipeFlow.layer);
 const pointer = (x,y,pointerId=1,target={closest:()=>null})=>({clientX:x,clientY:y,pointerId,isPrimary:true,target});
-swipeFlow.listeners.get("pointerdown")(pointer(300,100));
-swipeFlow.listeners.get("pointerup")(pointer(220,105));
-assert.equal(swipeFlow.flow.index(), 1, "a left swipe should advance from screen one to screen two");
-swipeFlow.listeners.get("pointerdown")(pointer(300,100));
-swipeFlow.listeners.get("pointerup")(pointer(220,100));
-assert.equal(swipeFlow.flow.index(), 2, "a left swipe should advance from screen two to welcome");
-swipeFlow.listeners.get("pointerdown")(pointer(220,100));
-swipeFlow.listeners.get("pointerup")(pointer(300,100));
-assert.equal(swipeFlow.flow.index(), 1, "a right swipe should return to the previous screen");
-swipeFlow.listeners.get("pointerdown")(pointer(300,100));
-swipeFlow.listeners.get("pointerup")(pointer(290,180));
-assert.equal(swipeFlow.flow.index(), 1, "vertical scrolling should not be mistaken for a swipe");
-swipeFlow.listeners.get("pointerdown")(pointer(300,100,1,{closest:()=>({})}));
-swipeFlow.listeners.get("pointerup")(pointer(220,100));
-assert.equal(swipeFlow.flow.index(), 1, "swiping from a button must not activate gesture navigation");
-assert.equal(swipeFlow.flow.swipeTarget(2,300,100,220,100), 2, "swiping beyond the last screen should stay on the welcome screen");
-assert.equal(swipeFlow.flow.swipeTarget(0,220,100,300,100), 0, "swiping before the first screen should stay on screen one");
+swipeFlow.listeners.get('pointerdown')(pointer(300,100));
+swipeFlow.listeners.get('pointerup')(pointer(220,105));
+assert.equal(swipeFlow.flow.index(), 1, 'a left swipe advances from slide one to slide two');
+swipeFlow.listeners.get('pointerdown')(pointer(300,100));
+swipeFlow.listeners.get('pointerup')(pointer(220,100));
+assert.equal(swipeFlow.flow.index(), 2, 'a left swipe advances from slide two to slide three');
+swipeFlow.listeners.get('pointerdown')(pointer(220,100));
+swipeFlow.listeners.get('pointerup')(pointer(300,100));
+assert.equal(swipeFlow.flow.index(), 1, 'a right swipe returns to the previous slide');
+swipeFlow.listeners.get('pointerdown')(pointer(300,100));
+swipeFlow.listeners.get('pointerup')(pointer(290,180));
+assert.equal(swipeFlow.flow.index(), 1, 'vertical scrolling is not mistaken for a swipe');
+swipeFlow.listeners.get('pointerdown')(pointer(300,100,1,{closest:()=>({})}));
+swipeFlow.listeners.get('pointerup')(pointer(220,100));
+assert.equal(swipeFlow.flow.index(), 1, 'swiping from a button does not trigger slide navigation');
+swipeFlow.flow.advance();
+swipeFlow.listeners.get('pointerdown')(pointer(300,100));
+swipeFlow.listeners.get('pointerup')(pointer(220,100));
+assert.equal(swipeFlow.layer.hidden, true, 'a left swipe after slide three completes onboarding');
+assert.equal(swipeFlow.openedView, 'home', 'the completion swipe opens model selection');
+assert.equal(swipeFlow.flow.swipeTarget(2,300,100,220,100), 2, 'the last-slide swipe target stays clamped while the handler completes the flow');
+assert.equal(swipeFlow.flow.swipeTarget(0,220,100,300,100), 0, 'swiping before the first slide stays on slide one');
+
+const lifecycleFlow = createFlow();
+lifecycleFlow.flow.show();
+lifecycleFlow.flow.advance();
+assert.equal(lifecycleFlow.flow.handleVisibility(false), false, 'ordinary page navigation does not replay onboarding');
+lifecycleFlow.flow.advance();
+lifecycleFlow.flow.handleVisibility(true);
+assert.equal(lifecycleFlow.flow.handleVisibility(false), true, 'returning from a hidden app replays onboarding');
+assert.equal(lifecycleFlow.flow.index(), 0, 're-entry restarts at slide one');
+lifecycleFlow.runtime.openView('search');
+assert.equal(lifecycleFlow.flow.handleVisibility(false), false, 'navigation inside the active session does not replay the slides');
+const hiddenDuringStartup=lifecycleFlow.flow.visibility(true,false,true);
+assert.equal(hiddenDuringStartup.wasHidden,true);
+assert.equal(hiddenDuringStartup.show,false);
+const returnedDuringStartup=lifecycleFlow.flow.visibility(false,true,false);
+assert.equal(returnedDuringStartup.wasHidden,false);
+assert.equal(returnedDuringStartup.show,false,'a hidden interval during startup does not replace the initial splash handoff');
 
 const imageFlow = createFlow();
-const savedSlideImages = ["https://cdn.example.test/first.webp", "https://cdn.example.test/second.webp", "https://cdn.example.test/third.webp"];
+const savedSlideImages = ['https://cdn.example.test/first.webp', 'https://cdn.example.test/second.webp', 'https://cdn.example.test/third.webp'];
 imageFlow.storage.setItem(sharedImageKey, JSON.stringify(savedSlideImages));
-assert.deepEqual(Array.from(imageFlow.flow.readImages()), savedSlideImages, "a refresh should retain the existing three shared image URLs");
+assert.deepEqual(Array.from(imageFlow.flow.readImages()), savedSlideImages, 'a refresh should retain the existing three shared image URLs');
 const storage=imageFlow.storage;
 
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
@@ -309,4 +318,4 @@ const invalidWrite = await write({ cookie: ownerCookie, value: JSON.stringify([u
 assert.equal(invalidWrite.status, 400, "the API should reject insecure or malformed slide image URLs");
 assert.equal(DB.shop.get(sharedImageKey), savedImages, "rejected writes must not alter the previously saved slides");
 
-console.log("Offline onboarding checks passed: single-image slides and progress, direct Skip to the two-choice welcome screen, swipe bounds and button guards, signup/explore routing, completion and logout behavior, authenticated-user bypass, shared image URLs, offline D1 image persistence, cross-device reads, and server-enforced Owner-only writes.");
+console.log("Offline website onboarding checks passed: three shared image slides, Skip and completion to Models, swipe bounds and button guards, launch and foreground replay, no persistent completion state, signed-in account/cart preservation, shared image URLs, offline D1 persistence, cross-device reads, and server-enforced Owner-only writes.");

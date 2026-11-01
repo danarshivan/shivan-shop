@@ -2430,7 +2430,6 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .shop-promo-onboarding-choice.primary{border-color:#5aabff;background:linear-gradient(135deg,#1686ff,#3159ed);box-shadow:0 10px 30px rgba(28,112,255,.28)}
 .shop-promo-onboarding-choice.secondary{background:rgba(7,16,38,.78)}
 .shop-promo-onboarding[data-screen="3"]{background:radial-gradient(ellipse at 50% 43%,rgba(24,111,234,.28),transparent 49%),linear-gradient(155deg,#07142e,#050918 70%)}
-.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-shade{display:none}
 .shop-promo-onboarding.is-transitioning .shop-promo-onboarding-image{opacity:.72;transform:scale(1.025)}
 @media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}}
 .owner-promo-slides{display:grid;gap:12px}
@@ -2632,17 +2631,10 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   <div class="shop-promo-onboarding-shade" aria-hidden="true"></div>
   <div class="shop-promo-onboarding-content">
     <div class="shop-promo-onboarding-brand" aria-label="Shivan Shop">Shivan <span>Shop</span></div>
-    <div id="shopPromoOnboardingWelcome" class="shop-promo-onboarding-welcome" hidden>
-      <p class="shop-promo-onboarding-eyebrow">Welcome to</p>
-      <h1 class="shop-promo-onboarding-title">Shivan Shop</h1>
-      <p class="shop-promo-onboarding-copy">Discover elegant women’s fashion, made to feel like you.</p>
-    </div>
     <p id="shopPromoOnboardingStep" class="shop-promo-onboarding-step" aria-live="polite">Slide 1 of 3</p>
     <div id="shopPromoOnboardingDots" class="shop-promo-onboarding-dots" role="group" aria-label="Screen 1 of 3"></div>
     <div class="shop-promo-onboarding-actions">
-      <button id="shopPromoOnboardingSkip" class="shop-promo-onboarding-skip" type="button" onclick="skipShopOnboarding()" aria-label="Skip to welcome choices">Skip <span aria-hidden="true">→</span></button>
-      <button id="shopPromoOnboardingCreateAccount" class="shop-promo-onboarding-choice primary" type="button" onclick="completeShopOnboardingChoice('signup')" hidden>Create Account <span aria-hidden="true">→</span></button>
-      <button id="shopPromoOnboardingExplore" class="shop-promo-onboarding-choice secondary" type="button" onclick="completeShopOnboardingChoice('explore')" hidden>Explore Models <span aria-hidden="true">↗</span></button>
+      <button id="shopPromoOnboardingSkip" class="shop-promo-onboarding-skip" type="button" onclick="skipShopOnboarding()" aria-label="Skip onboarding and browse models">Skip <span aria-hidden="true">→</span></button>
     </div>
   </div>
 </section>
@@ -3538,7 +3530,6 @@ const ORDERS_KEY = "shivan_shop_orders";
 const PRODUCTS_KEY = "shivan_shop_products";
 const ADS_KEY = "shivan_shop_ads";
 const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";
-const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_web_onboarding_completed";
 const SHOP_ONBOARDING_SLIDE_COUNT = 3;
 const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze([
   "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
@@ -3588,9 +3579,10 @@ function finishShopStartupSplash(){
   if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
   const mainApp=document.getElementById("mainApp");
   if(mainApp&&mainApp.style.display!=="block")openMain({resumeIntent:false});
+  shopStartupCompleted=true;
+  showShopOnboardingIfNeeded();
   mainApp?.classList.add("shop-startup-enter");
   splash.classList.add("is-exiting");
-  shopStartupCompleted=true;
   setTimeout(()=>{
     splash.hidden=true;
     splash.classList.remove("is-exiting");
@@ -3613,6 +3605,8 @@ let cloudSyncRetryDelay=1000;
 let cloudWriteFailureNoticeShown=false;
 let shopOnboardingSlideIndex=0;
 let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
+let shopOnboardingActive=false;
+let shopAppWasHidden=false;
 let ownerProductWorkflowId="";
 let ownerAdWorkflowId="";
 let checkoutSubmitting=false;
@@ -4017,6 +4011,7 @@ function stopCloudSync(){
 }
 
 document.addEventListener("visibilitychange",()=>{
+  handleShopOnboardingVisibilityChange(document.hidden);
   if(document.hidden||!cloudMode||!cloudAccount)return;
   refreshCloudData().catch(()=>{});
   connectCloudRealtime();
@@ -4044,7 +4039,7 @@ async function initializeCloud(){
   const authPromise=cloudRequest("/api/auth/me",{timeoutMs:SHOP_STARTUP_REQUEST_TIMEOUT_MS})
     .then(auth=>({ok:true,auth}))
     .catch(error=>({ok:false,error}));
-  const cachedShopWasOpened=hasCachedShop&&isShopOnboardingCompleted();
+  const cachedShopWasOpened=hasCachedShop;
   if(cachedShopWasOpened){
     openMain({resumeIntent:false});
     finishShopStartupSplash();
@@ -5519,9 +5514,8 @@ function renderHomeAdvertisements(){
    AUTH
 ========================================= */
 
-function getShopOnboardingStartupView(authenticated,completed){
-  if(authenticated)return "main";
-  return completed?"auth":"onboarding";
+function getShopOnboardingStartupView(){
+  return "onboarding";
 }
 
 function getNextShopOnboardingStep(index,total=SHOP_ONBOARDING_SLIDE_COUNT){
@@ -5539,22 +5533,16 @@ function getShopOnboardingSwipeTarget(index,startX,startY,endX,endY,total=SHOP_O
   return Math.max(0,Math.min(count-1,current+(deltaX<0?1:-1)));
 }
 
-function getShopOnboardingChoiceRoute(choice){
-  if(choice==="signup")return "signup";
-  if(choice==="explore")return "shop";
-  return "";
+function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
+  if(hidden)return {wasHidden:true,show:false};
+  return {wasHidden:false,show:Boolean(wasHidden&&startupComplete)};
 }
 
-function isShopOnboardingCompleted(storage=localStorage){
-  try{return storage.getItem(SHOP_ONBOARDING_COMPLETED_KEY)==="1";}catch(error){return false;}
-}
-
-function markShopOnboardingCompleted(storage=localStorage){
-  try{storage.setItem(SHOP_ONBOARDING_COMPLETED_KEY,"1");return true;}catch(error){return false;}
-}
-
-function resetShopOnboardingCompletion(storage=localStorage){
-  try{storage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);}catch(error){}
+function handleShopOnboardingVisibilityChange(hidden=document.hidden){
+  const action=getShopOnboardingVisibilityAction(hidden,shopAppWasHidden,shopStartupCompleted);
+  shopAppWasHidden=action.wasHidden;
+  if(action.show)showShopOnboarding();
+  return action.show;
 }
 
 function readShopOnboardingImages(){
@@ -5570,32 +5558,23 @@ function renderShopOnboardingSlide(){
   const step=document.getElementById("shopPromoOnboardingStep");
   const dots=document.getElementById("shopPromoOnboardingDots");
   const skip=document.getElementById("shopPromoOnboardingSkip");
-  const welcome=document.getElementById("shopPromoOnboardingWelcome");
-  const createAccount=document.getElementById("shopPromoOnboardingCreateAccount");
-  const explore=document.getElementById("shopPromoOnboardingExplore");
   if(!image||!step||!dots)return;
   shopOnboardingImages=readShopOnboardingImages();
   const index=Math.max(0,Math.min(SHOP_ONBOARDING_SLIDE_COUNT-1,shopOnboardingSlideIndex));
-  const sourceIndex=index===1?1:0;
-  const screenImage=shopOnboardingImages[sourceIndex];
+  const screenImage=shopOnboardingImages[index];
   if(layer){
     layer.dataset.screen=String(index+1);
-    layer.setAttribute("aria-label",index===2?"Shivan Shop welcome":"Shivan Shop fashion introduction");
+    layer.setAttribute("aria-label","Shivan Shop promotional slide "+(index+1)+" of "+SHOP_ONBOARDING_SLIDE_COUNT);
     layer.classList.add("is-transitioning");
     requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.remove("is-transitioning")));
   }
-  image.hidden=index===2;
-  if(index<2){
-    if(image.getAttribute("src")!==screenImage)image.src=screenImage;
-    image.alt=index===0?"Woman wearing an elegant fashion look":"Women’s fashion in a clothing boutique";
-  }else image.alt="";
+  image.hidden=false;
+  if(image.getAttribute("src")!==screenImage)image.src=screenImage;
+  image.alt=["Women’s fashion look, slide 1","Women’s fashion collection, slide 2","Women’s fashion collection, slide 3"][index];
   step.textContent=`Screen ${index+1} of ${SHOP_ONBOARDING_SLIDE_COUNT}`;
   dots.setAttribute("aria-label",`Screen ${index+1} of ${SHOP_ONBOARDING_SLIDE_COUNT}`);
   dots.innerHTML=SHOP_ONBOARDING_DEFAULT_IMAGES.map((_,dotIndex)=>`<span class="${dotIndex<=index?"active":""}"></span>`).join("");
-  if(welcome)welcome.hidden=index!==2;
-  if(skip){skip.hidden=index===2;skip.setAttribute("aria-label","Skip to the welcome choices");}
-  if(createAccount)createAccount.hidden=index!==2;
-  if(explore)explore.hidden=index!==2;
+  if(skip){skip.hidden=false;skip.setAttribute("aria-label","Skip onboarding and browse models");}
 }
 
 function setupShopOnboardingGestures(layer){
@@ -5607,11 +5586,15 @@ function setupShopOnboardingGestures(layer){
     start={x:event.clientX,y:event.clientY,pointerId:event.pointerId,interactive:Boolean(event.target?.closest?.("button"))};
   },{passive:true});
   layer.addEventListener("pointerup",event=>{
-    if(!start||layer.hidden||currentUser||cloudAccount){start=null;return;}
+    if(!start||layer.hidden){start=null;return;}
     const gesture=start;start=null;
     if(gesture.interactive||event.isPrimary===false||(gesture.pointerId!==undefined&&event.pointerId!==gesture.pointerId)||event.target?.closest?.("button"))return;
     const target=getShopOnboardingSwipeTarget(shopOnboardingSlideIndex,gesture.x,gesture.y,event.clientX,event.clientY);
-    if(target===shopOnboardingSlideIndex)return;
+    if(target===shopOnboardingSlideIndex){
+      const deltaX=event.clientX-gesture.x,deltaY=event.clientY-gesture.y;
+      if(shopOnboardingSlideIndex===SHOP_ONBOARDING_SLIDE_COUNT-1&&deltaX<=-48&&Math.abs(deltaX)>Math.abs(deltaY)*1.15)finishShopOnboarding();
+      return;
+    }
     shopOnboardingSlideIndex=target;
     renderShopOnboardingSlide();
   },{passive:true});
@@ -5619,6 +5602,7 @@ function setupShopOnboardingGestures(layer){
 }
 
 function hideShopOnboarding(){
+  shopOnboardingActive=false;
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return;
   layer.hidden=true;
@@ -5631,9 +5615,9 @@ function hideShopOnboarding(){
 }
 
 function showShopOnboarding(){
-  if(currentUser||cloudAccount)return false;
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return false;
+  shopOnboardingActive=true;
   shopOnboardingSlideIndex=0;
   shopOnboardingImages=readShopOnboardingImages();
   layer.hidden=false;
@@ -5650,41 +5634,31 @@ function showShopOnboarding(){
 }
 
 function showShopOnboardingIfNeeded(){
-  const view=getShopOnboardingStartupView(Boolean(currentUser||cloudAccount),isShopOnboardingCompleted());
-  if(view==="main"){hideShopOnboarding();return;}
-  if(view==="auth"){hideShopOnboarding();showAuth("login");return;}
-  showShopOnboarding();
+  return getShopOnboardingStartupView()==="onboarding"?showShopOnboarding():false;
 }
 
 function advanceShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||currentUser||cloudAccount)return;
+  if(!layer||layer.hidden)return;
   const next=getNextShopOnboardingStep(shopOnboardingSlideIndex);
+  if(next.completed){finishShopOnboarding();return;}
   shopOnboardingSlideIndex=next.index;
   renderShopOnboardingSlide();
 }
 
 function skipShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||currentUser||cloudAccount)return;
-  shopOnboardingSlideIndex=SHOP_ONBOARDING_SLIDE_COUNT-1;
-  renderShopOnboardingSlide();
-  requestAnimationFrame(()=>document.getElementById("shopPromoOnboardingCreateAccount")?.focus({preventScroll:true}));
+  if(!layer||layer.hidden)return;
+  finishShopOnboarding();
 }
 
-function completeShopOnboardingChoice(choice){
-  if(currentUser||cloudAccount)return false;
-  const route=getShopOnboardingChoiceRoute(choice);
+function finishShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!route||!layer||layer.hidden||shopOnboardingSlideIndex!==SHOP_ONBOARDING_SLIDE_COUNT-1)return false;
-  markShopOnboardingCompleted();
+  if(!layer||layer.hidden)return false;
   hideShopOnboarding();
-  if(route==="signup")showAuth("signup");
-  else if(route==="shop"){
-    openMain({resumeIntent:false});
-    openView("home");
-  }
-  return Boolean(route);
+  openMain({resumeIntent:false});
+  openView("home");
+  return true;
 }
 
 function showAuth(type){
@@ -6057,7 +6031,6 @@ async function logout(){
 
   currentUser = null;
   pendingAuthenticationIntent=null;
-  resetShopOnboardingCompletion();
 
   document.querySelector(".app")?.classList.add("auth-mode");
   document.getElementById("mainApp").style.display="none";
@@ -6146,7 +6119,7 @@ function resetPassword(){
 function openMain(options={}){
 
   restoreProfileAuthCard();
-  hideShopOnboarding();
+  if(!shopOnboardingActive)hideShopOnboarding();
 
   document.querySelector(".app")?.classList.remove("auth-mode");
   document.getElementById("authPage").style.display="none";
