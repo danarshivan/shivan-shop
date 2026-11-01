@@ -26,7 +26,10 @@ assert.doesNotMatch(html, /SHOP_ONBOARDING_COMPLETED_KEY|markShopOnboardingCompl
 assert.match(html, /id="shopPromoOnboarding"[^>]*role="dialog"[^>]*aria-modal="true"/);
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
 assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length, 1, "the onboarding overlay should contain a single reusable fashion image element");
-assert.match(onboardingMarkup, /<svg viewBox="0 0 32 32"[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/svg>\s*<span>SHIVAN SHOP<\/span>/, "the same Shivan Shop wordmark and shopping bag icon should appear at the top");
+const brandMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-brand"[^>]*>[\s\S]*?<\/div>/)?.[0]||"";
+assert.match(brandMarkup, /<span>SHIVAN SHOP<\/span>/, "the centered brand name should appear at the top");
+assert.doesNotMatch(brandMarkup, /<svg|cart|bag/i, "the onboarding brand should not display a shopping icon");
+assert.match(html, /\.shop-promo-onboarding-brand\{[^}]*justify-content:center/, "the header brand should remain centered after removing the icon");
 assert.match(onboardingMarkup, /id="shopPromoOnboardingNext"[^>]*onclick="advanceShopOnboarding\(\)"[^>]*>Next/, "slides one and two should provide a Next button");
 assert.match(onboardingMarkup, /id="shopPromoOnboardingChoices"[^>]*hidden>[\s\S]*?onclick="startShopOnboardingSignup\(\)"[^>]*>Create Account[\s\S]*?onclick="finishShopOnboarding\(\)"[^>]*>Explore Models/, "the last slide should show the two requested choices");
 assert.doesNotMatch(onboardingMarkup, /\bSkip\b|shopPromoOnboardingSkip/);
