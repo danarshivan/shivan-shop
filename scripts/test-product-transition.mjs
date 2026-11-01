@@ -7,40 +7,14 @@ assert.match(html, /<div class="product" onclick="openProduct\(\$\{p\.id\}\)">/,
 assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product opening should retain its current 190 ms animation");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the Back button should avoid tap-gesture delay");
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
-assert.match(html, /body\.detail-view-open\{display:flex;justify-content:center\}/, "the previous centered layout should remain stable while details are open");
-assert.match(html, /html\.detail-view-open,body\.detail-view-open\{[^}]*overflow:hidden/, "the background page should remain fixed during the Back animation");
-assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should use an accessible iPhone-style chevron Back button");
-assert.doesNotMatch(html, /<button class="back"[^>]*>×<\/button>/, "the product-detail close glyph should be removed");
-assert.match(html, /id="detailBackEdge"[^>]*onpointerdown="beginProductBackSwipe\(event\)"[^>]*onpointermove="moveProductBackSwipe\(event\)"[^>]*onpointerup="endProductBackSwipe\(event\)"[^>]*onpointercancel="cancelProductBackSwipe\(event\)"/, "the detail view should wire a dedicated edge-swipe gesture area");
-assert.match(html, /\.app\.detail-mode #detailBackEdge\{[^}]*width:18px;[^}]*touch-action:pan-y/, "the swipe region should be narrow and preserve normal vertical page scrolling");
-assert.match(html, /\.detail-gallery-track\{[^}]*touch-action:pan-x pan-y pinch-zoom/, "the Back gesture must leave horizontal image-gallery swiping intact");
-assert.match(html, /#mainApp #detailView\.product-detail-leaving\.product-detail-back-ready\{transition:transform 200ms/, "the product page should slide out in 200 ms after its fixed overlay is laid out");
-assert.match(html, /#mainApp #detailView\.product-detail-leaving\.product-detail-swipe-snapback\{transition:transform 180ms/, "a canceled edge drag should snap back smoothly");
-assert.match(html, /#mainApp #detailView\.product-detail-leaving\{[^}]*transition:none/, "the fixed overlay should settle without a coordinate jump before the slide begins");
-assert.match(html, /#mainApp #detailView\.product-detail-leaving\.product-detail-back-sliding\{transform:translate3d\(calc\(-50% \+ 100vw\),0,0\)\}/, "Back should move details right to reveal the underlying list");
-assert.match(html, /#mainApp \.view\.active\.product-backdrop-revealed[^}]*animation:none!important/, "the revealed list should keep its existing pixels stable during Back");
-assert.match(html, /\.app\.detail-mode\.product-back-navigation \.view\.product-backdrop-revealed\{pointer-events:none\}/, "the revealed list should not accept competing taps before the Back slide completes");
-assert.match(html, /\.app\.detail-mode\.product-back-navigation \.topbar\{display:flex\}[\s\S]*?\.app\.detail-mode\.product-back-navigation \.bottom-nav\{display:grid;pointer-events:none\}/, "the original shop header and grid navigation should be revealed without accepting a competing route mid-transition");
-assert.match(html, /prefers-reduced-motion:reduce\)\{#mainApp #detailView\.product-detail-leaving,[\s\S]*?transition:none!important/, "the Back transition should respect reduced-motion preferences");
-assert.doesNotMatch(html, /product-list-returning|shopMotionProductListReturn/, "the previous close fade should not stack with the new slide Back transition");
-
-const helperStart = html.indexOf("function prefersReducedProductMotion(){");
-const openStart = html.indexOf("function openProduct(id){", helperStart);
-const navigationStart = html.indexOf("function prepareProductBackNavigation(destinationView,");
-const navigationEnd = html.indexOf("function isFavorite(id){", navigationStart);
-assert.ok(helperStart >= 0 && openStart > helperStart, "product motion helpers should exist");
-assert.ok(navigationStart > openStart && navigationEnd > navigationStart, "the Back button and edge-swipe flow should be present");
-const helpers = html.slice(helperStart, openStart).trim();
-const openEnd = html.indexOf("function detailPhotosForProduct(){", openStart);
-assert.ok(openEnd > openStart, "the product opener should remain available");
-const openProductSource = html.slice(openStart, openEnd).trim();
-const navigationSource = html.slice(navigationStart, navigationEnd).trim();
-assert.doesNotMatch(openProductSource, /startViewTransition|requestAnimationFrame|setTimeout|await /, "opening must remain immediate and unchanged");
-assert.match(openProductSource, /previousView=\["home","search"\][\s\S]*?previousViewScrollY=Math\.max\(0,Number\(window\.scrollY\|\|document\.documentElement\.scrollTop\|\|document\.body\.scrollTop\|\|0\)\)/, "opening should remember whether Home or Search was active and its exact scroll position");
-assert.match(navigationSource, /openView\(destinationView,\{preserveProductReturn:true\}\)[\s\S]*?window\.scrollTo\(0,previousViewScrollY\)/, "finishing Back should restore the same route and scroll position");
-assert.match(navigationSource, /!\['home','search'\]\.includes\(destinationView\)/, "Back should refuse an invalid route instead of unexpectedly navigating Home");
-assert.match(navigationSource, /productDetailClosing\|\|!destination/, "double taps must not start duplicate Back transitions");
-assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?if\(productDetailClosing&&!options\.preserveProductReturn\)return;/, "keyboard or route actions cannot interrupt an in-flight Back transition");
+assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should keep its accessible iPhone-style Back button");
+assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY\)/, "each detail entry should carry a browser-history product target");
+assert.match(html, /function snapshotProductDetail\(\)[\s\S]*?detailScrollTop:[\s\S]*?galleryIndex:[\s\S]*?quantity:/, "nested navigation should remember the full prior detail context");
+assert.match(html, /function ensureProductHistoryListener\(\)[\s\S]*?addEventListener\?\.\("popstate"/, "browser Back and Forward should use the product history handler");
+assert.match(html, /product-detail-history-preview/, "a previous detail snapshot should be revealed under the outgoing product");
+assert.match(html, /function openProduct\(id,options=\{\}\)[\s\S]*?productDetailHistoryStack\.push\(snapshotProductDetail\(\)\)/, "opening a product from another product should save the predecessor");
+assert.match(html, /window\.history\.back\(\)/, "the visible Back action should update browser history");
+assert.match(html, /#mainApp #detailView\.product-detail-leaving\.product-detail-back-ready\{transition:transform 200ms/, "the existing smooth rightward transition should remain 200 ms");
 
 function classListFor(classes) {
   return {
@@ -51,24 +25,35 @@ function classListFor(classes) {
   };
 }
 
-function createHarness({ reducedMotion = false, width = 390, height = 844 } = {}) {
-  const state = { openedViews: [], scrollY: 421, scrollCalls: [], timers: new Map(), nextTimer: 1, now: 10, transitionHandler: null, prevented: false, cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }] };
-  const makeView = initial => { const classes = new Set(initial); return { classes, classList: classListFor(classes) }; };
+function createHarness({ reducedMotion = false, width = 390, height = 844, initialHistoryState = { page: "shop" } } = {}) {
+  const state = { openedViews: [], scrollY: 421, scrollCalls: [], timers: new Map(), nextTimer: 1, now: 10, transitionHandler: null, popHandler: null, backCalls: 0, forwardCalls: 0, cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }] };
+  const makeView = initial => {
+    const classes = new Set(initial);
+    const element = {
+      classes, classList: classListFor(classes), scrollTop: 0, offsetWidth: width, children: [], parentNode: null,
+      style: { values: new Map(), setProperty(name, value) { this.values.set(name, value); }, removeProperty(name) { this.values.delete(name); } },
+      addEventListener(name, handler) { if (name === "transitionend") state.transitionHandler = handler; },
+      removeEventListener(name, handler) { if (name === "transitionend" && state.transitionHandler === handler) state.transitionHandler = null; },
+      setAttribute() {}, querySelector() { return edge; }, querySelectorAll() { return []; },
+      cloneNode() { const clone = makeView([...classes]); clone.scrollTop = element.scrollTop; clone.setAttribute = () => {}; clone.querySelector = () => ({ style: {} }); return clone; },
+      remove() { if (this.parentNode) { this.parentNode.children = this.parentNode.children.filter(child => child !== this); this.parentNode = null; } },
+    };
+    return element;
+  };
   const detailView = makeView([]);
-  detailView.scrollTop = 0;
-  detailView.offsetWidth = 390;
-  detailView.style = { values: new Map(), setProperty(name, value) { this.values.set(name, value); }, removeProperty(name) { this.values.delete(name); } };
-  detailView.addEventListener = (name, handler) => { if (name === "transitionend") state.transitionHandler = handler; };
-  detailView.removeEventListener = (name, handler) => { if (name === "transitionend" && state.transitionHandler === handler) state.transitionHandler = null; };
   const homeView = makeView(["active"]);
   const searchView = makeView([]);
   const app = makeView([]);
   const root = { scrollTop: 0, style: { scrollBehavior: "smooth" } };
   const body = { scrollTop: 0, classList: classListFor(new Set()) };
   root.classList = classListFor(new Set());
-  const edge = { setPointerCapture() {}, releasePointerCapture() {} };
+  const edge = { style: {}, setPointerCapture() {}, releasePointerCapture() {} };
+  const mainApp = { children: [homeView, searchView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
+  detailView.parentNode = mainApp;
+  homeView.parentNode = mainApp;
+  searchView.parentNode = mainApp;
   const navItems = Array.from({ length: 5 }, () => makeView([]));
-  const elements = new Map([["detailView", detailView], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["homeView", homeView], ["searchView", searchView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]]]);
+  const elements = new Map([["detailView", detailView], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["homeView", homeView], ["searchView", searchView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
   const document = {
     getElementById: id => elements.get(id),
     querySelector: selector => selector === ".app" ? app : null,
@@ -77,19 +62,32 @@ function createHarness({ reducedMotion = false, width = 390, height = 844 } = {}
     body,
   };
   const product = { id: 1, name: "Purple Dress", image: "https://images.example/purple-dress.webp", variants: [{ size: "M", color: "#112233", stock: 4 }], sizes: ["M"], colors: ["#112233"], price: 12000, description: "A test product" };
-  const secondProduct = { ...product, id: 2, name: "Blue Coat", price: 18000 };
+  const secondProduct = { ...product, id: 2, name: "Blue Coat", image: "https://images.example/blue-coat.webp", price: 18000 };
+  const thirdProduct = { ...product, id: 3, name: "Black Dress", image: "https://images.example/black-dress.webp", price: 21000 };
+  const entries = [{ state: initialHistoryState, url: "http://127.0.0.1:4173/" }];
+  let historyIndex = 0;
+  const history = {
+    get state() { return entries[historyIndex]?.state||null; },
+    pushState(next, _title, url) { entries.splice(historyIndex + 1); entries.push({ state: next, url }); historyIndex++; },
+    replaceState(next, _title, url) { entries[historyIndex] = { state: next, url }; },
+    back() { state.backCalls++; if (historyIndex <= 0) return; historyIndex--; state.popHandler?.({ state: history.state }); },
+    forward() { state.forwardCalls++; if (historyIndex >= entries.length - 1) return; historyIndex++; state.popHandler?.({ state: history.state }); },
+  };
   const context = {
     document,
     window: {
+      history, location: { href: "http://127.0.0.1:4173/" },
+      addEventListener(name, handler) { if (name === "popstate") state.popHandler = handler; },
       matchMedia: () => ({ matches: reducedMotion }), innerWidth: width, innerHeight: height,
       get scrollY() { return state.scrollY; },
       scrollTo(...args) { state.scrollCalls.push(args); state.scrollY = typeof args[0] === "number" ? Number(args[1]) || 0 : Number(args[0]?.top) || 0; root.scrollTop = state.scrollY; body.scrollTop = state.scrollY; },
     },
     performance: { now: () => state.now },
     console,
-    products: [product, secondProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", previousView: "home", previousViewScrollY: 0,
-    productDetailCloseTimer: 0, productDetailClosing: false, productBackSwipe: null, productBackSwipeSnapTimer: 0, productBackTransitionHandler: null, productBackScrollBehavior: "", productBackPrepared: false, productBackPreparedView: "",
-    getProductName: item => item.name, formatPrice: price => String(price), renderDetailGallery() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {},
+    products: [product, secondProduct, thirdProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", currentGalleryImages: ["photo-1", "photo-2"], currentGalleryIndex: 0, previousView: "home", previousViewScrollY: 0,
+    productDetailCloseTimer: 0, productDetailClosing: false, productBackSwipe: null, productBackSwipeSnapTimer: 0, productBackTransitionHandler: null, productBackScrollBehavior: "", productBackPrepared: false, productBackPreparedView: "", productBackPreparedPreview: null,
+    productDetailHistoryStack: [], productHistoryBackPending: false, productHistoryBackFromSwipe: false, productHistoryPopHandler: null,
+    getProductName: item => item.name, formatPrice: price => String(price), renderDetailGallery() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {}, syncDetailPhotoTracks() {},
     openView(view, options = {}) {
       state.openedViews.push({ view, options });
       if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); }
@@ -100,21 +98,33 @@ function createHarness({ reducedMotion = false, width = 390, height = 844 } = {}
       app.classList.toggle("detail-mode", view === "detail");
       root.classList.toggle("detail-view-open", view === "detail"); body.classList.toggle("detail-view-open", view === "detail");
       state.scrollCalls.push([0, 0]); state.scrollY = 0; root.scrollTop = 0; body.scrollTop = 0;
+      if (view === "detail") detailView.scrollTop = 0;
     },
     setTimeout(callback, delay) { const id = state.nextTimer++; state.timers.set(id, { callback, delay }); state.lastTimer = id; return id; },
     clearTimeout(id) { state.timers.delete(id); },
     activateSearch() { homeView.classList.remove("active"); searchView.classList.add("active"); },
-    state, edge, homeView, searchView, detailView, app,
+    state, edge, homeView, searchView, detailView, app, mainApp, historyEntries: entries,
   };
   vm.createContext(context);
+  const helperStart = html.indexOf("function prefersReducedProductMotion(){");
+  const openStart = html.indexOf("function openProduct(id,options={}){", helperStart);
+  const navigationStart = html.indexOf("function productBackTarget(historyTargetProductId=");
+  const navigationEnd = html.indexOf("function isFavorite(id){", navigationStart);
+  const openEnd = html.indexOf("function detailPhotosForProduct(){", openStart);
+  assert.ok(helperStart >= 0 && openStart > helperStart && navigationStart > openStart && navigationEnd > navigationStart && openEnd > openStart, "product open and Back functions should remain extractable for the offline harness");
+  const helpers = html.slice(helperStart, openStart).trim();
+  const openProductSource = html.slice(openStart, openEnd).trim();
+  const navigationSource = html.slice(navigationStart, navigationEnd).trim();
   vm.runInContext(helpers, context);
   vm.runInContext(navigationSource, context);
-  const openProduct = vm.runInContext(`(${openProductSource})`, context);
+  vm.runInContext(openProductSource, context);
+  const openProduct = context.openProduct;
   return {
-    state, products: [product, secondProduct], context, product, homeView, searchView, detailView, app, edge, openProduct,
+    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, detailView, app, edge, openProduct, historyEntries: entries,
     closeProductDetails: context.closeProductDetails,
     finishTransition() { assert.ok(state.transitionHandler, "the animated detail view should register its completion handler"); state.transitionHandler({ target: detailView, propertyName: "transform" }); },
     runTimer(id = state.lastTimer) { const timer = state.timers.get(id); assert.ok(timer, "the expected cleanup timer should be scheduled"); state.timers.delete(id); timer.callback(); },
+    browserBack() { history.back(); }, browserForward() { history.forward(); },
   };
 }
 
@@ -132,7 +142,7 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.equal(destination.classList.contains("active"), true, "the exact prior list should be revealed underneath details");
   assert.equal(destination.classList.contains("product-backdrop-revealed"), true, "the revealed list should avoid re-render and entry animation");
   assert.equal(harness.detailView.classList.contains("product-detail-back-ready"), true, "the fixed detail overlay should settle before motion begins");
-  assert.equal(harness.detailView.classList.contains("product-detail-back-sliding"), true, "the detail view should slide to the right");
+  assert.equal(harness.detailView.classList.contains("product-detail-back-sliding"), true, "the detail page should slide to the right");
   assert.equal(harness.state.scrollY, scrollY, "the previous list position should be restored before the visual transition");
   assert.equal(harness.state.timers.get(harness.state.lastTimer).delay, 230, "a short fallback should complete if transitionend is unavailable");
   const viewCount = harness.state.openedViews.length;
@@ -166,6 +176,73 @@ mobileSearch.closeProductDetails();
 mobileSearch.finishTransition();
 assert.equal(mobileSearch.state.scrollY, 910, "repeated Search product open/Back cycles should preserve each scroll location");
 
+const nested = createHarness();
+nested.state.scrollY = 444;
+nested.openProduct(1);
+nested.context.selectedSize = "M";
+nested.context.selectedColor = "#112233";
+nested.context.currentQty = 3;
+nested.detailView.scrollTop = 287;
+nested.context.currentGalleryIndex = 1;
+nested.openProduct(2);
+assert.equal(nested.context.previousView, "home", "opening a related product should preserve the original browsing route");
+assert.equal(nested.context.productDetailHistoryStack.length, 1, "the first product should be kept in the nested history stack");
+nested.context.goBack();
+assert.equal(nested.context.productDetailClosing, true, "Back from Product B should animate out of its details");
+assert.equal(nested.context.productBackPreparedView, "detail", "Product A should be the revealed destination under Product B");
+assert.equal(nested.context.productBackPreparedPreview?.classList.contains("product-detail-history-preview"), true, "the prior product detail should be visible beneath the outgoing one");
+nested.finishTransition();
+assert.equal(nested.context.currentProduct.id, 1, "Product B Back must return to Product A, not the shop list");
+assert.equal(nested.context.selectedSize, "M", "the prior size selection should be restored");
+assert.equal(nested.context.selectedColor, "#112233", "the prior color selection should be restored");
+assert.equal(nested.context.currentQty, 3, "the prior quantity selection should be restored");
+assert.equal(nested.detailView.scrollTop, 287, "the previous product detail scroll position should be restored");
+assert.equal(nested.context.currentGalleryIndex, 1, "the previous product gallery position should be restored");
+assert.equal(nested.context.productDetailHistoryStack.length, 0, "returning to Product A should pop only Product B from history");
+nested.context.goBack();
+nested.finishTransition();
+assert.equal(nested.homeView.classList.contains("active"), true, "Back from Product A should then return to the original Home list");
+assert.equal(nested.state.scrollY, 444, "the original Home scroll position should be restored after nested navigation");
+
+const multiProduct = createHarness();
+multiProduct.openProduct(1);
+multiProduct.openProduct(2);
+multiProduct.openProduct(3);
+multiProduct.context.goBack();
+multiProduct.finishTransition();
+assert.equal(multiProduct.context.currentProduct.id, 2, "Product C Back should return to Product B");
+multiProduct.context.goBack();
+multiProduct.finishTransition();
+assert.equal(multiProduct.context.currentProduct.id, 1, "the next Back should return to Product A");
+multiProduct.context.goBack();
+multiProduct.finishTransition();
+assert.equal(multiProduct.homeView.classList.contains("active"), true, "only the final Back should return to the original list");
+
+const browserHistory = createHarness();
+browserHistory.openProduct(1);
+browserHistory.openProduct(2);
+browserHistory.browserBack();
+assert.equal(browserHistory.context.productDetailClosing, true, "browser Back should close Product B through the same transition");
+browserHistory.finishTransition();
+assert.equal(browserHistory.context.currentProduct.id, 1, "browser Back should return from Product B to Product A");
+browserHistory.browserForward();
+assert.equal(browserHistory.context.currentProduct.id, 2, "browser Forward should reopen the product entry it returns to");
+browserHistory.browserBack();
+browserHistory.finishTransition();
+assert.equal(browserHistory.context.currentProduct.id, 1, "browser history should repeatedly restore the correct prior product");
+browserHistory.browserBack();
+browserHistory.finishTransition();
+assert.equal(browserHistory.homeView.classList.contains("active"), true, "browser Back should reach the original list only after leaving Product A");
+
+const refreshedHistory = createHarness({ initialHistoryState: { __shivanProductDetail: true, __shivanProductId: "1", __shivanProductDepth: 1, __shivanProductReturnView: "home", __shivanProductReturnScrollY: 333, unrelatedState: "preserve" } });
+assert.equal(refreshedHistory.historyEntries[0].state.__shivanProductDetail, undefined, "a page refresh should normalize the stale product detail state before the app opens at Home");
+assert.equal(refreshedHistory.historyEntries[0].state.unrelatedState, "preserve", "normalizing product history should preserve unrelated browser state");
+refreshedHistory.openProduct(2);
+refreshedHistory.browserBack();
+assert.equal(refreshedHistory.context.productDetailClosing, true, "Back after opening a product from the refreshed list should close to that list");
+refreshedHistory.finishTransition();
+assert.equal(refreshedHistory.homeView.classList.contains("active"), true, "a stale pre-refresh product must not be reopened as the Back destination");
+
 const desktopHome = createHarness({ width: 1440, height: 960 });
 assertAnimatedReturn(desktopHome, "home", 512);
 const desktopSearch = createHarness({ width: 1440, height: 960 });
@@ -175,10 +252,10 @@ assertAnimatedReturn(desktopSearch, "search", 934);
 const swipe = createHarness();
 swipe.state.scrollY = 286;
 swipe.openProduct(1);
-  const pointerEvent = (x, y, time, edge = swipe.edge) => ({ pointerId: 7, isPrimary: true, button: 0, clientX: x, clientY: y, timeStamp: time, cancelable: true, currentTarget: edge, preventDefault() { swipe.state.prevented = true; } });
+const pointerEvent = (x, y, time, edge = swipe.edge) => ({ pointerId: 7, isPrimary: true, button: 0, clientX: x, clientY: y, timeStamp: time, cancelable: true, currentTarget: edge, preventDefault() { swipe.state.prevented = true; } });
 swipe.context.beginProductBackSwipe(pointerEvent(2, 100, 10));
 swipe.context.moveProductBackSwipe(pointerEvent(34, 103, 65));
-assert.equal(swipe.homeView.classList.contains("active"), true, "the exact previous list should appear underneath while the finger drags");
+assert.equal(swipe.homeView.classList.contains("active"), true, "the exact prior list should appear underneath while the finger drags");
 assert.equal(swipe.app.classList.contains("product-back-navigation"), true, "the page layout should be locked into the stable Back-preview state while dragging");
 assert.equal(swipe.detailView.style.values.get("--product-back-offset"), "32px", "the product page should track the edge gesture directly");
 swipe.context.endProductBackSwipe(pointerEvent(105, 108, 140));
@@ -187,6 +264,16 @@ assert.equal(swipe.detailView.classList.contains("product-detail-back-sliding"),
 assert.equal(swipe.state.scrollY, 286, "edge-swipe Back should preserve the Home scroll position");
 swipe.finishTransition();
 assert.equal(swipe.homeView.classList.contains("active"), true, "edge-swipe Back should return to Home");
+
+const nestedSwipe = createHarness();
+nestedSwipe.openProduct(1);
+nestedSwipe.openProduct(2);
+nestedSwipe.context.beginProductBackSwipe(pointerEvent(2, 100, 10, nestedSwipe.edge));
+nestedSwipe.context.moveProductBackSwipe(pointerEvent(34, 103, 65, nestedSwipe.edge));
+assert.equal(nestedSwipe.context.productBackPreparedView, "detail", "edge-swipe should reveal the prior product rather than the list");
+nestedSwipe.context.endProductBackSwipe(pointerEvent(105, 108, 140, nestedSwipe.edge));
+nestedSwipe.finishTransition();
+assert.equal(nestedSwipe.context.currentProduct.id, 1, "edge-swipe Back should restore the prior product in a nested flow");
 
 const shortSwipe = createHarness();
 shortSwipe.openProduct(1);
@@ -219,15 +306,15 @@ reduced.openProduct(1);
 reduced.closeProductDetails();
 assert.equal(reduced.context.productDetailClosing, false, "reduced-motion users should navigate immediately");
 assert.equal(reduced.state.openedViews.at(-1).view, "home", "reduced-motion Back should return to Home");
-assert.equal(reduced.state.scrollY, 290, "reduced-motion navigation should restore the previous scroll position");
-assert.equal(reduced.context.document.documentElement.style.scrollBehavior, "smooth", "reduced-motion navigation should restore the previous scroll behavior after an instant switch");
+assert.equal(reduced.state.scrollY, 290, "reduced-motion navigation should restore the previous list scroll position");
+assert.equal(reduced.context.document.documentElement.style.scrollBehavior, "smooth", "reduced-motion navigation should restore the prior scroll behavior");
 assert.equal(reduced.state.timers.size, 0, "reduced-motion navigation should not schedule an animation timer");
 
 const invalidRoute = createHarness();
 invalidRoute.openProduct(1);
 invalidRoute.context.previousView = "cart";
-invalidRoute.closeProductDetails();
+invalidRoute.context.closeProductDetails({ fromHistory: true });
 assert.equal(invalidRoute.context.productDetailClosing, false, "an unexpected source route should not trigger fallback navigation");
 assert.equal(invalidRoute.state.openedViews.length, 1, "Back must not unexpectedly send the user to Home or another page");
 
-console.log("Product Back navigation tests passed: accessible chevron; 200 ms right slide; Home and Search state/scroll restoration on mobile and desktop; repeated Back cycles; edge-swipe commit, vertical-scroll preservation and snapback; gallery gesture preservation; reduced motion; double-tap protection; and cart preservation.");
+console.log("Product Back navigation tests passed: Home/Search restoration; nested A→B→Back→A and A→B→C sequences; browser Back/Forward; exact product, variant, gallery, detail scroll and list scroll restoration; mobile and desktop; edge-swipe; reduced motion; cart preservation; and transition fallback.");
