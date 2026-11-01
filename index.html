@@ -2430,20 +2430,20 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 @keyframes shopStartupShopIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:560px){.shop-startup-logo::after{width:clamp(150px,42vw,220px);transform:translateY(-50%) rotate(68deg) scaleX(.5)}}
 @media(prefers-reduced-motion:reduce){.shop-startup-aura,.shop-startup-logo,.shop-startup-brand,#mainApp.shop-startup-enter{animation:none!important;opacity:1;transform:none;filter:none}.shop-startup-brand{transform:translate3d(-50%,-50%,0)!important}.shop-startup-logo::after,.shop-startup-brand::after{animation:none!important;opacity:0!important}.shop-startup-sparkle{animation:none!important;opacity:0}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}}
-.shop-promo-onboarding{--onboarding-purple:#a779ff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;background:radial-gradient(ellipse at 50% 18%,rgba(125,71,235,.24),transparent 42%),#030306;color:#fff;isolation:isolate;touch-action:pan-y}
+.shop-promo-onboarding{--onboarding-purple:#a779ff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;background:linear-gradient(0deg,rgba(2,2,5,.88),rgba(2,2,5,.4) 23%,transparent 50%),radial-gradient(ellipse at 50% 14%,rgba(125,71,235,.24),transparent 42%),radial-gradient(ellipse at 50% 100%,rgba(81,37,142,.2),transparent 46%),linear-gradient(180deg,#07050d 0%,#030306 62%,#020205 100%);color:#fff;isolation:isolate;touch-action:pan-y}
 .shop-promo-onboarding[hidden]{display:none!important}
-.shop-promo-onboarding-image,.shop-promo-onboarding-shade{position:absolute;inset:0;width:100%;height:100%}
-.shop-promo-onboarding-image{z-index:-2;object-fit:cover;object-position:center;background:#030306;transition:opacity .22s ease,transform .28s ease}
-.shop-promo-onboarding-shade{z-index:-1;background:radial-gradient(ellipse at 50% 12%,rgba(109,61,201,.2),transparent 46%),linear-gradient(180deg,rgba(3,3,7,.78),rgba(3,3,7,.08) 34%,rgba(3,3,7,.22) 60%,rgba(3,3,7,.94) 100%);pointer-events:none}
-.shop-promo-onboarding-content{display:flex;min-height:100vh;min-height:100dvh;flex-direction:column;align-items:center;justify-content:space-between;gap:18px;padding:calc(env(safe-area-inset-top) + clamp(22px,5vh,42px)) clamp(20px,6vw,42px) calc(env(safe-area-inset-bottom) + clamp(18px,4vh,34px));text-align:center}
-.shop-promo-onboarding-brand{display:flex;align-items:center;justify-content:center;margin:0;color:#fff;font-size:clamp(19px,5.4vw,25px);font-weight:900;letter-spacing:.12em;text-shadow:0 2px 20px rgba(0,0,0,.7)}
-.shop-promo-onboarding-brand span{color:#d5baff;text-shadow:0 0 20px rgba(167,121,255,.55)}
+.shop-promo-onboarding-media{position:relative;display:grid;place-items:center;justify-self:center;align-self:stretch;width:min(100%,680px,max(220px,calc((100vh - 185px)*.76)));width:min(100%,680px,max(220px,calc((100dvh - 185px)*.76)));height:100%;min-width:0;min-height:0;overflow:hidden;border:1px solid rgba(183,137,255,.64);border-radius:clamp(20px,4vw,30px);background:linear-gradient(145deg,#10091b,#08050e 70%);box-shadow:0 18px 55px rgba(0,0,0,.38),0 0 30px rgba(137,79,223,.17),inset 0 0 24px rgba(167,121,255,.07);isolation:isolate}
+.shop-promo-onboarding-image{position:relative;inset:auto;z-index:0;display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;border-radius:inherit;background:#08050e;transition:opacity 300ms var(--shop-motion-ease),transform 300ms var(--shop-motion-ease)}
+.shop-promo-onboarding-shade{position:absolute;inset:0;z-index:1;width:100%;height:100%;border-radius:inherit;background:linear-gradient(180deg,rgba(3,3,7,.12),transparent 42%,rgba(3,2,8,.08) 68%,rgba(3,2,8,.58));pointer-events:none}
+.shop-promo-onboarding-content{position:relative;box-sizing:border-box;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;align-items:stretch;width:100%;height:100vh;height:100dvh;min-height:0;gap:clamp(12px,2.4vh,22px);padding:calc(env(safe-area-inset-top) + clamp(18px,4vh,36px)) clamp(18px,5vw,48px) calc(env(safe-area-inset-bottom) + clamp(14px,3.2vh,28px));text-align:center}
+.shop-promo-onboarding-brand{display:flex;align-items:center;justify-content:center;align-self:center;margin:0;color:#fff;font-size:clamp(19px,5.4vw,25px);font-weight:900;letter-spacing:.14em;line-height:1.1;text-shadow:0 2px 20px rgba(0,0,0,.7)}
+.shop-promo-onboarding-brand span{color:#fff;text-shadow:0 0 20px rgba(167,121,255,.24)}
 .shop-promo-onboarding-step{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .shop-promo-onboarding-choice[hidden],.shop-promo-onboarding-choices[hidden],.shop-promo-onboarding-next[hidden],.shop-promo-onboarding-image[hidden]{display:none!important}
 .shop-promo-onboarding-dots{display:flex;align-items:center;justify-content:center;gap:9px;min-height:14px}
 .shop-promo-onboarding-dots span{width:9px;height:9px;border-radius:99px;background:rgba(233,221,255,.42);transition:width .2s ease,background .2s ease,box-shadow .2s ease}
 .shop-promo-onboarding-dots span.active{width:25px;background:#ad7cff;box-shadow:0 0 16px rgba(167,121,255,.76)}
-.shop-promo-onboarding-actions{display:grid;gap:12px;width:min(100%,420px)}
+.shop-promo-onboarding-actions{display:grid;align-self:end;gap:12px;width:min(100%,480px);justify-self:center}
 .shop-promo-onboarding-next,.shop-promo-onboarding-choice{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-width:0;min-height:58px;padding:10px 12px;border:1px solid rgba(194,157,255,.78);border-radius:16px;background:rgba(13,7,23,.86);color:#fff;font:inherit;font-size:clamp(13px,3.8vw,16px);font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.34),0 0 20px rgba(126,77,202,.12)}
 .shop-promo-onboarding-next:focus-visible,.shop-promo-onboarding-choice:focus-visible{outline:3px solid #c39bff;outline-offset:3px}
 .shop-promo-onboarding-next{border-color:#c19aff;background:linear-gradient(135deg,#6e39bd,#49247e);box-shadow:0 10px 30px rgba(111,57,189,.32)}
@@ -2451,7 +2451,6 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .shop-promo-onboarding-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
 .shop-promo-onboarding-choice.primary{border-color:#c19aff;background:linear-gradient(135deg,#7540c7,#542a91);box-shadow:0 10px 30px rgba(111,57,189,.3)}
 .shop-promo-onboarding-choice.secondary{border-color:rgba(194,157,255,.64);background:rgba(9,7,15,.82)}
-.shop-promo-onboarding.is-transitioning .shop-promo-onboarding-image{opacity:.72;transform:scale(1.025)}
 @media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}}
 .owner-promo-slides{display:grid;gap:12px}
 .owner-promo-slide{display:grid;gap:8px;padding:12px;border:1px solid #282d40;border-radius:14px;background:#080b14}
@@ -2459,7 +2458,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .owner-promo-slide input[type=file]{width:100%;min-height:44px}
 .owner-promo-slide .owner-image-preview{display:block;max-height:220px}
 .owner-promo-status{min-height:22px;color:#d8cbff;font-size:13px;line-height:1.5}
-@media(max-height:560px){.shop-promo-onboarding-content{gap:10px;padding-top:calc(env(safe-area-inset-top) + 14px);padding-bottom:calc(env(safe-area-inset-bottom) + 14px)}.shop-promo-onboarding-brand{font-size:21px}.shop-promo-onboarding-next,.shop-promo-onboarding-choice{min-height:50px}.shop-promo-onboarding-actions{gap:8px}}
+@media(max-height:560px){.shop-promo-onboarding-content{gap:8px;padding-top:calc(env(safe-area-inset-top) + 10px);padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}.shop-promo-onboarding-media{width:min(100%,calc((100vh - 150px)*.78));width:min(100%,calc((100dvh - 150px)*.78))}.shop-promo-onboarding-brand{font-size:20px}.shop-promo-onboarding-next,.shop-promo-onboarding-choice{min-height:48px}.shop-promo-onboarding-actions{gap:8px}}
 
 /* SHIVAN_SITE_MOTION_V1: short, compositor-friendly movement that keeps the existing visual design intact. */
 :root{--shop-motion-ease:cubic-bezier(.22,.61,.36,1);--shop-motion-fast:160ms;--shop-motion-base:360ms}
@@ -2476,9 +2475,9 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 .hero-slide.active img{transform:scale(1)}
 .hero-dots span{transition:width 220ms var(--shop-motion-ease),background-color 220ms ease,box-shadow 220ms ease}
 .hero-slide.active .hero-copy{animation:shopMotionBannerIn 420ms var(--shop-motion-ease)}
-.shop-promo-onboarding-image{transition:opacity 320ms var(--shop-motion-ease),transform 420ms var(--shop-motion-ease)}
-.shop-promo-onboarding.is-transitioning[data-direction="forward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingForward 240ms var(--shop-motion-ease)}
-.shop-promo-onboarding.is-transitioning[data-direction="backward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingBackward 240ms var(--shop-motion-ease)}
+.shop-promo-onboarding-image{transition:opacity 300ms var(--shop-motion-ease),transform 300ms var(--shop-motion-ease)}
+.shop-promo-onboarding.is-transitioning[data-direction="forward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingForward 300ms var(--shop-motion-ease)}
+.shop-promo-onboarding.is-transitioning[data-direction="backward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingBackward 300ms var(--shop-motion-ease)}
 .shop-promo-onboarding-next,.shop-promo-onboarding-choice{transition:transform 160ms var(--shop-motion-ease),filter 160ms ease,background-color 180ms ease,border-color 180ms ease,box-shadow 180ms ease}
 .shop-promo-onboarding-next:active,.shop-promo-onboarding-choice:active{transform:scale(.985)}
 .shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choices:not([hidden]) .shop-promo-onboarding-choice:first-child{animation:shopMotionChoiceIn 360ms var(--shop-motion-ease) 45ms backwards}
@@ -2519,8 +2518,8 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 @keyframes shopMotionViewIn{from{opacity:0;transform:translate3d(0,9px,0)}to{opacity:1;transform:none}}
 @keyframes shopMotionCardIn{from{opacity:0;transform:translate3d(0,9px,0) scale(.992)}to{opacity:1;transform:none}}
 @keyframes shopMotionBannerIn{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:none}}
-@keyframes shopMotionOnboardingForward{from{opacity:.82;transform:translate3d(18px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-@keyframes shopMotionOnboardingBackward{from{opacity:.82;transform:translate3d(-18px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes shopMotionOnboardingForward{from{opacity:.82;transform:translate3d(22px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes shopMotionOnboardingBackward{from{opacity:.82;transform:translate3d(-22px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes shopMotionChoiceIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
 @keyframes shopMotionAuthIn{from{opacity:0;transform:translate3d(14px,5px,0)}to{opacity:1;transform:none}}
 @media(hover:hover){.product:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.24)}.product:hover .product-img{transform:scale(1.025)}button:not(:disabled):hover,a[href]:hover{filter:brightness(1.06)}}
@@ -2724,12 +2723,13 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
 
 <section id="shopPromoOnboarding" class="shop-promo-onboarding" role="dialog" aria-modal="true" aria-label="Shivan Shop introduction" aria-hidden="true" hidden>
-  <img id="shopPromoOnboardingImage" class="shop-promo-onboarding-image" src="" alt="Shivan Shop promotional slide 1">
-  <div class="shop-promo-onboarding-shade" aria-hidden="true"></div>
   <div class="shop-promo-onboarding-content">
     <div class="shop-promo-onboarding-brand" aria-label="Shivan Shop"><span>SHIVAN SHOP</span></div>
     <p id="shopPromoOnboardingStep" class="shop-promo-onboarding-step" aria-live="polite">Slide 1 of 3</p>
-    <div id="shopPromoOnboardingDots" class="shop-promo-onboarding-dots" role="group" aria-label="Screen 1 of 3"></div>
+    <div class="shop-promo-onboarding-media">
+      <img id="shopPromoOnboardingImage" class="shop-promo-onboarding-image" src="" alt="Shivan Shop promotional slide 1">
+      <div class="shop-promo-onboarding-shade" aria-hidden="true"></div>
+    </div>
     <div class="shop-promo-onboarding-actions">
       <button id="shopPromoOnboardingNext" class="shop-promo-onboarding-next" type="button" onclick="advanceShopOnboarding()" aria-label="Next promotional slide">Next <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div id="shopPromoOnboardingChoices" class="shop-promo-onboarding-choices" hidden>
@@ -2737,6 +2737,7 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
         <button id="shopPromoOnboardingExploreModels" class="shop-promo-onboarding-choice secondary" type="button" onclick="finishShopOnboarding()" aria-label="Explore Models">Explore Models</button>
       </div>
     </div>
+    <div id="shopPromoOnboardingDots" class="shop-promo-onboarding-dots" role="group" aria-label="Screen 1 of 3"></div>
   </div>
 </section>
 
@@ -3633,11 +3634,14 @@ const PRODUCTS_KEY = "shivan_shop_products";
 const ADS_KEY = "shivan_shop_ads";
 const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";
 const SHOP_ONBOARDING_SLIDE_COUNT = 3;
+const SHOP_ONBOARDING_TRANSITION_MS = 300;
+const SHOP_ONBOARDING_REDUCED_MOTION_GUARD_MS = 120;
 const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze([
   "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
   "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1000&q=75",
   "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1000&q=75",
 ]);
+const shopOnboardingImagePreloads=new Map();
 const FAVORITES_KEY = "shivan_shop_favorites";
 const SETTINGS_KEY = "shivan_shop_settings";
 const SUPPORT_KEY = "shivan_shop_support";
@@ -3707,6 +3711,8 @@ let cloudSyncRetryDelay=1000;
 let cloudWriteFailureNoticeShown=false;
 let shopOnboardingSlideIndex=0;
 let shopOnboardingLastRenderedIndex=-1;
+let shopOnboardingTransitionTimer=0;
+let shopOnboardingTransitionLocked=false;
 let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
 let shopOnboardingActive=false;
 let shopAppWasHidden=false;
@@ -5655,6 +5661,10 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
   return {wasHidden:false,show:Boolean(wasHidden&&startupComplete)};
 }
 
+function prefersReducedShopOnboardingMotion(){
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
+}
+
 function handleShopOnboardingVisibilityChange(hidden=document.hidden){
   const action=getShopOnboardingVisibilityAction(hidden,shopAppWasHidden,shopStartupCompleted);
   shopAppWasHidden=action.wasHidden;
@@ -5669,6 +5679,21 @@ function readShopOnboardingImages(){
   return SHOP_ONBOARDING_DEFAULT_IMAGES.map((fallback,index)=>safeImageUrl(saved[index])||fallback);
 }
 
+function warmShopOnboardingImages(){
+  if(typeof Image==="undefined")return;
+  const imageUrls=new Set(shopOnboardingImages);
+  for(const imageUrl of shopOnboardingImagePreloads.keys()){
+    if(!imageUrls.has(imageUrl))shopOnboardingImagePreloads.delete(imageUrl);
+  }
+  for(const imageUrl of imageUrls){
+    if(shopOnboardingImagePreloads.has(imageUrl))continue;
+    const preload=new Image();
+    preload.decoding="async";
+    preload.src=imageUrl;
+    shopOnboardingImagePreloads.set(imageUrl,preload);
+  }
+}
+
 function renderShopOnboardingSlide(){
   const layer=document.getElementById("shopPromoOnboarding");
   const image=document.getElementById("shopPromoOnboardingImage");
@@ -5678,18 +5703,18 @@ function renderShopOnboardingSlide(){
   const choices=document.getElementById("shopPromoOnboardingChoices");
   if(!image||!step||!dots||!next||!choices)return;
   shopOnboardingImages=readShopOnboardingImages();
+  warmShopOnboardingImages();
   const index=Math.max(0,Math.min(SHOP_ONBOARDING_SLIDE_COUNT-1,shopOnboardingSlideIndex));
   const finalSlide=index===SHOP_ONBOARDING_SLIDE_COUNT-1;
   const previousIndex=shopOnboardingLastRenderedIndex;
+  const slideChanged=previousIndex>=0&&previousIndex!==index;
   const screenImage=shopOnboardingImages[index];
   if(layer){
     layer.dataset.screen=String(index+1);
     layer.dataset.direction=previousIndex<0||index>=previousIndex?"forward":"backward";
     layer.setAttribute("aria-label","Shivan Shop promotional slide "+(index+1)+" of "+SHOP_ONBOARDING_SLIDE_COUNT);
-    layer.classList.add("is-transitioning");
-    requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.remove("is-transitioning")));
+    if(slideChanged)layer.classList.remove("is-transitioning");
   }
-  shopOnboardingLastRenderedIndex=index;
   image.hidden=false;
   if(image.getAttribute("src")!==screenImage)image.src=screenImage;
   image.alt=["Women’s fashion look, slide 1","Women’s fashion collection, slide 2","Women’s fashion collection, slide 3"][index];
@@ -5699,6 +5724,29 @@ function renderShopOnboardingSlide(){
   next.hidden=finalSlide;
   next.setAttribute("aria-label",`Next to slide ${index+2} of ${SHOP_ONBOARDING_SLIDE_COUNT}`);
   choices.hidden=!finalSlide;
+  shopOnboardingLastRenderedIndex=index;
+  if(layer&&slideChanged&&!prefersReducedShopOnboardingMotion()){
+    void layer.offsetWidth;
+    layer.classList.add("is-transitioning");
+  }
+}
+
+function moveShopOnboardingTo(index){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer||layer.hidden||shopOnboardingTransitionLocked)return false;
+  const target=Math.max(0,Math.min(SHOP_ONBOARDING_SLIDE_COUNT-1,Math.floor(Number(index)||0)));
+  if(target===shopOnboardingSlideIndex)return false;
+  if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  const reduceMotion=prefersReducedShopOnboardingMotion();
+  shopOnboardingTransitionLocked=true;
+  shopOnboardingSlideIndex=target;
+  renderShopOnboardingSlide();
+  shopOnboardingTransitionTimer=setTimeout(()=>{
+    shopOnboardingTransitionLocked=false;
+    shopOnboardingTransitionTimer=0;
+    layer.classList.remove("is-transitioning");
+  },reduceMotion?SHOP_ONBOARDING_REDUCED_MOTION_GUARD_MS:SHOP_ONBOARDING_TRANSITION_MS+40);
+  return true;
 }
 
 function setupShopOnboardingGestures(layer){
@@ -5717,16 +5765,19 @@ function setupShopOnboardingGestures(layer){
     if(target===shopOnboardingSlideIndex){
       return;
     }
-    shopOnboardingSlideIndex=target;
-    renderShopOnboardingSlide();
+    moveShopOnboardingTo(target);
   },{passive:true});
   layer.addEventListener("pointercancel",()=>{start=null;},{passive:true});
 }
 
 function hideShopOnboarding(){
   shopOnboardingActive=false;
+  if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  shopOnboardingTransitionTimer=0;
+  shopOnboardingTransitionLocked=false;
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return;
+  layer.classList.remove("is-transitioning");
   layer.hidden=true;
   layer.setAttribute("aria-hidden","true");
   document.body?.classList.remove("shop-promo-onboarding-open");
@@ -5739,6 +5790,10 @@ function hideShopOnboarding(){
 function showShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return false;
+  if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  shopOnboardingTransitionTimer=0;
+  shopOnboardingTransitionLocked=false;
+  layer.classList.remove("is-transitioning");
   shopOnboardingActive=true;
   shopOnboardingSlideIndex=0;
   shopOnboardingLastRenderedIndex=-1;
@@ -5762,11 +5817,10 @@ function showShopOnboardingIfNeeded(){
 
 function advanceShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||shopOnboardingSlideIndex>=SHOP_ONBOARDING_SLIDE_COUNT-1)return;
+  if(!layer||layer.hidden||shopOnboardingTransitionLocked||shopOnboardingSlideIndex>=SHOP_ONBOARDING_SLIDE_COUNT-1)return;
   const next=getNextShopOnboardingStep(shopOnboardingSlideIndex);
   if(next.completed)return;
-  shopOnboardingSlideIndex=next.index;
-  renderShopOnboardingSlide();
+  if(!moveShopOnboardingTo(next.index))return;
   const focusTarget=shopOnboardingSlideIndex===SHOP_ONBOARDING_SLIDE_COUNT-1?"shopPromoOnboardingCreateAccount":"shopPromoOnboardingNext";
   requestAnimationFrame(()=>document.getElementById(focusTarget)?.focus({preventScroll:true}));
 }

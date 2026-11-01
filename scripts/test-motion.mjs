@@ -8,8 +8,8 @@ assert.ok(motionBlock, "the website should include the shared motion layer");
 for (const [pattern, message] of [
   [/button:not\(:disabled\):active/, "buttons should provide gentle press feedback"],
   [/\.shop-promo-onboarding-image\{transition:/, "onboarding slides should cross-fade and scale smoothly"],
-  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="forward"\].*shopMotionOnboardingForward 240ms/, "forward onboarding steps should use a short horizontal transition"],
-  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="backward"\].*shopMotionOnboardingBackward 240ms/, "backward onboarding steps should use the matching reverse transition"],
+  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="forward"\].*shopMotionOnboardingForward 300ms/, "forward onboarding steps should use a smooth horizontal transition"],
+  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="backward"\].*shopMotionOnboardingBackward 300ms/, "backward onboarding steps should use the matching reverse transition"],
   [/\.shop-promo-onboarding\[data-screen="3"\].*shopMotionChoiceIn/, "the final onboarding choices should enter smoothly"],
   [/\.view\.active\{animation:shopMotionViewIn/, "screen navigation should animate when a view opens"],
   [/#productsGrid>\.product:nth-child\(-n\+8\)/, "the visible product cards should use a short stagger"],
