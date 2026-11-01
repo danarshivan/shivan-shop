@@ -2393,20 +2393,25 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 43%,rgba(96,68,208,.2),transparent 38%),#03050d;opacity:1}
 .shop-startup-splash[hidden]{display:none!important}
 .shop-startup-aura{position:absolute;width:min(62vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(142,93,255,.4),rgba(99,67,214,.16) 42%,transparent 72%);filter:blur(9px);opacity:.22;pointer-events:none;animation:shopStartupAuraIn 1.8s ease-out both}
-.shop-startup-lockup{position:relative;display:grid;justify-items:center;gap:16px}
-.shop-startup-logo{display:grid;place-items:center;width:82px;height:82px;border:1px solid rgba(222,211,255,.88);border-radius:25px;background:linear-gradient(145deg,#986fff,#542fb3);box-shadow:0 12px 42px rgba(112,69,255,.25),0 0 24px rgba(166,139,255,.18),inset 0 1px 0 rgba(255,255,255,.36);color:#fff;font-size:27px;font-weight:900;letter-spacing:.09em;line-height:1;opacity:0;transform:scale(.74);animation:shopStartupLogoIn 1.8s cubic-bezier(.2,.72,.24,1) .12s both,shopStartupLogoPulse 2.2s ease-in-out .15s 1 both}
-.shop-startup-brand{color:#f6f2ff;font-size:12px;font-weight:800;letter-spacing:.2em;text-indent:.2em;text-shadow:0 0 20px rgba(164,143,255,.24);opacity:0;transform:translateY(10px);animation:shopStartupBrandIn .85s cubic-bezier(.2,.72,.24,1) 1.15s both}
+.shop-startup-lockup{position:absolute;inset:0;pointer-events:none}
+.shop-startup-logo{position:absolute;top:calc(env(safe-area-inset-top) + clamp(28px,9vh,96px));left:calc(env(safe-area-inset-left) + clamp(24px,12vw,180px));z-index:2;isolation:isolate;display:grid;place-items:center;width:82px;height:82px;border:1px solid rgba(222,211,255,.88);border-radius:25px;background:linear-gradient(145deg,#986fff,#542fb3);box-shadow:0 12px 42px rgba(112,69,255,.25),0 0 24px rgba(166,139,255,.18),inset 0 1px 0 rgba(255,255,255,.36);color:#fff;font-size:27px;font-weight:900;letter-spacing:.09em;line-height:1;opacity:0;transform:scale(.74);animation:shopStartupLogoIn 1.8s cubic-bezier(.2,.72,.24,1) .12s both,shopStartupLogoPulse 2.2s ease-in-out .15s 1 both}
+.shop-startup-logo::after{content:"";position:absolute;left:48px;top:50%;z-index:-1;width:clamp(150px,40vw,380px);height:18px;transform:translateY(-50%) rotate(35deg) scaleX(.5);transform-origin:left center;background:linear-gradient(90deg,transparent,rgba(158,126,255,.22),transparent);filter:blur(9px);opacity:0;pointer-events:none;animation:shopStartupLogoTrail 1.45s ease-out .15s both}
+.shop-startup-brand{position:absolute;top:50%;left:50%;z-index:2;display:block;white-space:nowrap;max-width:calc(100vw - 32px);color:#f6f2ff;font-size:12px;font-weight:800;letter-spacing:.2em;text-indent:.2em;text-shadow:0 0 20px rgba(164,143,255,.24);opacity:0;transform:translate3d(-50%,-50%,0);animation:shopStartupBrandIn 1.55s cubic-bezier(.22,.61,.36,1) .45s both}
+.shop-startup-brand::after{content:"";position:absolute;left:calc(100% + 12px);top:50%;width:clamp(56px,18vw,180px);height:2px;transform:translateY(-50%);background:linear-gradient(90deg,rgba(166,137,255,.2),transparent);filter:blur(4px);opacity:0;pointer-events:none;animation:shopStartupBrandTrail 1.35s ease-out .55s both}
 .shop-startup-sparkle{position:absolute;top:calc(50% - 66px);left:calc(50% + 48px);width:5px;height:5px;border-radius:1px;background:#fff8dc;box-shadow:0 0 8px 2px rgba(233,220,255,.8);opacity:0;transform:rotate(45deg) scale(.2);pointer-events:none;animation:shopStartupSparkle 1.35s ease-out .55s 1 both}
 .shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut .55s ease-in-out both}
 #mainApp.shop-startup-enter{animation:shopStartupShopIn .65s cubic-bezier(.2,.72,.24,1) both}
 @keyframes shopStartupAuraIn{from{opacity:0;transform:scale(.78)}to{opacity:.22;transform:scale(1.08)}}
-@keyframes shopStartupLogoIn{from{opacity:0;transform:scale(.74);filter:blur(3px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
+@keyframes shopStartupLogoIn{from{opacity:0;transform:translate3d(calc(50vw - env(safe-area-inset-left) - clamp(24px,12vw,180px) - 41px),calc(50vh - env(safe-area-inset-top) - clamp(28px,9vh,96px) - 41px),0) scale(.74);filter:blur(3px)}to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}}
 @keyframes shopStartupLogoPulse{0%,100%{box-shadow:0 12px 42px rgba(112,69,255,.25),0 0 24px rgba(166,139,255,.18),inset 0 1px 0 rgba(255,255,255,.36)}50%{box-shadow:0 14px 46px rgba(112,69,255,.29),0 0 30px rgba(181,158,255,.22),inset 0 1px 0 rgba(255,255,255,.38)}}
-@keyframes shopStartupBrandIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shopStartupBrandIn{from{opacity:0;transform:translate3d(calc(50vw + 50%),-50%,0) scale(.98)}to{opacity:1;transform:translate3d(-50%,-50%,0) scale(1)}}
+@keyframes shopStartupLogoTrail{0%,100%{opacity:0}24%{opacity:.28}72%{opacity:.1}}
+@keyframes shopStartupBrandTrail{0%,100%{opacity:0}28%{opacity:.24}76%{opacity:.08}}
 @keyframes shopStartupSparkle{0%,100%{opacity:0;transform:rotate(45deg) scale(.2)}35%{opacity:.3;transform:rotate(45deg) scale(.9)}65%{opacity:.18;transform:rotate(45deg) scale(.72)}}
 @keyframes shopStartupSplashOut{to{opacity:0;transform:scale(1.015);filter:blur(3px)}}
 @keyframes shopStartupShopIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@media(prefers-reduced-motion:reduce){.shop-startup-aura,.shop-startup-logo,.shop-startup-brand,#mainApp.shop-startup-enter{animation:none!important;opacity:1;transform:none;filter:none}.shop-startup-sparkle{animation:none!important;opacity:0}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}}
+@media(max-width:560px){.shop-startup-logo::after{width:clamp(150px,42vw,220px);transform:translateY(-50%) rotate(68deg) scaleX(.5)}}
+@media(prefers-reduced-motion:reduce){.shop-startup-aura,.shop-startup-logo,.shop-startup-brand,#mainApp.shop-startup-enter{animation:none!important;opacity:1;transform:none;filter:none}.shop-startup-logo::after,.shop-startup-brand::after{animation:none!important;opacity:0!important}.shop-startup-sparkle{animation:none!important;opacity:0}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}}
 .shop-promo-onboarding{--onboarding-electric:#278bff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;background:#050a1c;color:#fff;isolation:isolate;touch-action:pan-y}
 .shop-promo-onboarding[hidden]{display:none!important}
 .shop-promo-onboarding-image,.shop-promo-onboarding-shade{position:absolute;inset:0;width:100%;height:100%}
@@ -2439,6 +2444,97 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 .owner-promo-slide .owner-image-preview{display:block;max-height:220px}
 .owner-promo-status{min-height:22px;color:#d8cbff;font-size:13px;line-height:1.5}
 @media(max-height:560px){.shop-promo-onboarding-content{gap:10px;padding-top:calc(env(safe-area-inset-top) + 14px);padding-bottom:calc(env(safe-area-inset-bottom) + 14px)}.shop-promo-onboarding-brand{font-size:27px}.shop-promo-onboarding-title{font-size:38px}.shop-promo-onboarding-copy{margin-top:9px}}
+
+/* SHIVAN_SITE_MOTION_V1: short, compositor-friendly movement that keeps the existing visual design intact. */
+:root{--shop-motion-ease:cubic-bezier(.22,.61,.36,1);--shop-motion-fast:160ms;--shop-motion-base:360ms}
+button:not(:disabled),a[href],[role="button"]:not([aria-disabled="true"]){transition-property:transform,filter,border-color,background-color,box-shadow,color,opacity;transition-duration:180ms;transition-timing-function:var(--shop-motion-ease);-webkit-tap-highlight-color:transparent}
+button:not(:disabled):active,a[href]:active,[role="button"]:not([aria-disabled="true"]):active{transform:scale(.985);filter:brightness(1.045)}
+select,input,textarea{transition:border-color 180ms var(--shop-motion-ease),box-shadow 180ms var(--shop-motion-ease)}
+select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0 3px rgba(133,91,255,.18)}
+.nav-item .nav-icon{transition:transform 180ms var(--shop-motion-ease)}
+.nav-item.active .nav-icon{transform:translateY(-1px) scale(1.04)}
+.category{transition:transform 180ms var(--shop-motion-ease),border-color 180ms var(--shop-motion-ease),box-shadow 180ms var(--shop-motion-ease),background-color 180ms var(--shop-motion-ease)}
+.category:active{transform:scale(.96)}
+.product-img,.detail-gallery img,.cart-item img{transition:transform 320ms var(--shop-motion-ease)}
+.hero-slide img{transform:scale(1.025);transition:transform 5.5s var(--shop-motion-ease)}
+.hero-slide.active img{transform:scale(1)}
+.hero-dots span{transition:width 220ms var(--shop-motion-ease),background-color 220ms ease,box-shadow 220ms ease}
+.hero-slide.active .hero-copy{animation:shopMotionBannerIn 420ms var(--shop-motion-ease)}
+.shop-promo-onboarding-image{transition:opacity 320ms var(--shop-motion-ease),transform 420ms var(--shop-motion-ease)}
+.shop-promo-onboarding-skip,.shop-promo-onboarding-choice{transition:transform 160ms var(--shop-motion-ease),filter 160ms ease,background-color 180ms ease,border-color 180ms ease,box-shadow 180ms ease}
+.shop-promo-onboarding-skip:active,.shop-promo-onboarding-choice:active{transform:scale(.985)}
+.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-welcome{animation:shopMotionWelcomeIn 380ms var(--shop-motion-ease)}
+.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choice:first-child{animation:shopMotionChoiceIn 360ms var(--shop-motion-ease) 45ms backwards}
+.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choice:last-child{animation:shopMotionChoiceIn 360ms var(--shop-motion-ease) 95ms backwards}
+.view.active{animation:shopMotionViewIn 340ms var(--shop-motion-ease)}
+#mainApp .view.active #productsGrid>.product:nth-child(-n+8),#mainApp .view.active #searchGrid>.product:nth-child(-n+8),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(-n+8){animation:shopMotionCardIn 380ms var(--shop-motion-ease)}
+#mainApp .view.active #productsGrid>.product:nth-child(2),#mainApp .view.active #searchGrid>.product:nth-child(2),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(2){animation-delay:35ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(3),#mainApp .view.active #searchGrid>.product:nth-child(3),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(3){animation-delay:65ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(4),#mainApp .view.active #searchGrid>.product:nth-child(4),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(4){animation-delay:95ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(5),#mainApp .view.active #searchGrid>.product:nth-child(5),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(5){animation-delay:125ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(6),#mainApp .view.active #searchGrid>.product:nth-child(6),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(6){animation-delay:155ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(7),#mainApp .view.active #searchGrid>.product:nth-child(7),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(7){animation-delay:185ms;animation-fill-mode:backwards}
+#mainApp .view.active #productsGrid>.product:nth-child(8),#mainApp .view.active #searchGrid>.product:nth-child(8),#mainApp .view.active .detail-recommendation-grid>.product:nth-child(8){animation-delay:215ms;animation-fill-mode:backwards}
+#mainApp .view.active #categoryButtons>.category:nth-child(-n+6){animation:shopMotionChoiceIn 340ms var(--shop-motion-ease)}
+#mainApp .view.active #categoryButtons>.category:nth-child(2){animation-delay:25ms;animation-fill-mode:backwards}
+#mainApp .view.active #categoryButtons>.category:nth-child(3){animation-delay:50ms;animation-fill-mode:backwards}
+#mainApp .view.active #categoryButtons>.category:nth-child(4){animation-delay:75ms;animation-fill-mode:backwards}
+#mainApp .view.active #categoryButtons>.category:nth-child(5){animation-delay:100ms;animation-fill-mode:backwards}
+#mainApp .view.active #categoryButtons>.category:nth-child(6){animation-delay:125ms;animation-fill-mode:backwards}
+#mainApp .view.active #cartList>*:nth-child(-n+6),#mainApp .view.active #ordersList>*:nth-child(-n+5){animation:shopMotionCardIn 340ms var(--shop-motion-ease)}
+#mainApp .view.active #ownerPanelContent>*:nth-child(-n+8){animation:shopMotionCardIn 340ms var(--shop-motion-ease)}
+#mainApp .view.active .profile-guest-access,#mainApp .view.active .profile-card{animation:shopMotionCardIn 360ms var(--shop-motion-ease)}
+#mainApp .view.active .owner-tabs .owner-tab{transition:transform 160ms var(--shop-motion-ease),background-color 180ms ease,border-color 180ms ease,color 180ms ease}
+#authPage .auth-card{animation:shopMotionCardIn 400ms var(--shop-motion-ease)}
+#authPage.is-signup .auth-card{animation-name:shopMotionAuthIn}
+.auth-ad-slide img{transform:scale(1.02);transition:transform 5.5s var(--shop-motion-ease)}
+.auth-ad-slide.active img{transform:scale(1)}
+.modal{opacity:0;transition:opacity 200ms ease,display 200ms allow-discrete;transition-behavior:allow-discrete}
+.modal.show{opacity:1}
+.modal-card{transform:translateY(18px) scale(.99);transition:transform 240ms var(--shop-motion-ease)}
+.modal.show .modal-card{transform:translateY(0) scale(1)}
+.owner-confirm-modal{opacity:0;transition:opacity 200ms ease,display 200ms allow-discrete;transition-behavior:allow-discrete}
+.owner-confirm-modal.show{opacity:1}
+.owner-confirm-card{transform:translateY(14px) scale(.99);transition:transform 240ms var(--shop-motion-ease)}
+.owner-confirm-modal.show .owner-confirm-card{transform:translateY(0) scale(1)}
+.toast{transition:opacity 240ms ease,transform 280ms var(--shop-motion-ease)}
+@starting-style{.modal.show,.owner-confirm-modal.show{opacity:0}.modal.show .modal-card,.owner-confirm-modal.show .owner-confirm-card{transform:translateY(18px) scale(.99)}}
+@keyframes shopMotionViewIn{from{opacity:0;transform:translate3d(0,9px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionCardIn{from{opacity:0;transform:translate3d(0,9px,0) scale(.992)}to{opacity:1;transform:none}}
+@keyframes shopMotionBannerIn{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionWelcomeIn{from{opacity:0;transform:translate3d(0,10px,0) scale(.99)}to{opacity:1;transform:none}}
+@keyframes shopMotionChoiceIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionAuthIn{from{opacity:0;transform:translate3d(14px,5px,0)}to{opacity:1;transform:none}}
+@media(hover:hover){.product:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.24)}.product:hover .product-img{transform:scale(1.025)}button:not(:disabled):hover,a[href]:hover{filter:brightness(1.06)}}
+@media(prefers-reduced-motion:reduce){
+  button:not(:disabled),a[href],[role="button"],select,input,textarea,.nav-item .nav-icon,.category,.product-img,.detail-gallery img,.cart-item img,.hero-slide img,.auth-ad-slide img,.hero-dots span,.shop-promo-onboarding-image,.shop-promo-onboarding-skip,.shop-promo-onboarding-choice,.modal,.modal-card,.owner-confirm-modal,.owner-confirm-card,.toast{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+  button:not(:disabled):active,a[href]:active,[role="button"]:not([aria-disabled="true"]):active,.category:active,.shop-promo-onboarding-skip:active,.shop-promo-onboarding-choice:active{transform:none!important;filter:none!important}
+  .view.active,#mainApp .view.active #productsGrid>.product,#mainApp .view.active #searchGrid>.product,#mainApp .view.active .detail-recommendation-grid>.product,#mainApp .view.active #categoryButtons>.category,#mainApp .view.active #cartList>*,#mainApp .view.active #ordersList>*,#mainApp .view.active #ownerPanelContent>*,#mainApp .view.active .profile-guest-access,#mainApp .view.active .profile-card,#authPage .auth-card,#authPage.is-signup .auth-card,.hero-copy,.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-welcome,.shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choice,#detailView.active .detail-gallery,#detailView.active .detail-title,#detailView.active .detail-price,#detailView.active .detail-options .detail-box,#detailView.active .detail-gallery-dots,#detailView.active .detail-content-section,#detailView.active .detail-actions-row>*,#detailView.product-detail-closing{animation:none!important}
+  .product:hover,.product:hover .product-img,button:not(:disabled):hover,a[href]:hover{transform:none;filter:none;box-shadow:none}
+  ::view-transition-group(shivan-product-image),::view-transition-old(shivan-product-image),::view-transition-new(shivan-product-image){animation-duration:.01ms!important}
+}
+
+/* Product detail motion: shared image transitions where supported, staggered content everywhere. */
+@supports(view-transition-name:shivan-product-image){
+  ::view-transition-group(shivan-product-image){animation-duration:460ms;animation-timing-function:var(--shop-motion-ease)}
+  ::view-transition-image-pair(shivan-product-image){isolation:isolate}
+  ::view-transition-old(shivan-product-image),::view-transition-new(shivan-product-image){width:100%;height:100%;object-fit:cover}
+}
+#mainApp.detail-mode #detailView.active{animation:none}
+#detailView.active #detailName{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 35ms backwards}
+#detailView.active #detailPrice{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 75ms backwards}
+#detailView.active .detail-options .detail-box:first-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 90ms backwards}
+#detailView.active .detail-options .detail-box:last-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 130ms backwards}
+#detailView.active .detail-gallery-dots{animation:shopMotionDetailIn 280ms var(--shop-motion-ease) 110ms backwards}
+#detailView.active .detail-content-section:first-of-type{animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 145ms backwards}
+#detailView.active .detail-content-section:nth-of-type(2){animation:shopMotionDetailIn 360ms var(--shop-motion-ease) 185ms backwards}
+#detailView.active .detail-actions-row>*:first-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 210ms backwards}
+#detailView.active .detail-actions-row>*:last-child{animation:shopMotionDetailIn 340ms var(--shop-motion-ease) 245ms backwards}
+@supports not (view-transition-name:shivan-product-image){#detailView.active .detail-gallery{animation:shopMotionDetailImageIn 420ms var(--shop-motion-ease)}}
+#detailView.product-detail-closing{animation:shopMotionDetailOut 180ms ease-in both;pointer-events:none}
+@keyframes shopMotionDetailIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+@keyframes shopMotionDetailImageIn{from{opacity:.72;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+@keyframes shopMotionDetailOut{to{opacity:0;transform:translate3d(0,7px,0) scale(.996)}}
 </style>
 </head>
 
@@ -4272,6 +4368,8 @@ let detailPhotoAnimationFrames=new WeakMap();
 let detailRecommendationPool=[];
 let detailRecommendationCursor=0;
 let detailRecommendationObserver=null;
+let detailOriginImage=null;
+let productTransitionCleanup=null;
 let currentCategory = "هەموو";
 let previousView = "home";
 let editingProductId = null;
@@ -6233,7 +6331,7 @@ function renderProducts(list, target="productsGrid", append=false){
 
   const cards=list.map(p=>`
 
-    <div class="product" onclick="openProduct(${p.id})">
+    <div class="product" onclick="openProduct(${p.id},event)">
 
       <button
         class="heart ${isFavorite(p.id)?"liked":""}"
@@ -6289,38 +6387,94 @@ function renderProducts(list, target="productsGrid", append=false){
 }
 
 
-function openProduct(id){
+function productViewTransitionEnabled(){
+  return typeof document.startViewTransition==="function"&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
 
-  const p = products.find(x=>x.id===id);
-
-  if(!p) return;
-
-  currentProduct = p;
-  currentQty = 1;
-  document.getElementById("detailView").classList.toggle("many-colors",p.colors.length>=7);
-
-  const firstAvailable=p.variants.find(variant=>variant.stock>0);
-  selectedSize = firstAvailable?.size || p.sizes[0] || "";
-  selectedColor = firstAvailable?.color || p.colors[0] || "";
-  previousView=["home","search"].find(view=>document.getElementById(`${view}View`).classList.contains("active"))||"home";
-
-  document.getElementById("detailName").textContent=getProductName(p);
-  document.getElementById("detailPrice").textContent=formatPrice(p.price);
-  document.getElementById("detailDescription").textContent=p.description;
-  renderDetailGallery(true,selectedColor);
-  renderSizeOptions();
-  renderColorOptions();
-  updateDetailAvailability();
-
-  openView("detail");
-  renderDetailReviews();
-  resetDetailRecommendations();
-
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
+function runProductViewTransition(update,fromElement=null,toElement=null){
+  if(!productViewTransitionEnabled()){
+    update();
+    return false;
+  }
+  productTransitionCleanup?.();
+  productTransitionCleanup=null;
+  const transitionName="shivan-product-image";
+  const originalFromName=fromElement?.style?.viewTransitionName||"";
+  let destination=null;
+  let originalDestinationName="";
+  let cleaned=false;
+  const cleanup=()=>{
+    if(cleaned)return;
+    cleaned=true;
+    if(fromElement?.style)fromElement.style.viewTransitionName=originalFromName;
+    if(destination?.style)destination.style.viewTransitionName=originalDestinationName;
+    if(productTransitionCleanup===cleanup)productTransitionCleanup=null;
+  };
+  productTransitionCleanup=cleanup;
+  if(fromElement?.style)fromElement.style.viewTransitionName=transitionName;
+  let updateStarted=false;
+  let transition;
+  try{
+    transition=document.startViewTransition(()=>{
+      updateStarted=true;
+      if(fromElement?.style)fromElement.style.viewTransitionName="none";
+      update();
+      destination=typeof toElement==="function"?toElement():toElement;
+      originalDestinationName=destination?.style?.viewTransitionName||"";
+      if(destination?.style)destination.style.viewTransitionName=transitionName;
+    });
+  }catch(error){
+    cleanup();
+    if(!updateStarted)update();
+    return false;
+  }
+  transition?.updateCallbackDone?.catch?.(error=>{
+    cleanup();
+    console.warn("Product view transition update failed.",error);
   });
+  Promise.resolve(transition?.finished).then(cleanup,cleanup);
+  return true;
+}
 
+function openProduct(id,event=null){
+  const p=products.find(x=>x.id===id);
+  if(!p)return;
+
+  const card=event?.currentTarget?.closest?.(".product")||event?.target?.closest?.(".product");
+  const originImage=card?.querySelector?.(".product-img")||null;
+  detailOriginImage=originImage?.isConnected?originImage:null;
+  const sharedSource=originImage?.complete&&originImage.naturalWidth>0?originImage:null;
+  const openDetails=()=>{
+    currentProduct=p;
+    currentQty=1;
+    const detailView=document.getElementById("detailView");
+    detailView.classList.remove("product-detail-closing");
+    detailView.classList.toggle("many-colors",p.colors.length>=7);
+
+    const firstAvailable=p.variants.find(variant=>variant.stock>0);
+    selectedSize=firstAvailable?.size||p.sizes[0]||"";
+    selectedColor=firstAvailable?.color||p.colors[0]||"";
+    previousView=["home","search"].find(view=>document.getElementById(`${view}View`).classList.contains("active"))||"home";
+
+    document.getElementById("detailName").textContent=getProductName(p);
+    document.getElementById("detailPrice").textContent=formatPrice(p.price);
+    document.getElementById("detailDescription").textContent=p.description;
+    renderDetailGallery(true,selectedColor);
+    renderSizeOptions();
+    renderColorOptions();
+    updateDetailAvailability();
+
+    openView("detail");
+    renderDetailReviews();
+    resetDetailRecommendations();
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  runProductViewTransition(openDetails,sharedSource,()=>{
+    const destination=document.getElementById("detailImage");
+    if(!sharedSource||!destination?.complete||destination.naturalWidth<=0)return null;
+    return destination;
+  });
 }
 
 function detailPhotosForProduct(){
@@ -6837,8 +6991,44 @@ function toggleFavorite(id){
   showToast(exists?"ژ دڵخوازان هاتە دەرئێخستن.":"بەرهەم ل دڵخوازان هاتە زیادکرن ❤️");
 }
 
+function closeProductDetails(){
+  const destinationView=previousView;
+  const detailView=document.getElementById("detailView");
+  const detailImage=document.getElementById("detailImage");
+  const originImage=detailOriginImage;
+  const canShareImage=Boolean(originImage?.isConnected&&originImage.complete&&originImage.naturalWidth>0&&detailImage?.complete&&detailImage.naturalWidth>0&&originImage.currentSrc===detailImage.currentSrc);
+  detailOriginImage=null;
+
+  if(!detailView?.classList.contains("active")){
+    openView(destinationView);
+    return;
+  }
+
+  if(productViewTransitionEnabled()){
+    runProductViewTransition(()=>openView(destinationView),canShareImage?detailImage:null,canShareImage?originImage:null);
+    return;
+  }
+
+  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
+  if(reducedMotion||detailView.classList.contains("product-detail-closing")){
+    openView(destinationView);
+    return;
+  }
+
+  const finishClose=event=>{
+    if(event&&(event.target!==detailView||event.animationName!=="shopMotionDetailOut"))return;
+    detailView.removeEventListener("animationend",finishClose);
+    clearTimeout(closeFallbackTimer);
+    detailView.classList.remove("product-detail-closing");
+    openView(destinationView);
+  };
+  const closeFallbackTimer=setTimeout(()=>finishClose(),240);
+  detailView.addEventListener("animationend",finishClose);
+  detailView.classList.add("product-detail-closing");
+}
+
 function goBack(){
-  openView(previousView);
+  closeProductDetails();
 }
 
 function isFavorite(id){
