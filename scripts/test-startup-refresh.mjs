@@ -14,16 +14,23 @@ const refresh = sourceOf(/async function refreshCloudData\(\)\{[\s\S]*?\n\}/, "c
 const apply = sourceOf(/function applyCloudData\(data\)\{[\s\S]*?\n\}/, "cloud data application");
 const finishSplash = sourceOf(/function finishShopStartupSplash\(\)\{[\s\S]*?\n\}/, "branded splash");
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
-const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "logo-only startup screen");
+const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "animated brand startup screen");
 
 assert.match(html, /SHOP_BRANDED_SPLASH_MS=2200/, "the branded logo should cover the first 2.2 seconds");
 assert.match(html, /window\.__SHIVAN_STARTUP_STARTED_AT=performance\.now\(\)/, "startup timing should begin in the document head, before cloud requests");
-assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop logo">S<\/span>/, "the startup screen should render the existing accessible Shivan Shop logo");
-assert.doesNotMatch(splashMarkup, /<(?:strong|p|img|svg|video|canvas)\b|loading|preparing|spinner/i, "the startup screen should contain only the existing logo");
+assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop monogram">SH<\/span>/, "the startup screen should render the approved white SH monogram");
+assert.match(splashMarkup, /<strong class="shop-startup-brand">BRAND SHIVAN SHOP<\/strong>/, "the startup screen should show the approved brand text");
+assert.doesNotMatch(splashMarkup, /loading|preparing|spinner/i, "the startup screen should not show loading copy or a spinner");
 assert.ok(html.indexOf('<body>') < html.indexOf('id="shopStartupSplash"') && html.indexOf('id="shopStartupSplash"') < html.indexOf('class="language-switcher"'), "the splash should paint before the rest of the page markup");
 assert.match(html, /\.shop-startup-splash\{[^}]*place-items:center/, "the logo should be centered in the dark splash");
-assert.match(html, /@keyframes shopStartupLogoReveal\{from\{opacity:0;transform:scale\(\.94\)[\s\S]*?to\{opacity:1;transform:scale\(1\)/, "the logo should fade in with a subtle scale-up");
-assert.doesNotMatch(html, /shopStartupLightSweep|shopStartupLogoGlow/, "the splash should not use a looping or distracting logo animation");
+assert.match(html, /\.shop-startup-splash\{[^}]*background:radial-gradient\([^}]*#03050d/, "the splash should retain its dark background with a soft purple glow");
+assert.match(html, /\.shop-startup-logo\{[^}]*border-radius:25px[^}]*color:#fff/, "the SH mark should remain white inside a rounded purple logo");
+assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft purple glow should appear first");
+assert.match(html, /animation:shopStartupLogoIn \.72s[^}]*shopStartupLogoPulse \.9s ease-in-out 1s 1/, "the logo should zoom in, fade, and receive one subtle glow pulse");
+assert.match(html, /animation:shopStartupBrandIn \.55s[^}]*\.82s both/, "the brand text should slide up and fade in after the logo");
+assert.match(html, /animation:shopStartupSparkle \.68s ease-out 1\.08s 1 both/, "the splash should include one short sparkle after the logo appears");
+assert.ok(1.08 + .68 < 2.2 && 1 + .9 < 2.2, "logo, pulse, and sparkle animations should finish before the 2.2-second transition");
+assert.doesNotMatch(html, /shopStartupLightSweep|shopStartupLogoReveal/, "the splash should not use the superseded sweeping or logo-only animation");
 assert.match(html, /@keyframes shopStartupShopIn/, "the shop should use a fade-and-slide entrance");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
 assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded/, "the branded splash should lead directly to Shop / Models");
