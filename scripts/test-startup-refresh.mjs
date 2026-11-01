@@ -26,10 +26,10 @@ assert.match(html, /\.shop-startup-splash\{[^}]*place-items:center/, "the logo s
 assert.match(html, /\.shop-startup-splash\{[^}]*background:radial-gradient\([^}]*#03050d/, "the splash should retain its dark background with a soft purple glow");
 assert.match(html, /\.shop-startup-logo\{[^}]*border-radius:25px[^}]*color:#fff/, "the SH mark should remain white inside a rounded purple logo");
 assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft purple glow should appear first");
-assert.match(html, /animation:shopStartupLogoIn \.72s[^}]*shopStartupLogoPulse \.9s ease-in-out 1s 1/, "the logo should zoom in, fade, and receive one subtle glow pulse");
+assert.match(html, /animation:shopStartupLogoIn 1\.12s cubic-bezier\(\.2,\.72,\.24,1\) \.14s both,shopStartupLogoPulse \.86s ease-in-out 1\.28s 1/, "the logo should fade and scale in slowly, then pulse gently");
 assert.match(html, /animation:shopStartupBrandIn \.55s[^}]*\.82s both/, "the brand text should slide up and fade in after the logo");
 assert.match(html, /animation:shopStartupSparkle \.68s ease-out 1\.08s 1 both/, "the splash should include one short sparkle after the logo appears");
-assert.ok(1.08 + .68 < 2.2 && 1 + .9 < 2.2, "logo, pulse, and sparkle animations should finish before the 2.2-second transition");
+assert.ok(.14 + 1.12 < 1.28 && 1.28 + .86 < 2.2 && 1.08 + .68 < 2.2, "the logo should finish before its pulse, and all effects should finish before the 2.2-second transition");
 assert.doesNotMatch(html, /shopStartupLightSweep|shopStartupLogoReveal/, "the splash should not use the superseded sweeping or logo-only animation");
 assert.match(html, /@keyframes shopStartupShopIn/, "the shop should use a fade-and-slide entrance");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
