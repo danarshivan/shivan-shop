@@ -8,6 +8,10 @@ assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-en
 assert.match(html, /#mainApp \.view\.active\.product-list-returning\{animation:shopMotionProductListReturn 100ms/, "returning to a product list should use a 100 ms transition");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the detail close button should avoid tap-gesture delay on mobile");
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "locking detail scrolling should preserve the page scrollbar gutter");
+assert.match(html, /body\{[^}]*display:flex;[^}]*justify-content:center/s, "the shop should keep its centered flex layout");
+assert.match(html, /body\.detail-view-open\{display:flex;justify-content:center\}/, "locking the detail view must preserve the body's centered layout");
+assert.doesNotMatch(html, /body\.detail-view-open\{[^}]*display:block/, "opening details must not switch the page body to block layout and shift the shop");
+assert.match(html, /html\.detail-view-open,body\.detail-view-open\{[^}]*overflow:hidden/, "the background page should remain locked while details are open");
 assert.match(html, /\.view\.active\.product-list-returning\{[^}]*overflow-anchor:none/, "scroll anchoring should not move the list during its return");
 assert.match(html, /@keyframes shopMotionProductOpen\{from\{opacity:0;transform:translate3d\(0,5px,0\)\}to\{opacity:1;transform:none\}\}/, "opening should use only a short, subtle slide with a fade");
 assert.match(html, /@keyframes shopMotionProductListReturn\{from\{opacity:\.985\}to\{opacity:1\}\}/, "the quick return should fade without moving the list or its contents");
