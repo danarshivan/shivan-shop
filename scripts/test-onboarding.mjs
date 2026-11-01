@@ -31,7 +31,25 @@ assert.match(mediaMarkup, /<img id="shopPromoOnboardingImage"[\s\S]*?<\/div>/, "
 assert.match(mediaMarkup, /class="shop-promo-onboarding-shade"/, "the image panel should retain a subtle dark lower gradient");
 assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border:1px solid rgba\(183,137,255,/);
 assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border-radius:/);
-assert.match(html, /\.shop-promo-onboarding-image\{[^}]*object-fit:contain/, "promotional photos should preserve their natural proportions");
+const onboardingMediaCss=html.match(/\.shop-promo-onboarding-media\{[^}]*\}/)?.[0]||"";
+const onboardingImageCss=html.match(/\.shop-promo-onboarding-image\{[^}]*\}/)?.[0]||"";
+assert.ok(onboardingMediaCss.includes("aspect-ratio:3/4"), "all promo slides should use the same portrait frame ratio");
+assert.ok(onboardingMediaCss.includes("align-self:center"), "the fixed-ratio frame should stay centered in the responsive slide layout");
+assert.ok(onboardingMediaCss.includes("calc((100dvh - clamp(180px,30dvh,240px))*.75)"), "the frame should scale smoothly with available viewport height");
+assert.match(onboardingImageCss, /object-fit:cover/, "promotional images should fill the rounded frame without letterboxing");
+assert.match(onboardingImageCss, /object-position:center/, "image crops should remain centered by default");
+assert.match(html, /@media\(max-height:560px\)\{\.shop-promo-onboarding-content\{gap:8px/);
+for (const viewport of [{width:375,height:560},{width:375,height:561},{width:375,height:568},{width:390,height:667},{width:393,height:852},{width:430,height:932},{width:844,height:390},{width:1440,height:900}]) {
+  const short=viewport.height<=560;
+  const reserved=Math.min(240,Math.max(180,viewport.height*.3));
+  const availableWidth=Math.max(0,viewport.width-(viewport.width<=600?36:96));
+  const width=Math.min(availableWidth,520,Math.max(0,(viewport.height-reserved)*.75));
+  const height=width*4/3;
+  const controlsReserve=short?150:reserved;
+  assert.ok(width>0 && height>0, `onboarding image frame should fit ${viewport.width}x${viewport.height}`);
+  assert.ok(height<=viewport.height-controlsReserve+0.01, `onboarding image frame should leave controls and safe-area room at ${viewport.width}x${viewport.height}`);
+  assert.ok(Math.abs(width/height-.75)<0.001, `onboarding image ratio should remain consistent at ${viewport.width}x${viewport.height}`);
+}
 const brandMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-brand"[^>]*>[\s\S]*?<\/div>/)?.[0]||"";
 assert.match(brandMarkup, /<span>SHIVAN SHOP<\/span>/, "the centered brand name should appear at the top");
 assert.doesNotMatch(brandMarkup, /<svg|cart|bag/i, "the onboarding brand should not display a shopping icon");
@@ -47,7 +65,6 @@ assert.match(html, /linear-gradient\(180deg,#07050d 0%,#030306 62%,#020205 100%\
 assert.match(html, /\.shop-promo-onboarding-choices\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "the final choices should sit side by side on phones");
 assert.match(html, /shopMotionOnboardingForward 300ms/);
 assert.match(html, /shopMotionOnboardingBackward 300ms/);
-assert.match(html, /@media\(max-height:560px\)\{[\s\S]*?\.shop-promo-onboarding-media\{width:min\(100%,calc\(\(100vh - 150px\)\*\.78\)\)/);
 assert.match(html, /prefers-reduced-motion:reduce\)[\s\S]*?\.shop-promo-onboarding-content/);
 assert.match(html, /function warmShopOnboardingImages\(\)\{[\s\S]*?new Set\(shopOnboardingImages\)/, "shared slides should warm in asynchronously");
 const defaultImageList=html.match(/const SHOP_ONBOARDING_DEFAULT_IMAGES = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1]||"";
