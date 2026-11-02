@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-assert.match(html, /<div class="product" onclick="openProduct\(\$\{p\.id\}\)">/, "every shared-renderer card should use the common product opener");
+assert.match(html, /<div class="product \$\{productDiscountPercent\(p\)\?"has-discount":""\}" onclick="openProduct\(\$\{p\.id\}\)">/, "discount presentation classes must preserve the shared product opener");
+assert.match(html, /\.product\.has-discount \.discount-price-layout\{display:flex;width:100%;justify-content:flex-start;text-align:left;direction:ltr\}/, "discounted card prices should fill and align at the left edge");
+assert.match(html, /\.product\.has-discount \.discounted-price\{color:inherit\}/, "discounted card prices should use the same purple accent as the card price");
+assert.match(html, /\.product\.has-discount \.stock-line\{text-align:left;direction:ltr\}/, "discounted card stock text should remain left aligned");
 assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product opening should retain its current 190 ms animation");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the Back button should avoid tap-gesture delay");
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");

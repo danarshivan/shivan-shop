@@ -691,6 +691,11 @@ button{
 .discount-price-values{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px}
 .original-price{color:#9b9eaa;font-size:.82em;font-weight:500;text-decoration:line-through;text-decoration-thickness:1.5px}
 .discounted-price{color:#a486ff;font:inherit;font-weight:900}
+.product.has-discount .price{text-align:left;direction:ltr}
+.product.has-discount .discount-price-layout{display:flex;width:100%;justify-content:flex-start;text-align:left;direction:ltr}
+.product.has-discount .discount-price-values{justify-content:flex-start}
+.product.has-discount .discounted-price{color:inherit}
+.product.has-discount .stock-line{text-align:left;direction:ltr}
 .discount-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:999px;background:#d83d50;color:#fff;font-size:10px;font-weight:900;line-height:1.1;white-space:nowrap}
 .cart-sale-prices{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px}
 .order-item-price{display:block;margin-top:3px}
@@ -6696,7 +6701,7 @@ function renderProducts(list, target="productsGrid", append=false){
 
   const cards=list.map(p=>`
 
-    <div class="product" onclick="openProduct(${p.id})">
+    <div class="product ${productDiscountPercent(p)?"has-discount":""}" onclick="openProduct(${p.id})">
 
       <button
         class="heart ${isFavorite(p.id)?"liked":""}"
