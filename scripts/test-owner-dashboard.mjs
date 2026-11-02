@@ -88,6 +88,8 @@ assert.doesNotMatch(customers.innerHTML, /owner@example\.test/);
 const shell = runtime.ownerDashboardShellMarkup();
 assert.match(shell, /class="owner-sidebar"/);
 assert.match(shell, /id="ownerMobileNavigation"/);
+assert.match(shell, /id="ownerMobileToolbar" class="owner-mobile-toolbar" hidden/, "mobile section navigation starts hidden on the Dashboard");
+assert.doesNotMatch(shell, /owner-visit-mobile/, "the redundant mobile Visit Store button is removed");
 assert.match(shell, /Visit Store/);
 for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
   assert.ok(shell.includes(label), `desktop and mobile navigation should expose ${label}`);
@@ -95,6 +97,11 @@ for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp;
 
 assert.match(html, /@media\(max-width:760px\)\{\.owner-admin-shell\{display:block\}/, "the dashboard switches from a sidebar to compact mobile navigation");
 assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{\.owner-dashboard-nav-item/, "dashboard controls respect reduced motion");
+const ownerViewMarkup = html.match(/<!-- OWNER -->([\s\S]*?)<!-- PRODUCT DETAIL -->/)?.[1];
+assert.ok(ownerViewMarkup, "the Owner view markup is present");
+assert.doesNotMatch(ownerViewMarkup, /owner-view-head|Store management|openView\('profile'\)/, "the visible Store management heading and Back button are removed");
+assert.match(functionSource("renderOwnerPanel"), /mobileToolbar\.hidden=route\.panel==="dashboard"/, "mobile route navigation remains available on Owner subpages but is hidden on the Dashboard");
+assert.match(html, /\.owner-mobile-toolbar\[hidden\]\{display:none!important\}/, "the Dashboard toolbar stays hidden at mobile breakpoints");
 assert.match(functionSource("renderOwnerPanel"), /if\(!isOwner\(\)\)/, "dashboard sections remain Owner-only");
 assert.match(functionSource("renderOwnerPanel"), /renderOwnerProducts\(sectionBox\)[\s\S]*?renderOwnerAds\(sectionBox\)[\s\S]*?renderOwnerOrders\(sectionBox\)[\s\S]*?renderOwnerInventory\(sectionBox\)[\s\S]*?renderOwnerAppearance\(sectionBox\)/, "existing product, ad, order, QR, and appearance editors remain connected");
 assert.match(html, /id="ownerBackupSync"/, "Backup & Sync points to the existing backup controls");

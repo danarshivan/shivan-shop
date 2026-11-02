@@ -1224,9 +1224,6 @@ button{
 .owner-tabs{display:flex;gap:8px;overflow:auto;margin:0 0 14px;padding-bottom:3px}
 .owner-tab,.owner-action{border:1px solid #302b4b;background:#11131f;color:#eee;border-radius:12px;padding:10px 13px;white-space:nowrap}
 .owner-tab.active{background:#7045ff;border-color:#7045ff}
-.owner-view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:0 0 12px;border-bottom:1px solid #211b35}
-.owner-view-head h2{margin:0;font-size:clamp(19px,2.5vw,26px);letter-spacing:.01em}
-.owner-view-head button{min-height:42px;padding:8px 14px;border:1px solid #393050;border-radius:12px;background:#10111b;color:#e9e5f6;font:inherit;cursor:pointer}
 .owner-admin-shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:18px;align-items:start;min-width:0}
 .owner-sidebar{position:sticky;top:12px;display:flex;flex-direction:column;gap:6px;max-height:calc(100dvh - 150px);overflow:auto;overscroll-behavior:contain;padding:13px;border:1px solid #29213e;border-radius:20px;background:linear-gradient(165deg,#100d1b 0%,#090a12 72%);box-shadow:0 15px 45px #0005}
 .owner-sidebar-brand{display:flex;align-items:center;gap:11px;padding:5px 4px 14px;border-bottom:1px solid #29213e;margin-bottom:7px}
@@ -1244,6 +1241,7 @@ button{
 .owner-sidebar-visit{margin-top:auto;border-color:#443165;background:#181126;color:#d8c9ff}
 .owner-admin-main{min-width:0}
 .owner-mobile-toolbar{display:none}
+.owner-mobile-toolbar[hidden]{display:none!important}
 .owner-mobile-toolbar select{width:100%;min-width:0;min-height:46px;padding:9px 12px;border:1px solid #443463;border-radius:13px;background:#100e19;color:#fff;font:inherit}
 .owner-dashboard-banner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:150px;overflow:hidden;padding:clamp(18px,3vw,30px);border:1px solid #5a3f8f;border-radius:22px;background:radial-gradient(ellipse at 82% 10%,#7747c84b,transparent 42%),linear-gradient(116deg,#211538,#100e19 62%,#0b0b12);box-shadow:0 18px 46px #0005,inset 0 1px #ffffff0b}
 .owner-dashboard-banner:after{position:absolute;right:-50px;bottom:-120px;width:250px;height:250px;border:1px solid #a779ff1b;border-radius:50%;box-shadow:0 0 0 24px #a779ff08,0 0 0 52px #a779ff05;content:"";pointer-events:none}
@@ -1303,8 +1301,8 @@ button{
 .owner-analytics-empty{padding:14px;border:1px dashed #403551;border-radius:12px;color:#a69eb3;text-align:center}
 .owner-owner-content[hidden],.owner-dashboard-page[hidden]{display:none!important}
 @media(max-width:1050px){.owner-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-mobile-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 0 12px}.owner-mobile-toolbar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.owner-mobile-toolbar .owner-visit-mobile{min-height:46px;padding:8px 10px;border:1px solid #443463;border-radius:13px;background:#171222;color:#e5d8ff;font:inherit;font-size:11px}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
-@media(max-width:460px){.owner-view-head{align-items:flex-start}.owner-view-head button{padding-inline:10px;font-size:12px}.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
+@media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-mobile-toolbar{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:8px;margin:0 0 12px}.owner-mobile-toolbar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
+@media(max-width:460px){.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
 @media(prefers-reduced-motion:reduce){.owner-dashboard-nav-item,.owner-stat-card,.owner-quick-action,.owner-management-card{transition:none!important}.owner-stat-card:hover,.owner-quick-action:hover,.owner-management-card:hover{transform:none}}
 .owner-inventory-tools{display:grid;gap:12px;margin:12px 0}
 .owner-inventory-scanner,.owner-inventory-result,.owner-qr-card{padding:14px;border:1px solid #282d40;border-radius:16px;background:#0b0e18}
@@ -3061,10 +3059,6 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
   <!-- OWNER -->
   <div id="ownerView" class="view page">
-    <div class="owner-view-head">
-      <h2>بەڕێڤەبرنا فرۆشگەیێ</h2>
-      <button onclick="openView('profile')">زڤڕین</button>
-    </div>
     <div id="ownerPanelContent"></div>
   </div>
 
@@ -8653,7 +8647,9 @@ function renderOwnerPanel(section=ownerPanel){
   if(route.panel==="products"&&(route.nav==="products"||route.nav==="discounts")&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
   const dashboard=document.getElementById("ownerDashboardPage");
   const sectionBox=document.getElementById("ownerPanelSectionContent");
+  const mobileToolbar=document.getElementById("ownerMobileToolbar");
   if(!dashboard||!sectionBox)return false;
+  if(mobileToolbar)mobileToolbar.hidden=route.panel==="dashboard";
   dashboard.hidden=route.panel!=="dashboard";
   sectionBox.hidden=route.panel==="dashboard";
   if(route.panel==="dashboard"){
@@ -8735,7 +8731,7 @@ function ownerDashboardShellMarkup(){
       <button type="button" class="owner-dashboard-nav-item owner-sidebar-visit" onclick="visitStoreFromOwner()"><span class="owner-dashboard-nav-icon" aria-hidden="true">↗</span><span>${escapeHtml(ownerDashboardText("Visit Store","سەردانا فرۆشگەیێ","زيارة المتجر"))}</span></button>
     </aside>
     <main class="owner-admin-main">
-      <div class="owner-mobile-toolbar"><label for="ownerMobileNavigation">Owner section</label><select id="ownerMobileNavigation" aria-label="Owner section" onchange="renderOwnerPanel(this.value)">${mobileOptions}</select><button type="button" class="owner-visit-mobile" onclick="visitStoreFromOwner()">↗ ${escapeHtml(ownerDashboardText("Visit Store","سەردانا فرۆشگەیێ","زيارة المتجر"))}</button></div>
+      <div id="ownerMobileToolbar" class="owner-mobile-toolbar" hidden><label for="ownerMobileNavigation">Owner section</label><select id="ownerMobileNavigation" aria-label="Owner section" onchange="renderOwnerPanel(this.value)">${mobileOptions}</select></div>
       <div id="ownerDashboardPage" class="owner-dashboard-page"></div>
       <div id="ownerPanelSectionContent" class="owner-owner-content" hidden></div>
     </main>
