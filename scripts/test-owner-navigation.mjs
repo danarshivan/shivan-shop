@@ -196,7 +196,7 @@ function createOwnerNavigationRuntime(){
   context.readRenderedHeader = () => dashboard.innerHTML + section.innerHTML;
   const source = `
     let ownerPanel="dashboard", ownerDashboardNavKey="dashboard", ownerProductMode="menu", editingProductId=null, editingAdIndex=null;
-    let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""}, ownerReportSelection={preset:"month",start:"",end:""};
+    let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""}, ownerReportSelection={preset:"month",start:"",end:""}, ownerOrdersSelection={tab:"all",query:"",status:"",date:""}, ownerOrderDetailId="";
     let ownerNavigationRestoring=false, ownerPanelRefreshPending=false, ownerProductWorkflowId="", ownerAdWorkflowId="", ownerInventoryDraft=new Map();
     let ownerNavigationLedger=createOwnerNavigationLedger(), ownerNavigationPopHandler=null;
     ${integrationFunctions}
