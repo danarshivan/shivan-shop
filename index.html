@@ -2408,6 +2408,7 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
   .app.detail-mode #detailView .detail-color-option .detail-color-swatch{width:16px;height:16px;flex-basis:16px}
 }
 html.shop-promo-onboarding-open,body.shop-promo-onboarding-open{overflow:hidden!important;overscroll-behavior:none}
+html.shop-auth-modal-open,body.shop-auth-modal-open{overflow:hidden!important;overscroll-behavior:none}
 .shop-startup-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 43%,rgba(96,68,208,.2),transparent 38%),#03050d;opacity:1}
 .shop-startup-splash[hidden]{display:none!important}
 .shop-startup-aura{position:absolute;width:min(62vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(142,93,255,.4),rgba(99,67,214,.16) 42%,transparent 72%);filter:blur(9px);opacity:.22;pointer-events:none;animation:shopStartupAuraIn 1.8s ease-out both}
@@ -2451,6 +2452,13 @@ html.shop-promo-onboarding-open,body.shop-promo-onboarding-open{overflow:hidden!
 .shop-promo-onboarding-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
 .shop-promo-onboarding-choice.primary{border-color:#c19aff;background:linear-gradient(135deg,#7540c7,#542a91);box-shadow:0 10px 30px rgba(111,57,189,.3)}
 .shop-promo-onboarding-choice.secondary{border-color:rgba(194,157,255,.64);background:rgba(9,7,15,.82)}
+#authPage.auth.is-shop-auth-modal{position:fixed;inset:0;z-index:12000;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);place-items:center;width:auto;height:100vh;height:100dvh;min-height:0;max-width:none;margin:0;padding:calc(env(safe-area-inset-top) + 62px) 16px calc(env(safe-area-inset-bottom) + 16px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 18%,rgba(82,51,164,.2),transparent 44%),rgba(2,3,10,.78);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);animation:shopAuthModalIn 220ms var(--shop-motion-ease)}
+#authPage.is-shop-auth-modal .auth-ad,#authPage.is-shop-auth-modal .auth-intro{display:none!important}
+#authPage.is-shop-auth-modal .auth-card{grid-column:1;grid-row:1;align-self:center;justify-self:center;width:min(100%,460px);max-height:100%;min-height:0;margin:0;overflow-y:auto;overscroll-behavior:contain;border-radius:25px;background:linear-gradient(150deg,rgba(8,10,27,.99),rgba(5,7,19,.98));box-shadow:0 24px 80px rgba(0,0,0,.62),0 0 36px rgba(111,68,209,.16)}
+.shop-auth-modal-close{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:4;display:grid;place-items:center;width:46px;height:46px;padding:0;border:1px solid rgba(194,157,255,.48);border-radius:50%;background:rgba(11,9,20,.84);color:#fff;font-size:29px;line-height:1;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.35);backdrop-filter:blur(12px)}
+.shop-auth-modal-close[hidden]{display:none!important}
+@keyframes shopAuthModalIn{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media(prefers-reduced-motion:reduce){#authPage.is-shop-auth-modal{animation:none!important}}
 @media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}.shop-promo-onboarding.is-handoff-exiting{animation:none!important;opacity:0!important;transform:none!important}}
 .owner-promo-slides{display:grid;gap:12px}
 .owner-promo-slide{display:grid;gap:8px;padding:12px;border:1px solid #282d40;border-radius:14px;background:#080b14}
@@ -2564,7 +2572,9 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
 <!-- ================= AUTH ================= -->
 
-<section id="authPage" class="auth">
+<section id="authPage" class="auth" onkeydown="if(event.key==='Escape'&&this.classList.contains('is-shop-auth-modal'))closeGuestAuthenticationModal()" onclick="if(event.target===this&&this.classList.contains('is-shop-auth-modal'))closeGuestAuthenticationModal()">
+
+  <button id="shopAuthModalClose" class="shop-auth-modal-close" type="button" onclick="closeGuestAuthenticationModal()" aria-label="Close Login or Sign Up" hidden>×</button>
 
   <div class="auth-ad">
 
@@ -3733,6 +3743,7 @@ let checkoutFibPayment=null;
 let checkoutFibPaymentPending=false;
 let checkoutFibPaymentError="";
 let pendingAuthenticationIntent=null;
+let shopAuthModalReturnState=null;
 let ownerInventoryVariants=[];
 let ownerQrRenderQueue=[];
 let ownerQrSvgById=new Map();
@@ -6011,6 +6022,74 @@ function showAuth(type){
 
 }
 
+function openGuestAuthenticationModal(destination){
+  if((destination!=="cart"&&destination!=="profile")||currentUser||cloudAccount)return false;
+  const authPage=document.getElementById("authPage");
+  const mainApp=document.getElementById("mainApp");
+  const languageSwitcher=document.querySelector(".language-switcher");
+  if(!authPage||!mainApp||authPage.classList.contains("is-shop-auth-modal"))return false;
+  const view=getActiveShopView();
+  shopAuthModalReturnState={
+    view,
+    position:readShopViewPosition(view),
+    focus:document.activeElement||null,
+    authDisplay:authPage.style.display??"none",
+    mainInert:Boolean(mainApp.inert),
+    languageSwitcherInert:Boolean(languageSwitcher?.inert)
+  };
+  restoreProfileAuthCard();
+  pendingAuthenticationIntent={type:destination};
+  authPage.classList.add("is-shop-auth-modal");
+  authPage.setAttribute("role","dialog");
+  authPage.setAttribute("aria-modal","true");
+  authPage.setAttribute("aria-label","Log in or create your Shivan Shop account");
+  authPage.removeAttribute("aria-hidden");
+  authPage.inert=false;
+  authPage.style.display="";
+  mainApp.inert=true;
+  if(languageSwitcher)languageSwitcher.inert=true;
+  const closeButton=document.getElementById("shopAuthModalClose");
+  if(closeButton)closeButton.hidden=false;
+  document.documentElement?.classList.add("shop-auth-modal-open");
+  document.body?.classList.add("shop-auth-modal-open");
+  showAuth("login");
+  requestAnimationFrame(()=>closeButton?.focus({preventScroll:true}));
+  return true;
+}
+
+function closeGuestAuthenticationModal({clearIntent=true,restoreContext=true,restoreFocus=true}={}){
+  const authPage=document.getElementById("authPage");
+  if(!authPage?.classList.contains("is-shop-auth-modal"))return false;
+  const state=shopAuthModalReturnState;
+  authPage.classList.remove("is-shop-auth-modal");
+  authPage.removeAttribute("role");
+  authPage.removeAttribute("aria-modal");
+  authPage.removeAttribute("aria-label");
+  authPage.inert=false;
+  authPage.style.display=state?.authDisplay??"none";
+  const closeButton=document.getElementById("shopAuthModalClose");
+  if(closeButton)closeButton.hidden=true;
+  const mainApp=document.getElementById("mainApp");
+  if(mainApp)mainApp.inert=state?.mainInert??false;
+  const languageSwitcher=document.querySelector(".language-switcher");
+  if(languageSwitcher)languageSwitcher.inert=state?.languageSwitcherInert??false;
+  document.documentElement?.classList.remove("shop-auth-modal-open");
+  document.body?.classList.remove("shop-auth-modal-open");
+  if(clearIntent)pendingAuthenticationIntent=null;
+  if(restoreContext&&state){
+    const viewElement=document.getElementById(`${state.view}View`);
+    if(viewElement)viewElement.scrollTop=state.position.viewTop;
+    const root=document.documentElement;
+    const previousBehavior=root.style.scrollBehavior;
+    root.style.scrollBehavior="auto";
+    try{window.scrollTo(0,state.position.windowY);}
+    finally{root.style.scrollBehavior=previousBehavior;}
+  }
+  shopAuthModalReturnState=null;
+  if(restoreFocus&&state?.focus?.focus)requestAnimationFrame(()=>state.focus.focus({preventScroll:true}));
+  return true;
+}
+
 function requireAuthentication(intent, message="Please sign in or create an account to continue."){
   if(currentUser||cloudAccount)return false;
   pendingAuthenticationIntent=intent&&typeof intent==="object"?intent:null;
@@ -6114,8 +6193,11 @@ function resumeAuthenticationIntent(){
   const intent=pendingAuthenticationIntent;
   pendingAuthenticationIntent=null;
   if(!intent)return;
+  if(intent.type==="cart"||intent.type==="profile"){
+    openView(intent.type);
+    return;
+  }
   openView("home");
-  if(intent.type==="profile")return;
   if(intent.type==="product"){
     const product=products.find(item=>String(item.id)===String(intent.productId));
     if(!product){showToast("That product is no longer available.");return;}
@@ -6442,6 +6524,7 @@ function resetPassword(){
 
 function openMain(options={}){
 
+  closeGuestAuthenticationModal({clearIntent:false,restoreContext:false,restoreFocus:false});
   restoreProfileAuthCard();
   if(!shopOnboardingActive)hideShopOnboarding();
 
@@ -6463,6 +6546,9 @@ function openMain(options={}){
 function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
+  if((view==="cart"||view==="profile")&&!currentUser&&!cloudAccount){
+    return openGuestAuthenticationModal(view);
+  }
   const previousView=getActiveShopView();
   if(previousView!==view)shopViewScrollPositions.set(previousView,readShopViewPosition(previousView));
   const onboardingLayer=document.getElementById("shopPromoOnboarding");

@@ -11,6 +11,14 @@ assert.match(profileMarkup, /onclick="beginProfileAuthentication\('login'\)"/);
 assert.match(profileMarkup, /onclick="beginProfileAuthentication\('signup'\)"/);
 assert.match(html, /onclick="backToProfileAuthChoices\(\)"[^>]*aria-label="Back to Login or Sign Up choices"/);
 assert.match(html, /#profileGuestAuthMount \.auth-form\{max-height:min\(68dvh,680px\);overflow:auto/);
+assert.match(html, /id="shopAuthModalClose"[^>]*aria-label="Close Login or Sign Up"/);
+assert.match(html, /event\.key==='Escape'.*closeGuestAuthenticationModal\(\)/, "the authentication modal should close with Escape for keyboard users");
+assert.match(html, /event\.target===this&&this\.classList\.contains\('is-shop-auth-modal'\).*closeGuestAuthenticationModal\(\)/, "tapping the dimmed backdrop should close the modal");
+assert.match(html, /#authPage\.auth\.is-shop-auth-modal\{[^}]*position:fixed;inset:0;[^}]*backdrop-filter:blur\(9px\)/, "guest authentication should appear in a viewport modal over the existing page");
+assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{#authPage\.is-shop-auth-modal\{animation:none!important\}\}/, "the modal should honor reduced-motion settings");
+assert.match(html, /html\.shop-auth-modal-open,body\.shop-auth-modal-open\{overflow:hidden!important/, "the modal should lock page scrolling only while open");
+assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?openGuestAuthenticationModal\(view\)/, "guest Cart and Profile should open auth without changing the active view first");
+assert.match(html, /if\(intent\.type==="cart"\|\|intent\.type==="profile"\)\{\s*openView\(intent\.type\)/, "successful authentication should resume the Cart or Profile destination that was requested");
 assert.match(signupSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful Sign Up must enter shared post-auth navigation");
 assert.match(loginSource, /currentUser=data\.account;[\s\S]*?openMain\(\)/, "successful cloud Login must enter shared post-auth navigation");
 assert.match(loginSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful local Login must enter shared post-auth navigation");
@@ -33,8 +41,9 @@ function element(id, className = "") {
       return child;
     },
     querySelector(selector) { return selector === ".auth-card" ? node.children.find(item => item.className.includes("auth-card")) || null : null; },
-    focus() {},
+    focus() { this.focused = true; },
     setAttribute(name, value) { this[name] = value; },
+    removeAttribute(name) { delete this[name]; },
   };
   return node;
 }
@@ -50,6 +59,7 @@ host.appendChild(authCard);
 for (const [id, cls] of [
   ["loginForm", "auth-form active"], ["signupForm", "auth-form"], ["loginTab", "active"], ["signupTab", ""],
   ["authPage", ""], ["authHeroEyebrow", ""], ["authHeroTitle", ""], ["authHeroDescription", ""],
+  ["shopAuthModalClose", ""], ["languageSwitcher", "language-switcher"],
   ["profileView", "view page"], ["homeView", "view active"], ["searchView", "view"], ["cartView", "view"],
   ["detailView", "view"], ["ownerView", "view"], ["profileGuestAccess", ""], ["profileGuestAuthMount", ""],
   ["authenticatedProfileCard", "profile-card"], ["profileAuthBack", ""], ["loginId", ""], ["signupName", ""],
@@ -60,6 +70,7 @@ get("profileGuestAccess").hidden = true;
 get("profileGuestAuthMount").hidden = true;
 get("authenticatedProfileCard").hidden = true;
 get("profileAuthBack").hidden = true;
+get("shopAuthModalClose").hidden = true;
 get("mainApp").style.display = "block";
 get("authPage").style.display = "none";
 
@@ -79,7 +90,7 @@ const sessionSession = makeStorage();
 
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
-  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "openView",
+  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain",
 ];
 const functionSources = functionNames.map(name => {
   const source = html.match(new RegExp(`function ${name}\\([\\s\\S]*?\\n\\}`))?.[0];
@@ -94,6 +105,7 @@ const context = {
   currentUser: null,
   cloudAccount: null,
   pendingAuthenticationIntent: null,
+  shopOnboardingActive: false,
   SESSION_KEY: "offline-test-session",
   cloudMode: false,
   ownerPanel: "products",
@@ -121,12 +133,14 @@ const context = {
   showShopOnboarding() {},
   showToast() {},
   document: {
+    activeElement: null,
     body,
     documentElement: root,
     getElementById: id => ids.get(id) || null,
     querySelector(selector) {
       if (selector === ".app") return app;
       if (selector === ".bottom-nav") return nav;
+      if (selector === ".language-switcher") return get("languageSwitcher");
       if (selector === "#profileGuestAccess button") return loginChoice;
       return null;
     },
@@ -144,52 +158,79 @@ const context = {
   updateProfile() { context.profileUpdated = true; },
   renderCart() {},
 };
-runInNewContext(`${functionSources}\n${logoutSource}\nthis.testApi={openView,beginProfileAuthentication,backToProfileAuthChoices,resumeAuthenticationIntent,logout};`, context);
+runInNewContext(`${functionSources}\n${logoutSource}\nthis.testApi={openView,openMain,beginProfileAuthentication,backToProfileAuthChoices,showAuth,openGuestAuthenticationModal,closeGuestAuthenticationModal,resumeAuthenticationIntent,logout};`, context);
 
 get("homeView").scrollTop = 187;
 context.window.scrollY = 34;
-context.testApi.openView("profile");
-assert.equal(get("profileGuestAccess").hidden, false, "guest Profile opens the two choices first");
-assert.equal(get("authenticatedProfileCard").hidden, true, "guest does not see an authenticated profile card");
+context.document.activeElement = get("navProfile");
+assert.equal(context.testApi.openView("profile"), true, "guest Profile opens the Login / Sign Up modal");
+assert.equal(get("homeView").classList.contains("active"), true, "opening guest Profile leaves the existing page active behind the modal");
+assert.equal(get("profileView").classList.contains("active"), false, "guest Profile does not navigate away underneath the modal");
 assert.equal(context.pendingAuthenticationIntent.type, "profile");
-assert.equal(context.shopViewScrollPositions.get("home").viewTop, 187, "navigation stores the exact prior Home scroll position");
-
-assert.equal(context.testApi.beginProfileAuthentication("login"), true);
-assert.equal(get("profileGuestAuthMount").hidden, false, "Login form is mounted in the Profile view");
-assert.equal(authCard.parentNode, get("profileGuestAuthMount"));
-assert.equal(get("loginForm").classList.contains("active"), true);
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), true);
+assert.equal(get("authPage").role, "dialog");
+assert.equal(get("authPage")["aria-modal"], "true");
+assert.equal(get("shopAuthModalClose").hidden, false, "the modal exposes its accessible close control");
+assert.equal(get("loginForm").classList.contains("active"), true, "the existing Login form opens first");
 assert.equal(get("signupForm").classList.contains("active"), false);
-assert.equal(get("profileAuthBack").hidden, false, "the inline Login form has a Back button");
+assert.equal(get("mainApp").inert, true, "the background shop is non-interactive while the modal is open");
+assert.equal(get("languageSwitcher").inert, true, "controls outside the shop are also inactive while the modal is open");
+assert.equal(root.classList.contains("shop-auth-modal-open"), true, "the root scroll lock starts with the modal");
+assert.equal(body.classList.contains("shop-auth-modal-open"), true, "the body scroll lock starts with the modal");
+assert.equal(get("homeView").scrollTop, 187);
+assert.equal(context.window.scrollY, 34);
+assert.equal(authCard.parentNode, host, "the existing shared Login / Sign Up card is reused");
 
-context.testApi.backToProfileAuthChoices();
-assert.equal(authCard.parentNode, host, "Back restores the shared auth card safely");
-assert.equal(get("profileGuestAuthMount").hidden, true);
-assert.equal(get("profileGuestAccess").hidden, false);
+context.testApi.showAuth("signup");
+assert.equal(get("signupForm").classList.contains("active"), true, "Sign Up switches inside the same modal");
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), true, "switching forms does not leave the modal");
+context.testApi.showAuth("login");
+assert.equal(context.testApi.closeGuestAuthenticationModal(), true);
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), false);
+assert.equal(get("shopAuthModalClose").hidden, true);
+assert.equal(context.pendingAuthenticationIntent, null, "closing the modal clears its pending destination");
+assert.equal(get("homeView").classList.contains("active"), true, "closing returns to the exact page behind the modal");
+assert.equal(get("homeView").scrollTop, 187, "closing restores the prior section scroll position");
+assert.equal(context.window.scrollY, 34, "closing restores the prior window scroll position");
+assert.equal(get("navProfile").focused, true, "closing returns keyboard focus to the Profile button");
+assert.equal(get("mainApp").inert, false);
+assert.equal(get("languageSwitcher").inert, false);
+assert.equal(root.classList.contains("shop-auth-modal-open"), false);
+assert.equal(body.classList.contains("shop-auth-modal-open"), false);
 
-assert.equal(context.testApi.beginProfileAuthentication("signup"), true);
-assert.equal(get("signupForm").classList.contains("active"), true);
-assert.equal(get("loginForm").classList.contains("active"), false);
-assert.equal(authCard.parentNode, get("profileGuestAuthMount"));
+context.testApi.openView("search");
+get("searchView").scrollTop = 311;
+context.window.scrollY = 52;
+context.document.activeElement = get("navCart");
+assert.equal(context.testApi.openView("cart"), true, "guest Cart opens the same authentication modal");
+assert.equal(context.pendingAuthenticationIntent.type, "cart");
+assert.equal(get("searchView").classList.contains("active"), true, "Cart auth leaves Search visible behind the modal");
+assert.equal(get("cartView").classList.contains("active"), false);
+context.testApi.closeGuestAuthenticationModal();
+assert.equal(get("searchView").scrollTop, 311, "closing Cart auth restores Search scroll exactly");
+assert.equal(context.window.scrollY, 52);
 
 const preservedCart = [{ productId: "dress-1", size: "M", color: "#123456", qty: 1 }];
 context.cart = preservedCart;
+context.document.activeElement = get("navProfile");
+context.testApi.openView("profile");
 context.currentUser = { id: "offline-login-customer", role: "customer" };
 localSession.setItem(context.SESSION_KEY, JSON.stringify({ accountId: context.currentUser.id }));
-context.testApi.resumeAuthenticationIntent();
-assert.equal(get("homeView").classList.contains("active"), true, "successful Login returns to Shop / Models");
-assert.equal(get("profileView").classList.contains("active"), false, "successful Login does not redirect to Profile");
+context.testApi.openMain();
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), false, "successful Login closes the modal");
+assert.equal(get("profileView").classList.contains("active"), true, "successful Login resumes the requested Profile destination");
+assert.equal(get("homeView").classList.contains("active"), false);
 assert.equal(context.currentUser.id, "offline-login-customer", "Login session stays active after redirect");
 assert.ok(localSession.getItem(context.SESSION_KEY), "Login session storage remains intact after redirect");
 assert.equal(context.cart, preservedCart, "the existing cart remains intact after Login");
-assert.equal(get("profileGuestAccess").hidden, true);
-assert.equal(get("profileGuestAuthMount").hidden, true);
-assert.equal(authCard.parentNode, host);
 assert.equal(context.pendingAuthenticationIntent, null);
-assert.equal(get("homeView").scrollTop, 187, "returning to Home restores its prior in-page scroll position");
-assert.equal(context.window.scrollY, 34, "returning to Home restores the window scroll position");
+assert.equal(root.classList.contains("shop-auth-modal-open"), false);
+assert.equal(body.classList.contains("shop-auth-modal-open"), false);
 
+context.testApi.openView("cart");
+assert.equal(get("cartView").classList.contains("active"), true, "authenticated customers can open Cart directly");
 context.testApi.openView("profile");
-assert.equal(get("profileView").classList.contains("active"), true, "authenticated customers can still open Profile from navigation");
+assert.equal(get("profileView").classList.contains("active"), true, "authenticated customers can open Profile directly");
 assert.equal(get("authenticatedProfileCard").hidden, false, "authenticated navigation shows the customer's Profile");
 
 await context.testApi.logout();
@@ -199,14 +240,16 @@ assert.equal(sessionSession.getItem(context.SESSION_KEY), null, "Logout clears t
 assert.equal(context.pendingAuthenticationIntent, null, "Logout clears any pending redirect intent");
 assert.equal(context.cart, preservedCart, "Logout does not discard the cart");
 
-context.testApi.openView("profile");
-assert.equal(context.pendingAuthenticationIntent.type, "profile");
-assert.equal(context.testApi.beginProfileAuthentication("signup"), true);
+context.testApi.openMain({resumeIntent:false});
+context.testApi.openView("cart");
+assert.equal(context.pendingAuthenticationIntent.type, "cart");
+context.testApi.showAuth("signup");
+assert.equal(get("signupForm").classList.contains("active"), true, "Cart users can choose Sign Up inside the modal");
 context.currentUser = { id: "offline-signup-customer", role: "customer" };
 sessionSession.setItem(context.SESSION_KEY, JSON.stringify({ accountId: context.currentUser.id }));
-context.testApi.resumeAuthenticationIntent();
-assert.equal(get("homeView").classList.contains("active"), true, "successful Sign Up returns to Shop / Models");
-assert.equal(get("profileView").classList.contains("active"), false, "successful Sign Up does not redirect to Profile");
+context.testApi.openMain();
+assert.equal(get("cartView").classList.contains("active"), true, "successful Sign Up resumes the requested Cart destination");
+assert.equal(get("homeView").classList.contains("active"), false);
 assert.equal(context.currentUser.id, "offline-signup-customer", "Sign Up session stays active after redirect");
 assert.ok(sessionSession.getItem(context.SESSION_KEY), "Sign Up session storage remains intact after redirect");
 assert.equal(context.cart, preservedCart, "the existing cart remains intact after Sign Up");
@@ -228,4 +271,4 @@ await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
 assert.equal(context.pendingAuthenticationIntent, null);
 
-console.log("Offline Profile authentication checks passed: Login and Sign Up return to Shop, sessions and cart remain active, Profile stays accessible, product/variant and checkout intents resume, and Logout clears sessions safely.");
+console.log("Offline authentication checks passed: guest Cart/Profile modal display and close, exact page/scroll restoration, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");
