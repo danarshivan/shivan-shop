@@ -10,8 +10,10 @@ assert.match(html, /\.product\.has-discount \.stock-line\{text-align:left;direct
 assert.match(html, /\.products\{[^}]*display:grid;[^}]*align-items:stretch;/, "product cards should stretch to a consistent grid-row height");
 assert.match(html, /\.product\{[^}]*display:flex;[^}]*flex-direction:column;/, "each product card should use a vertical flexible layout");
 assert.match(html, /\.product-info\{[^}]*display:flex;[^}]*flex:1 1 auto;[^}]*flex-direction:column;/, "variable product content should expand above the bottom controls");
-assert.match(html, /\.product-bottom\{[^}]*margin-top:auto;[^}]*padding-top:8px;/, "the color and cart controls should sit at the card bottom with consistent spacing");
-assert.match(html, /\.colors\{[^}]*flex-wrap:nowrap;[^}]*overflow-x:auto;[^}]*overflow-y:hidden;/, "different color counts should stay on a single accessible selector row");
+assert.match(html, /\.product-bottom\{[^}]*align-items:flex-end;[^}]*direction:ltr;[^}]*margin-top:auto;[^}]*padding-top:8px;/, "the wrapped color rows and cart buttons should share a left-to-right bottom baseline");
+assert.match(html, /\.colors\{[^}]*flex-wrap:wrap;[^}]*align-content:flex-end;[^}]*overflow:visible;/, "different color counts should wrap into visible rows without clipping");
+assert.match(html, /\.color-dot\{[^}]*flex:0 0 13px;/, "color circles should keep a consistent desktop size instead of shrinking");
+assert.match(html, /\.add-mini\{[^}]*flex:0 0 34px;/, "the cart button should reserve a separate fixed-width column beside the colors");
 assert.match(html, /\.product-bottom\{direction:ltr;margin-top:auto;padding-top:6px;gap:3px\}/, "the compact mobile card layout should retain the shared bottom alignment");
 assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product opening should retain its current 190 ms animation");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the Back button should avoid tap-gesture delay");

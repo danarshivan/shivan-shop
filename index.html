@@ -758,8 +758,10 @@ button{
 
 .product-bottom{
   display:flex;
-  align-items:center;
+  align-items:flex-end;
   justify-content:space-between;
+  direction:ltr;
+  gap:6px;
   margin-top:auto;
   padding-top:8px;
 }
@@ -769,10 +771,10 @@ button{
   gap:4px;
   flex:1 1 auto;
   min-width:0;
-  flex-wrap:nowrap;
+  flex-wrap:wrap;
   align-items:center;
-  overflow-x:auto;
-  overflow-y:hidden;
+  align-content:flex-end;
+  overflow:visible;
 }
 
 .color-dot{
@@ -786,6 +788,7 @@ button{
 .add-mini{
   width:34px;
   height:34px;
+  flex:0 0 34px;
   border-radius:50%;
   border:0;
   background:#8061ff;
