@@ -75,6 +75,26 @@ const asJson = (value, fallback = null) => {
   try { return JSON.parse(value); } catch { return fallback; }
 };
 
+function productDiscountTimerDetails(product, discountPercent) {
+  const invalid = () => {
+    const exception = new Error("Product discount timer is invalid.");
+    exception.code = "INVALID_PRODUCT_DISCOUNT_TIMER";
+    return exception;
+  };
+  const hasEnabled = Object.prototype.hasOwnProperty.call(product || {}, "discountTimerEnabled");
+  if (hasEnabled && typeof product.discountTimerEnabled !== "boolean") throw invalid();
+  const enabled = product?.discountTimerEnabled === true;
+  const rawEnd = product?.discountEndsAt;
+  const hasEnd = rawEnd !== undefined && rawEnd !== null && rawEnd !== "";
+  if (enabled !== hasEnd) throw invalid();
+  if (enabled) {
+    if (!discountPercent || typeof rawEnd !== "string") throw invalid();
+    const endTime = Date.parse(rawEnd);
+    if (!Number.isFinite(endTime) || new Date(endTime).toISOString() !== rawEnd) throw invalid();
+  }
+  return { discountTimerEnabled: enabled, discountEndsAt: enabled ? rawEnd : "" };
+}
+
 function productPriceDetails(product) {
   const invalid = () => {
     const exception = new Error("Product price or discount is invalid.");
@@ -91,9 +111,10 @@ function productPriceDetails(product) {
   const hasDiscount = Object.prototype.hasOwnProperty.call(product, "discount") && product.discount !== null && product.discount !== "";
   const discountPercent = hasDiscount ? parseWholeNumber(product.discount) : 0;
   if (hasDiscount && (!Number.isInteger(discountPercent) || discountPercent < 1 || discountPercent > 99)) throw invalid();
+  const discountTimer = productDiscountTimerDetails(product, discountPercent);
   const finalPrice = Number((BigInt(originalPrice) * BigInt(100 - discountPercent) + 50n) / 100n);
   if (!Number.isSafeInteger(finalPrice) || finalPrice < 0) throw invalid();
-  return { originalPrice, discountPercent, finalPrice };
+  return { originalPrice, discountPercent, finalPrice, ...discountTimer };
 }
 
 function validateProductPriceDetails(products) {
@@ -934,6 +955,9 @@ async function handleSync(request, env, account) {
       }
       if (exception?.code === "INVALID_PRODUCT_PRICING") {
         return tracedError("Product price or discount is invalid. Use a whole nonnegative IQD price and a discount from 1% to 99%.", 400, requestId, exception.code, "shop.sync.validate");
+      }
+      if (exception?.code === "INVALID_PRODUCT_DISCOUNT_TIMER") {
+        return tracedError("Limited-time discounts need a valid 1% to 99% discount and an exact ISO end date and time.", 400, requestId, exception.code, "shop.sync.validate");
       }
       const tooLarge = exception instanceof RangeError;
       const code = tooLarge ? "IMAGE_LIMIT_EXCEEDED" : d1FailureCode(exception);

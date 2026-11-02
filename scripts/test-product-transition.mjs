@@ -98,7 +98,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     products: [product, secondProduct, thirdProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", currentGalleryImages: ["photo-1", "photo-2"], currentGalleryIndex: 0, previousView: "home", previousViewScrollY: 0,
     productDetailCloseTimer: 0, productDetailClosing: false, productBackSwipe: null, productBackSwipeSnapTimer: 0, productBackTransitionHandler: null, productBackScrollBehavior: "", productBackPrepared: false, productBackPreparedView: "", productBackPreparedPreview: null,
     productDetailHistoryStack: [], productHistoryBackPending: false, productHistoryBackFromSwipe: false, productHistoryPopHandler: null,
-    getProductName: item => item.name, formatPrice: price => String(price), renderProductPricing: item => String(item.price), renderDetailGallery() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {}, syncDetailPhotoTracks() {},
+    getProductName: item => item.name, formatPrice: price => String(price), renderProductPricing: item => String(item.price), renderDetailGallery() {}, refreshDiscountCountdownBadges() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {}, syncDetailPhotoTracks() {},
     openView(view, options = {}) {
       state.openedViews.push({ view, options });
       if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); }

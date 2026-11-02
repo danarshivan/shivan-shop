@@ -20,6 +20,7 @@ const productPricingSource = htmlSource.match(/function getProductPricing\(produ
 const renderPriceBreakdownSource = htmlSource.match(/function renderPriceBreakdown\(originalPrice,finalPrice,discountPercent,\{badge=false\}=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
 const renderProductPricingSource = htmlSource.match(/function renderProductPricing\(product,options=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
 const ownerDiscountPreviewSource = htmlSource.match(/function updateOwnerDiscountPreview\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+const ownerDiscountTimerEndSource = htmlSource.match(/function ownerDiscountTimerEndIso\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const cartItemPricingSource = htmlSource.match(/function cartItemPricing\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
 const renderCartItemPriceSource = htmlSource.match(/function renderCartItemPrice\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
 const cartPriceSnapshotSource = htmlSource.match(/function cartPriceSnapshot\(product\)\{[\s\S]*?\n\}/)?.[0] || "";
@@ -124,7 +125,7 @@ const previewSandbox = {
   getProductPricing: productPricing.getProductPricing,
   formatPrice: price => `${Number(price).toLocaleString("en-US")} IQD`,
 };
-const updateDiscountPreview = runInNewContext(`${ownerDiscountPreviewSource}\nupdateOwnerDiscountPreview`, previewSandbox);
+const updateDiscountPreview = runInNewContext(`${ownerDiscountTimerEndSource}\n${ownerDiscountPreviewSource}\nupdateOwnerDiscountPreview`, previewSandbox);
 assert.equal(updateDiscountPreview(), true, "a valid Owner discount should render a final-price preview");
 assert.match(previewElements.get("ownerDiscountPreview").textContent, /8,400 IQD after 30% off 12,000 IQD/);
 previewElements.get("ownerProductDiscount").value = "";
@@ -1111,6 +1112,8 @@ const productFields = new Map([
   ["ownerProductNameKu", { value: "کراسێ تاقیکردنەوە" }],
   ["ownerProductPrice", { value: "12000" }],
   ["ownerProductDiscount", { value: "30" }],
+  ["ownerProductDiscountTimerEnabled", { checked: true }],
+  ["ownerProductDiscountEndsAt", { value: "2030-01-02T03:04" }],
   ["ownerProductImagesData", cropTarget],
   ["ownerProductCategory", { value: "جلوبەرگ" }],
   ["ownerProductSizes", { value: "M" }],
@@ -1155,6 +1158,7 @@ const productSandbox = {
   createOwnerSaveRequestId: () => uiRequestId,
   ownerSaveDiagnostic() {},
   ownerSaveDiagnosticCode: error => error?.code || "REQUEST_FAILED",
+  ownerDiscountTimerEndIso: () => "2030-01-02T03:04:00.000Z",
   isOwner: () => true,
   readOwnerProductPhotos: () => JSON.parse(cropTarget.value),
   safeImageUrl: value => /^\/api\/media\/shop\//.test(String(value || "")) ? String(value) : "",
@@ -1204,6 +1208,16 @@ assert.equal(uiStoredProducts.length, 1);
 assert.equal(uiStoredProducts[0].id, 20261012001);
 assert.equal(uiStoredProducts[0].price, 12000, "the Owner form should save the entered product price");
 assert.equal(uiStoredProducts[0].discount, 30, "the Owner form should save the optional discount percentage");
+assert.equal(uiStoredProducts[0].discountTimerEnabled, true, "the Owner form should persist the limited-time toggle in the shared product record");
+assert.equal(uiStoredProducts[0].discountEndsAt, "2030-01-02T03:04:00.000Z", "the exact Owner-selected end time should persist through the shared API");
+const invalidTimerProduct = { ...uiStoredProducts[0], discountEndsAt: "not a date" };
+const invalidTimerResponse = await uiContext(new Request("https://shop.test/api/sync", {
+  method: "PUT",
+  headers: { "Content-Type": "application/json", Cookie: uiCookie, Origin: "https://shop.test" },
+  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([invalidTimerProduct]) }),
+}));
+assert.equal(invalidTimerResponse.status, 400, "the shared product API must reject an invalid countdown even if a client sends it directly");
+assert.equal((await invalidTimerResponse.json()).code, "INVALID_PRODUCT_DISCOUNT_TIMER");
 assert.deepEqual(uiStoredProducts[0].sizes, ["M"], "the Owner form should save selected sizes");
 assert.deepEqual(uiStoredProducts[0].colors, ["#ff0000"], "the Owner form should save selected colors");
 assert.equal(uiStoredProducts[0].variants[0].stock, 3, "the Owner form should save the stock quantity");
@@ -1220,6 +1234,7 @@ assert.equal(uiImageReload.status, 200, "the cropped image should remain readabl
 
 productSandbox.editingProductId = 20261012001;
 productSandbox.ownerProductWorkflowId = "owner-product-edit-regression-001";
+productFields.get("ownerProductDiscountTimerEnabled").checked = false;
 productFields.get("ownerProductPrice").value = "13500";
 productFields.get("ownerProductDiscount").value = "";
 productFields.get("ownerProductDescription").value = "Edited product details";
@@ -1230,6 +1245,7 @@ const uiEditedProduct = JSON.parse(uiDB.shop.get("shivan_shop_products"))[0];
 assert.equal(uiEditedProduct.id, 20261012001, "editing an Owner product must retain the existing ID");
 assert.equal(uiEditedProduct.price, 13500, "editing an Owner product should persist its new price");
 assert.equal(Object.hasOwn(uiEditedProduct, "discount"), false, "leaving the optional discount blank should remove it on edit");
+assert.equal(Object.hasOwn(uiEditedProduct, "discountTimerEnabled"), false, "disabling a timed discount should remove its timer from the updated product record");
 assert.equal(uiEditedProduct.stock, 4, "editing an Owner product should persist its new stock");
 assert.equal(uiEditedProduct.images[0].src, croppedPhotos[0].src, "editing product details must preserve its saved crop");
 
@@ -1241,6 +1257,15 @@ assert.equal(productApiResults.length, writesBeforeInvalidDiscount, "the Owner f
 assert.equal(productSandbox.products.length, productCountBeforeInvalidDiscount, "an invalid percentage must not mutate the local product list");
 assert.match(productToasts.at(-1), /from 1 to 99/);
 productFields.get("ownerProductDiscount").value = "";
+
+const productCountBeforeMissingTimerDiscount = productSandbox.products.length;
+const writesBeforeMissingTimerDiscount = productApiResults.length;
+productFields.get("ownerProductDiscountTimerEnabled").checked = true;
+await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
+assert.equal(productApiResults.length, writesBeforeMissingTimerDiscount, "an enabled timer without a percentage discount must be rejected before a shared write");
+assert.equal(productSandbox.products.length, productCountBeforeMissingTimerDiscount, "an invalid timed offer must not alter local product data");
+assert.match(productToasts.at(-1), /limited-time discount needs a valid discount and end date\/time/i);
+productFields.get("ownerProductDiscountTimerEnabled").checked = false;
 
 const productCountBeforeLimit = productSandbox.products.length;
 const apiWriteCountBeforeLimit = productApiResults.length;

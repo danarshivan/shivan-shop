@@ -690,6 +690,11 @@ button{
 }
 
 .product-discount-badge{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:3px 8px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:#d83d50;color:#fff;font-size:11px;font-weight:900;line-height:1;box-shadow:0 3px 12px rgba(216,61,80,.28)}
+.product-image-frame{position:relative;flex:0 0 auto;overflow:hidden;background:#080a12}
+.product-countdown-badge{position:absolute;z-index:3;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 16px);min-height:22px;padding:3px 7px;border:1px solid rgba(255,136,148,.72);border-radius:999px;background:rgba(139,31,48,.88);color:#fff;font-size:9px;font-weight:850;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(119,21,38,.24);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.product-countdown-badge svg{width:11px;height:11px;flex:0 0 11px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.product-countdown-badge [data-countdown-value]{overflow:hidden;text-overflow:ellipsis}
+#detailDiscountCountdown .product-countdown-badge{bottom:34px;left:8px}
 .discount-price-layout{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px;line-height:1.35}
 .discount-price-values{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px}
 .original-price{color:#9b9eaa;font-size:.82em;font-weight:500;text-decoration:line-through;text-decoration-thickness:1.5px}
@@ -704,6 +709,15 @@ button{
 .order-item-price{display:block;margin-top:3px;color:#8966ff}
 .owner-discount-preview{min-height:20px;margin:0;color:#c9bbff;font-size:12px;line-height:1.5}
 .owner-discount-hint{display:block;color:#9da2b4;font-size:11px;line-height:1.45}
+.owner-discount-timer{display:grid;gap:7px;padding:10px;border:1px solid #30274d;border-radius:12px;background:rgba(27,20,46,.48)}
+.owner-discount-timer-toggle{display:flex;align-items:center;gap:9px;color:#e8e3f7;font-size:13px;font-weight:750;cursor:pointer}
+.owner-discount-timer-toggle input{width:18px;height:18px;accent-color:#8966ff}
+.owner-discount-timer-fields{display:grid;gap:5px}
+.owner-discount-timer-fields[hidden]{display:none!important}
+.owner-discount-timer-fields label{font-size:12px;color:#cfc4f4}
+.owner-discount-timer-fields input{width:100%;min-height:42px;color-scheme:dark}
+.owner-discount-timer-fields small,.owner-discount-timer-status{margin:0;color:#a9a2ba;font-size:11px;line-height:1.45}
+.owner-discount-timer-status[data-expired="true"]{color:#ffc0c4}
 
 .product:active{
   transform:scale(.98);
@@ -2983,6 +2997,7 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
         <div id="detailGallery" class="detail-gallery">
           <div id="detailGalleryTrack" class="detail-gallery-track"></div>
           <div id="detailGalleryDots" class="detail-gallery-dots"></div>
+          <div id="detailDiscountCountdown" class="detail-countdown-slot"></div>
         </div>
         <div class="detail-side">
           <div class="detail-options">
@@ -6725,15 +6740,17 @@ function renderProducts(list, target="productsGrid", append=false){
         ${isFavorite(p.id)?"♥":"♡"}
       </button>
 
-      ${productDiscountPercent(p)?`<span class="product-discount-badge" aria-label="${productDiscountPercent(p)} percent off">-${productDiscountPercent(p)}%</span>`:""}
-
-      <img
-        class="product-img"
-        src="${escapeHtml(safeImageUrl(p.image))}"
-        alt="${escapeHtml(getProductName(p))}"
-        data-product-name-id="${p.id}"
-        loading="lazy"
-      >
+      <div class="product-image-frame">
+        ${productDiscountPercent(p)?`<span class="product-discount-badge" aria-label="${productDiscountPercent(p)} percent off">-${productDiscountPercent(p)}%</span>`:""}
+        ${renderTimedDiscountBadge(p)}
+        <img
+          class="product-img"
+          src="${escapeHtml(safeImageUrl(p.image))}"
+          alt="${escapeHtml(getProductName(p))}"
+          data-product-name-id="${p.id}"
+          loading="lazy"
+        >
+      </div>
 
       <div class="product-info">
 
@@ -6771,6 +6788,7 @@ function renderProducts(list, target="productsGrid", append=false){
   `).join("");
   if(append)grid.insertAdjacentHTML("beforeend",cards);
   else grid.innerHTML=cards;
+  refreshDiscountCountdownBadges();
 
 }
 
@@ -6933,6 +6951,9 @@ function openProduct(id,options={}){
   document.getElementById("detailPrice").innerHTML=renderProductPricing(p,{badge:true});
   document.getElementById("detailDescription").textContent=p.description;
   renderDetailGallery(true,selectedColor);
+  const discountCountdownSlot=document.getElementById("detailDiscountCountdown");
+  if(discountCountdownSlot)discountCountdownSlot.innerHTML=renderTimedDiscountBadge(p);
+  refreshDiscountCountdownBadges();
   renderSizeOptions();
   renderColorOptions();
   updateDetailAvailability();
@@ -7753,6 +7774,49 @@ function getProductPricing(product){
 }
 
 function productDiscountPercent(product){return getProductPricing(product)?.discountPercent||0}
+
+function formatDiscountCountdown(endTime,now=Date.now()){
+  const remainingMs=Number(endTime)-Number(now);
+  if(!Number.isFinite(remainingMs)||remainingMs<=0)return "";
+  const totalMinutes=Math.ceil(remainingMs/60000);
+  const days=Math.floor(totalMinutes/1440);
+  const hours=Math.floor((totalMinutes%1440)/60);
+  const minutes=totalMinutes%60;
+  return `${String(days).padStart(2,"0")}d ${String(hours).padStart(2,"0")}h ${String(minutes).padStart(2,"0")}m`;
+}
+
+function renderTimedDiscountBadge(product,now=Date.now()){
+  if(product?.discountTimerEnabled!==true||!productDiscountPercent(product))return "";
+  const endsAt=String(product.discountEndsAt||"");
+  const endTime=Date.parse(endsAt);
+  const remaining=formatDiscountCountdown(endTime,now);
+  if(!remaining)return "";
+  return `<span class="product-countdown-badge" data-discount-countdown data-discount-ends-at="${escapeHtml(endsAt)}" role="timer" aria-live="off" aria-label="Limited-time offer, ${remaining} remaining"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="8.5"></circle><path d="M12 8v5l3 2M9 2h6"></path></svg><span data-countdown-value>${remaining}</span></span>`;
+}
+
+let discountCountdownRefreshTimer=0;
+function refreshDiscountCountdownBadges(){
+  if(discountCountdownRefreshTimer){clearTimeout(discountCountdownRefreshTimer);discountCountdownRefreshTimer=0;}
+  const badges=[...document.querySelectorAll("[data-discount-countdown]")];
+  if(!badges.length)return;
+  const now=Date.now();
+  let nextUpdate=Infinity;
+  for(const badge of badges){
+    const endTime=Date.parse(String(badge.dataset.discountEndsAt||""));
+    const remaining=formatDiscountCountdown(endTime,now);
+    if(!remaining){badge.remove();continue;}
+    const value=badge.querySelector("[data-countdown-value]");
+    if(value)value.textContent=remaining;
+    badge.setAttribute("aria-label",`Limited-time offer, ${remaining} remaining`);
+    const untilMinute=endTime-now;
+    const minuteBoundary=untilMinute%60000||60000;
+    nextUpdate=Math.min(nextUpdate,untilMinute<60000?untilMinute+10:minuteBoundary+10);
+  }
+  if(Number.isFinite(nextUpdate))discountCountdownRefreshTimer=setTimeout(refreshDiscountCountdownBadges,Math.max(25,nextUpdate));
+}
+
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshDiscountCountdownBadges();});
+
 
 function renderPriceBreakdown(originalPrice,finalPrice,discountPercent,{badge=false}={}){
   if(!discountPercent)return formatPrice(finalPrice);
@@ -8925,6 +8989,15 @@ function renderOwnerProducts(box){
        <input id="ownerProductDiscount" type="number" min="1" max="99" step="1" inputmode="numeric" placeholder="Optional: 1–99%" value="${product?.discount??""}" oninput="updateOwnerDiscountPreview()">
        <small class="owner-discount-hint">Leave blank for the original price. Enter a whole percentage from 1 to 99.</small>
        <p id="ownerDiscountPreview" class="owner-discount-preview" role="status" aria-live="polite"></p>
+       <div class="owner-discount-timer">
+         <label class="owner-discount-timer-toggle"><input id="ownerProductDiscountTimerEnabled" type="checkbox" ${product?.discountTimerEnabled===true?"checked":""} onchange="updateOwnerDiscountTimerControls()"><span>Enable limited-time discount</span></label>
+         <div id="ownerDiscountTimerFields" class="owner-discount-timer-fields" ${product?.discountTimerEnabled===true?"":"hidden"}>
+           <label for="ownerProductDiscountEndsAt">Discount end date and time</label>
+           <input id="ownerProductDiscountEndsAt" type="datetime-local" value="${escapeHtml(discountTimerInputValue(product?.discountEndsAt))}" oninput="updateOwnerDiscountPreview()">
+           <small>Choose the exact end time in your device’s local time zone.</small>
+         </div>
+         <p id="ownerDiscountTimerStatus" class="owner-discount-timer-status" role="status" aria-live="polite"></p>
+       </div>
       <label for="ownerProductCategory">جۆری بەرهەم</label>
       <select id="ownerProductCategory" required>${ownerCategoryOptions(product?.category||DEFAULT_CATEGORIES[0])}</select>
       <input id="ownerProductSizes" required placeholder="قیاس، بۆ نموونە S, M, L" value="${escapeHtml(product?.sizes?.join(", ")||"")}" onchange="renderOwnerInventoryMatrix()">
@@ -8981,9 +9054,31 @@ function renderOwnerProducts(box){
     renderOwnerColorPalette();
     renderOwnerInventoryMatrix();
     renderOwnerProductPhotoList();
-    updateOwnerDiscountPreview();
+    updateOwnerDiscountTimerControls();
   }
   if(ownerProductMode==="categories")bindOwnerCategoryManager();
+}
+
+function discountTimerInputValue(value){
+  const milliseconds=Date.parse(String(value||""));
+  if(!Number.isFinite(milliseconds))return "";
+  const localDate=new Date(milliseconds);
+  localDate.setMinutes(localDate.getMinutes()-localDate.getTimezoneOffset());
+  return localDate.toISOString().slice(0,16);
+}
+
+function ownerDiscountTimerEndIso(){
+  const raw=String(document.getElementById("ownerProductDiscountEndsAt")?.value??"").trim();
+  if(!raw)return "";
+  const milliseconds=new Date(raw).getTime();
+  return Number.isFinite(milliseconds)?new Date(milliseconds).toISOString():"";
+}
+
+function updateOwnerDiscountTimerControls(){
+  const enabled=Boolean(document.getElementById("ownerProductDiscountTimerEnabled")?.checked);
+  const fields=document.getElementById("ownerDiscountTimerFields");
+  if(fields)fields.hidden=!enabled;
+  return updateOwnerDiscountPreview();
 }
 
 function updateOwnerDiscountPreview(){
@@ -8991,6 +9086,9 @@ function updateOwnerDiscountPreview(){
   const discountInput=document.getElementById("ownerProductDiscount");
   const preview=document.getElementById("ownerDiscountPreview");
   if(!priceInput||!discountInput||!preview)return false;
+  const timerEnabled=Boolean(document.getElementById("ownerProductDiscountTimerEnabled")?.checked);
+  const timerInput=document.getElementById("ownerProductDiscountEndsAt");
+  const timerStatus=document.getElementById("ownerDiscountTimerStatus");
   const priceRaw=String(priceInput.value??"").trim();
   const discountRaw=String(discountInput.value??"").trim();
   const price=Number(priceRaw);
@@ -9002,7 +9100,17 @@ function updateOwnerDiscountPreview(){
   if(!validDiscount){preview.textContent="Discount must be a whole percentage from 1 to 99.";return false;}
   const pricing=getProductPricing(discount===null?{price}:{price,discount});
   if(!pricing){preview.textContent="This price cannot be calculated safely.";return false;}
-  preview.textContent=discount===null?`Final price: ${formatPrice(pricing.finalPrice)} (no discount).`:`Final price: ${formatPrice(pricing.finalPrice)} after ${discount}% off ${formatPrice(pricing.originalPrice)}.`;
+  const endIso=ownerDiscountTimerEndIso();
+  const endTime=endIso?Date.parse(endIso):NaN;
+  const validTimer=!timerEnabled||(discount!==null&&Boolean(endIso)&&Number.isFinite(endTime));
+  if(timerInput)timerInput.setAttribute?.("aria-invalid",validTimer?"false":"true");
+  if(timerStatus){
+    timerStatus.dataset.expired=timerEnabled&&Number.isFinite(endTime)&&endTime<=Date.now()?"true":"false";
+    timerStatus.textContent=!timerEnabled?"":!validTimer?"Set a valid discount and end date/time to enable the countdown.":endTime<=Date.now()?"The selected time has passed; the regular discount will remain active.":`Offer ends ${new Date(endTime).toLocaleString()}.`;
+  }
+  if(!validTimer){preview.textContent="A limited-time discount needs a valid 1–99% discount and an end date/time.";return false;}
+  const pricePreview=discount===null?`Final price: ${formatPrice(pricing.finalPrice)} (no discount).`:`Final price: ${formatPrice(pricing.finalPrice)} after ${discount}% off ${formatPrice(pricing.originalPrice)}.`;
+  preview.textContent=timerEnabled?`${pricePreview} Limited-time offer ends ${new Date(endTime).toLocaleString()}.`:pricePreview;
   return true;
 }
 
@@ -9090,6 +9198,9 @@ async function saveOwnerProduct(event){
     const price=Number(document.getElementById("ownerProductPrice").value);
     const discountRaw=String(document.getElementById("ownerProductDiscount")?.value??"").trim();
     const discount=discountRaw===""?null:Number(discountRaw);
+    const discountTimerEnabled=Boolean(document.getElementById("ownerProductDiscountTimerEnabled")?.checked);
+    const discountTimerEndsAt=discountTimerEnabled?ownerDiscountTimerEndIso():"";
+    const validDiscountTimer=!discountTimerEnabled||(discount!==null&&Boolean(discountTimerEndsAt));
     const validPrice=Number.isSafeInteger(price)&&price>=0;
     const validDiscount=discount===null||(Number.isInteger(discount)&&discount>=1&&discount<=99);
     const images=readOwnerProductPhotos();
@@ -9116,14 +9227,15 @@ async function saveOwnerProduct(event){
     const validInventory=variants.length===colors.length*sizes.length&&variants.every(item=>Number.isInteger(item.stock)&&item.stock>=0);
     const validColors=colors.length>0&&new Set(colors).size===colors.length&&colorTokens.length===colors.length;
     const validImages=images.length>0&&images.every(photo=>safeImageUrl(photo.src)&&(!photo.color||colors.includes(photo.color)));
-    if(!names.en||!names.ar||!names.ku||!validPrice||!validDiscount||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
+    if(!names.en||!names.ar||!names.ku||!validPrice||!validDiscount||!validDiscountTimer||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
       ownerSaveDiagnostic("product.validation_failed",{requestId,stage:"owner_form",code:"INVALID_PRODUCT_FIELDS"});
-      showToast(validDiscount?"تکایە هەموو زانیارییێن دروست بنڤیسە.":"Discount must be a whole percentage from 1 to 99, or left blank.");
+      showToast(!validDiscountTimer?"A limited-time discount needs a valid discount and end date/time.":validDiscount?"تکایە هەموو زانیارییێن دروست بنڤیسە.":"Discount must be a whole percentage from 1 to 99, or left blank.");
       return;
     }
     const stock=variants.reduce((sum,item)=>sum+item.stock,0);
     record={id:editingProductId??createOwnerProductId(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
     if(discount!==null)record.discount=discount;
+    if(discountTimerEnabled){record.discountTimerEnabled=true;record.discountEndsAt=discountTimerEndsAt;}
     const index=products.findIndex(item=>item.id===record.id);
     const previous=index<0?null:products[index];
     if(index<0) products.unshift(record); else products[index]=record;
