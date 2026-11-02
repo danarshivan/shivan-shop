@@ -2451,7 +2451,7 @@ html.shop-promo-onboarding-open,body.shop-promo-onboarding-open{overflow:hidden!
 .shop-promo-onboarding-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
 .shop-promo-onboarding-choice.primary{border-color:#c19aff;background:linear-gradient(135deg,#7540c7,#542a91);box-shadow:0 10px 30px rgba(111,57,189,.3)}
 .shop-promo-onboarding-choice.secondary{border-color:rgba(194,157,255,.64);background:rgba(9,7,15,.82)}
-@media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.shop-promo-onboarding-image,.shop-promo-onboarding-dots span{transition:none!important}.shop-promo-onboarding.is-handoff-exiting{animation:none!important;opacity:0!important;transform:none!important}}
 .owner-promo-slides{display:grid;gap:12px}
 .owner-promo-slide{display:grid;gap:8px;padding:12px;border:1px solid #282d40;border-radius:14px;background:#080b14}
 .owner-promo-slide label{font-size:13px;font-weight:700;color:#d8cbff}
@@ -2478,6 +2478,8 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 .shop-promo-onboarding-image{transition:opacity 300ms var(--shop-motion-ease),transform 300ms var(--shop-motion-ease)}
 .shop-promo-onboarding.is-transitioning[data-direction="forward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingForward 300ms var(--shop-motion-ease)}
 .shop-promo-onboarding.is-transitioning[data-direction="backward"] .shop-promo-onboarding-content{animation:shopMotionOnboardingBackward 300ms var(--shop-motion-ease)}
+.shop-promo-onboarding.is-handoff-exiting{pointer-events:none;animation:shopMotionOnboardingHandoff 260ms var(--shop-motion-ease) both}
+@keyframes shopMotionOnboardingHandoff{from{opacity:1;transform:translate3d(0,0,0)}to{opacity:0;transform:translate3d(-14px,0,0)}}
 .shop-promo-onboarding-next,.shop-promo-onboarding-choice{transition:transform 160ms var(--shop-motion-ease),filter 160ms ease,background-color 180ms ease,border-color 180ms ease,box-shadow 180ms ease}
 .shop-promo-onboarding-next:active,.shop-promo-onboarding-choice:active{transform:scale(.985)}
 .shop-promo-onboarding[data-screen="3"] .shop-promo-onboarding-choices:not([hidden]) .shop-promo-onboarding-choice:first-child{animation:shopMotionChoiceIn 360ms var(--shop-motion-ease) 45ms backwards}
@@ -3713,6 +3715,9 @@ let shopOnboardingSlideIndex=0;
 let shopOnboardingLastRenderedIndex=-1;
 let shopOnboardingTransitionTimer=0;
 let shopOnboardingTransitionLocked=false;
+const SHOP_ONBOARDING_HANDOFF_MS=260;
+let shopOnboardingHandoffTimer=0;
+let shopOnboardingHandoffLocked=false;
 let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
 let shopOnboardingActive=false;
 let shopAppWasHidden=false;
@@ -5860,11 +5865,17 @@ function setupShopOnboardingGestures(layer){
 function hideShopOnboarding(){
   shopOnboardingActive=false;
   if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  if(shopOnboardingHandoffTimer)clearTimeout(shopOnboardingHandoffTimer);
   shopOnboardingTransitionTimer=0;
   shopOnboardingTransitionLocked=false;
+  shopOnboardingHandoffTimer=0;
+  shopOnboardingHandoffLocked=false;
   const layer=document.getElementById("shopPromoOnboarding");
   if(layer){
     layer.classList.remove("is-transitioning");
+    layer.classList.remove("is-handoff-exiting");
+    delete layer.dataset.handoff;
+    layer.inert=false;
     layer.hidden=true;
     layer.setAttribute("aria-hidden","true");
   }
@@ -5880,9 +5891,15 @@ function showShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return false;
   if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  if(shopOnboardingHandoffTimer)clearTimeout(shopOnboardingHandoffTimer);
   shopOnboardingTransitionTimer=0;
   shopOnboardingTransitionLocked=false;
+  shopOnboardingHandoffTimer=0;
+  shopOnboardingHandoffLocked=false;
   layer.classList.remove("is-transitioning");
+  layer.classList.remove("is-handoff-exiting");
+  delete layer.dataset.handoff;
+  layer.inert=false;
   shopOnboardingActive=true;
   shopOnboardingSlideIndex=0;
   shopOnboardingLastRenderedIndex=-1;
@@ -5915,29 +5932,56 @@ function advanceShopOnboarding(){
   requestAnimationFrame(()=>document.getElementById(focusTarget)?.focus({preventScroll:true}));
 }
 
+function beginShopOnboardingPageHandoff(destination,prepareDestination){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!layer||layer.hidden||shopOnboardingHandoffLocked)return false;
+  if(shopOnboardingTransitionTimer)clearTimeout(shopOnboardingTransitionTimer);
+  shopOnboardingTransitionTimer=0;
+  shopOnboardingTransitionLocked=false;
+  shopOnboardingHandoffLocked=true;
+  layer.classList.remove("is-transitioning");
+  layer.dataset.handoff=destination;
+  try{
+    prepareDestination();
+  }catch(error){
+    shopOnboardingHandoffLocked=false;
+    delete layer.dataset.handoff;
+    throw error;
+  }
+  if(prefersReducedShopOnboardingMotion()){
+    hideShopOnboarding();
+    return true;
+  }
+  layer.classList.add("is-handoff-exiting");
+  layer.inert=true;
+  shopOnboardingHandoffTimer=setTimeout(()=>hideShopOnboarding(),SHOP_ONBOARDING_HANDOFF_MS);
+  return true;
+}
+
 function startShopOnboardingSignup(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden)return;
-  shopOnboardingResumeState=null;
-  hideShopOnboarding();
-  document.querySelector(".app")?.classList.add("auth-mode");
-  const mainApp=document.getElementById("mainApp");
-  const authPage=document.getElementById("authPage");
-  if(mainApp)mainApp.style.display="none";
-  if(authPage)authPage.style.display="";
-  showAuth("signup");
+  if(!layer||layer.hidden)return false;
+  return beginShopOnboardingPageHandoff("signup",()=>{
+    shopOnboardingResumeState=null;
+    document.querySelector(".app")?.classList.add("auth-mode");
+    const mainApp=document.getElementById("mainApp");
+    const authPage=document.getElementById("authPage");
+    if(mainApp)mainApp.style.display="none";
+    if(authPage)authPage.style.display="";
+    showAuth("signup");
+  });
 }
 
 function finishShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden)return false;
+  if(!layer||layer.hidden||shopOnboardingHandoffLocked)return false;
   const resumeState=shopOnboardingResumeState;
   shopOnboardingResumeState=null;
-  hideShopOnboarding();
-  if(resumeState&&restoreShopOnboardingResumeState(resumeState))return true;
-  openMain({resumeIntent:false});
-  openView("home");
-  return true;
+  return beginShopOnboardingPageHandoff("shop",()=>{
+    if(resumeState&&restoreShopOnboardingResumeState(resumeState))return;
+    openMain({resumeIntent:false});
+    openView("home");
+  });
 }
 
 function showAuth(type){

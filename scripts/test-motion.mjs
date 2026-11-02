@@ -50,12 +50,15 @@ for (let index = motionBlock.indexOf("*/") + 2; index < motionBlock.length; inde
   assert.ok(braces >= 0, "motion CSS braces should be balanced in order");
 }
 assert.equal(braces, 0, "motion CSS blocks should have balanced braces");
-const entranceMotionBlock = motionBlock.split("/* Product detail motion:")[0];
+const entranceMotionBlock = motionBlock.split("/* Product detail motion:")[0].replace(/\.shop-promo-onboarding\.is-handoff-exiting\{[^}]*\}/, "");
 assert.doesNotMatch(entranceMotionBlock, /animation-fill-mode\s*:\s*forwards|\b(?:both|forwards)\s*(?:;|\})/i, "entrance effects should release their transforms so later press and hover feedback still works; only the brief close exit may retain its final frame");
 assert.match(html, /\.shop-startup-splash\{/, "the existing logo splash should remain in the website");
 
 const finish = html.match(/function finishShopOnboarding\(\)\{[\s\S]*?\n\}/)?.[0] || "";
-assert.match(finish, /hideShopOnboarding\(\);[\s\S]*?if\(resumeState&&restoreShopOnboardingResumeState\(resumeState\)\)return true;[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "foreground onboarding should resume the user's active screen, while a first-time completion still opens Shop / Models");
-assert.doesNotMatch(finish, /setTimeout|requestAnimationFrame|await /, "the animation layer must not delay the final Explore Models handoff");
+assert.match(finish, /beginShopOnboardingPageHandoff\("shop"[\s\S]*?if\(resumeState&&restoreShopOnboardingResumeState\(resumeState\)\)return;[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "foreground onboarding should resume the user's active screen, while a first-time completion still opens Shop / Models through the same page transition");
+assert.doesNotMatch(finish, /setTimeout|requestAnimationFrame|await /, "the Explore Models button should start its transition immediately without waiting for setup work");
+const handoff = html.match(/function beginShopOnboardingPageHandoff\([^\n]*\)\{[\s\S]*?\n\}/)?.[0] || "";
+assert.match(handoff, /prepareDestination\(\)[\s\S]*?prefersReducedShopOnboardingMotion\(\)[\s\S]*?SHOP_ONBOARDING_HANDOFF_MS/, "the route should be ready before the overlay exits, with immediate reduced-motion support");
+assert.match(html, /shopOnboardingHandoffLocked=true[\s\S]*?setTimeout\(\(\)=>hideShopOnboarding\(\),SHOP_ONBOARDING_HANDOFF_MS\)/, "the onboarding handoff should guard double taps and keep its overlay until the transition ends");
 
-console.log("Website motion checks passed: screen and list entrances, directional onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and immediate Explore Models handoff.");
+console.log("Website motion checks passed: screen and list entrances, directional onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and 260ms Explore Models / Create Account handoffs.");

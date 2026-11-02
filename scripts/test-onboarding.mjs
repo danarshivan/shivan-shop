@@ -74,6 +74,8 @@ assert.match(html, /\.shop-promo-onboarding-choices\{display:grid;grid-template-
 assert.match(html, /shopMotionOnboardingForward 300ms/);
 assert.match(html, /shopMotionOnboardingBackward 300ms/);
 assert.match(html, /prefers-reduced-motion:reduce\)[\s\S]*?\.shop-promo-onboarding-content/);
+assert.match(html, /\.shop-promo-onboarding\.is-handoff-exiting\{[^}]*animation:shopMotionOnboardingHandoff 260ms/, "onboarding choices should reveal their destination with a short directional fade and slide");
+assert.match(html, /\.shop-promo-onboarding\.is-handoff-exiting\{animation:none!important/, "onboarding page handoffs should honor reduced-motion preferences");
 assert.match(html, /function warmShopOnboardingImages\(\)\{[\s\S]*?new Set\(shopOnboardingImages\)/, "shared slides should warm in asynchronously");
 const defaultImageList=html.match(/const SHOP_ONBOARDING_DEFAULT_IMAGES = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1]||"";
 assert.deepEqual([...defaultImageList.matchAll(/"(https:\/\/[^"]+)"/g)].map(match=>match[1]), [
@@ -97,9 +99,10 @@ assert.match(extractFunction("showShopOnboarding"), /document\.documentElement\?
 assert.match(extractFunction("hideShopOnboarding"), /document\.documentElement\?\.classList\.remove\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.remove\("shop-promo-onboarding-open"\)/, "closing onboarding should restore normal root and body scrolling");
 assert.doesNotMatch(extractFunction("hideShopOnboarding"), /if\(!layer\)return/, "onboarding scroll locks must still be cleared if its overlay element is missing");
 assert.match(extractFunction("openView"), /if\(!onboardingLayer\|\|onboardingLayer\.hidden\)[\s\S]*?if\(staleOnboardingLock\)hideShopOnboarding\(\)/, "normal route navigation should remove stale onboarding locks before opening a section");
-assert.match(extractFunction("finishShopOnboarding"), /openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "Explore Models must enter Shop without replaying a pending intent");
+assert.match(extractFunction("finishShopOnboarding"), /beginShopOnboardingPageHandoff\("shop"[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "Explore Models must enter Shop without replaying a pending intent");
 assert.match(extractFunction("startShopOnboardingSignup"), /showAuth\("signup"\)/, "Create Account should use the existing sign-up screen");
-assert.match(extractFunction("startShopOnboardingSignup"), /hideShopOnboarding\(\)[\s\S]*?mainApp\.style\.display="none"[\s\S]*?authPage\.style\.display=""/, "registration should replace onboarding without recreating account state");
+assert.match(extractFunction("startShopOnboardingSignup"), /beginShopOnboardingPageHandoff\("signup"[\s\S]*?mainApp\.style\.display="none"[\s\S]*?authPage\.style\.display=""/, "registration should use the existing signup screen without recreating account state");
+assert.match(extractFunction("beginShopOnboardingPageHandoff"), /shopOnboardingHandoffLocked[\s\S]*?prepareDestination\(\)[\s\S]*?prefersReducedShopOnboardingMotion\(\)[\s\S]*?SHOP_ONBOARDING_HANDOFF_MS/, "page handoffs should lock repeated taps, prepare the destination under the overlay, and bypass animation when reduced motion is enabled");
 assert.match(extractFunction("openMain"), /if\(!shopOnboardingActive\)hideShopOnboarding\(\)/, "cloud session restoration must not close an active onboarding overlay");
 assert.match(extractFunction("logout"), /showShopOnboarding\(\)/, "logout should show the same three-slide introduction");
 assert.match(html, /if\(!cloudMode\)await restoreSession\(\);/, "startup should still restore any saved session after cloud initialization");
@@ -112,7 +115,7 @@ assert.match(html, /function logout\(\)\{[\s\S]*?showShopOnboarding\(\)/, "logou
 const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
   "getShopOnboardingVisibilityAction", "getActiveShopView", "readShopViewPosition", "captureShopOnboardingResumeState", "restoreShopOnboardingResumeState", "prefersReducedShopOnboardingMotion", "warmShopOnboardingImages", "renderShopOnboardingSlide", "moveShopOnboardingTo",
-  "advanceShopOnboarding", "startShopOnboardingSignup",
+  "advanceShopOnboarding", "beginShopOnboardingPageHandoff", "startShopOnboardingSignup",
   "finishShopOnboarding", "hideShopOnboarding", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded", "showShopOnboarding",
   "handleShopOnboardingVisibilityChange",
 ];
@@ -121,12 +124,15 @@ const flowSource = [
   "const SHOP_ONBOARDING_SLIDE_COUNT = 3;",
   "const SHOP_ONBOARDING_TRANSITION_MS = 300;",
   "const SHOP_ONBOARDING_REDUCED_MOTION_GUARD_MS = 120;",
+  "const SHOP_ONBOARDING_HANDOFF_MS = 260;",
   "const shopOnboardingImagePreloads=new Map();",
   'const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze(["https://fallback.example.test/1.jpg", "https://fallback.example.test/2.jpg", "https://fallback.example.test/3.jpg"]);',
   "let shopOnboardingSlideIndex=0;",
   "let shopOnboardingLastRenderedIndex=-1;",
   "let shopOnboardingTransitionTimer=0;",
   "let shopOnboardingTransitionLocked=false;",
+  "let shopOnboardingHandoffTimer=0;",
+  "let shopOnboardingHandoffLocked=false;",
   "let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];",
   "let shopOnboardingActive=false;",
   "let shopAppWasHidden=false;",
@@ -140,7 +146,7 @@ const flowSource = [
   "let ownerPanel=\"products\";",
   "let shopStartupCompleted=true;",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
-  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive,resumeState:()=>shopOnboardingResumeState})",
+  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,handoffLocked:()=>shopOnboardingHandoffLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive,resumeState:()=>shopOnboardingResumeState})",
 ].join("\n");
 function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home",reducedMotion=false}={}){
   const values = new Map();
@@ -170,6 +176,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   let authMode=false;
   const layer = {
     hidden: false,
+    inert: false,
     dataset: {},
     setAttribute(){},
     addEventListener(name, callback){listeners.set(name, callback);},
@@ -264,8 +271,17 @@ exploreFlow.flow.showIfNeeded();
 exploreFlow.flow.advance();
 exploreFlow.runTimers();
 exploreFlow.flow.advance();
-exploreFlow.flow.finish();
-assert.equal(exploreFlow.layer.hidden, true, 'Explore Models should dismiss the promotional slides');
+assert.equal(exploreFlow.flow.finish(), true, 'Explore Models should start the existing shop handoff');
+assert.equal(exploreFlow.layer.hidden, false, 'the onboarding overlay should remain visible until its exit transition completes');
+assert.equal(exploreFlow.classes.has('is-handoff-exiting'), true, 'Explore Models should use the handoff exit animation');
+assert.equal(exploreFlow.layer.inert, true, 'the outgoing onboarding controls should be inert during the handoff');
+assert.equal(exploreFlow.flow.handoffLocked(), true, 'the destination handoff should lock repeated button taps');
+assert.deepEqual(exploreFlow.pendingTimerDelays(), [260], 'the page-opening transition should last 260ms');
+assert.equal(exploreFlow.flow.finish(), false, 'a repeated Explore Models tap during handoff should be ignored');
+assert.equal(exploreFlow.rootClasses.has("shop-promo-onboarding-open"), true, 'scroll should remain locked until the visual handoff is complete');
+exploreFlow.runTimers();
+assert.equal(exploreFlow.layer.hidden, true, 'Explore Models should dismiss the slides after the transition');
+assert.equal(exploreFlow.layer.inert, false, 'the hidden onboarding layer should be reset for the next app entry');
 assert.equal(exploreFlow.rootClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore root scrolling");
 assert.equal(exploreFlow.bodyClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore body scrolling");
 assert.equal(exploreFlow.openedShop, true, 'Explore Models should open the existing shop');
@@ -283,8 +299,13 @@ accountFlow.flow.advance();
 accountFlow.runTimers();
 accountFlow.flow.advance();
 accountFlow.runTimers();
-accountFlow.flow.signup();
-assert.equal(accountFlow.layer.hidden,true,'Create Account should close the slide overlay');
+assert.equal(accountFlow.flow.signup(),true,'Create Account should start the existing registration handoff');
+assert.equal(accountFlow.layer.hidden,false,'the overlay should remain visible through the registration transition');
+assert.equal(accountFlow.classes.has('is-handoff-exiting'),true,'Create Account should use the shared handoff animation');
+assert.equal(accountFlow.flow.signup(),false,'a second Create Account tap during handoff should be ignored');
+assert.equal(accountFlow.authScreen,'signup','the existing registration form should be prepared behind the overlay');
+accountFlow.runTimers();
+assert.equal(accountFlow.layer.hidden,true,'the registration transition should finish by dismissing onboarding');
 assert.equal(accountFlow.rootClasses.has("shop-promo-onboarding-open"), false, "Create Account should restore root scrolling");
 assert.equal(accountFlow.bodyClasses.has("shop-promo-onboarding-open"), false, "Create Account should restore body scrolling");
 assert.equal(accountFlow.authMode,true,'Create Account should open the existing full-screen account flow');
@@ -294,6 +315,26 @@ assert.equal(accountFlow.authPage.style.display,'','the existing authentication 
 assert.equal(accountFlow.runtime.currentUser.id,'saved-customer','opening registration should not discard the current session');
 assert.equal(accountFlow.storage.getItem('test-session'),preservedSession,'registration navigation should preserve the saved session');
 assert.equal(accountFlow.storage.getItem('test-cart'),preservedCart,'registration navigation should preserve the cart');
+
+const reducedExploreFlow=createFlow({reducedMotion:true});
+reducedExploreFlow.flow.show();
+reducedExploreFlow.flow.advance();
+reducedExploreFlow.runTimers();
+reducedExploreFlow.flow.advance();
+assert.equal(reducedExploreFlow.flow.finish(),true,'reduced-motion Explore Models should still open the existing shop');
+assert.equal(reducedExploreFlow.layer.hidden,true,'reduced-motion handoffs should complete immediately');
+assert.deepEqual(reducedExploreFlow.pendingTimerDelays(),[],'reduced-motion Explore Models should not wait on an animation timer');
+assert.equal(reducedExploreFlow.rootClasses.has('shop-promo-onboarding-open'),false,'immediate Explore Models should restore page scrolling');
+
+const reducedAccountFlow=createFlow({reducedMotion:true});
+reducedAccountFlow.flow.show();
+reducedAccountFlow.flow.advance();
+reducedAccountFlow.runTimers();
+reducedAccountFlow.flow.advance();
+reducedAccountFlow.flow.signup();
+assert.equal(reducedAccountFlow.layer.hidden,true,'reduced-motion Create Account should complete immediately');
+assert.equal(reducedAccountFlow.authScreen,'signup','reduced-motion Create Account should keep the existing registration destination');
+assert.deepEqual(reducedAccountFlow.pendingTimerDelays(),[],'reduced-motion Create Account should not wait on an animation timer');
 
 const missingLayerFlow=createFlow();
 missingLayerFlow.flow.show();
@@ -319,6 +360,7 @@ signedInFlow.runTimers();
 signedInFlow.flow.advance();
 assert.equal(signedInFlow.layer.hidden, false, 'the last Next should reveal the final action choices, not dismiss onboarding');
 signedInFlow.flow.finish();
+signedInFlow.runTimers();
 assert.equal(signedInFlow.layer.hidden, true, 'Explore Models dismisses onboarding');
 assert.equal(signedInFlow.openedView, 'home', 'completion opens model selection');
 assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'completion preserves the signed-in account');
@@ -397,6 +439,8 @@ assert.equal(resumeFlow.flow.handleVisibility(false),true,"foreground return sho
 assert.equal(resumeFlow.flow.resumeState().view,"search","foreground onboarding should remember the exact current section");
 assert.equal(resumeFlow.flow.resumeState().position.windowY,468,"foreground onboarding should remember the page scroll position");
 resumeFlow.flow.finish();
+assert.equal(resumeFlow.layer.hidden,false,"foreground onboarding stays in place while restoring the previous browsing context");
+resumeFlow.runTimers();
 assert.equal(resumeFlow.openedShop,false,"finishing foreground onboarding must not reinitialize the shop");
 assert.equal(resumeFlow.openedView,"search","finishing foreground onboarding should remain on Search");
 assert.equal(resumeFlow.runtime.window.scrollY,468,"finishing foreground onboarding should restore the prior page position");
@@ -412,6 +456,7 @@ authResumeFlow.authPage.scrollTop=72;
 authResumeFlow.flow.handleVisibility(true);
 authResumeFlow.flow.handleVisibility(false);
 authResumeFlow.flow.finish();
+authResumeFlow.runTimers();
 assert.equal(authResumeFlow.openedShop,false,"foreground onboarding must not replace an active Login / Sign Up screen with Shop");
 assert.equal(authResumeFlow.mainApp.style.display,"none","the auth screen remains visible after foreground onboarding");
 assert.equal(authResumeFlow.authPage.style.display,"","the auth screen remains visible after foreground onboarding");
