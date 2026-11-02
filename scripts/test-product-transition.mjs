@@ -7,6 +7,12 @@ assert.match(html, /<div class="product \$\{productDiscountPercent\(p\)\?"has-di
 assert.match(html, /\.product\.has-discount \.discount-price-layout\{display:flex;width:100%;justify-content:flex-start;text-align:left;direction:ltr\}/, "discounted card prices should fill and align at the left edge");
 assert.match(html, /\.product\.has-discount \.discounted-price\{color:inherit\}/, "discounted card prices should use the same purple accent as the card price");
 assert.match(html, /\.product\.has-discount \.stock-line\{text-align:left;direction:ltr\}/, "discounted card stock text should remain left aligned");
+assert.match(html, /\.products\{[^}]*display:grid;[^}]*align-items:stretch;/, "product cards should stretch to a consistent grid-row height");
+assert.match(html, /\.product\{[^}]*display:flex;[^}]*flex-direction:column;/, "each product card should use a vertical flexible layout");
+assert.match(html, /\.product-info\{[^}]*display:flex;[^}]*flex:1 1 auto;[^}]*flex-direction:column;/, "variable product content should expand above the bottom controls");
+assert.match(html, /\.product-bottom\{[^}]*margin-top:auto;[^}]*padding-top:8px;/, "the color and cart controls should sit at the card bottom with consistent spacing");
+assert.match(html, /\.colors\{[^}]*flex-wrap:nowrap;[^}]*overflow-x:auto;[^}]*overflow-y:hidden;/, "different color counts should stay on a single accessible selector row");
+assert.match(html, /\.product-bottom\{direction:ltr;margin-top:auto;padding-top:6px;gap:3px\}/, "the compact mobile card layout should retain the shared bottom alignment");
 assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product opening should retain its current 190 ms animation");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the Back button should avoid tap-gesture delay");
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
