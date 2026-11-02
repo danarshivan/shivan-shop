@@ -13,6 +13,12 @@ const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const apiSource = await readFile(new URL("../functions/api/[[path]].js", import.meta.url), "utf8");
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
 const { onRequest } = await import(apiUrl);
+const sourceFunction = name => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = html.match(new RegExp(`function ${escaped}\\([^\\n]*\\)\\s*\\{[\\s\\S]*?\\n\\}`));
+  assert.ok(match, `Expected UI helper ${name} to exist`);
+  return match[0];
+};
 
 for (const [index, script] of [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(script => script.trim()).entries()) {
   try { new Function(script); }
@@ -20,6 +26,7 @@ for (const [index, script] of [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/scr
 }
 
 assert.match(html, /\["inventory","▦",ownerDashboardText\("QR Code"/, "QR inventory must be reachable from the Owner dashboard menu");
+assert.match(html, /\["analytics","◴",ownerDashboardText\("Analytics"/, "Owner analytics must be reachable from the dashboard menu");
 assert.match(html, /inventory:\{panel:"inventory",nav:"inventory"\}/, "the Owner dashboard QR menu should map to the existing inventory section");
 assert.match(html, /if\(!isOwner\(\)\)return;[\s\S]*?async function renderOwnerInventory/, "client inventory actions should check the Owner session");
 assert.match(html, /requireAuthentication\(\{type:"product"/, "product purchase actions should capture a guest's exact variant before showing login");
@@ -30,6 +37,77 @@ assert.ok(apiSource.includes('if (account.role !== "owner") return error("Only t
 assert.match(apiSource, /UPDATE shop_state SET value=\?, updated_at=\? WHERE key=\? AND value=\? AND EXISTS/, "stock adjustments must compare the D1 inventory value before saving");
 assert.match(apiSource, /INVENTORY_OPERATION_PREFIX/, "inventory operations must use a shared idempotency record");
 assert.doesNotMatch(apiSource, /CREATE TABLE|DROP TABLE|ALTER TABLE/, "QR inventory must use the existing database schema");
+for (const marker of ["ownerInventorySearch", "ownerInventoryStockFilter", "selectVisibleOwnerInventoryQrs", "printSelectedVariantQrs", "downloadSelectedVariantQrSheet", "downloadAllVariantQrSheet", "data-qr-stock", "data-qr-search", "Product ID:", "owner-qr-product-image"]) {
+  assert.ok(html.includes(marker), `the Owner QR inventory should support ${marker}`);
+}
+assert.match(html, /ownerQrSvgById\.set\(item\.id,svg\)/, "download and print controls use the same persistent variant QR ID generated for the shared database record");
+const qrView = runInNewContext(`${sourceFunction("inventoryVariantViewForClient")}\n({inventoryVariantViewForClient})`, {
+  normalizeHexColor: value => String(value || "").toLowerCase(),
+  productPhotos: product => product.images || (product.image ? [{ src: product.image }] : []),
+  getProductPricing: product => ({ originalPrice: product.price, finalPrice: product.price * (100 - product.discount) / 100, discountPercent: product.discount }),
+  safeImageUrl: value => value,
+  getProductName: product => product.name,
+});
+const variantView = qrView.inventoryVariantViewForClient({ id: 7, name: "Dress", colors: ["#f00"], colorNames: ["Ruby"], images: [{ src: "/dress.webp", color: "#f00" }], price: 10000, discount: 30 }, { qrId: "stable-qr-id", color: "#f00", size: "M", stock: 4 });
+assert.deepEqual(JSON.parse(JSON.stringify({ productId: variantView.productId, colorName: variantView.colorName, size: variantView.size, stock: variantView.stock, image: variantView.image, price: variantView.price, finalPrice: variantView.finalPrice, discountPercent: variantView.discountPercent })), { productId: 7, colorName: "Ruby", size: "M", stock: 4, image: "/dress.webp", price: 10000, finalPrice: 7000, discountPercent: 30 }, "QR cards display the linked product image, color-size stock, and actual saved price/discount");
+const scanResultElement = { innerHTML: "" };
+const scanSaleButton = { disabled: true };
+const scanRestockButton = { disabled: true };
+const scanRenderer = runInNewContext(`${sourceFunction("inventoryVariantViewForClient")}\n${sourceFunction("renderOwnerInventoryScanResult")}\n({renderOwnerInventoryScanResult})`, {
+  ownerInventoryScannedVariant: { qrId: "stable-qr-id", productId: 7, productName: "Dress", colorName: "Ruby", size: "M", stock: 4 },
+  products: [{ id: 7, name: "Dress", colors: ["#f00"], colorNames: ["Ruby"], images: [{ src: "/dress.webp", color: "#f00" }], price: 10000, discount: 30 }],
+  normalizeHexColor: value => String(value || "").toLowerCase(),
+  productPhotos: product => product.images || [],
+  getProductPricing: product => ({ originalPrice: product.price, finalPrice: product.price * (100 - product.discount) / 100, discountPercent: product.discount }),
+  safeImageUrl: value => value,
+  getProductName: product => product.name,
+  escapeHtml: value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
+  formatPrice: value => `IQD ${value}`,
+  document: { getElementById: id => ({ ownerInventoryResult: scanResultElement, ownerInventorySale: scanSaleButton, ownerInventoryRestock: scanRestockButton })[id] || null },
+});
+scanRenderer.renderOwnerInventoryScanResult();
+assert.match(scanResultElement.innerHTML, /Product ID: 7/);
+assert.match(scanResultElement.innerHTML, /Ruby · M/);
+assert.match(scanResultElement.innerHTML, /IQD 7000/);
+assert.match(scanResultElement.innerHTML, /-30%/);
+assert.match(scanResultElement.innerHTML, /src="\/dress.webp"/);
+assert.equal(scanSaleButton.disabled, false);
+const qrCards = [
+  { dataset: { qrSearch: "dress 7 ruby m", qrStock: "0" }, hidden: false },
+  { dataset: { qrSearch: "jacket 8 blue l", qrStock: "5" }, hidden: false },
+];
+const qrCheckboxes = [{ value: "dress-qr", checked: false }, { value: "jacket-qr", checked: false }];
+const qrUiElements = {
+  ownerInventorySearch: { value: "dress" },
+  ownerInventoryStockFilter: { value: "all" },
+  ownerInventoryStatus: { textContent: "" },
+  ownerInventorySelectionStatus: { textContent: "" },
+  ownerInventoryPrintSelected: { disabled: true },
+  ownerInventoryDownloadSelected: { disabled: true },
+};
+const qrUiDocument = {
+  getElementById: id => qrUiElements[id] || null,
+  querySelectorAll: selector => selector.includes(":not([hidden])")
+    ? qrCards.flatMap((card, index) => card.hidden ? [] : [qrCheckboxes[index]])
+    : selector.includes(":checked")
+      ? qrCheckboxes.filter(input => input.checked)
+      : qrCards,
+};
+const inventoryUi = runInNewContext(`${sourceFunction("ownerInventorySelectedIds")}\n${sourceFunction("filterOwnerInventoryQr")}\n${sourceFunction("updateOwnerInventorySelection")}\n${sourceFunction("selectVisibleOwnerInventoryQrs")}\n({filterOwnerInventoryQr,updateOwnerInventorySelection,selectVisibleOwnerInventoryQrs})`, {
+  ownerPanel: "inventory", ownerInventoryVariants: [1, 2], isOwner: () => true, document: qrUiDocument,
+});
+inventoryUi.filterOwnerInventoryQr();
+assert.equal(qrCards[0].hidden, false, "the QR search keeps matching products visible");
+assert.equal(qrCards[1].hidden, true, "the QR search hides nonmatching products without removing their records");
+inventoryUi.selectVisibleOwnerInventoryQrs(true);
+assert.equal(qrCheckboxes[0].checked, true, "select visible applies only to currently filtered variants");
+assert.equal(qrCheckboxes[1].checked, false);
+assert.equal(qrUiElements.ownerInventoryPrintSelected.disabled, false);
+qrUiElements.ownerInventoryStockFilter.value = "out-of-stock";
+qrUiElements.ownerInventorySearch.value = "";
+inventoryUi.filterOwnerInventoryQr();
+assert.equal(qrCards[0].hidden, false, "stock filters can show out-of-stock variants");
+assert.equal(qrCards[1].hidden, true, "stock filters exclude in-stock variants");
 
 const makeQr = payload => {
   const qr = qrFactory(0, "M");

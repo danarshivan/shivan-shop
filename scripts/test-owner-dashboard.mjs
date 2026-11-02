@@ -12,8 +12,8 @@ const functionSource = name => {
 
 const requiredFunctions = [
   "ownerDashboardText", "ownerPanelRoute", "ownerDashboardNavItems", "ownerDashboardShellMarkup",
-  "ownerConfirmedSalesOrder", "ownerDashboardStats", "ownerActiveTimedOfferCount",
-  "renderOwnerDashboard", "renderOwnerCustomers", "renderOwnerReports",
+  "ownerCancelledOrder", "ownerConfirmedSalesOrder", "ownerPendingOrder", "ownerDashboardStats", "ownerActiveTimedOfferCount",
+  "renderOwnerDashboard", "renderOwnerCustomers",
 ];
 const sources = requiredFunctions.map(functionSource).join("\n");
 const now = Date.parse("2026-11-02T18:00:00.000Z");
@@ -39,6 +39,8 @@ const sourceData = {
 const baseline = JSON.stringify(sourceData);
 const context = {
   activeLanguage: "en",
+  ownerAnalyticsSelection: { period: "daily", date: "", month: "", year: "" },
+  ownerReportSelection: { preset: "month", start: "", end: "" },
   OWNER_IDENTIFIER: "owner@example.test",
   isOwner: () => true,
   products: sourceData.products,
@@ -63,6 +65,8 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("categories")
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("colors"))), { panel: "appearance", nav: "colors", focus: "ownerAppearanceForm" }, "Colors & Font opens the existing appearance editor");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("store-settings"))), { panel: "appearance", nav: "store-settings", focus: "ownerAppearanceForm" }, "Store Settings reuses the existing store appearance editor");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("backup"))), { panel: "appearance", nav: "backup", focus: "ownerBackupSync" }, "Backup & Sync opens the existing backup controls");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("analytics"))), { panel: "analytics", nav: "analytics" }, "Analytics opens its owner-only report view");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("discounts"))), { panel: "products", nav: "discounts" }, "Discounts reuse the existing product editor and stored settings");
 
 const dashboard = { innerHTML: "" };
 runtime.renderOwnerDashboard(dashboard);
@@ -81,17 +85,11 @@ assert.match(customers.innerHTML, /a@example\.test/);
 assert.match(customers.innerHTML, /B Customer/);
 assert.doesNotMatch(customers.innerHTML, /owner@example\.test/);
 
-const reports = { innerHTML: "" };
-runtime.renderOwnerReports(reports);
-assert.match(reports.innerHTML, /IQD 1400/);
-assert.match(reports.innerHTML, />3</);
-assert.match(reports.innerHTML, />2</);
-
 const shell = runtime.ownerDashboardShellMarkup();
 assert.match(shell, /class="owner-sidebar"/);
 assert.match(shell, /id="ownerMobileNavigation"/);
 assert.match(shell, /Visit Store/);
-for (const label of ["Dashboard", "Product List", "Categories", "Orders", "Customers", "Colors &amp; Font", "QR Code", "Reports", "Backup &amp; Sync", "Store Settings"]) {
+for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
   assert.ok(shell.includes(label), `desktop and mobile navigation should expose ${label}`);
 }
 
@@ -102,7 +100,7 @@ assert.match(functionSource("renderOwnerPanel"), /renderOwnerProducts\(sectionBo
 assert.match(html, /id="ownerBackupSync"/, "Backup & Sync points to the existing backup controls");
 assert.equal(JSON.stringify(sourceData), baseline, "dashboard rendering and statistics do not mutate store records");
 
-const protectedRuntime = runInNewContext(`${functionSource("renderOwnerDashboard")}\n${functionSource("renderOwnerCustomers")}\n${functionSource("renderOwnerReports")}\n({renderOwnerDashboard,renderOwnerCustomers,renderOwnerReports})`, {
+const protectedRuntime = runInNewContext(`${functionSource("renderOwnerDashboard")}\n${functionSource("renderOwnerCustomers")}\n({renderOwnerDashboard,renderOwnerCustomers})`, {
   isOwner: () => false,
 });
 for (const render of Object.values(protectedRuntime)) {

@@ -1284,6 +1284,23 @@ button{
 .owner-customer-card small{margin-top:5px;color:#aaa2b7;font-size:11px}
 .owner-report-card strong{display:block;color:#c9afff;font-size:21px}
 .owner-report-card small{display:block;margin-top:5px;color:#a39bac;font-size:11px}
+.owner-analytics-controls,.owner-report-controls{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:12px 0;padding:12px;border:1px solid #2b2638;border-radius:14px;background:#0e0f17}
+.owner-analytics-controls label,.owner-report-controls label{display:grid;gap:5px;color:#bdb6ca;font-size:12px}
+.owner-analytics-controls label[hidden],.owner-report-controls label[hidden]{display:none!important}
+.owner-analytics-controls select,.owner-analytics-controls input,.owner-report-controls select,.owner-report-controls input{min-height:40px;max-width:100%;padding:8px 10px;border:1px solid #3a3650;border-radius:10px;background:#14131e;color:#fff;font:inherit}
+.owner-analytics-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:9px;margin:12px 0}
+.owner-analytics-metric{min-width:0;padding:12px;border:1px solid #302a43;border-radius:13px;background:linear-gradient(145deg,#15121f,#0c0d14)}
+.owner-analytics-metric small,.owner-analytics-metric strong{display:block;overflow-wrap:anywhere}
+.owner-analytics-metric small{color:#a69eb3;font-size:11px}
+.owner-analytics-metric strong{margin-top:6px;color:#d4c1ff;font-size:19px}
+.owner-analytics-chart{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(28px,1fr);align-items:end;gap:5px;min-height:190px;overflow-x:auto;padding:14px 8px 8px;border:1px solid #292538;border-radius:14px;background:#0d0e16}
+.owner-analytics-bar{display:grid;grid-template-rows:1fr auto;align-items:end;gap:6px;min-width:0;height:165px;text-align:center}
+.owner-analytics-bar-track{display:flex;align-items:end;justify-content:center;height:100%}
+.owner-analytics-bar-fill{width:min(72%,28px);height:var(--bar-height);min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#b48cff,#6845c2);box-shadow:0 0 15px #784de544}
+.owner-analytics-bar small{color:#9992a7;font-size:9px;white-space:nowrap}
+.owner-analytics-top-products{display:grid;gap:8px;margin-top:12px}
+.owner-analytics-top-products li{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #292538;border-radius:11px;background:#0d0e16}
+.owner-analytics-empty{padding:14px;border:1px dashed #403551;border-radius:12px;color:#a69eb3;text-align:center}
 .owner-owner-content[hidden],.owner-dashboard-page[hidden]{display:none!important}
 @media(max-width:1050px){.owner-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-mobile-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 0 12px}.owner-mobile-toolbar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.owner-mobile-toolbar .owner-visit-mobile{min-height:46px;padding:8px 10px;border:1px solid #443463;border-radius:13px;background:#171222;color:#e5d8ff;font:inherit;font-size:11px}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
@@ -1298,13 +1315,24 @@ button{
 .owner-inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:10px;margin-top:12px}
 .owner-qr-card{min-width:0;display:grid;gap:8px;align-content:start}
 .owner-qr-card strong,.owner-qr-card small{overflow-wrap:anywhere}
+.owner-qr-card{position:relative}
+.owner-qr-select{display:flex;align-items:center;gap:7px;color:#c9c4d4;font-size:12px}
+.owner-qr-select input{width:18px;height:18px;accent-color:#8c65ed}
+.owner-qr-product-image{width:54px;height:64px;object-fit:cover;border-radius:9px;border:1px solid #343044;background:#17131f}
+.owner-qr-meta{display:grid;gap:3px;color:#a9a2b3;font-size:11px}
+.owner-qr-price{color:#d0b7ff;font-weight:700}
+.owner-qr-original{color:#857e8e;text-decoration:line-through;font-weight:400}
+.owner-inventory-filter-row{display:flex;flex-wrap:wrap;gap:9px;align-items:end}
+.owner-inventory-filter-row label{display:grid;gap:5px;flex:1 1 180px;font-size:12px;color:#c9c4d4}
+.owner-inventory-filter-row input,.owner-inventory-filter-row select{width:100%;min-height:42px;padding:8px 10px;border:1px solid #3a3650;border-radius:10px;background:#14131e;color:#fff;font:inherit}
 .owner-qr-art{display:grid;place-items:center;min-height:160px;background:#fff;border-radius:12px;padding:8px}
 .owner-qr-art svg{width:min(100%,180px);height:auto;display:block}
 .owner-qr-card .owner-inventory-actions button{flex:1;min-width:85px}
 .owner-inventory-status{min-height:24px;color:#c9bbff;line-height:1.5}
 .owner-inventory-out{color:#ff8585;font-weight:800}
-@media(max-width:440px){.owner-qr-card{grid-template-columns:88px 1fr;align-items:center}.owner-qr-art{grid-row:span 2;min-height:88px;padding:4px}.owner-qr-art svg{width:80px}.owner-qr-card .owner-inventory-actions{grid-column:1/-1}}
-@media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print [data-qr-print-target="true"],body.owner-qr-print [data-qr-print-target="true"] *{visibility:visible!important}body.owner-qr-print [data-qr-print-target="true"]{position:absolute;inset:0 auto auto 0;width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:16px;background:white!important;color:black!important}body.owner-qr-print .owner-qr-card{break-inside:avoid;background:white!important;color:black!important;border:1px solid #bbb!important}body.owner-qr-print .owner-qr-art{min-height:190px}}
+@media(max-width:440px){.owner-qr-card{grid-template-columns:minmax(0,1fr);align-items:stretch}.owner-qr-product-image{width:100%;height:150px}.owner-qr-art{grid-row:auto;min-height:120px;padding:8px}.owner-qr-art svg{width:min(100%,150px)}.owner-qr-card .owner-inventory-actions{grid-column:auto}}
+@media(max-width:600px){.owner-analytics-controls,.owner-report-controls{align-items:stretch}.owner-analytics-controls label,.owner-report-controls label{flex:1 1 130px}.owner-analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print #ownerInventoryQrGrid,body.owner-qr-print #ownerInventoryQrGrid *{visibility:visible!important}body.owner-qr-print #ownerInventoryQrGrid{position:fixed;inset:0;width:100%;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:12px;margin:0;padding:10mm;background:#fff!important;color:#000!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="false"]{display:none!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="true"]{position:static;display:grid!important;break-inside:avoid;background:#fff!important;color:#000!important;border:1px solid #aaa!important}body.owner-qr-print .owner-qr-card small,body.owner-qr-print .owner-qr-select{color:#222!important}body.owner-qr-print .owner-qr-price{color:#50308f!important}body.owner-qr-print .owner-qr-art{min-height:150px}}
 .owner-form{display:grid;gap:10px;background:#0b0e18;border:1px solid #282d40;border-radius:17px;padding:14px;margin-bottom:16px}
 .owner-form input,.owner-form textarea,.owner-form select,.settings-select{width:100%;min-height:44px;border-radius:12px;border:1px solid #292d40;background:#10121c;color:white;padding:10px 12px;font:inherit}
 .owner-product-name-fields{display:grid;gap:8px;padding:10px;border:1px solid #282d40;border-radius:13px;background:#080b14}
@@ -4550,6 +4578,8 @@ let ownerPanel = "dashboard";
 let ownerDashboardNavKey = "dashboard";
 let ownerProductMode = "menu";
 let ownerInventoryDraft = new Map();
+let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""};
+let ownerReportSelection={preset:"month",start:"",end:""};
 
 
 /* =========================================
@@ -8390,6 +8420,7 @@ async function placeOrder(autoFib=false){
     id:orderId,
     userId:currentUser.id,
     date:new Date().toLocaleString("ku-IQ"),
+    createdAt:new Date().toISOString(),
     items:cart.map(cartItemCheckoutSnapshot),
     total,
     name,
@@ -8619,7 +8650,7 @@ function renderOwnerPanel(section=ownerPanel){
   ownerPanel=route.panel;
   ownerDashboardNavKey=route.nav;
   if(route.panel==="products"&&route.nav==="categories"){ownerProductMode="categories";editingProductId=null;}
-  if(route.panel==="products"&&route.nav==="products"&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
+  if(route.panel==="products"&&(route.nav==="products"||route.nav==="discounts")&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
   const dashboard=document.getElementById("ownerDashboardPage");
   const sectionBox=document.getElementById("ownerPanelSectionContent");
   if(!dashboard||!sectionBox)return false;
@@ -8635,6 +8666,7 @@ function renderOwnerPanel(section=ownerPanel){
   else if(route.panel==="appearance")renderOwnerAppearance(sectionBox);
   else if(route.panel==="onboarding")renderShopOnboardingOwnerEditor(sectionBox);
   else if(route.panel==="customers")renderOwnerCustomers(sectionBox);
+  else if(route.panel==="analytics")renderOwnerAnalytics(sectionBox);
   else if(route.panel==="reports")renderOwnerReports(sectionBox);
   renderOwnerDashboardNavigation();
   if(route.focus)scrollOwnerTo(route.focus);
@@ -8656,6 +8688,8 @@ function ownerPanelRoute(section){
     orders:{panel:"orders",nav:"orders"},
     customers:{panel:"customers",nav:"customers"},
     inventory:{panel:"inventory",nav:"inventory"},
+    analytics:{panel:"analytics",nav:"analytics"},
+    discounts:{panel:"products",nav:"discounts"},
     appearance:{panel:"appearance",nav:"colors"},
     colors:{panel:"appearance",nav:"colors",focus:"ownerAppearanceForm"},
     "store-settings":{panel:"appearance",nav:"store-settings",focus:"ownerAppearanceForm"},
@@ -8673,8 +8707,10 @@ function ownerDashboardNavItems(){
     ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات")],
     ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
     ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
+    ["discounts","％",ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض")],
     ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
     ["inventory","▦",ownerDashboardText("QR Code","کۆدی QR","رمز QR")],
+    ["analytics","◴",ownerDashboardText("Analytics","شیکاری","التحليلات")],
     ["reports","▥",ownerDashboardText("Reports","ڕاپۆرت","التقارير")],
     ["backup","⤓",ownerDashboardText("Backup & Sync","پاراستن و هاوکاتکردن","النسخ الاحتياطي والمزامنة")],
     ["store-settings","⚙",ownerDashboardText("Store Settings","ڕێکخستنێن فرۆشگە","إعدادات المتجر")],
@@ -8686,9 +8722,9 @@ function ownerDashboardNavItems(){
 function ownerDashboardShellMarkup(){
   const items=ownerDashboardNavItems();
   const nav=(routes,extraClass="")=>routes.map(([route,icon,label])=>`<button type="button" class="owner-dashboard-nav-item ${extraClass}" data-owner-route="${route}" onclick="renderOwnerPanel('${route}')"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></button>`).join("");
-  const overview=items.slice(0,1);
-  const management=items.slice(1,10);
-  const promotions=items.slice(10);
+  const overview=items.filter(([route])=>route==="dashboard");
+  const management=items.filter(([route])=>["products","categories","discounts","orders","customers","colors","inventory","analytics","reports","backup","store-settings"].includes(route));
+  const promotions=items.filter(([route])=>["ads","onboarding"].includes(route));
   const mobileOptions=items.map(([route,,label])=>`<option value="${route}">${escapeHtml(label)}</option>`).join("");
   return `<div class="owner-admin-shell">
     <aside class="owner-sidebar" aria-label="Owner navigation">
@@ -8721,9 +8757,19 @@ function renderOwnerDashboardNavigation(){
 }
 
 function ownerConfirmedSalesOrder(order){
+  if(ownerCancelledOrder(order))return false;
   const status=String(order?.status||"").trim().toLocaleLowerCase();
   const paymentStatus=String(order?.paymentStatus||"").trim().toUpperCase();
-  return paymentStatus==="PAID"||status==="گەهشت"||status==="delivered"||status==="completed";
+  return paymentStatus==="PAID"||status==="گەهشت"||status==="delivered"||status==="completed"||status==="complete";
+}
+
+function ownerCancelledOrder(order){
+  const status=String(order?.status||"").trim().toLocaleLowerCase();
+  return /cancel|canceled|cancelled|هەڵوەشاندنەوە|ملغي|إلغاء/.test(status);
+}
+
+function ownerPendingOrder(order){
+  return !ownerCancelledOrder(order)&&!ownerConfirmedSalesOrder(order);
 }
 
 function ownerDashboardStats(){
@@ -8766,10 +8812,12 @@ function renderOwnerDashboard(box){
   const management=[
     ["products","◇",ownerDashboardText("Product List","لیستا بەرهەمان","قائمة المنتجات")],
     ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات")],
+    ["discounts","％",ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض")],
     ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
     ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
     ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
     ["inventory","▦",ownerDashboardText("QR Code","کۆدی QR","رمز QR")],
+    ["analytics","◴",ownerDashboardText("Analytics","شیکاری","التحليلات")],
     ["reports","▥",ownerDashboardText("Reports","ڕاپۆرت","التقارير")],
     ["backup","⤓",ownerDashboardText("Backup & Sync","پاراستن و هاوکاتکردن","النسخ الاحتياطي والمزامنة")],
     ["store-settings","⚙",ownerDashboardText("Store Settings","ڕێکخستنێن فرۆشگە","إعدادات المتجر")],
@@ -8792,7 +8840,7 @@ function openOwnerDiscountProducts(timed=false){
   }
   ownerProductMode="list";
   editingProductId=null;
-  renderOwnerPanel("products");
+  renderOwnerPanel("discounts");
   scrollOwnerTo("ownerProductList");
   showToast(timed?"Choose a product, select Edit, then set its discount and end time.":"Choose a product and select Edit to set its discount.");
 }
@@ -8823,19 +8871,144 @@ function renderOwnerCustomers(box){
   box.innerHTML=`<div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Customer Accounts","هەژمارێن کڕیاران","حسابات العملاء"))}</h3><p>${customers.length} ${escapeHtml(ownerDashboardText("accounts","هەژمار","حسابات"))}</p></div>${customers.length?`<div class="owner-customer-grid">${customers.map(account=>`<article class="owner-customer-card"><strong>${escapeHtml(account.name||ownerDashboardText("Customer","کڕیار","عميل"))}</strong><small>${escapeHtml(account.identifier||"")}</small><small>${escapeHtml(account.createdAt?new Date(account.createdAt).toLocaleDateString():"")}</small></article>`).join("")}</div>`:`<div class="empty">${escapeHtml(ownerDashboardText("No customer accounts are available.","هێشتا هەژمارێن کڕیاران نینە.","لا توجد حسابات عملاء بعد."))}</div>`}`;
 }
 
-function renderOwnerReports(box){
-  if(!isOwner()){if(box)box.textContent="Only the store owner can view store reports.";return;}
-  const stats=ownerDashboardStats();
-  const orders=getOrders();
-  const delivered=orders.filter(ownerConfirmedSalesOrder).length;
-  const cards=[
-    [ownerDashboardText("Confirmed sales","فرۆشتنێن پشتڕاستکری","المبيعات المؤكدة"),formatPrice(stats.sales),ownerDashboardText("Sum of paid or completed order totals","کۆی پارەی داخوازیێن پارەدراو یان تەمامبووی","إجمالي الطلبات المدفوعة أو المكتملة")],
-    [ownerDashboardText("Total orders","هەمی داخوازی","إجمالي الطلبات"),String(stats.orders),ownerDashboardText("Saved orders","داخوازیێن پاشەکەفتکری","الطلبات المحفوظة")],
-    [ownerDashboardText("Confirmed orders","داخوازیێن پشتڕاستکری","الطلبات المؤكدة"),String(delivered),ownerDashboardText("Paid or completed","پارەدراو یان تەمامبووی","مدفوعة أو مكتملة")],
-    [ownerDashboardText("Products","بەرهەم","المنتجات"),String(stats.products),ownerDashboardText("Current catalog","کەتەلۆگا ئێستا","الكتالوج الحالي")],
-    [ownerDashboardText("Customers","کڕیار","العملاء"),String(stats.customers),ownerDashboardText("Customer accounts","هەژمارێن کڕیاران","حسابات العملاء")]
+function ownerRecordDate(record){
+  const value=record?.createdAt||record?.created_at||record?.date||record?.timestamp;
+  if(value instanceof Date)return Number.isFinite(value.getTime())?value:null;
+  if(typeof value==="number"&&Number.isFinite(value)){const date=new Date(value<1000000000000?value*1000:value);return Number.isFinite(date.getTime())?date:null;}
+  const text=String(value||"").trim().replace(/[٠-٩۰-۹]/g,char=>String("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹".indexOf(char)%10));
+  if(!text)return null;
+  const timestamp=Date.parse(text);
+  if(Number.isFinite(timestamp))return new Date(timestamp);
+  const ymd=text.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if(ymd){const date=new Date(Number(ymd[1]),Number(ymd[2])-1,Number(ymd[3]));return Number.isFinite(date.getTime())?date:null;}
+  const dmy=text.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})/);
+  if(dmy){const date=new Date(Number(dmy[3]),Number(dmy[2])-1,Number(dmy[1]));return Number.isFinite(date.getTime())?date:null;}
+  return null;
+}
+
+function ownerDateInputValue(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+
+function ownerLocalDateRange(startValue,endValue=""){
+  const parse=value=>{const match=String(value||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Number(match[1]),Number(match[2])-1,Number(match[3])):null;};
+  const today=new Date();
+  const start=parse(startValue)||new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const end=parse(endValue)||start;
+  start.setHours(0,0,0,0);end.setHours(23,59,59,999);
+  if(end<start)return {start,end:start,valid:false};
+  return {start,end,valid:true};
+}
+
+function ownerAnalyticsRange(period,selection={},now=new Date()){
+  const today=ownerDateInputValue(now);
+  if(period==="monthly"){
+    const month=String(selection.month||`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`);
+    const match=month.match(/^(\d{4})-(\d{2})$/)||["",String(now.getFullYear()),String(now.getMonth()+1).padStart(2,"0")];
+    const year=Number(match[1]),monthIndex=Math.max(0,Math.min(11,Number(match[2])-1));
+    return {period,start:new Date(year,monthIndex,1),end:new Date(year,monthIndex+1,0,23,59,59,999),date:today,month:`${year}-${String(monthIndex+1).padStart(2,"0")}`,year:String(year)};
+  }
+  if(period==="yearly"){
+    const year=Math.max(2000,Math.min(9999,Number(selection.year)||now.getFullYear()));
+    return {period,start:new Date(year,0,1),end:new Date(year,11,31,23,59,59,999),date:today,month:`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`,year:String(year)};
+  }
+  const selected=String(selection.date||today);
+  const range=ownerLocalDateRange(selected,selected);
+  return {period:"daily",start:range.start,end:range.end,date:selected,month:`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`,year:String(now.getFullYear())};
+}
+
+function ownerReportDateRange(selection={},now=new Date()){
+  const preset=selection.preset||"month";
+  if(preset==="today")return {...ownerLocalDateRange(ownerDateInputValue(now),ownerDateInputValue(now)),preset};
+  if(preset==="year")return {preset,start:new Date(now.getFullYear(),0,1),end:new Date(now.getFullYear(),11,31,23,59,59,999),valid:true};
+  if(preset==="custom")return selection.start&&selection.end?{...ownerLocalDateRange(selection.start,selection.end),preset}:{preset,start:new Date(now.getFullYear(),now.getMonth(),now.getDate()),end:new Date(now.getFullYear(),now.getMonth(),now.getDate()),valid:false};
+  return {preset:"month",start:new Date(now.getFullYear(),now.getMonth(),1),end:new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59,999),valid:true};
+}
+
+function ownerStoreMetrics(start,end){
+  const savedOrders=getOrders();
+  const orders=(Array.isArray(savedOrders)?savedOrders:[]).map(order=>({order,date:ownerRecordDate(order)})).filter(entry=>entry.date&&entry.date>=start&&entry.date<=end);
+  const matching=orders.map(entry=>entry.order);
+  const cancelled=matching.filter(ownerCancelledOrder);
+  const confirmed=matching.filter(ownerConfirmedSalesOrder);
+  const pending=matching.filter(ownerPendingOrder);
+  const sales=confirmed.reduce((sum,order)=>{const total=Number(order?.total);return Number.isFinite(total)&&total>0?sum+total:sum;},0);
+  const sellers=new Map();let unitsSold=0;
+  for(const order of confirmed)for(const item of Array.isArray(order?.items)?order.items:[]){
+    const quantity=Number(item?.qty??item?.quantity);
+    if(!Number.isSafeInteger(quantity)||quantity<1)continue;
+    unitsSold+=quantity;
+    const productId=String(item?.productId??item?.product?.id??item?.id??"");
+    const currentProduct=(Array.isArray(products)?products:[]).find(product=>String(product.id)===productId);
+    const name=String(currentProduct?getProductName(currentProduct):item?.name||item?.productName||item?.title||"Product");
+    const key=productId||name.toLocaleLowerCase();
+    const previous=sellers.get(key)||{productId,name,quantity:0};
+    previous.quantity+=quantity;sellers.set(key,previous);
+  }
+  const customers=(Array.isArray(getAccounts())?getAccounts():[]).filter(account=>account?.role!=="owner"&&account?.identifier!==OWNER_IDENTIFIER).filter(account=>{const created=ownerRecordDate(account);return created&&created>=start&&created<=end;}).length;
+  return {totalOrders:matching.length,confirmedOrders:confirmed.length,pendingOrders:pending.length,cancelledOrders:cancelled.length,sales,unitsSold,newCustomers:customers,bestSellers:[...sellers.values()].sort((a,b)=>b.quantity-a.quantity||a.name.localeCompare(b.name)).slice(0,5),orders:matching};
+}
+
+function ownerAnalyticsSeries(period,selection,range,orders){
+  let count=period==="daily"?24:period==="yearly"?12:range.end.getDate();
+  const buckets=Array.from({length:count},(_,index)=>({index,label:period==="daily"?String(index).padStart(2,"0"):period==="yearly"?String(index+1).padStart(2,"0"):String(index+1),value:0}));
+  for(const order of orders){
+    if(!ownerConfirmedSalesOrder(order))continue;
+    const date=ownerRecordDate(order);if(!date)continue;
+    const index=period==="daily"?date.getHours():period==="yearly"?date.getMonth():date.getDate()-1;
+    if(buckets[index]){const total=Number(order.total);if(Number.isFinite(total)&&total>0)buckets[index].value+=total;}
+  }
+  return buckets;
+}
+
+function ownerAnalyticsMetricCards(metrics){
+  const values=[
+    ["Sales",formatPrice(metrics.sales)],["Orders",metrics.totalOrders],["Confirmed",metrics.confirmedOrders],
+    ["Pending",metrics.pendingOrders],["Cancelled",metrics.cancelledOrders],["Units sold",metrics.unitsSold],["New customers",metrics.newCustomers]
   ];
-  box.innerHTML=`<div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Store Reports","ڕاپۆرتێن فرۆشگەیێ","تقارير المتجر"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved store records","ژمارە ل داتایێن پاشەکەفتکری هاتینە هژمارتن","محسوبة من سجلات المتجر المحفوظة"))}</p></div><div class="owner-report-grid">${cards.map(([label,value,note])=>`<article class="owner-report-card"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("")}</div>`;
+  return values.map(([label,value])=>`<article class="owner-analytics-metric"><small>${escapeHtml(ownerDashboardText(label))}</small><strong>${escapeHtml(String(value))}</strong></article>`).join("");
+}
+
+function ownerAnalyticsChartMarkup(series,period){
+  const maximum=Math.max(1,...series.map(item=>item.value));
+  const title=period==="daily"?"Confirmed sales by hour":period==="yearly"?"Confirmed sales by month":"Confirmed sales by day";
+  return `<div class="owner-dashboard-section-head"><h4>${escapeHtml(ownerDashboardText(title))}</h4><span>${escapeHtml(ownerDashboardText("IQD"))}</span></div><div class="owner-analytics-chart" role="img" aria-label="${escapeHtml(ownerDashboardText(title))}">${series.map(item=>{const percent=item.value?Math.max(5,Math.round(item.value/maximum*100)):0;return `<div class="owner-analytics-bar" title="${escapeHtml(item.label)}: ${escapeHtml(formatPrice(item.value))}"><div class="owner-analytics-bar-track"><span class="owner-analytics-bar-fill" style="--bar-height:${percent}%"></span></div><small>${escapeHtml(item.label)}</small></div>`;}).join("")}</div>`;
+}
+
+function renderOwnerAnalytics(box,selection=ownerAnalyticsSelection){
+  if(!isOwner()){if(box)box.textContent="Only the store owner can view analytics.";return;}
+  const period=["daily","monthly","yearly"].includes(selection.period)?selection.period:"daily";
+  const range=ownerAnalyticsRange(period,selection);
+  ownerAnalyticsSelection={...range,period};
+  const metrics=ownerStoreMetrics(range.start,range.end);
+  const series=ownerAnalyticsSeries(period,ownerAnalyticsSelection,range,metrics.orders);
+  const best=metrics.bestSellers.length?`<ol class="owner-analytics-top-products">${metrics.bestSellers.map(item=>`<li><span>${escapeHtml(item.name)}</span><strong>${item.quantity} ${escapeHtml(ownerDashboardText("sold"))}</strong></li>`).join("")}</ol>`:`<div class="owner-analytics-empty">${escapeHtml(ownerDashboardText("No confirmed item sales in this period."))}</div>`;
+  box.innerHTML=`<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Sales Analytics"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved orders and customer records"))}</p></div><div class="owner-analytics-controls"><label>${escapeHtml(ownerDashboardText("View"))}<select id="ownerAnalyticsPeriod" onchange="updateOwnerAnalyticsFromControls()"><option value="daily" ${period==="daily"?"selected":""}>Daily</option><option value="monthly" ${period==="monthly"?"selected":""}>Monthly</option><option value="yearly" ${period==="yearly"?"selected":""}>Yearly</option></select></label><label ${period!=="daily"?"hidden":""}>${escapeHtml(ownerDashboardText("Date"))}<input id="ownerAnalyticsDate" type="date" value="${escapeHtml(range.date)}" onchange="updateOwnerAnalyticsFromControls()"></label><label ${period!=="monthly"?"hidden":""}>${escapeHtml(ownerDashboardText("Month"))}<input id="ownerAnalyticsMonth" type="month" value="${escapeHtml(range.month)}" onchange="updateOwnerAnalyticsFromControls()"></label><label ${period!=="yearly"?"hidden":""}>${escapeHtml(ownerDashboardText("Year"))}<input id="ownerAnalyticsYear" type="number" min="2000" max="9999" step="1" value="${escapeHtml(range.year)}" onchange="updateOwnerAnalyticsFromControls()"></label></div><div class="owner-analytics-summary">${ownerAnalyticsMetricCards(metrics)}</div>${ownerAnalyticsChartMarkup(series,period)}<div class="owner-dashboard-section-head"><h4>${escapeHtml(ownerDashboardText("Best-selling products"))}</h4></div>${best}<p class="owner-inventory-status">${escapeHtml(ownerDashboardText("Date range"))}: ${escapeHtml(range.start.toLocaleDateString())} – ${escapeHtml(range.end.toLocaleDateString())}</p></section>`;
+}
+
+function updateOwnerAnalyticsFromControls(){
+  if(!isOwner())return;
+  const box=document.getElementById("ownerPanelSectionContent");if(!box)return;
+  const period=box.querySelector("#ownerAnalyticsPeriod")?.value||"daily";
+  const selection={period,date:box.querySelector("#ownerAnalyticsDate")?.value||ownerAnalyticsSelection.date,month:box.querySelector("#ownerAnalyticsMonth")?.value||ownerAnalyticsSelection.month,year:box.querySelector("#ownerAnalyticsYear")?.value||ownerAnalyticsSelection.year};
+  renderOwnerAnalytics(box,selection);
+}
+
+function renderOwnerReports(box,selection=ownerReportSelection){
+  if(!isOwner()){if(box)box.textContent="Only the store owner can view store reports.";return;}
+  const preset=["today","month","year","custom"].includes(selection.preset)?selection.preset:"month";
+  const range=ownerReportDateRange({...selection,preset});ownerReportSelection={...selection,preset};
+  const metrics=ownerStoreMetrics(range.start,range.end);
+  const notes=["Confirmed sales","Total orders","Confirmed orders","Pending orders","Cancelled orders","Units sold","New customers"];
+  const values=[formatPrice(metrics.sales),metrics.totalOrders,metrics.confirmedOrders,metrics.pendingOrders,metrics.cancelledOrders,metrics.unitsSold,metrics.newCustomers];
+  const cards=notes.map((label,index)=>`<article class="owner-report-card"><small>${escapeHtml(ownerDashboardText(label))}</small><strong>${escapeHtml(String(values[index]))}</strong><small>${escapeHtml(index===0?ownerDashboardText("Paid or completed order totals"):ownerDashboardText("Saved records in this date range"))}</small></article>`).join("");
+  box.innerHTML=`<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Store Reports"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved store records; no example data is added."))}</p></div><div class="owner-report-controls"><label>${escapeHtml(ownerDashboardText("Report period"))}<select id="ownerReportPreset" onchange="updateOwnerReportsFromControls()"><option value="today" ${preset==="today"?"selected":""}>Today</option><option value="month" ${preset==="month"?"selected":""}>This month</option><option value="year" ${preset==="year"?"selected":""}>This year</option><option value="custom" ${preset==="custom"?"selected":""}>Date range</option></select></label><label ${preset!=="custom"?"hidden":""}>${escapeHtml(ownerDashboardText("From"))}<input id="ownerReportStart" type="date" value="${escapeHtml(selection.start||"")}" onchange="updateOwnerReportsFromControls()"></label><label ${preset!=="custom"?"hidden":""}>${escapeHtml(ownerDashboardText("Through"))}<input id="ownerReportEnd" type="date" value="${escapeHtml(selection.end||"")}" onchange="updateOwnerReportsFromControls()"></label></div>${range.valid?`<div class="owner-report-grid">${cards}</div>`:`<div class="owner-analytics-empty">${escapeHtml(ownerDashboardText("Choose a valid start and end date."))}</div>`}<p class="owner-inventory-status">${escapeHtml(ownerDashboardText("Report dates"))}: ${escapeHtml(range.start.toLocaleDateString())} – ${escapeHtml(range.end.toLocaleDateString())}</p></section>`;
+}
+
+function updateOwnerReportsFromControls(){
+  if(!isOwner())return;
+  const box=document.getElementById("ownerPanelSectionContent");if(!box)return;
+  renderOwnerReports(box,{preset:box.querySelector("#ownerReportPreset")?.value||"month",start:box.querySelector("#ownerReportStart")?.value||"",end:box.querySelector("#ownerReportEnd")?.value||""});
 }
 
 function loadQrVendorScript(file,globalName){
@@ -8860,7 +9033,7 @@ async function renderOwnerInventory(box){
   if(!isOwner()||!box)return;
   stopOwnerQrScanner();
   ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;
-  box.innerHTML=`<section class="owner-inventory-tools"><h3>QR product inventory</h3><p>Each product, color, and size has its own permanent QR code. Scanning shows the shared stock for that exact variant.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button><button type="button" onclick="printAllVariantQrs()">Print all QR codes</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div id="ownerInventoryQrGrid" class="owner-inventory-grid"></div></section>`;
+  box.innerHTML=`<section class="owner-inventory-tools"><h3>QR product inventory</h3><p>Every product, color, and size has a stable QR code. Search and filter the catalog, then view, download, or print exact variants.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button><button type="button" onclick="printAllVariantQrs()">Print all QR codes</button><button type="button" onclick="downloadAllVariantQrSheet()">Download all QR codes</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search product, ID, color, or size<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search variant inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All variants</option><option value="in-stock">In stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div class="owner-inventory-actions"><button type="button" onclick="selectVisibleOwnerInventoryQrs(true)">Select visible</button><button type="button" onclick="selectVisibleOwnerInventoryQrs(false)">Clear selection</button><button id="ownerInventoryPrintSelected" type="button" onclick="printSelectedVariantQrs()" disabled>Print selected</button><button id="ownerInventoryDownloadSelected" type="button" onclick="downloadSelectedVariantQrSheet()" disabled>Download selected sheet</button></div><p id="ownerInventorySelectionStatus" class="owner-inventory-status" role="status" aria-live="polite">No variants selected.</p><div id="ownerInventoryQrGrid" class="owner-inventory-grid"></div></section>`;
   try{
     const data=await cloudRequest("/api/inventory/qr/ensure",{method:"POST",body:"{}",timeoutMs:30000});
     if(ownerPanel!=="inventory"||!isOwner())return;
@@ -8878,10 +9051,11 @@ async function renderOwnerInventory(box){
     const grid=document.getElementById("ownerInventoryQrGrid");
     if(!grid)return;
     if(!variants.length){grid.innerHTML="<p>No product variants are available yet. Add product colors and sizes first.</p>";return;}
-    grid.innerHTML=variants.map(variant=>`<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(variant.qrId)}"><div class="owner-qr-art" data-qr-image="${escapeHtml(variant.qrId)}" aria-label="QR code for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}"><small>Preparing QR…</small></div><strong>${escapeHtml(variant.productName)}</strong><small>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)} · ${variant.stock} in stock${variant.stock===0?' · OUT OF STOCK':''}</small><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(variant.qrId)}')">Download</button><button type="button" onclick="printVariantQr('${escapeHtml(variant.qrId)}')">Print</button></div></article>`).join("");
+    grid.innerHTML=variants.map(variant=>`<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(variant.qrId)}" data-qr-stock="${variant.stock}" data-qr-search="${escapeHtml(`${variant.productName} ${variant.productId} ${variant.colorName} ${variant.size}`.toLocaleLowerCase())}"><label class="owner-qr-select"><input type="checkbox" value="${escapeHtml(variant.qrId)}" aria-label="Select QR for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}" onchange="updateOwnerInventorySelection()">Select variant</label>${variant.image?`<img class="owner-qr-product-image" src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.productName)}">`:""}<div class="owner-qr-art" data-qr-image="${escapeHtml(variant.qrId)}" aria-label="QR code for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}"><small>Preparing QR…</small></div><strong>${escapeHtml(variant.productName)}</strong><div class="owner-qr-meta"><span>Product ID: ${escapeHtml(String(variant.productId))}</span><span>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)}</span><span class="owner-qr-stock">${variant.stock===0?'OUT OF STOCK':`${variant.stock} in stock`}</span><span class="owner-qr-price">${escapeHtml(formatPrice(variant.finalPrice))}</span>${variant.discountPercent?`<span class="owner-qr-original">${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%</span>`:""}</div><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(variant.qrId)}')">Download SVG</button><button type="button" onclick="printVariantQr('${escapeHtml(variant.qrId)}')">Print</button></div></article>`).join("");
     ownerQrRenderQueue=variants.map(variant=>({id:variant.qrId,payload:variant.qr}));
     const pending=readPendingInventoryOperation();
     if(pending){const banner=document.getElementById("ownerInventoryPending");if(banner)banner.innerHTML=`<p class="owner-inventory-status">A previous stock change still needs confirmation. Retry it with its original request ID to prevent a duplicate sale.</p><button type="button" onclick="retryPendingInventoryOperation()">Check / retry previous stock change</button>`;}
+    filterOwnerInventoryQr();updateOwnerInventorySelection();
     requestAnimationFrame(renderNextOwnerQrBatch);
   }catch(error){
     if(ownerPanel!=="inventory")return;
@@ -8892,7 +9066,43 @@ async function renderOwnerInventory(box){
 
 function inventoryVariantViewForClient(product,variant){
   const colorIndex=(product.colors||[]).findIndex(color=>normalizeHexColor(color)===normalizeHexColor(variant.color));
-  return {qrId:String(variant.qrId||""),qr:`SHIVAN-VARIANT:1:${String(variant.qrId||"")}`,productId:product.id,productName:getProductName(product),color:variant.color,colorName:product.colorNames?.[colorIndex]||String(variant.color||""),size:String(variant.size||""),stock:Math.max(0,Math.floor(Number(variant.stock)||0))};
+  const photos=productPhotos(product);
+  const photo=photos.find(item=>normalizeHexColor(item?.color)===normalizeHexColor(variant.color))||photos[0];
+  const pricing=getProductPricing(product)||{originalPrice:Math.max(0,Number(product.price)||0),discountPercent:0,finalPrice:Math.max(0,Number(product.price)||0)};
+  return {qrId:String(variant.qrId||""),qr:`SHIVAN-VARIANT:1:${String(variant.qrId||"")}`,productId:product.id,productName:getProductName(product),color:variant.color,colorName:product.colorNames?.[colorIndex]||String(variant.color||""),size:String(variant.size||""),stock:Math.max(0,Math.floor(Number(variant.stock)||0)),image:safeImageUrl(photo?.src||product.image||""),price:pricing.originalPrice,finalPrice:pricing.finalPrice,discountPercent:pricing.discountPercent};
+}
+
+function filterOwnerInventoryQr(){
+  if(ownerPanel!=="inventory")return;
+  const query=String(document.getElementById("ownerInventorySearch")?.value||"").trim().toLocaleLowerCase();
+  const stockFilter=document.getElementById("ownerInventoryStockFilter")?.value||"all";
+  let visible=0;
+  document.querySelectorAll("#ownerInventoryQrGrid [data-qr-card]").forEach(card=>{
+    const matchesText=!query||String(card.dataset.qrSearch||"").includes(query);
+    const stock=Number(card.dataset.qrStock)||0;
+    const matchesStock=stockFilter==="all"||(stockFilter==="in-stock"?stock>0:stock===0);
+    card.hidden=!(matchesText&&matchesStock);if(!card.hidden)visible++;
+  });
+  const status=document.getElementById("ownerInventoryStatus");
+  if(status)status.textContent=`Showing ${visible} of ${ownerInventoryVariants.length} product variants from shared inventory.`;
+}
+
+function ownerInventorySelectedIds(){
+  return [...document.querySelectorAll("#ownerInventoryQrGrid .owner-qr-select input:checked")].map(input=>input.value);
+}
+
+function updateOwnerInventorySelection(){
+  const selected=ownerInventorySelectedIds();
+  const status=document.getElementById("ownerInventorySelectionStatus");
+  if(status)status.textContent=selected.length?`${selected.length} variant${selected.length===1?"":"s"} selected.`:"No variants selected.";
+  const print=document.getElementById("ownerInventoryPrintSelected");const download=document.getElementById("ownerInventoryDownloadSelected");
+  if(print)print.disabled=!selected.length;if(download)download.disabled=!selected.length;
+}
+
+function selectVisibleOwnerInventoryQrs(checked){
+  if(!isOwner())return;
+  document.querySelectorAll("#ownerInventoryQrGrid [data-qr-card]:not([hidden]) .owner-qr-select input").forEach(input=>{input.checked=Boolean(checked);});
+  updateOwnerInventorySelection();
 }
 
 function renderNextOwnerQrBatch(){
@@ -8937,9 +9147,48 @@ function printVariantQr(qrId){
 function printAllVariantQrs(){
   if(!isOwner())return;
   if(ownerQrRenderQueue.length){showToast("Please wait while the QR codes finish preparing.");return;}
-  document.querySelectorAll("[data-qr-print-target]").forEach(item=>item.dataset.qrPrintTarget="true");
+  printOwnerVariantQrs(ownerInventoryVariants.map(item=>item.qrId));
+}
+
+function printSelectedVariantQrs(){
+  if(!isOwner())return;
+  const selected=ownerInventorySelectedIds();
+  if(!selected.length){showToast("Select at least one product variant first.");return;}
+  if(ownerQrRenderQueue.length){showToast("Please wait while the QR codes finish preparing.");return;}
+  printOwnerVariantQrs(selected);
+}
+
+function printOwnerVariantQrs(ids){
+  const selected=new Set(ids);
+  const cards=[...document.querySelectorAll("#ownerInventoryQrGrid [data-qr-card]")];
+  if(!cards.length){showToast("There are no product QR codes to print.");return;}
+  cards.forEach(card=>{card.dataset.qrPrintTarget=selected.has(card.dataset.qrCard)?"true":"false";});
   document.body.classList.add("owner-qr-print");window.print();
-  setTimeout(()=>{document.body.classList.remove("owner-qr-print");document.querySelectorAll("[data-qr-print-target]").forEach(item=>item.dataset.qrPrintTarget="false");},250);
+  setTimeout(()=>{document.body.classList.remove("owner-qr-print");cards.forEach(card=>card.dataset.qrPrintTarget="false");},250);
+}
+
+function downloadSelectedVariantQrSheet(){
+  if(!isOwner())return;
+  const ids=ownerInventorySelectedIds();
+  if(!ids.length){showToast("Select at least one product variant first.");return;}
+  downloadOwnerVariantQrSheet(ids,"shivan-shop-selected-variant-qrs.html");
+}
+
+function downloadAllVariantQrSheet(){
+  if(!isOwner())return;
+  downloadOwnerVariantQrSheet(ownerInventoryVariants.map(item=>item.qrId),"shivan-shop-all-variant-qrs.html");
+}
+
+function downloadOwnerVariantQrSheet(ids,fileName){
+  if(ownerQrRenderQueue.length){showToast("Please wait while the QR codes finish preparing.");return;}
+  const entries=ids.map(id=>({variant:ownerInventoryVariants.find(item=>item.qrId===id),svg:ownerQrSvgById.get(id)})).filter(item=>item.variant&&item.svg);
+  if(!entries.length){showToast("No prepared QR codes are available to download yet.");return;}
+  if(entries.length!==ids.length){showToast("One or more QR codes could not be prepared; no partial sheet was downloaded.");return;}
+  const cards=entries.map(({variant,svg})=>`<article><div class="qr">${svg}</div><h2>${escapeHtml(variant.productName)}</h2><p>Product ID: ${escapeHtml(String(variant.productId))} · ${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)}</p><p>${variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`} · ${escapeHtml(formatPrice(variant.finalPrice))}${variant.discountPercent?` · Original ${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%`:""}</p></article>`).join("");
+  const documentHtml=`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shivan Shop variant QR codes</title><style>body{margin:0;padding:24px;font:14px Arial,sans-serif;color:#18151f}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}article{break-inside:avoid;border:1px solid #bbb;border-radius:12px;padding:14px;text-align:center}article h2{font-size:16px;margin:8px 0}article p{font-size:12px;margin:5px 0}.qr svg{width:min(100%,200px);height:auto} @media print{body{padding:8mm}}</style><h1>SHIVAN SHOP · Variant QR codes</h1><main>${cards}</main></html>`;
+  const blob=new Blob([documentHtml],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=fileName;link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 function stopOwnerQrScanner(){
@@ -8996,7 +9245,10 @@ function renderOwnerInventoryScanResult(errorMessage=""){
   const sale=document.getElementById("ownerInventorySale");const restock=document.getElementById("ownerInventoryRestock");
   if(errorMessage){if(result)result.textContent=errorMessage;if(sale)sale.disabled=true;if(restock)restock.disabled=true;return;}
   const variant=ownerInventoryScannedVariant;if(!variant){if(sale)sale.disabled=true;if(restock)restock.disabled=true;return;}
-  if(result)result.innerHTML=`<strong>${escapeHtml(variant.productName)}</strong><br>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)}<br><strong class="${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":"Stock: "+variant.stock}</strong>`;
+  const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===String(variant.productId));
+  const details=product?inventoryVariantViewForClient(product,variant):variant;
+  const displayPrice=Number(details.finalPrice??details.price);
+  if(result)result.innerHTML=`${details.image?`<img class="owner-qr-product-image" src="${escapeHtml(details.image)}" alt="${escapeHtml(details.productName||variant.productName)}">`:""}<strong>${escapeHtml(details.productName||variant.productName)}</strong><br>Product ID: ${escapeHtml(String(variant.productId))}<br>${escapeHtml(details.colorName||variant.colorName)} · ${escapeHtml(String(variant.size))}${Number.isFinite(displayPrice)?`<br><span class="owner-qr-price">${escapeHtml(formatPrice(displayPrice))}</span>${details.discountPercent?`<br><span class="owner-qr-original">${escapeHtml(formatPrice(details.price))} · -${details.discountPercent}%</span>`:""}`:""}<br><strong class="${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":"Stock: "+variant.stock}</strong>`;
   if(sale)sale.disabled=variant.stock<=0;if(restock)restock.disabled=false;
 }
 
@@ -9016,6 +9268,7 @@ function clearPendingInventoryOperation(){try{localStorage.removeItem(INVENTORY_
 function applyConfirmedInventoryOperation(data){
   const variant=data.variant;if(!variant)return;
   if(ownerInventoryScannedVariant?.qrId===variant.qrId)ownerInventoryScannedVariant=variant;
+  const inventoryView=ownerInventoryVariants.find(item=>item.qrId===variant.qrId);if(inventoryView)inventoryView.stock=variant.stock;
   for(const product of products){
     if(String(product.id)!==String(variant.productId))continue;
     const match=product.variants?.find(item=>item.qrId===variant.qrId);
@@ -9024,7 +9277,7 @@ function applyConfirmedInventoryOperation(data){
   cloudHydrating=true;try{originalStorageSetItem.call(localStorage,PRODUCTS_KEY,JSON.stringify(products));}finally{cloudHydrating=false;}
   renderProducts(products);renderOwnerInventoryScanResult();
   const card=document.querySelector(`[data-qr-card="${variant.qrId}"]`);
-  const summary=card?.querySelector("small");if(summary)summary.textContent=`${variant.colorName} · ${variant.size} · ${variant.stock} in stock${variant.stock===0?" · OUT OF STOCK":""}`;
+  if(card){card.dataset.qrStock=String(variant.stock);const summary=card.querySelector(".owner-qr-stock");if(summary)summary.textContent=variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`;filterOwnerInventoryQr();}
   const status=document.getElementById("ownerInventoryActionStatus");if(status)status.textContent=`${data.action==="sale"?"Sale recorded":"Stock added"}. Shared quantity is now ${variant.stock}.`;
   clearPendingInventoryOperation();
 }
@@ -9229,6 +9482,7 @@ async function resetOwnerAppearance(){
 
 function renderOwnerProducts(box){
   const product=products.find(item=>item.id===editingProductId);
+  const discountFocus=ownerDashboardNavKey==="discounts";
   const productNames=product?{en:product.names?.en||"",ar:product.names?.ar||"",ku:product.names?.ku||product.name||""}:{en:"",ar:"",ku:""};
   const colorText=product?product.colors.map((color,index)=>`${product.colorNames?.[index]||colorLabelForValue(color,index)}:${color}`).join(", "):"";
   const photoJson=JSON.stringify(product?productPhotos(product):[]);
@@ -9309,7 +9563,7 @@ function renderOwnerProducts(box){
     </section>`;
   }else{
     content=`<section class="owner-product-mode-content" id="ownerProductList">
-      <div class="owner-category-title"><h3>هەموو بەرهەم (${products.length})</h3><button class="owner-action" type="button" onclick="startNewOwnerProduct()">+ بەرهەمی نوێ</button></div>
+      <div class="owner-category-title"><h3>${discountFocus?"Discounts & timed offers":"هەموو بەرهەم"} (${products.length})</h3><button class="owner-action" type="button" onclick="startNewOwnerProduct()">+ بەرهەمی نوێ</button></div>${discountFocus?"<p>Choose any product and use Edit to create, change, or remove its discount and optional end time. The existing product editor remains the single source for these settings.</p>":""}
       ${products.length?products.map(item=>`
         <div class="owner-list-item">
           <img src="${escapeHtml(safeImageUrl(item.image))}" alt="">
