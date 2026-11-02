@@ -19,7 +19,8 @@ for (const [index, script] of [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/scr
   catch (error) { throw new Error(`Storefront script ${index + 1} has a syntax error: ${error.message}`); }
 }
 
-assert.match(html, /data-owner-tab="inventory"/, "QR inventory must be reachable only through the Owner panel tab");
+assert.match(html, /\["inventory","▦",ownerDashboardText\("QR Code"/, "QR inventory must be reachable from the Owner dashboard menu");
+assert.match(html, /inventory:\{panel:"inventory",nav:"inventory"\}/, "the Owner dashboard QR menu should map to the existing inventory section");
 assert.match(html, /if\(!isOwner\(\)\)return;[\s\S]*?async function renderOwnerInventory/, "client inventory actions should check the Owner session");
 assert.match(html, /requireAuthentication\(\{type:"product"/, "product purchase actions should capture a guest's exact variant before showing login");
 assert.match(html, /id="profileGuestAccess"[\s\S]*?beginProfileAuthentication\('login'\)[\s\S]*?beginProfileAuthentication\('signup'\)/, "guest Profile navigation should offer Login and Sign Up before opening either form");

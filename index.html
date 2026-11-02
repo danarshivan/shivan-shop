@@ -1224,6 +1224,71 @@ button{
 .owner-tabs{display:flex;gap:8px;overflow:auto;margin:0 0 14px;padding-bottom:3px}
 .owner-tab,.owner-action{border:1px solid #302b4b;background:#11131f;color:#eee;border-radius:12px;padding:10px 13px;white-space:nowrap}
 .owner-tab.active{background:#7045ff;border-color:#7045ff}
+.owner-view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:0 0 12px;border-bottom:1px solid #211b35}
+.owner-view-head h2{margin:0;font-size:clamp(19px,2.5vw,26px);letter-spacing:.01em}
+.owner-view-head button{min-height:42px;padding:8px 14px;border:1px solid #393050;border-radius:12px;background:#10111b;color:#e9e5f6;font:inherit;cursor:pointer}
+.owner-admin-shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:18px;align-items:start;min-width:0}
+.owner-sidebar{position:sticky;top:12px;display:flex;flex-direction:column;gap:6px;max-height:calc(100dvh - 150px);overflow:auto;overscroll-behavior:contain;padding:13px;border:1px solid #29213e;border-radius:20px;background:linear-gradient(165deg,#100d1b 0%,#090a12 72%);box-shadow:0 15px 45px #0005}
+.owner-sidebar-brand{display:flex;align-items:center;gap:11px;padding:5px 4px 14px;border-bottom:1px solid #29213e;margin-bottom:7px}
+.owner-sidebar-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #7651ed;border-radius:14px;background:linear-gradient(145deg,#28194b,#100d1b);color:#fff;font-weight:900;box-shadow:0 0 21px #714cff33}
+.owner-sidebar-brand strong,.owner-sidebar-brand small{display:block;min-width:0;overflow-wrap:anywhere}
+.owner-sidebar-brand strong{font-size:13px;letter-spacing:.09em;color:#fff}
+.owner-sidebar-brand small{margin-top:3px;color:#a69bbd;font-size:11px}
+.owner-sidebar-label{margin:12px 8px 4px;color:#8c82a4;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.owner-dashboard-nav-item{display:flex;align-items:center;gap:11px;width:100%;min-width:0;min-height:43px;padding:9px 11px;border:1px solid transparent;border-radius:12px;background:transparent;color:#c9c4d4;text-align:start;font:inherit;font-size:13px;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease}
+.owner-dashboard-nav-item:hover{background:#171323;border-color:#302346;color:#fff}
+.owner-dashboard-nav-item:active{transform:scale(.985)}
+.owner-dashboard-nav-item.active{border-color:#6645b7;background:linear-gradient(110deg,#452d79,#211735);color:#fff;box-shadow:inset 3px 0 #a785ff,0 7px 20px #5f3aa122}
+.owner-dashboard-nav-icon{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:8px;background:#1c1728;color:#b99dff;font-size:14px}
+.owner-dashboard-nav-item.active .owner-dashboard-nav-icon{background:#6846b4;color:#fff}
+.owner-sidebar-visit{margin-top:auto;border-color:#443165;background:#181126;color:#d8c9ff}
+.owner-admin-main{min-width:0}
+.owner-mobile-toolbar{display:none}
+.owner-mobile-toolbar select{width:100%;min-width:0;min-height:46px;padding:9px 12px;border:1px solid #443463;border-radius:13px;background:#100e19;color:#fff;font:inherit}
+.owner-dashboard-banner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:150px;overflow:hidden;padding:clamp(18px,3vw,30px);border:1px solid #5a3f8f;border-radius:22px;background:radial-gradient(ellipse at 82% 10%,#7747c84b,transparent 42%),linear-gradient(116deg,#211538,#100e19 62%,#0b0b12);box-shadow:0 18px 46px #0005,inset 0 1px #ffffff0b}
+.owner-dashboard-banner:after{position:absolute;right:-50px;bottom:-120px;width:250px;height:250px;border:1px solid #a779ff1b;border-radius:50%;box-shadow:0 0 0 24px #a779ff08,0 0 0 52px #a779ff05;content:"";pointer-events:none}
+.owner-dashboard-kicker{margin:0 0 7px;color:#c2a8ff;font-size:10px;font-weight:900;letter-spacing:.18em}
+.owner-dashboard-banner h3{margin:0;color:#fff;font-size:clamp(21px,3vw,32px);line-height:1.2}
+.owner-dashboard-banner p{max-width:540px;margin:9px 0 0;color:#b9b1c7;font-size:13px;line-height:1.6}
+.owner-dashboard-emblem{position:relative;z-index:1;display:grid;place-items:center;flex:0 0 clamp(64px,9vw,92px);width:clamp(64px,9vw,92px);height:clamp(64px,9vw,92px);border:1px solid #966bee;border-radius:28px;background:linear-gradient(145deg,#50317e,#171022);color:#fff;font-size:clamp(23px,4vw,34px);font-weight:900;letter-spacing:-.08em;box-shadow:0 0 38px #8d62ff36,inset 0 1px #ffffff1c}
+.owner-dashboard-section{margin-top:20px;min-width:0}
+.owner-dashboard-section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:11px}
+.owner-dashboard-section-head h3{margin:0;color:#f5f1ff;font-size:16px}
+.owner-dashboard-section-head p{margin:0;color:#9991a8;font-size:11px}
+.owner-dashboard-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.owner-stat-card{display:flex;flex-direction:column;align-items:flex-start;gap:9px;min-width:0;min-height:113px;padding:13px;border:1px solid #302743;border-radius:16px;background:linear-gradient(155deg,#14111f,#0c0d14);color:#fff;text-align:start;font:inherit;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.owner-stat-card:hover{transform:translateY(-2px);border-color:#674ba0;box-shadow:0 10px 25px #0004}
+.owner-stat-top{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;color:#b4a9c7;font-size:11px}
+.owner-stat-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#281e3b;color:#c6a8ff;font-size:14px}
+.owner-stat-value{display:block;width:100%;overflow:hidden;color:#fff;font-size:clamp(17px,2vw,24px);font-weight:850;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
+.owner-stat-note{display:block;width:100%;overflow:hidden;color:#928aa0;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.owner-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.owner-quick-action{display:flex;align-items:center;justify-content:flex-start;gap:11px;min-width:0;min-height:62px;padding:12px;border:1px solid #6344a0;border-radius:15px;background:linear-gradient(120deg,#342052,#171322);color:#fff;text-align:start;font:inherit;font-weight:750;cursor:pointer;box-shadow:inset 0 1px #ffffff0c;transition:transform .16s ease,box-shadow .16s ease}
+.owner-quick-action:hover{transform:translateY(-2px);box-shadow:0 10px 25px #603ba333}
+.owner-quick-action .owner-dashboard-nav-icon{width:34px;height:34px;flex-basis:34px;background:#563985;color:#fff;font-size:17px}
+.owner-management-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.owner-management-card{display:flex;align-items:center;gap:10px;min-width:0;min-height:63px;padding:11px;border:1px solid #292538;border-radius:14px;background:#0d0e16;color:#eee;text-align:start;font:inherit;cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.owner-management-card:hover{transform:translateY(-1px);border-color:#684aa1;background:#15111e}
+.owner-management-card .owner-dashboard-nav-icon{flex-basis:32px;width:32px;height:32px;font-size:16px}
+.owner-management-card span:last-child{min-width:0;overflow-wrap:anywhere;font-size:12px;font-weight:700}
+.owner-offer-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid #744550;border-radius:17px;background:radial-gradient(ellipse at 90% 10%,#bf416b23,transparent 46%),linear-gradient(110deg,#24101a,#120d14);}
+.owner-offer-copy{display:flex;align-items:center;gap:12px;min-width:0}
+.owner-offer-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #a8455e;border-radius:13px;background:#3b1725;color:#ff8fa7;font-size:20px}
+.owner-offer-copy strong,.owner-offer-copy small{display:block}
+.owner-offer-copy strong{color:#fff;font-size:13px}
+.owner-offer-copy small{margin-top:4px;color:#bca5ae;font-size:11px;line-height:1.45}
+.owner-offer-action{flex:0 0 auto;min-height:42px;padding:8px 13px;border:1px solid #b24b69;border-radius:12px;background:linear-gradient(120deg,#8e304d,#56233c);color:#fff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.owner-customer-card,.owner-report-card{min-width:0;padding:13px;border:1px solid #2b2638;border-radius:14px;background:#0e0f17;color:#eee}
+.owner-customer-grid,.owner-report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:9px}
+.owner-customer-card strong,.owner-customer-card small{display:block;overflow-wrap:anywhere}
+.owner-customer-card small{margin-top:5px;color:#aaa2b7;font-size:11px}
+.owner-report-card strong{display:block;color:#c9afff;font-size:21px}
+.owner-report-card small{display:block;margin-top:5px;color:#a39bac;font-size:11px}
+.owner-owner-content[hidden],.owner-dashboard-page[hidden]{display:none!important}
+@media(max-width:1050px){.owner-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-mobile-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 0 12px}.owner-mobile-toolbar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.owner-mobile-toolbar .owner-visit-mobile{min-height:46px;padding:8px 10px;border:1px solid #443463;border-radius:13px;background:#171222;color:#e5d8ff;font:inherit;font-size:11px}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
+@media(max-width:460px){.owner-view-head{align-items:flex-start}.owner-view-head button{padding-inline:10px;font-size:12px}.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
+@media(prefers-reduced-motion:reduce){.owner-dashboard-nav-item,.owner-stat-card,.owner-quick-action,.owner-management-card{transition:none!important}.owner-stat-card:hover,.owner-quick-action:hover,.owner-management-card:hover{transform:none}}
 .owner-inventory-tools{display:grid;gap:12px;margin:12px 0}
 .owner-inventory-scanner,.owner-inventory-result,.owner-qr-card{padding:14px;border:1px solid #282d40;border-radius:16px;background:#0b0e18}
 .owner-inventory-actions{display:flex;flex-wrap:wrap;gap:8px}
@@ -2968,17 +3033,9 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
   <!-- OWNER -->
   <div id="ownerView" class="view page">
-    <div class="section-head" style="padding:0 0 12px">
+    <div class="owner-view-head">
       <h2>بەڕێڤەبرنا فرۆشگەیێ</h2>
       <button onclick="openView('profile')">زڤڕین</button>
-    </div>
-    <div class="owner-tabs">
-      <button class="owner-tab active" data-owner-tab="products" onclick="renderOwnerPanel('products')">بەرهەم</button>
-      <button class="owner-tab" data-owner-tab="ads" onclick="renderOwnerPanel('ads')">ڕیکلام</button>
-      <button class="owner-tab" data-owner-tab="orders" onclick="renderOwnerPanel('orders')">داخوازی</button>
-      <button class="owner-tab" data-owner-tab="inventory" onclick="renderOwnerPanel('inventory')" aria-label="QR variant inventory">QR ستۆک</button>
-      <button class="owner-tab" data-owner-tab="appearance" onclick="renderOwnerPanel('appearance')">ڕەنگ و فۆنت</button>
-      <button class="owner-tab" data-owner-tab="onboarding" aria-label="Manage promotional onboarding images" onclick="renderOwnerPanel('onboarding')">پێشبینی</button>
     </div>
     <div id="ownerPanelContent"></div>
   </div>
@@ -4489,7 +4546,8 @@ let previousView = "home";
 let previousViewScrollY=0;
 let editingProductId = null;
 let editingAdIndex = null;
-let ownerPanel = "products";
+let ownerPanel = "dashboard";
+let ownerDashboardNavKey = "dashboard";
 let ownerProductMode = "menu";
 let ownerInventoryDraft = new Map();
 
@@ -8545,25 +8603,239 @@ function renderOwnerPanel(section=ownerPanel){
     openView("home");
     return;
   }
-  if(section!==ownerPanel&&ownerPanelHasPendingWork()){
+  const route=ownerPanelRoute(section);
+  const previousPanel=ownerPanel;
+  const previousNav=ownerDashboardNavKey;
+  if(section===previousPanel&&(previousPanel==="appearance"||previousPanel==="products"))route.nav=previousNav;
+  if((route.panel!==previousPanel||route.nav!==previousNav)&&ownerPanelHasPendingWork()){
     ownerPanelRefreshPending=true;
     showToast("Save or finish the current Owner change before switching sections. Your draft is still open.");
     return false;
   }
-  const previousPanel=ownerPanel;
-  if(previousPanel==="inventory"&&section!=="inventory")stopOwnerQrScanner();
-  ownerPanel=section;
-  document.querySelectorAll(".owner-tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.ownerTab===section));
   const box=document.getElementById("ownerPanelContent");
-  if(section==="products") renderOwnerProducts(box);
-  if(section==="ads") renderOwnerAds(box);
-  if(section==="orders") renderOwnerOrders(box);
-  if(section==="inventory") renderOwnerInventory(box);
-  if(section==="appearance") renderOwnerAppearance(box);
-  if(section==="onboarding") renderShopOnboardingOwnerEditor(box);
-  if(section!==previousPanel&&document.getElementById("ownerView").classList.contains("active"))scrollOwnerTo("ownerView");
+  if(!box)return false;
+  ensureOwnerDashboardShell(box);
+  if(previousPanel==="inventory"&&route.panel!=="inventory")stopOwnerQrScanner();
+  ownerPanel=route.panel;
+  ownerDashboardNavKey=route.nav;
+  if(route.panel==="products"&&route.nav==="categories"){ownerProductMode="categories";editingProductId=null;}
+  if(route.panel==="products"&&route.nav==="products"&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
+  const dashboard=document.getElementById("ownerDashboardPage");
+  const sectionBox=document.getElementById("ownerPanelSectionContent");
+  if(!dashboard||!sectionBox)return false;
+  dashboard.hidden=route.panel!=="dashboard";
+  sectionBox.hidden=route.panel==="dashboard";
+  if(route.panel==="dashboard"){
+    sectionBox.innerHTML="";
+    renderOwnerDashboard(dashboard);
+  }else if(route.panel==="products")renderOwnerProducts(sectionBox);
+  else if(route.panel==="ads")renderOwnerAds(sectionBox);
+  else if(route.panel==="orders")renderOwnerOrders(sectionBox);
+  else if(route.panel==="inventory")renderOwnerInventory(sectionBox);
+  else if(route.panel==="appearance")renderOwnerAppearance(sectionBox);
+  else if(route.panel==="onboarding")renderShopOnboardingOwnerEditor(sectionBox);
+  else if(route.panel==="customers")renderOwnerCustomers(sectionBox);
+  else if(route.panel==="reports")renderOwnerReports(sectionBox);
+  renderOwnerDashboardNavigation();
+  if(route.focus)scrollOwnerTo(route.focus);
+  else if(route.panel!==previousPanel&&document.getElementById("ownerView").classList.contains("active"))scrollOwnerTo("ownerView");
   ownerPanelRefreshPending=false;
   return true;
+}
+
+function ownerDashboardText(en,ku=en,ar=en){
+  return activeLanguage==="ar"?ar:activeLanguage==="ku"?ku:en;
+}
+
+function ownerPanelRoute(section){
+  const routes={
+    dashboard:{panel:"dashboard",nav:"dashboard"},
+    products:{panel:"products",nav:"products"},
+    categories:{panel:"products",nav:"categories"},
+    ads:{panel:"ads",nav:"ads"},
+    orders:{panel:"orders",nav:"orders"},
+    customers:{panel:"customers",nav:"customers"},
+    inventory:{panel:"inventory",nav:"inventory"},
+    appearance:{panel:"appearance",nav:"colors"},
+    colors:{panel:"appearance",nav:"colors",focus:"ownerAppearanceForm"},
+    "store-settings":{panel:"appearance",nav:"store-settings",focus:"ownerAppearanceForm"},
+    backup:{panel:"appearance",nav:"backup",focus:"ownerBackupSync"},
+    reports:{panel:"reports",nav:"reports"},
+    onboarding:{panel:"onboarding",nav:"onboarding"}
+  };
+  return {...(routes[section]||routes.dashboard)};
+}
+
+function ownerDashboardNavItems(){
+  return [
+    ["dashboard","▦",ownerDashboardText("Dashboard","داشبۆرد","لوحة التحكم")],
+    ["products","◇",ownerDashboardText("Product List","لیستا بەرهەمان","قائمة المنتجات")],
+    ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات")],
+    ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
+    ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
+    ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
+    ["inventory","▦",ownerDashboardText("QR Code","کۆدی QR","رمز QR")],
+    ["reports","▥",ownerDashboardText("Reports","ڕاپۆرت","التقارير")],
+    ["backup","⤓",ownerDashboardText("Backup & Sync","پاراستن و هاوکاتکردن","النسخ الاحتياطي والمزامنة")],
+    ["store-settings","⚙",ownerDashboardText("Store Settings","ڕێکخستنێن فرۆشگە","إعدادات المتجر")],
+    ["ads","▧",ownerDashboardText("Advertising","ڕیکلام","الإعلانات")],
+    ["onboarding","▣",ownerDashboardText("Promotional Slides","پێشبینی","شرائح ترويجية")]
+  ];
+}
+
+function ownerDashboardShellMarkup(){
+  const items=ownerDashboardNavItems();
+  const nav=(routes,extraClass="")=>routes.map(([route,icon,label])=>`<button type="button" class="owner-dashboard-nav-item ${extraClass}" data-owner-route="${route}" onclick="renderOwnerPanel('${route}')"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></button>`).join("");
+  const overview=items.slice(0,1);
+  const management=items.slice(1,10);
+  const promotions=items.slice(10);
+  const mobileOptions=items.map(([route,,label])=>`<option value="${route}">${escapeHtml(label)}</option>`).join("");
+  return `<div class="owner-admin-shell">
+    <aside class="owner-sidebar" aria-label="Owner navigation">
+      <div class="owner-sidebar-brand"><span class="owner-sidebar-mark" aria-hidden="true">SH</span><span><strong>SHIVAN SHOP</strong><small>${escapeHtml(ownerDashboardText("Store Owner","خاوەنێ فرۆشگە","مالك المتجر"))}</small></span></div>
+      <div class="owner-sidebar-label">${escapeHtml(ownerDashboardText("Overview","پوختە","نظرة عامة"))}</div>${nav(overview)}
+      <div class="owner-sidebar-label">${escapeHtml(ownerDashboardText("Store Management","بەڕێڤەبرنا فرۆشگەیێ","إدارة المتجر"))}</div>${nav(management)}
+      <div class="owner-sidebar-label">${escapeHtml(ownerDashboardText("Content","ناڤەرۆک","المحتوى"))}</div>${nav(promotions)}
+      <button type="button" class="owner-dashboard-nav-item owner-sidebar-visit" onclick="visitStoreFromOwner()"><span class="owner-dashboard-nav-icon" aria-hidden="true">↗</span><span>${escapeHtml(ownerDashboardText("Visit Store","سەردانا فرۆشگەیێ","زيارة المتجر"))}</span></button>
+    </aside>
+    <main class="owner-admin-main">
+      <div class="owner-mobile-toolbar"><label for="ownerMobileNavigation">Owner section</label><select id="ownerMobileNavigation" aria-label="Owner section" onchange="renderOwnerPanel(this.value)">${mobileOptions}</select><button type="button" class="owner-visit-mobile" onclick="visitStoreFromOwner()">↗ ${escapeHtml(ownerDashboardText("Visit Store","سەردانا فرۆشگەیێ","زيارة المتجر"))}</button></div>
+      <div id="ownerDashboardPage" class="owner-dashboard-page"></div>
+      <div id="ownerPanelSectionContent" class="owner-owner-content" hidden></div>
+    </main>
+  </div>`;
+}
+
+function ensureOwnerDashboardShell(box){
+  if(!box.querySelector?.(".owner-admin-shell"))box.innerHTML=ownerDashboardShellMarkup();
+}
+
+function renderOwnerDashboardNavigation(){
+  document.querySelectorAll("#ownerPanelContent [data-owner-route]").forEach(button=>{
+    const active=button.dataset.ownerRoute===ownerDashboardNavKey;
+    button.classList.toggle("active",active);
+    if(active)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
+  });
+  const select=document.getElementById("ownerMobileNavigation");
+  if(select)select.value=ownerDashboardNavKey;
+}
+
+function ownerConfirmedSalesOrder(order){
+  const status=String(order?.status||"").trim().toLocaleLowerCase();
+  const paymentStatus=String(order?.paymentStatus||"").trim().toUpperCase();
+  return paymentStatus==="PAID"||status==="گەهشت"||status==="delivered"||status==="completed";
+}
+
+function ownerDashboardStats(){
+  const orders=getOrders();
+  const accounts=getAccounts().filter(account=>account.role!=="owner"&&account.identifier!==OWNER_IDENTIFIER);
+  const confirmedOrders=orders.filter(ownerConfirmedSalesOrder);
+  const sales=confirmedOrders.reduce((sum,order)=>{
+    const total=Number(order?.total);
+    return Number.isFinite(total)&&total>0?sum+total:sum;
+  },0);
+  return {orders:orders.length,products:Array.isArray(products)?products.length:0,categories:getAllCategories().length,customers:accounts.length,sales,confirmedOrders:confirmedOrders.length};
+}
+
+function ownerActiveTimedOfferCount(now=Date.now()){
+  return (Array.isArray(products)?products:[]).filter(product=>{
+    if(product?.discountTimerEnabled!==true||!productDiscountPercent(product))return false;
+    const end=Date.parse(product.discountEndsAt||"");
+    return Number.isFinite(end)&&end>now;
+  }).length;
+}
+
+function renderOwnerDashboard(box){
+  if(!isOwner()){if(box)box.textContent="Only the store owner can view this dashboard.";return;}
+  const stats=ownerDashboardStats();
+  const storeName=String(ownerAppearance?.storeName||"SHIVAN SHOP").trim()||"SHIVAN SHOP";
+  const currency=typeof formatPrice==="function"?formatPrice(stats.sales):String(stats.sales);
+  const labels=[
+    ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات"),stats.orders,ownerDashboardText("Saved orders","داخوازیێن پاشەکەفتکری","الطلبات المحفوظة")],
+    ["products","◇",ownerDashboardText("Products","بەرهەم","المنتجات"),stats.products,ownerDashboardText("In the catalog","ل کەتەلۆگێ دا","في الكتالوج")],
+    ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات"),stats.categories,ownerDashboardText("Available categories","جۆرێن بەردەست","الفئات المتاحة")],
+    ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء"),stats.customers,ownerDashboardText("Customer accounts","هەژمارێن کڕیاران","حسابات العملاء")],
+    ["reports","$",ownerDashboardText("Sales","فرۆشتن","المبيعات"),currency,ownerDashboardText("Paid or completed orders","داخوازیێن پارەدراو یان تەمامبووی","الطلبات المدفوعة أو المكتملة")]
+  ];
+  const statCards=labels.map(([route,icon,label,value,note])=>`<button type="button" class="owner-stat-card" onclick="${route==="categories"?"renderOwnerPanel('categories')":route==="products"?"renderOwnerPanel('products')":`renderOwnerPanel('${route}')`}" aria-label="${escapeHtml(label)}: ${escapeHtml(String(value))}"><span class="owner-stat-top"><span>${escapeHtml(label)}</span><span class="owner-stat-icon" aria-hidden="true">${icon}</span></span><strong class="owner-stat-value">${escapeHtml(String(value))}</strong><small class="owner-stat-note">${escapeHtml(note)}</small></button>`).join("");
+  const quick=[
+    ["＋",ownerDashboardText("Add Product","زیادکرنا بەرهەم","إضافة منتج"),"startNewOwnerProduct()"],
+    ["％",ownerDashboardText("Create Discount","دروستکرنا داشکاندن","إنشاء خصم"),"openOwnerDiscountProducts(false)"],
+    ["▧",ownerDashboardText("Create Ad","دروستکرنا ڕیکلام","إنشاء إعلان"),"startNewOwnerAd()"]
+  ].map(([icon,label,action])=>`<button type="button" class="owner-quick-action" onclick="${action}"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></button>`).join("");
+  const management=[
+    ["products","◇",ownerDashboardText("Product List","لیستا بەرهەمان","قائمة المنتجات")],
+    ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات")],
+    ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
+    ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
+    ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
+    ["inventory","▦",ownerDashboardText("QR Code","کۆدی QR","رمز QR")],
+    ["reports","▥",ownerDashboardText("Reports","ڕاپۆرت","التقارير")],
+    ["backup","⤓",ownerDashboardText("Backup & Sync","پاراستن و هاوکاتکردن","النسخ الاحتياطي والمزامنة")],
+    ["store-settings","⚙",ownerDashboardText("Store Settings","ڕێکخستنێن فرۆشگە","إعدادات المتجر")],
+    ["ads","▧",ownerDashboardText("Advertising","ڕیکلام","الإعلانات")],
+    ["onboarding","▣",ownerDashboardText("Promotional Slides","پێشبینی","شرائح ترويجية")]
+  ].map(([route,icon,label])=>`<button type="button" class="owner-management-card" onclick="renderOwnerPanel('${route}')"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></button>`).join("");
+  const offers=ownerActiveTimedOfferCount();
+  box.innerHTML=`<section class="owner-dashboard-banner" aria-label="${escapeHtml(storeName)} Owner dashboard"><div><p class="owner-dashboard-kicker">${escapeHtml(ownerDashboardText("OWNER DASHBOARD","داشبۆردا خاوەن","لوحة تحكم المالك"))}</p><h3>${escapeHtml(storeName)}</h3><p>${escapeHtml(ownerDashboardText("Your store at a glance. Manage products, orders, and promotions from one place.","دۆخی فرۆشگەیێ خۆ ببینە و بەرهەم، داخوازی و بانگەشەکان ل یەک شوێنێ بەڕێڤەبە.","تابع متجرك وأدر المنتجات والطلبات والعروض من مكان واحد."))}</p></div><span class="owner-dashboard-emblem" aria-hidden="true">SH</span></section>
+    <section class="owner-dashboard-section" aria-labelledby="ownerStatsHeading"><div class="owner-dashboard-section-head"><h3 id="ownerStatsHeading">${escapeHtml(ownerDashboardText("Store at a glance","پوختەیا فرۆشگەیێ","ملخص المتجر"))}</h3></div><div class="owner-dashboard-stats">${statCards}</div></section>
+    <section class="owner-dashboard-section" aria-labelledby="ownerQuickActionsHeading"><div class="owner-dashboard-section-head"><h3 id="ownerQuickActionsHeading">${escapeHtml(ownerDashboardText("Quick Actions","کردارێن خێرا","إجراءات سريعة"))}</h3></div><div class="owner-quick-actions">${quick}</div></section>
+    <section class="owner-dashboard-section" aria-labelledby="ownerManagementHeading"><div class="owner-dashboard-section-head"><h3 id="ownerManagementHeading">${escapeHtml(ownerDashboardText("Store Management","بەڕێڤەبرنا فرۆشگەیێ","إدارة المتجر"))}</h3></div><div class="owner-management-grid">${management}</div></section>
+    <section class="owner-dashboard-section owner-offer-banner" aria-label="${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}"><div class="owner-offer-copy"><span class="owner-offer-icon" aria-hidden="true">◷</span><span><strong>${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}</strong><small>${offers?escapeHtml(ownerDashboardText(`${offers} active timed offer${offers===1?"":"s"}`,`${offers} ئۆفەرا کاتی چالاکە`,`${offers} عروض محدودة نشطة`)):escapeHtml(ownerDashboardText("No active timed offers","هیچ ئۆفەرەکا کاتی چالاک نینە","لا توجد عروض محدودة نشطة"))}. ${escapeHtml(ownerDashboardText("Edit a product to set its offer end time.","بەرهەمەک دەستکاری بکە بۆ دانانا دەمێ داوی ئۆفەرێ.","عدّل منتجاً لتحديد وقت انتهاء العرض."))}</small></span></div><button type="button" class="owner-offer-action" onclick="openOwnerDiscountProducts(true)">${escapeHtml(ownerDashboardText("Create Offer","دروستکرنا ئۆفەرێ","إنشاء عرض"))}</button></section>`;
+}
+
+function openOwnerDiscountProducts(timed=false){
+  if(!isOwner())return;
+  if(ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current Owner draft before opening product discounts.");
+    return;
+  }
+  ownerProductMode="list";
+  editingProductId=null;
+  renderOwnerPanel("products");
+  scrollOwnerTo("ownerProductList");
+  showToast(timed?"Choose a product, select Edit, then set its discount and end time.":"Choose a product and select Edit to set its discount.");
+}
+
+function startNewOwnerAd(){
+  if(!isOwner())return;
+  if(ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current Owner draft before creating an advertisement.");
+    return;
+  }
+  editingAdIndex=null;
+  ownerAdWorkflowId=createOwnerSaveRequestId();
+  renderOwnerPanel("ads");
+  scrollOwnerTo("ownerPanelSectionContent");
+}
+
+function visitStoreFromOwner(){
+  if(ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current Owner draft before leaving this section.");
+    return;
+  }
+  openView("home");
+}
+
+function renderOwnerCustomers(box){
+  if(!isOwner()){if(box)box.textContent="Only the store owner can view customer accounts.";return;}
+  const customers=getAccounts().filter(account=>account.role!=="owner"&&account.identifier!==OWNER_IDENTIFIER);
+  box.innerHTML=`<div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Customer Accounts","هەژمارێن کڕیاران","حسابات العملاء"))}</h3><p>${customers.length} ${escapeHtml(ownerDashboardText("accounts","هەژمار","حسابات"))}</p></div>${customers.length?`<div class="owner-customer-grid">${customers.map(account=>`<article class="owner-customer-card"><strong>${escapeHtml(account.name||ownerDashboardText("Customer","کڕیار","عميل"))}</strong><small>${escapeHtml(account.identifier||"")}</small><small>${escapeHtml(account.createdAt?new Date(account.createdAt).toLocaleDateString():"")}</small></article>`).join("")}</div>`:`<div class="empty">${escapeHtml(ownerDashboardText("No customer accounts are available.","هێشتا هەژمارێن کڕیاران نینە.","لا توجد حسابات عملاء بعد."))}</div>`}`;
+}
+
+function renderOwnerReports(box){
+  if(!isOwner()){if(box)box.textContent="Only the store owner can view store reports.";return;}
+  const stats=ownerDashboardStats();
+  const orders=getOrders();
+  const delivered=orders.filter(ownerConfirmedSalesOrder).length;
+  const cards=[
+    [ownerDashboardText("Confirmed sales","فرۆشتنێن پشتڕاستکری","المبيعات المؤكدة"),formatPrice(stats.sales),ownerDashboardText("Sum of paid or completed order totals","کۆی پارەی داخوازیێن پارەدراو یان تەمامبووی","إجمالي الطلبات المدفوعة أو المكتملة")],
+    [ownerDashboardText("Total orders","هەمی داخوازی","إجمالي الطلبات"),String(stats.orders),ownerDashboardText("Saved orders","داخوازیێن پاشەکەفتکری","الطلبات المحفوظة")],
+    [ownerDashboardText("Confirmed orders","داخوازیێن پشتڕاستکری","الطلبات المؤكدة"),String(delivered),ownerDashboardText("Paid or completed","پارەدراو یان تەمامبووی","مدفوعة أو مكتملة")],
+    [ownerDashboardText("Products","بەرهەم","المنتجات"),String(stats.products),ownerDashboardText("Current catalog","کەتەلۆگا ئێستا","الكتالوج الحالي")],
+    [ownerDashboardText("Customers","کڕیار","العملاء"),String(stats.customers),ownerDashboardText("Customer accounts","هەژمارێن کڕیاران","حسابات العملاء")]
+  ];
+  box.innerHTML=`<div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Store Reports","ڕاپۆرتێن فرۆشگەیێ","تقارير المتجر"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved store records","ژمارە ل داتایێن پاشەکەفتکری هاتینە هژمارتن","محسوبة من سجلات المتجر المحفوظة"))}</p></div><div class="owner-report-grid">${cards.map(([label,value,note])=>`<article class="owner-report-card"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("")}</div>`;
 }
 
 function loadQrVendorScript(file,globalName){
@@ -8825,7 +9097,6 @@ function startNewOwnerProduct(){
   editingProductId=null;
   ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
-  ownerPanel="products";
   ownerProductMode="form";
   renderOwnerPanel("products");
   scrollOwnerTo("ownerProductForm");
@@ -8868,7 +9139,7 @@ function readOwnerAppearanceForm(){
 
 function renderOwnerAppearance(box){
   box.innerHTML=`
-    <form class="owner-form" onsubmit="saveOwnerAppearance(event)">
+    <form id="ownerAppearanceForm" class="owner-form" onsubmit="saveOwnerAppearance(event)">
       <h3>ڕەنگ، دەق و فۆنتی ئەپ</h3>
       <label>ڕەنگی سەرەکی</label><input id="ownerAccent" type="color" value="${safeAppearanceColor(ownerAppearance.accent,"#7045ff")}" oninput="previewOwnerAppearance()">
       <label>پاشبنەمای ئەپ</label><input id="ownerBackground" type="color" value="${safeAppearanceColor(ownerAppearance.background,"#03050d")}" oninput="previewOwnerAppearance()">
@@ -8890,7 +9161,7 @@ function renderOwnerAppearance(box){
       <button class="main-btn" type="submit">پاشەکەفتکردنی دیزاین</button>
       <button class="owner-action" type="button" onclick="resetOwnerAppearance()">گەڕاندنەوەی بنەڕەت</button>
     </form>
-    <div class="owner-form" style="margin-top:12px">
+    <div id="ownerBackupSync" class="owner-form" style="margin-top:12px">
       <h3>گواستنەوەی زانیاری بۆ مۆبایل و کۆمپیوتەر</h3>
       <p>لە وێبگەی کۆنەکەت backup دابەزێنە، پاشان لێرە هەمان فایل هەڵبژێرە. وشە نهێنییەکانی هەژمارە کۆنەکان بە شێوەی پارێزراو hash دەکرێن.</p>
       ${cloudMode?'<label for="cloudBackupFile">هەڵبژاردنی backup بۆ هاوبەشکردنی زانیاری</label><input id="cloudBackupFile" type="file" accept="application/json,.json" onchange="migrateLegacyBackup(this.files[0]);this.value=\'\'">':'<button class="owner-action" type="button" onclick="exportLegacyBackup()">داگرتنی backup ـی زانیارییە کۆنەکان</button><small>ئەم فایلە دواتر لە وێبگەی نوێدا هەڵدەبژێریت.</small>'}
