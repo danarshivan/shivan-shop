@@ -1104,6 +1104,12 @@ button{
 .owner-order-total{color:#c6a8ff;font-size:16px;font-weight:900;white-space:nowrap}
 .owner-order-open{min-height:39px;padding:8px 11px;border:1px solid #63469a;border-radius:11px;background:linear-gradient(120deg,#382653,#21182f);color:#fff;font:inherit;font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation}
 .owner-order-open:hover{border-color:#a17be7;background:linear-gradient(120deg,#503274,#2d2040)}
+.owner-order-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.owner-order-next{min-height:39px;padding:8px 13px;border:1px solid #7956b3;border-radius:11px;background:linear-gradient(120deg,#5c3b8e,#35224f);color:#fff;font:inherit;font-size:11px;font-weight:850;cursor:pointer;touch-action:manipulation;transition:filter .16s ease,transform .16s ease}
+.owner-order-next:hover:not(:disabled){filter:brightness(1.14);transform:translateY(-1px)}
+.owner-order-next:disabled{cursor:wait;opacity:.62}
+.owner-order-detail-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+@media(max-width:390px){.owner-order-actions{width:100%;justify-content:flex-start}.owner-order-actions button{flex:1 1 auto}}
 .owner-orders-empty{padding:24px 14px;border:1px dashed #47365b;border-radius:15px;color:#aaa2b6;text-align:center;line-height:1.7}
 .owner-order-detail{display:grid;gap:14px;min-width:0}
 .owner-order-detail-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px;border:1px solid #3a2a58;border-radius:18px;background:radial-gradient(ellipse at 88% 0,#7545c529,transparent 48%),linear-gradient(125deg,#171221,#0b0c14)}
@@ -10254,6 +10260,23 @@ function ownerOrderStatusOptions(currentStatus){
   return options;
 }
 
+function ownerOrderNextStatus(order){
+  const category=ownerOrderStatusCategory(order);
+  if(category==="new")return "پێچرا";
+  if(category==="processing")return "گەهشت";
+  return "";
+}
+
+function ownerOrderNextButtonMarkup(order){
+  const nextStatus=ownerOrderNextStatus(order);
+  if(!nextStatus)return "";
+  const id=String(order?.id||"");
+  const saving=String(ownerOrderStatusSavingId||"")===id;
+  const label=ownerDashboardText("Next","پێشداچوون","التالي");
+  const target=ownerOrderDisplayStatus({status:nextStatus});
+  return `<button class="owner-order-next" type="button" data-owner-order-next="${escapeHtml(id)}" aria-label="${escapeHtml(ownerDashboardText(`Move order #${id} to ${target}`,`داخوازی #${id} بگوازە بۆ ${target}`,`انقل الطلب #${id} إلى ${target}`))}" onclick="advanceOwnerOrderStatus(${escapeHtml(JSON.stringify(id))})" ${saving?"disabled":""}>${saving?escapeHtml(ownerDashboardText("Saving…","پاشەکەفتکرن…","جارٍ الحفظ…")):escapeHtml(label)} <span aria-hidden="true">→</span></button>`;
+}
+
 function ownerOrderStatusSelect(order){
   const current=String(order?.status||"");
   const disabled=String(ownerOrderStatusSavingId||"")===String(order?.id||"");
@@ -10273,7 +10296,7 @@ function ownerOrderDetailMarkup(order){
   const phoneLink=phone.replace(/[^+\d\s()-]/g,"");
   const itemMarkup=items.length?items.map(item=>`<article class="owner-order-detail-item">${ownerOrderImageMarkup(item,true)}<div class="owner-order-detail-item-copy"><strong>${escapeHtml(getCartItemName(item))}</strong><small>${escapeHtml(ownerDashboardText("Color","ڕەنگ","اللون"))}: ${escapeHtml(item.colorName||item.color||"—")}</small><small>${escapeHtml(ownerDashboardText("Size","قەبارە","المقاس"))}: ${escapeHtml(item.size||"—")} · ${escapeHtml(ownerDashboardText("Quantity","ژمارە","الكمية"))}: ${Math.max(1,Number(item.qty)||1)}</small></div><strong class="owner-order-detail-item-price">${renderOrderItemPrice(item)}</strong></article>`).join(""):`<div class="owner-orders-empty">${escapeHtml(ownerDashboardText("No item details were saved for this order.","وردەکاریێن بەرهەمێ بۆ ڤێ داخوازیێ نەهاتییە پاشەکەفتکرن.","لم يتم حفظ تفاصيل المنتجات لهذا الطلب."))}</div>`;
   const payment=order?.paymentMethod?paymentMethodLabel(order.paymentMethod,order):ownerDashboardText("Not recorded","تۆمار نەبوو","غير مسجل");
-  return `<div class="owner-order-detail" data-owner-order-detail="${escapeHtml(order.id)}"><header class="owner-order-detail-heading"><div><p class="owner-orders-kicker">${escapeHtml(ownerDashboardText("ORDER DETAILS","وردەکاریێن داخوازی","تفاصيل الطلب"))}</p><h3>#${escapeHtml(order.id)}</h3><p>${escapeHtml(ownerOrderDateTime(order))}</p></div>${ownerOrderStatusBadge(order)}</header><div class="owner-order-detail-grid"><section class="owner-order-detail-panel"><h4>${escapeHtml(ownerDashboardText("Items","بەرهەم","المنتجات"))} · ${items.length}</h4><div class="owner-order-detail-items">${itemMarkup}</div><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Order total (IQD)","کۆیا داخوازی (IQD)","إجمالي الطلب (IQD)"))}</small><strong class="owner-order-total">${formatPrice(Number(order.total)||0)}</strong></div></section><section class="owner-order-detail-panel"><h4>${escapeHtml(ownerDashboardText("Customer & delivery","کڕیار و گەهاندن","العميل والتوصيل"))}</h4><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Customer","کڕیار","العميل"))}</small><strong>${escapeHtml(order.name||ownerDashboardText("Name not recorded","ناڤ تۆمار نەبوو","الاسم غير مسجل"))}</strong></div><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Phone","ژمارا مۆبایلێ","الهاتف"))}</small>${phoneLink?`<a href="tel:${escapeHtml(phoneLink)}">${escapeHtml(phone||phoneLink)}</a>`:`<strong>—</strong>`}</div>${address?`<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Delivery address","ناڤنیشانا گەهاندنێ","عنوان التوصيل"))}</small><strong>${escapeHtml(address)}</strong></div>`:""}<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Payment method","شێوازی پارەدان","طريقة الدفع"))}</small><strong>${escapeHtml(payment)}</strong></div>${order.paymentMethod==="fib"?`<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("FIB payment","پارەدانا FIB","دفع FIB"))}</small><strong>${escapeHtml(translateText(order.fibPaymentTest?"FIB mock test (simulated; no real transfer)":order.paymentStatus==="PAID"?"پارەدان ل FIB پشتڕاستکرایە":receiptUrl?"پسوول بۆ پشتڕاستکردنەوە هاتە بارکرن":"پسوولا FIB نەهاتییە بارکرن."))}</strong></div>${receiptUrl?`<div class="owner-order-receipt"><strong>${escapeHtml(ownerDashboardText("Payment receipt","پسوولا پارەدان","إيصال الدفع"))}</strong><a href="${escapeHtml(receiptUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(receiptUrl)}" alt="${escapeHtml(ownerDashboardText("View payment receipt","پسوول ببینە","عرض إيصال الدفع"))}" loading="lazy"></a></div>`:""}`:""}${ownerOrderStatusSelect(order)}</section></div></div>`;
+  return `<div id="ownerOrderDetail" class="owner-order-detail" data-owner-order-detail="${escapeHtml(order.id)}"><header class="owner-order-detail-heading"><div><p class="owner-orders-kicker">${escapeHtml(ownerDashboardText("ORDER DETAILS","وردەکاریێن داخوازی","تفاصيل الطلب"))}</p><h3>#${escapeHtml(order.id)}</h3><p>${escapeHtml(ownerOrderDateTime(order))}</p></div><div class="owner-order-detail-actions">${ownerOrderStatusBadge(order)}${ownerOrderNextButtonMarkup(order)}</div></header><div class="owner-order-detail-grid"><section class="owner-order-detail-panel"><h4>${escapeHtml(ownerDashboardText("Items","بەرهەم","المنتجات"))} · ${items.length}</h4><div class="owner-order-detail-items">${itemMarkup}</div><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Order total (IQD)","کۆیا داخوازی (IQD)","إجمالي الطلب (IQD)"))}</small><strong class="owner-order-total">${formatPrice(Number(order.total)||0)}</strong></div></section><section class="owner-order-detail-panel"><h4>${escapeHtml(ownerDashboardText("Customer & delivery","کڕیار و گەهاندن","العميل والتوصيل"))}</h4><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Customer","کڕیار","العميل"))}</small><strong>${escapeHtml(order.name||ownerDashboardText("Name not recorded","ناڤ تۆمار نەبوو","الاسم غير مسجل"))}</strong></div><div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Phone","ژمارا مۆبایلێ","الهاتف"))}</small>${phoneLink?`<a href="tel:${escapeHtml(phoneLink)}">${escapeHtml(phone||phoneLink)}</a>`:`<strong>—</strong>`}</div>${address?`<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Delivery address","ناڤنیشانا گەهاندنێ","عنوان التوصيل"))}</small><strong>${escapeHtml(address)}</strong></div>`:""}<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("Payment method","شێوازی پارەدان","طريقة الدفع"))}</small><strong>${escapeHtml(payment)}</strong></div>${order.paymentMethod==="fib"?`<div class="owner-order-detail-field"><small>${escapeHtml(ownerDashboardText("FIB payment","پارەدانا FIB","دفع FIB"))}</small><strong>${escapeHtml(translateText(order.fibPaymentTest?"FIB mock test (simulated; no real transfer)":order.paymentStatus==="PAID"?"پارەدان ل FIB پشتڕاستکرایە":receiptUrl?"پسوول بۆ پشتڕاستکردنەوە هاتە بارکرن":"پسوولا FIB نەهاتییە بارکرن."))}</strong></div>${receiptUrl?`<div class="owner-order-receipt"><strong>${escapeHtml(ownerDashboardText("Payment receipt","پسوولا پارەدان","إيصال الدفع"))}</strong><a href="${escapeHtml(receiptUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(receiptUrl)}" alt="${escapeHtml(ownerDashboardText("View payment receipt","پسوول ببینە","عرض إيصال الدفع"))}" loading="lazy"></a></div>`:""}`:""}${ownerOrderStatusSelect(order)}</section></div></div>`;
 }
 
 function ownerOrderCardMarkup(order){
@@ -10286,7 +10309,7 @@ function ownerOrderCardMarkup(order){
   const rawStatus=String(order?.status||"");
   const address=ownerOrderAddress(order);
   const payment=order?.paymentMethod?paymentMethodLabel(order.paymentMethod,order):ownerDashboardText("Not recorded","تۆمار نەبوو","غير مسجل");
-  return `<article class="owner-order-card" data-owner-order-card data-order-search="${escapeHtml(search)}" data-order-category="${category}" data-order-status-value="${escapeHtml(rawStatus)}" data-order-date="${escapeHtml(ownerOrderDateValue(order))}"><div class="owner-order-card-head"><div><strong class="owner-order-number">#${escapeHtml(id)}</strong><time class="owner-order-date">${escapeHtml(ownerOrderDateTime(order))}</time></div>${ownerOrderStatusBadge(order)}</div><div class="owner-order-product">${ownerOrderImageMarkup(first)}<div class="owner-order-product-copy"><strong>${escapeHtml(first.productId!=null||first.name?getCartItemName(first):ownerDashboardText("Order items","بەرهەمێن داخوازی","منتجات الطلب"))}</strong><small>${escapeHtml(ownerDashboardText("Color","ڕەنگ","اللون"))}: ${escapeHtml(first.colorName||first.color||"—")} · ${escapeHtml(ownerDashboardText("Size","قەبارە","المقاس"))}: ${escapeHtml(first.size||"—")}</small><small>${escapeHtml(ownerDashboardText("Quantity","ژمارە","الكمية"))}: ${quantity||0}${items.length>1?` · <span class="owner-order-more">+${items.length-1} ${escapeHtml(ownerDashboardText("more items","بەرهەمێن دی","منتجات أخرى"))}</span>`:""}</small></div></div><div class="owner-order-card-meta"><div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Customer","کڕیار","العميل"))}</small><strong>${escapeHtml(order?.name||"—")}</strong></div><div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Phone","ژمارا مۆبایلێ","الهاتف"))}</small><strong>${escapeHtml(order?.phone||"—")}</strong></div>${address?`<div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Delivery","گەهاندن","التوصيل"))}</small><strong>${escapeHtml(address)}</strong></div>`:""}<div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Payment","پارەدان","الدفع"))}</small><strong>${escapeHtml(payment)}</strong></div></div><footer class="owner-order-card-footer"><strong class="owner-order-total">${formatPrice(Number(order?.total)||0)}</strong><button class="owner-order-open" type="button" onclick="openOwnerOrderDetail(${escapeHtml(JSON.stringify(id))})">${escapeHtml(ownerDashboardText("View details","وردەکاری ببینە","عرض التفاصيل"))} <span aria-hidden="true">↗</span></button></footer></article>`;
+  return `<article class="owner-order-card" data-owner-order-card data-order-id="${escapeHtml(id)}" data-order-search="${escapeHtml(search)}" data-order-category="${category}" data-order-status-value="${escapeHtml(rawStatus)}" data-order-date="${escapeHtml(ownerOrderDateValue(order))}"><div class="owner-order-card-head"><div><strong class="owner-order-number">#${escapeHtml(id)}</strong><time class="owner-order-date">${escapeHtml(ownerOrderDateTime(order))}</time></div>${ownerOrderStatusBadge(order)}</div><div class="owner-order-product">${ownerOrderImageMarkup(first)}<div class="owner-order-product-copy"><strong>${escapeHtml(first.productId!=null||first.name?getCartItemName(first):ownerDashboardText("Order items","بەرهەمێن داخوازی","منتجات الطلب"))}</strong><small>${escapeHtml(ownerDashboardText("Color","ڕەنگ","اللون"))}: ${escapeHtml(first.colorName||first.color||"—")} · ${escapeHtml(ownerDashboardText("Size","قەبارە","المقاس"))}: ${escapeHtml(first.size||"—")}</small><small>${escapeHtml(ownerDashboardText("Quantity","ژمارە","الكمية"))}: ${quantity||0}${items.length>1?` · <span class="owner-order-more">+${items.length-1} ${escapeHtml(ownerDashboardText("more items","بەرهەمێن دی","منتجات أخرى"))}</span>`:""}</small></div></div><div class="owner-order-card-meta"><div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Customer","کڕیار","العميل"))}</small><strong>${escapeHtml(order?.name||"—")}</strong></div><div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Phone","ژمارا مۆبایلێ","الهاتف"))}</small><strong>${escapeHtml(order?.phone||"—")}</strong></div>${address?`<div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Delivery","گەهاندن","التوصيل"))}</small><strong>${escapeHtml(address)}</strong></div>`:""}<div class="owner-order-meta-cell"><small>${escapeHtml(ownerDashboardText("Payment","پارەدان","الدفع"))}</small><strong>${escapeHtml(payment)}</strong></div></div><footer class="owner-order-card-footer"><strong class="owner-order-total">${formatPrice(Number(order?.total)||0)}</strong><div class="owner-order-actions">${ownerOrderNextButtonMarkup(order)}<button class="owner-order-open" type="button" onclick="openOwnerOrderDetail(${escapeHtml(JSON.stringify(id))})">${escapeHtml(ownerDashboardText("View details","وردەکاری ببینە","عرض التفاصيل"))} <span aria-hidden="true">↗</span></button></div></footer></article>`;
 }
 
 function ownerOrderFilteredOrders(orders,selection=ownerOrdersSelection){
@@ -10377,10 +10400,85 @@ function renderOwnerOrders(box){
     [ownerDashboardText("Processing","پێچرا","قيد التجهيز"),counts.processing,"↻","processing"],
     [ownerDashboardText("Completed","تەمامبوو","مكتمل"),counts.completed,"✓","completed"],
     [ownerDashboardText("Cancelled","هەڵوەشیاو","ملغي"),counts.cancelled,"×","cancelled"]
-  ].map(([label,value,icon,tone])=>`<article class="owner-orders-stat ${tone}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong><small>${escapeHtml(ownerDashboardText("Saved order records","تۆمارێن داخوازیێن پاشەکەفتکری","سجلات الطلبات المحفوظة"))}</small></article>`).join("");
+  ].map(([label,value,icon,tone])=>`<article class="owner-orders-stat ${tone}"><span>${escapeHtml(label)}</span><strong data-order-metric="${tone}">${escapeHtml(String(value))}</strong><small>${escapeHtml(ownerDashboardText("Saved order records","تۆمارێن داخوازیێن پاشەکەفتکری","سجلات الطلبات المحفوظة"))}</small></article>`).join("");
   const filtered=ownerOrderFilteredOrders(orders,{...ownerOrdersSelection,query:"",status:"",date:"",tab:"all"});
   box.innerHTML=`<div id="ownerOrdersWorkspace"><header class="owner-orders-heading"><div><p class="owner-orders-kicker">${escapeHtml(ownerDashboardText("SHIVAN SHOP · OWNER","SHIVAN SHOP · خاوەن","SHIVAN SHOP · المالك"))}</p><h3>${escapeHtml(ownerDashboardText("Orders","داخوازی","الطلبات"))}</h3><p>${escapeHtml(ownerDashboardText("Review saved orders and manage each order from one place.","داخوازیێن پاشەکەفتکری ببینە و ل یەک شوێنێ بەڕێڤەببە.","راجع الطلبات المحفوظة وأدر كل طلب من مكان واحد."))}</p></div><span class="owner-orders-total-pill">${escapeHtml(String(counts.totalOrders))} ${escapeHtml(ownerDashboardText("orders","داخوازی","طلبات"))}</span></header><section class="owner-orders-stat-grid" aria-label="${escapeHtml(ownerDashboardText("Order statistics","ئامارێن داخوازی","إحصاءات الطلبات"))}">${stats}</section><section class="owner-orders-controls" aria-label="${escapeHtml(ownerDashboardText("Search and filters","لێگەریان و فلتەر","البحث والتصفية"))}"><label class="owner-orders-control"><span>${escapeHtml(ownerDashboardText("Search number, customer or phone","لێگەریان ب ژمارە، کڕیار یان مۆبایل","ابحث بالرقم أو العميل أو الهاتف"))}</span><input type="search" inputmode="search" autocomplete="off" value="${escapeHtml(ownerOrdersSelection.query||"")}" placeholder="${escapeHtml(ownerDashboardText("Order number, name, phone","ژمارا داخوازی، ناڤ، مۆبایل","رقم الطلب، الاسم، الهاتف"))}" oninput="updateOwnerOrdersFilter('query',this.value)"></label><label class="owner-orders-control"><span>${escapeHtml(ownerDashboardText("Order status","دۆخی داخوازی","حالة الطلب"))}</span><select aria-label="${escapeHtml(ownerDashboardText("Filter by order status","فلتەر ب دۆخێ داخوازی","تصفية حسب الحالة"))}" onchange="updateOwnerOrdersFilter('status',this.value)"><option value="" ${ownerOrdersSelection.status?"":"selected"}>${escapeHtml(ownerDashboardText("Any status","هەر دۆخەک","كل الحالات"))}</option>${statusOptions}</select></label><label class="owner-orders-control"><span>${escapeHtml(ownerDashboardText("Order date","ڕۆژا داخوازی","تاريخ الطلب"))}</span><input type="date" value="${escapeHtml(ownerOrdersSelection.date||"")}" onchange="updateOwnerOrdersFilter('date',this.value)" aria-label="${escapeHtml(ownerDashboardText("Filter by date","فلتەر ب ڕۆژێ","تصفية حسب التاريخ"))}"></label></section><nav class="owner-orders-tabs" aria-label="${escapeHtml(ownerDashboardText("Order status tabs","تابێن دۆخێ داخوازی","تبويبات حالة الطلب"))}">${tabs}</nav><div class="owner-orders-results" data-owner-orders-results aria-live="polite"></div><section class="owner-orders-grid" aria-label="${escapeHtml(ownerDashboardText("Saved orders","داخوازیێن پاشەکەفتکری","الطلبات المحفوظة"))}">${filtered.map(ownerOrderCardMarkup).join("")}</section><div class="owner-orders-empty" data-owner-orders-empty hidden>${escapeHtml(ownerDashboardText("No orders match these filters.","هیچ داخوازییەک ل گەل ڤان فلتەران ناهێتە گونجان.","لا توجد طلبات تطابق هذه الفلاتر."))}</div></div>`;
   applyOwnerOrdersFilters();
+}
+
+function refreshOwnerOrderStatusView(order){
+  const workspace=document.getElementById("ownerOrdersWorkspace");
+  if(!workspace||!order)return false;
+  const id=String(order.id||"");
+  const category=ownerOrderStatusCategory(order);
+  for(const card of workspace.querySelectorAll("[data-owner-order-card]")){
+    if(String(card.dataset.orderId||"")!==id)continue;
+    card.dataset.orderStatusValue=String(order.status||"");
+    card.dataset.orderCategory=category;
+    const badge=card.querySelector(".owner-order-status");
+    if(badge){badge.className=`owner-order-status is-${category}`;badge.textContent=ownerOrderDisplayStatus(order);}
+    const next=card.querySelector("[data-owner-order-next]");
+    if(next){if(!ownerOrderNextStatus(order))next.remove();else{next.disabled=String(ownerOrderStatusSavingId||"")===id;next.textContent=next.disabled?ownerDashboardText("Saving…","پاشەکەفتکرن…","جارٍ الحفظ…"):ownerDashboardText("Next","پێشداچوون","التالي");}}
+  }
+  const detail=workspace.querySelector("#ownerOrderDetail");
+  if(detail&&String(detail.dataset.ownerOrderDetail||"")===id){
+    const badge=detail.querySelector(".owner-order-status");
+    if(badge){badge.className=`owner-order-status is-${category}`;badge.textContent=ownerOrderDisplayStatus(order);}
+    const statusSelect=detail.querySelector(".owner-order-status-control select");
+    if(statusSelect)statusSelect.value=String(order.status||"");
+    const next=detail.querySelector("[data-owner-order-next]");
+    if(next){if(!ownerOrderNextStatus(order))next.remove();else{next.disabled=String(ownerOrderStatusSavingId||"")===id;next.textContent=next.disabled?ownerDashboardText("Saving…","پاشەکەفتکرن…","جارٍ الحفظ…"):ownerDashboardText("Next","پێشداچوون","التالي");}}
+  }
+  const counts=ownerOrderMetrics(getOrders());
+  const metrics={all:counts.totalOrders,sales:formatPrice(counts.totalSales),new:counts.new,processing:counts.processing,completed:counts.completed,cancelled:counts.cancelled};
+  for(const [key,value] of Object.entries(metrics)){
+    const metric=workspace.querySelector(`[data-order-metric="${key}"]`);
+    if(metric)metric.textContent=String(value);
+  }
+  applyOwnerOrdersFilters();
+  return true;
+}
+
+async function advanceOwnerOrderStatus(orderId){
+  if(!isOwner()||ownerOrderStatusSavingId)return false;
+  if(!cloudMode||cloudAccount?.role!=="owner"){showToast(ownerDashboardText("Connect the shared Owner account before advancing an order.","پێش گۆڕینا دۆخێ داخوازی گرێدانا هژمارا خاوەنێ هاوبەش بکە.","اتصل بحساب المالك المشترك قبل تحديث حالة الطلب."));return false;}
+  const id=String(orderId||"");
+  const order=getOrders().find(item=>String(item?.id||"")===id);
+  if(!order){showToast(ownerDashboardText("This order is no longer available.","ئەم داخوازییە ئێستا بەردەست نینە.","هذا الطلب لم يعد متاحاً."));return false;}
+  const expectedStatus=String(order.status||"");
+  const nextStatus=ownerOrderNextStatus(order);
+  if(!nextStatus)return false;
+  const scrollPosition=readShopViewPosition("owner");
+  ownerOrderStatusSavingId=id;
+  refreshOwnerOrderStatusView(order);
+  try{
+    const confirmation=await cloudRequest(`/api/orders/${encodeURIComponent(id)}/next-status`,{method:"PATCH",body:JSON.stringify({expectedStatus}),ownerSaveStage:"order.status.next",timeoutMs:30000});
+    if(confirmation?.ok!==true||confirmation.persisted!==true||confirmation.orderId!==id||confirmation.status!==nextStatus){
+      const failure=new Error("The shared database did not confirm this order status update.");failure.code="SAVE_NOT_CONFIRMED";throw failure;
+    }
+    const latestOrders=getOrders();
+    const latestOrder=latestOrders.find(item=>String(item?.id||"")===id);
+    if(!latestOrder)throw new Error("The order was saved, but is no longer present in the local order list. Refresh Orders to view the latest data.");
+    if(String(latestOrder.status||"")!==expectedStatus&&String(latestOrder.status||"")!==nextStatus){
+      showToast(ownerDashboardText("This order changed again on another device. The latest status was kept.","دۆخێ داخوازی ل ئامێرەکە دیتر هاتە گۆڕین؛ دۆخێ نوو هاتییە پاراستن.","تغير الطلب مرة أخرى على جهاز آخر. تم الاحتفاظ بأحدث حالة."));
+      return false;
+    }
+    latestOrder.status=nextStatus;
+    const serialized=JSON.stringify(latestOrders);
+    originalStorageSetItem.call(localStorage,ORDERS_KEY,serialized);
+    if(!readCloudOutbox()[ORDERS_KEY])clearAcknowledgedCloudWrite(ORDERS_KEY,String(cloudAccount.id),serialized);
+    refreshOwnerOrderStatusView(latestOrder);
+    showToast(ownerDashboardText("Order status updated.","دۆخێ داخوازی نووکرایە.","تم تحديث حالة الطلب."));
+    return true;
+  }catch(error){
+    showToast(error?.message||ownerDashboardText("The order status could not be saved. Try again.","دۆخێ داخوازی نەهاتییە پاشەکەفتکرن؛ دووبارە هەوڵ بدە.","تعذر حفظ حالة الطلب. حاول مرة أخرى."));
+    return false;
+  }finally{
+    ownerOrderStatusSavingId="";
+    const current=getOrders().find(item=>String(item?.id||"")===id);
+    if(current)refreshOwnerOrderStatusView(current);
+    requestAnimationFrame(()=>restoreOwnerScrollPosition(scrollPosition));
+  }
 }
 
 async function updateOrderStatus(orderId,status){

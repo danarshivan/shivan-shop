@@ -1201,6 +1201,49 @@ async function handleMigration(request, env, account) {
   return json({ ok: true, accountsImported: accounts.length, ordersImported: orders.length });
 }
 
+function nextOwnerOrderWorkflowStatus(status) {
+  const value = String(status || "").trim().toLocaleLowerCase();
+  if (/cancel|canceled|cancelled|هەڵوەشاندنەوە|ملغي|إلغاء|گەهشت|delivered|complete|completed|fulfilled/.test(value)) return "";
+  if (/پێچرا|هاتە ناردن|process|ship|transit|dispatched/.test(value)) return "گەهشت";
+  return "پێچرا";
+}
+
+async function handleNextOwnerOrderStatus(request, env, account, route) {
+  if (request.method !== "PATCH") return error("Method not allowed.", 405);
+  if (!account) return error("Sign in to continue.", 401);
+  if (account.role !== "owner") return error("Only the store owner can update orders.", 403);
+
+  let orderId;
+  try { orderId = decodeURIComponent(route.slice("orders/".length, -"/next-status".length)); }
+  catch { return error("The order number is invalid."); }
+  if (!orderId || orderId.length > 100 || orderId.includes("/")) return error("The order number is invalid.");
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body.expectedStatus !== "string") return error("The current order status is required.");
+  let row;
+  try { row = await env.DB.prepare("SELECT payload FROM orders WHERE id=?").bind(orderId).first(); }
+  catch { return error("The shared database could not read this order status. Try again.", 503); }
+  if (!row) return error("This order is no longer available.", 404);
+  const order = asJson(row.payload);
+  if (!order || String(order.id || "") !== orderId) return error("Saved order data is invalid.", 409);
+  const currentStatus = String(order.status || "");
+  if (body.expectedStatus !== currentStatus) return json({ error: "This order changed elsewhere. Refresh its status and try again.", code: "ORDER_STATUS_CHANGED" }, 409);
+  const nextStatus = nextOwnerOrderWorkflowStatus(currentStatus);
+  if (!nextStatus) return json({ error: "This order has no further status step.", code: "ORDER_STATUS_FINAL" }, 409);
+
+  try {
+    const result = await env.DB.prepare("UPDATE orders SET payload=json_set(payload, '$.status', ?) WHERE id=? AND payload=?")
+      .bind(nextStatus, orderId, String(row.payload)).run();
+    requireD1WriteSuccess(result, "Order status storage");
+    if (Number(result?.meta?.changes) !== 1) return json({ error: "This order changed elsewhere. Refresh its status and try again.", code: "ORDER_STATUS_CHANGED" }, 409);
+  } catch {
+    return error("The shared database could not confirm this order status update. The order was not changed.", 503);
+  }
+
+  try { await broadcastSync(env); } catch { /* The confirmed D1 status remains available through the normal refresh path. */ }
+  return json({ ok: true, persisted: true, orderId, status: nextStatus });
+}
+
 export async function onRequest({ request, env }) {
   if (!env.DB) return error("Cloud database is not connected yet.", 503);
   const url = new URL(request.url);
@@ -1251,6 +1294,7 @@ export async function onRequest({ request, env }) {
   if (route.startsWith("auth/")) return handleAuth(request, env, route, secure);
   const account = await currentAccount(request, env);
   if (route.startsWith("inventory/")) return handleInventory(request, env, account, route);
+  if (route.startsWith("orders/") && route.endsWith("/next-status")) return handleNextOwnerOrderStatus(request, env, account, route);
   if (route === "realtime") {
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") return error("WebSocket connection required.", 426);
     if (!account) return error("Sign in to connect live sync.", 401);

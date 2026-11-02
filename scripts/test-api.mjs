@@ -230,6 +230,7 @@ class MemoryD1 {
   failNextProductResult = false;
   failNextMediaResult = false;
   failNextShopResult = false;
+  failNextOrderWrite = false;
 
   prepare(sql) {
     const statement = {
@@ -265,7 +266,8 @@ class MemoryD1 {
   async first(sql, values) {
     if (sql.includes("FROM orders WHERE id=?")) {
       const order = this.orders.get(values[0]);
-      return order ? { account_id: order.account_id } : null;
+      if (!order) return null;
+      return sql.includes("SELECT payload") ? { payload: order.payload } : { account_id: order.account_id };
     }
     if (sql.includes("FROM accounts WHERE role='owner'")) {
       const row = [...this.accounts.values()].find(account => account.role === "owner");
@@ -312,6 +314,16 @@ class MemoryD1 {
   }
 
   async run(sql, values) {
+    if (sql.includes("UPDATE orders SET payload=json_set")) {
+      const [status, id, priorPayload] = values;
+      if (this.failNextOrderWrite) { this.failNextOrderWrite = false; throw new Error("Simulated D1 order status write failure"); }
+      const saved = this.orders.get(id);
+      if (!saved || saved.payload !== priorPayload) return { success: true, meta: { changes: 0 } };
+      const payload = JSON.parse(saved.payload);
+      payload.status = status;
+      saved.payload = JSON.stringify(payload);
+      return { success: true, meta: { changes: 1 } };
+    }
     if (sql.includes("UPDATE shop_state SET value=?")) {
       const [value, , previousValue] = values;
       if (this.shop.get("shivan_shop_products") !== previousValue) return { success: true, meta: { changes: 0 } };
@@ -400,6 +412,41 @@ assert.equal(ownerLogin.status, 200, "the authorized owner should be able to sig
 const ownerLoginCookie = ownerLogin.headers.get("Set-Cookie").split(";")[0];
 const ownerMe = await context(new Request("https://shop.test/api/auth/me", { headers: { Cookie: ownerLoginCookie } }));
 assert.equal((await ownerMe.json()).account.role, "owner", "the session API should preserve the owner role");
+const nextOrderId = "order-status-next-test";
+const nextOrderBefore = { id: nextOrderId, userId: "customer-order-owner-test", name: "Order Customer", phone: "+9647500000999", address: "Erbil", status: "لە چاوەڕوانی", total: 7400, items: [{ productId: 71, qty: 2, size: "M", color: "#000000" }], paymentMethod: "cash", customerNote: "keep this order data" };
+const nextOrderUntouched = { id: "order-status-untouched-test", userId: "customer-order-owner-test", status: "لە چاوەڕوانی", total: 1200, items: [{ productId: 72, qty: 1 }] };
+DB.orders.set(nextOrderId, { account_id: nextOrderBefore.userId, payload: JSON.stringify(nextOrderBefore) });
+DB.orders.set(nextOrderUntouched.id, { account_id: nextOrderUntouched.userId, payload: JSON.stringify(nextOrderUntouched) });
+const nextOrderRequest = (id, expectedStatus, cookie = ownerLoginCookie, method = "PATCH") => context(new Request(`https://shop.test/api/orders/${encodeURIComponent(id)}/next-status`, {
+  method, headers: { ...(cookie ? { Cookie: cookie } : {}), "Content-Type": "application/json" },
+  body: method === "PATCH" ? JSON.stringify({ expectedStatus }) : undefined,
+}));
+const anonymousOrderAdvance = await nextOrderRequest(nextOrderId, "لە چاوەڕوانی", "");
+assert.equal(anonymousOrderAdvance.status, 401, "order status advancement requires an authenticated session");
+const wrongMethodOrderAdvance = await nextOrderRequest(nextOrderId, "لە چاوەڕوانی", ownerLoginCookie, "POST");
+assert.equal(wrongMethodOrderAdvance.status, 405, "only the narrow PATCH status action is accepted");
+const nextOrderPayloadBefore = DB.orders.get(nextOrderId).payload;
+const untouchedOrderPayloadBefore = DB.orders.get(nextOrderUntouched.id).payload;
+const advanceToProcessing = await nextOrderRequest(nextOrderId, "لە چاوەڕوانی");
+assert.equal(advanceToProcessing.status, 200, "the Owner can advance a saved new order through the existing D1 API");
+assert.deepEqual(await advanceToProcessing.json(), { ok: true, persisted: true, orderId: nextOrderId, status: "پێچرا" });
+const processingOrder = JSON.parse(DB.orders.get(nextOrderId).payload);
+assert.equal(processingOrder.status, "پێچرا", "New advances to Processing");
+assert.deepEqual({ ...processingOrder, status: "لە چاوەڕوانی" }, JSON.parse(nextOrderPayloadBefore), "all other fields on the selected order remain unchanged");
+assert.equal(DB.orders.get(nextOrderUntouched.id).payload, untouchedOrderPayloadBefore, "the status request does not write another order");
+const staleAdvance = await nextOrderRequest(nextOrderId, "لە چاوەڕوانی");
+assert.equal(staleAdvance.status, 409, "stale or duplicate clicks cannot overwrite a newer order status");
+const advanceToCompleted = await nextOrderRequest(nextOrderId, "پێچرا");
+assert.equal(advanceToCompleted.status, 200, "Processing advances to Completed");
+assert.equal(JSON.parse(DB.orders.get(nextOrderId).payload).status, "گەهشت");
+const completedAgain = await nextOrderRequest(nextOrderId, "گەهشت");
+assert.equal(completedAgain.status, 409, "completed orders cannot be advanced again");
+const writeFailOrderId = "order-status-write-fail-test";
+DB.orders.set(writeFailOrderId, { account_id: nextOrderBefore.userId, payload: JSON.stringify({ id: writeFailOrderId, userId: nextOrderBefore.userId, status: "پێچرا", total: 1200 }) });
+DB.failNextOrderWrite = true;
+const failedOrderAdvance = await nextOrderRequest(writeFailOrderId, "پێچرا");
+assert.equal(failedOrderAdvance.status, 503, "D1 write failures are returned as errors, not false success");
+assert.equal(JSON.parse(DB.orders.get(writeFailOrderId).payload).status, "پێچرا", "failed writes leave the persisted order unchanged");
 const ownerBadPassword = await context(new Request("https://shop.test/api/auth/login", {
   method: "POST", headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ identifier: "07502342153", password: "wrong-password" }),
@@ -677,6 +724,12 @@ assert.equal(signup.status, 201, "customer sign-up should work with the shared a
 const customerCookie = signup.headers.get("Set-Cookie").split(";")[0];
 const customerAccount = [...DB.accounts.values()].find(account => account.identifier === "customer@example.test");
 assert.ok(customerAccount, "the simulated customer account should exist for offline checkout tests");
+const customerOrderForAuthorization = { id: "customer-status-owner-only-test", userId: customerAccount.id, status: "لە چاوەڕوانی", total: 1000, items: [] };
+DB.orders.set(customerOrderForAuthorization.id, { account_id: customerAccount.id, payload: JSON.stringify(customerOrderForAuthorization) });
+const customerOrderStatusBefore = DB.orders.get(customerOrderForAuthorization.id).payload;
+const customerOrderAdvance = await nextOrderRequest(customerOrderForAuthorization.id, "لە چاوەڕوانی", customerCookie);
+assert.equal(customerOrderAdvance.status, 403, "a signed-in customer cannot use the Owner-only order status API");
+assert.equal(DB.orders.get(customerOrderForAuthorization.id).payload, customerOrderStatusBefore, "unauthorized customer requests do not alter order data");
 const orderProductBeforeDiscount = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
 const orderProductWithDiscount = { ...orderProductBeforeDiscount, discount: 30 };
 const saveOrderDiscount = await context(new Request("https://shop.test/api/sync", {

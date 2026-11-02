@@ -13,9 +13,9 @@ const functionSource = name => {
 const orderHelpers = [
   "ownerOrderStatusCategory", "ownerOrderCategoryLabel", "ownerOrderDisplayStatus", "ownerOrderDateValue", "ownerOrderDateTime",
   "ownerOrderProductImage", "ownerOrderImageMarkup", "ownerOrderStatusBadge", "ownerOrderStatusOptions", "ownerOrderStatusSelect",
-  "ownerOrderAddress", "ownerOrderDetailMarkup", "ownerOrderCardMarkup", "ownerOrderFilteredOrders", "ownerOrderMetrics",
-  "updateOwnerOrdersFilter", "setOwnerOrdersTab", "applyOwnerOrdersFilters", "openOwnerOrderDetail", "renderOwnerOrders", "updateOrderStatus",
-].map(name => `${name === "updateOrderStatus" ? "async " : ""}${functionSource(name)}`).join("\n");
+  "ownerOrderNextStatus", "ownerOrderNextButtonMarkup", "ownerOrderAddress", "ownerOrderDetailMarkup", "ownerOrderCardMarkup", "ownerOrderFilteredOrders", "ownerOrderMetrics",
+  "updateOwnerOrdersFilter", "setOwnerOrdersTab", "applyOwnerOrdersFilters", "openOwnerOrderDetail", "renderOwnerOrders", "refreshOwnerOrderStatusView", "advanceOwnerOrderStatus", "updateOrderStatus",
+].map(name => `${["advanceOwnerOrderStatus", "updateOrderStatus"].includes(name) ? "async " : ""}${functionSource(name)}`).join("\n");
 
 const records = [
   { id: "S100", name: "A Customer", phone: "+9647500000100", city: "Erbil", area: "Center", address: "Erbil, Center", paymentMethod: "cash", total: 12000, status: "گەهشت", date: "2026-10-29", createdAt: "2026-10-29T11:30:00.000Z", items: [{ productId: 1, name: "Purple Dress", image: "/api/media/shop/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.webp", colorName: "Violet", size: "M", qty: 1, price: 12000 }, { productId: 2, name: "Scarf", color: "Black", size: "One Size", qty: 1, price: 0 }] },
@@ -24,18 +24,32 @@ const records = [
   { id: "S103", name: "D Customer", phone: "+9647500000103", total: 9000, status: "هەڵوەشاندنەوە", date: "2026-11-02", createdAt: "2026-11-02T11:30:00.000Z", items: [] },
 ];
 const baselineRecords = JSON.stringify(records);
-const cards = records.map(order => ({
+function makeCard(order) {
+  const badge = { className: "owner-order-status", textContent: order.status };
+  const next = { disabled: false, removed: false, textContent: "Next", remove() { this.removed = true; } };
+  return {
   dataset: {
+    orderId: order.id,
     orderSearch: [order.id, order.name, order.phone].join(" ").toLocaleLowerCase(),
     orderCategory: /cancel|canceled|cancelled|هەڵوەشاندنەوە|ملغي|إلغاء/i.test(order.status) ? "cancelled" : /گەهشت|delivered|complete|completed|fulfilled/i.test(order.status) ? "completed" : /پێچرا|هاتە ناردن|process|ship|transit|dispatched/i.test(order.status) ? "processing" : "new",
     orderStatusValue: order.status,
     orderDate: `${new Date(order.createdAt).getFullYear()}-${String(new Date(order.createdAt).getMonth() + 1).padStart(2, "0")}-${String(new Date(order.createdAt).getDate()).padStart(2, "0")}`,
   },
   hidden: false,
-}));
+  badge,
+  next,
+  querySelector(selector) { return selector === ".owner-order-status" ? this.badge : selector === "[data-owner-order-next]" && !this.next.removed ? this.next : null; },
+  };
+}
+const cards = records.map(makeCard);
 const tabButtons = ["all", "new", "processing", "completed", "cancelled"].map(tab => ({ dataset: { ownerOrderTab: tab }, attributes: {}, setAttribute(key, value) { this.attributes[key] = value; } }));
 const emptyState = { hidden: true };
 const resultState = { textContent: "" };
+const metricNodes = Object.fromEntries(["all", "sales", "new", "processing", "completed", "cancelled"].map(key => [key, { textContent: "" }]));
+const detailBadge = { className: "owner-order-status", textContent: "" };
+const detailNext = { disabled: false, removed: false, textContent: "Next", remove() { this.removed = true; } };
+const detailSelect = { value: "" };
+const detailElement = { dataset: { ownerOrderDetail: "" }, querySelector(selector) { return selector === ".owner-order-status" ? detailBadge : selector === ".owner-order-status-control select" ? detailSelect : selector === "[data-owner-order-next]" && !detailNext.removed ? detailNext : null; } };
 const workspace = {
   innerHTML: "",
   querySelectorAll(selector) {
@@ -46,11 +60,29 @@ const workspace = {
   querySelector(selector) {
     if (selector === "[data-owner-orders-empty]") return emptyState;
     if (selector === "[data-owner-orders-results]") return resultState;
+    if (selector === "#ownerOrderDetail") return detailElement;
+    const metric = selector.match(/^\[data-order-metric="([^"]+)"\]$/);
+    if (metric) return metricNodes[metric[1]] || null;
     return null;
   },
 };
 const savedWrites = [];
+const directStorageWrites = [];
 const notices = [];
+const apiCalls = [];
+const scrollRestores = [];
+const remoteOrders = new Map(records.map(order => [order.id, { ...order }]));
+let cloudRequestHandler = async (path, options) => {
+  apiCalls.push({ path, options });
+  const id = decodeURIComponent(path.split("/").at(-2));
+  const expectedStatus = JSON.parse(options.body).expectedStatus;
+  const remote = remoteOrders.get(id);
+  if (!remote || remote.status !== expectedStatus) throw Object.assign(new Error("Order status changed on the server."), { status: 409 });
+  const nextStatus = /پێچرا|هاتە ناردن|process|ship|transit|dispatched/i.test(remote.status) ? "گەهشت" : "پێچرا";
+  remote.status = nextStatus;
+  return { ok: true, persisted: true, orderId: id, status: nextStatus };
+};
+const cloudRequest = (path, options) => cloudRequestHandler(path, options);
 let confirmResult = true;
 let confirmOptions = null;
 let flushResult = true;
@@ -86,7 +118,14 @@ const context = {
   translateText: value => String(value ?? ""),
   safeReceiptUrl: value => String(value || "").startsWith("/api/media/receipts/") ? String(value) : "",
   localStorage: { setItem(key, value) { savedWrites.push({ key, value }); } },
+  originalStorageSetItem: { call(_storage, key, value) { directStorageWrites.push({ key, value }); } },
   ORDERS_KEY: "shivan_shop_orders",
+  readCloudOutbox: () => ({}),
+  clearAcknowledgedCloudWrite: () => {},
+  cloudRequest,
+  readShopViewPosition: () => ({ windowY: 812, viewTop: 64, authTop: 0 }),
+  restoreOwnerScrollPosition: position => scrollRestores.push({ ...position }),
+  requestAnimationFrame: callback => callback(),
   cloudMode: true,
   cloudAccount: { role: "owner" },
   flushCloudWrites: async () => { flushCalls++; return flushResult; },
@@ -106,7 +145,7 @@ const wrapped = runInNewContext(`
   ({${functionNames.join(",")},
     ownerOrderStatusCategory,ownerOrderCategoryLabel,ownerOrderDisplayStatus,ownerOrderDateValue,ownerOrderDateTime,
     ownerOrderDetailMarkup,ownerOrderCardMarkup,ownerOrderFilteredOrders,ownerOrderMetrics,updateOwnerOrdersFilter,setOwnerOrdersTab,
-    applyOwnerOrdersFilters,openOwnerOrderDetail,renderOwnerOrders,updateOrderStatus,
+    applyOwnerOrdersFilters,openOwnerOrderDetail,renderOwnerOrders,refreshOwnerOrderStatusView,advanceOwnerOrderStatus,updateOrderStatus,
     get selection(){return {...ownerOrdersSelection}},get detailId(){return ownerOrderDetailId},get savingId(){return ownerOrderStatusSavingId},
     set detail(value){ownerOrderDetailId=String(value||"")},set selection(value){ownerOrdersSelection={...ownerOrdersSelection,...value}},
   })`, context);
@@ -175,6 +214,9 @@ assert.match(detailBox.innerHTML, /Coat/);
 assert.match(detailBox.innerHTML, /#000000/);
 assert.match(detailBox.innerHTML, /owner-order-status-control/);
 assert.match(detailBox.innerHTML, /https:\/\/images\.example\.test\/coat\.webp/);
+assert.match(detailBox.innerHTML, /data-owner-order-next="S101"/, "a selected processing order exposes its own Next action");
+assert.doesNotMatch(wrapped.ownerOrderDetailMarkup(records[0]), /data-owner-order-next/, "completed orders do not render a Next action");
+assert.doesNotMatch(wrapped.ownerOrderDetailMarkup(records[3]), /data-owner-order-next/, "cancelled orders do not render a Next action");
 assert.match(html, /\.owner-orders-grid\{display:grid;grid-template-columns:repeat\(auto-fit/ , "desktop order cards use a responsive auto-fit grid");
 assert.match(html, /@media\(max-width:960px\)\{\.owner-orders-stat-grid\{grid-template-columns:repeat\(3/ , "order metrics reflow at tablet widths");
 assert.match(html, /@media\(max-width:760px\)\{\.owner-orders-heading,[\s\S]*?\.owner-orders-controls\{grid-template-columns:1fr\}/, "the mobile Orders layout stacks controls and headings without horizontal overflow");
@@ -211,6 +253,66 @@ flushResult = true;
 assert.equal(await wrapped.updateOrderStatus("S102", "هەڵوەشاندنەوە"), true, "a cancellation status is confirmed and synced through the shared workflow");
 assert.equal(confirmOptions.cancelled, true);
 assert.equal(confirmOptions.danger, true, "cancelling uses the destructive confirmation treatment");
+
+const newFlowOrder = { id: "S104", name: "Next Flow Customer", phone: "+9647500000104", status: "لە چاوەڕوانی", total: 4500, items: [{ productId: 2, name: "Coat", qty: 1, price: 4500 }] };
+const processingFlowOrder = { id: "S105", name: "Detail Flow Customer", phone: "+9647500000105", status: "پێچرا", total: 3800, items: [{ productId: 1, name: "Dress", qty: 1, price: 3800 }] };
+const completedFlowOrder = { id: "S106", name: "Completed Flow Customer", status: "گەهشت", total: 1000, items: [] };
+const failedFlowOrder = { id: "S107", name: "Retry Flow Customer", status: "لە چاوەڕوانی", total: 2000, items: [] };
+const duplicateFlowOrder = { id: "S108", name: "Duplicate Flow Customer", status: "لە چاوەڕوانی", total: 3000, items: [] };
+for (const order of [newFlowOrder, processingFlowOrder, completedFlowOrder, failedFlowOrder, duplicateFlowOrder]) { records.push(order); remoteOrders.set(order.id, { ...order }); cards.push(makeCard(order)); }
+assert.match(wrapped.ownerOrderCardMarkup(newFlowOrder), /data-owner-order-next="S104"/, "new orders display a Next control scoped to that order ID");
+assert.match(wrapped.ownerOrderCardMarkup(processingFlowOrder), /data-owner-order-next="S105"/, "processing orders display a Next control");
+assert.doesNotMatch(wrapped.ownerOrderCardMarkup(completedFlowOrder), /data-owner-order-next/, "completed order cards have no Next control");
+wrapped.selection = { tab: "all", query: "S104", status: "", date: "" };
+wrapped.applyOwnerOrdersFilters();
+const nextRenderCount = renderCalls;
+const unrelatedStatusBefore = records.find(order => order.id === "S105").status;
+const nextWriteCount = directStorageWrites.length;
+assert.equal(await wrapped.advanceOwnerOrderStatus("S104"), true, "Next saves a new order as Processing");
+assert.equal(records.find(order => order.id === "S104").status, "پێچرا");
+assert.equal(records.find(order => order.id === "S105").status, unrelatedStatusBefore, "advancing one order leaves other local orders unchanged");
+assert.equal(apiCalls.at(-1).path, "/api/orders/S104/next-status", "Next calls the single-order status endpoint");
+assert.equal(apiCalls.at(-1).options.method, "PATCH");
+assert.deepEqual(JSON.parse(apiCalls.at(-1).options.body), { expectedStatus: "لە چاوەڕوانی" });
+assert.equal(directStorageWrites.length, nextWriteCount + 1, "a confirmed status updates the local order snapshot once without queuing another bulk write");
+assert.equal(directStorageWrites.at(-1).key, "shivan_shop_orders");
+assert.equal(wrapped.selection.query, "S104", "in-place refresh preserves the current search query");
+assert.equal(wrapped.selection.tab, "all", "in-place refresh preserves the selected order tab");
+assert.equal(cards.find(card => card.dataset.orderId === "S104").dataset.orderCategory, "processing");
+assert.equal(cards.find(card => card.dataset.orderId === "S104").hidden, false, "the filtered selected order stays visible when it still matches");
+assert.equal(renderCalls, nextRenderCount, "Next does not navigate or rerender the whole Owner page");
+assert.deepEqual(scrollRestores.at(-1), { windowY: 812, viewTop: 64, authTop: 0 }, "the exact Orders scroll position is restored after saving");
+assert.match(notices.at(-1), /updated/i, "successful API confirmation shows success feedback");
+
+detailElement.dataset.ownerOrderDetail = "S105";
+detailSelect.value = "پێچرا";
+const detailNextCalls = renderCalls;
+assert.equal(await wrapped.advanceOwnerOrderStatus("S105"), true, "Next advances the selected order detail from Processing to Completed");
+assert.equal(records.find(order => order.id === "S105").status, "گەهشت");
+assert.equal(detailSelect.value, "گەهشت", "the selected order detail status refreshes in place");
+assert.equal(detailNext.removed, true, "the selected order's Next action disappears after completion");
+assert.equal(renderCalls, detailNextCalls, "advancing from details keeps the user on that same detail screen");
+detailElement.dataset.ownerOrderDetail = "";
+
+const failedOrderBefore = JSON.stringify(failedFlowOrder);
+cloudRequestHandler = async (path, options) => { apiCalls.push({ path, options }); throw Object.assign(new Error("The shared API could not save this order."), { status: 503 }); };
+assert.equal(await wrapped.advanceOwnerOrderStatus("S107"), false, "a failed server response does not report success");
+assert.equal(JSON.stringify(failedFlowOrder), failedOrderBefore, "a failed save keeps the order status unchanged");
+assert.equal(cards.find(card => card.dataset.orderId === "S107").next.disabled, false, "the failed order action unlocks for a retry");
+assert.match(notices.at(-1), /could not save/i, "a failed API request shows its error feedback");
+
+let finishDuplicateRequest;
+cloudRequestHandler = (path, options) => { apiCalls.push({ path, options }); return new Promise(resolve => { finishDuplicateRequest = resolve; }); };
+const duplicateCallsBefore = apiCalls.length;
+const firstDuplicateAdvance = wrapped.advanceOwnerOrderStatus("S108");
+assert.equal(wrapped.savingId, "S108", "the selected Next button enters a saving lock");
+assert.equal(cards.find(card => card.dataset.orderId === "S108").next.disabled, true, "duplicate taps are blocked while the server save is pending");
+assert.equal(await wrapped.advanceOwnerOrderStatus("S108"), false, "a simultaneous duplicate call is rejected");
+assert.equal(apiCalls.length, duplicateCallsBefore + 1, "only one server request is sent for duplicate taps");
+remoteOrders.get("S108").status = "پێچرا";
+finishDuplicateRequest({ ok: true, persisted: true, orderId: "S108", status: "پێچرا" });
+assert.equal(await firstDuplicateAdvance, true, "the original in-flight status update completes normally");
+assert.equal(wrapped.savingId, "", "the saving lock clears after completion");
 
 currentOwner = false;
 const writeCount = savedWrites.length;
