@@ -190,12 +190,12 @@ const post = (route, cookie, body) => context(new Request(`https://shop.test/api
 const id = suffix => `aaaaaaaa-aaaa-4aaa-8aaa-${String(suffix).padStart(12, "0")}`;
 
 const originalProducts = [
-  { id: 21, name: "Jacket", names: { en: "Jacket" }, colors: ["#f00", "#00f"], colorNames: ["Red", "Blue"], sizes: ["S", "M"], variants: [
+  { id: 21, name: "Jacket", names: { en: "Jacket" }, price: 12000, colors: ["#f00", "#00f"], colorNames: ["Red", "Blue"], sizes: ["S", "M"], variants: [
     { color: "#f00", size: "S", stock: 2 }, { color: "#f00", size: "M", stock: 0 },
     { color: "#00f", size: "S", stock: 4 }, { color: "#00f", size: "M", stock: 1 },
   ] },
-  { id: 22, name: "Dress", colors: ["#f00"], sizes: ["S"], variants: [{ color: "#f00", size: "S", stock: 1 }] },
-  { id: 23, name: "Legacy top", colors: ["#0f0", "#00f"], sizes: ["S", "M"], stock: 5 },
+  { id: 22, name: "Dress", price: 18000, colors: ["#f00"], sizes: ["S"], variants: [{ color: "#f00", size: "S", stock: 1 }] },
+  { id: 23, name: "Legacy top", price: 9000, colors: ["#0f0", "#00f"], sizes: ["S", "M"], stock: 5 },
 ];
 const originalRaw = JSON.stringify(originalProducts);
 DB.shop.set("shivan_shop_products", originalRaw);

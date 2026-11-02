@@ -222,7 +222,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   context.signupConfirmPass.value = "new-password-123";
   context.signupTerms.checked = true;
 
-  const names = ["getCartKey", "getCart", "saveCart", "updateCartBadge", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
+  const names = ["getProductPricing", "cartPriceSnapshot", "getCartKey", "getCart", "saveCart", "updateCartBadge", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
   const functions = names.map(source).join("\n");
   const vmContext = {
     ...context,
@@ -280,6 +280,7 @@ assert.equal(loginCtx.selectedColor, detailBefore.color);
 assert.equal(loginCtx.currentQty, detailBefore.quantity);
 assert.equal(loginCart.length, 1, "the pending item is added exactly once after Login");
 assert.deepEqual({ productId: loginCart[0].productId, size: loginCart[0].size, color: loginCart[0].color, qty: loginCart[0].qty }, { productId: detailBefore.productId, size: detailBefore.size, color: detailBefore.color, qty: detailBefore.quantity });
+assert.equal(loginCart[0].price, 42000, "no-discount guest purchases should preserve the existing original price");
 assert.equal(loginCtx.navCartBadge.textContent, 2, "the cart badge reflects the saved quantity");
 assert.ok(loginCtx.toasts.some(message => message.includes("سەبەت")), "adding after Login shows the existing compact success toast");
 loginCtx.testApi.resumeAuthenticationIntent();

@@ -75,6 +75,31 @@ const asJson = (value, fallback = null) => {
   try { return JSON.parse(value); } catch { return fallback; }
 };
 
+function productPriceDetails(product) {
+  const invalid = () => {
+    const exception = new Error("Product price or discount is invalid.");
+    exception.code = "INVALID_PRODUCT_PRICING";
+    return exception;
+  };
+  const parseWholeNumber = value => {
+    if (typeof value === "number") return Number.isSafeInteger(value) ? value : NaN;
+    if (typeof value === "string" && /^\d+$/.test(value.trim())) return Number(value.trim());
+    return NaN;
+  };
+  const originalPrice = parseWholeNumber(product?.price);
+  if (!product || typeof product !== "object" || Array.isArray(product) || !Number.isSafeInteger(originalPrice) || originalPrice < 0) throw invalid();
+  const hasDiscount = Object.prototype.hasOwnProperty.call(product, "discount") && product.discount !== null && product.discount !== "";
+  const discountPercent = hasDiscount ? parseWholeNumber(product.discount) : 0;
+  if (hasDiscount && (!Number.isInteger(discountPercent) || discountPercent < 1 || discountPercent > 99)) throw invalid();
+  const finalPrice = Number((BigInt(originalPrice) * BigInt(100 - discountPercent) + 50n) / 100n);
+  if (!Number.isSafeInteger(finalPrice) || finalPrice < 0) throw invalid();
+  return { originalPrice, discountPercent, finalPrice };
+}
+
+function validateProductPriceDetails(products) {
+  for (const product of products) productPriceDetails(product);
+}
+
 function createVariantQrId(used = new Set()) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const id = crypto.randomUUID().toLowerCase();
@@ -475,7 +500,11 @@ async function handleCreateFibPayment(request, env, account) {
     const product = products.find(entry => Number(entry.id) === productId);
     const variant = product?.variants?.find(entry => String(entry.size) === size && String(entry.color).toLowerCase() === color);
     if (!variant || Number(variant.stock) < (requested.get(key) || quantity)) return error("A selected size or color is no longer available.", 409);
-    amount += Math.max(0, Math.floor(Number(product.price) || 0)) * quantity;
+    let pricing;
+    try { pricing = productPriceDetails(product); }
+    catch { return error("A product price or discount is invalid. Refresh the shop and try again.", 409); }
+    amount += pricing.finalPrice * quantity;
+    if (!Number.isSafeInteger(amount)) return error("The payment total is invalid.", 409);
   }
   if (amount <= 250) return error("FIB requires a payment amount greater than 250 IQD.");
 
@@ -556,6 +585,7 @@ async function saveShopValue(env, key, rawValue, requestId = "") {
     const parsed = asJson(value);
     if (!Array.isArray(parsed)) throw new Error("Shop data must be a list.");
     if (key === PRODUCTS_KEY) {
+      validateProductPriceDetails(parsed);
       const previousRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
       const previousProducts = asJson(previousRow?.value, []);
       value = JSON.stringify(normalizeProductQrIds(parsed, Array.isArray(previousProducts) ? previousProducts : []));
@@ -902,6 +932,9 @@ async function handleSync(request, env, account) {
       if (exception?.code === "INVALID_PROMOTIONAL_IMAGES") {
         return tracedError(exception.message, 400, requestId, exception.code, "shop.sync.validate");
       }
+      if (exception?.code === "INVALID_PRODUCT_PRICING") {
+        return tracedError("Product price or discount is invalid. Use a whole nonnegative IQD price and a discount from 1% to 99%.", 400, requestId, exception.code, "shop.sync.validate");
+      }
       const tooLarge = exception instanceof RangeError;
       const code = tooLarge ? "IMAGE_LIMIT_EXCEEDED" : d1FailureCode(exception);
       logOwnerSave(isProductSave ? "product.sync.d1_write_failed" : "shop.sync.d1_write_failed", requestId, {
@@ -971,9 +1004,15 @@ async function handleSync(request, env, account) {
           requested.set(itemKey, (requested.get(itemKey) || 0) + quantity);
           const product = products.find(entry => Number(entry.id) === productId);
           if (!product) return error("A selected product is no longer available.", 409);
-          const price = Math.max(0, Math.floor(Number(product.price) || 0));
-          trustedItems.push({ ...item, productId, size, color, qty: quantity, price });
-          trustedTotal += price * quantity;
+          let pricing;
+          try { pricing = productPriceDetails(product); }
+          catch { return error("A product price or discount is invalid. Refresh the shop and try again.", 409); }
+          const trustedItem = { ...item, productId, size, color, qty: quantity, price: pricing.finalPrice, originalPrice: pricing.originalPrice };
+          delete trustedItem.discount;
+          if (pricing.discountPercent) trustedItem.discount = pricing.discountPercent;
+          trustedItems.push(trustedItem);
+          trustedTotal += pricing.finalPrice * quantity;
+          if (!Number.isSafeInteger(trustedTotal)) return error("The order total is invalid.", 409);
         }
         for (const [itemKey, quantity] of requested) {
           const [productId, size, color] = JSON.parse(itemKey);

@@ -16,6 +16,15 @@ for (const [index, script] of inlineScripts.entries()) {
   catch (exception) { throw new Error(`Storefront script ${index + 1} has a syntax error: ${exception.message}`); }
 }
 const productSaveSource = htmlSource.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
+const productPricingSource = htmlSource.match(/function getProductPricing\(product\)\{[\s\S]*?\n\}/)?.[0] || "";
+const renderPriceBreakdownSource = htmlSource.match(/function renderPriceBreakdown\(originalPrice,finalPrice,discountPercent,\{badge=false\}=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
+const renderProductPricingSource = htmlSource.match(/function renderProductPricing\(product,options=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
+const ownerDiscountPreviewSource = htmlSource.match(/function updateOwnerDiscountPreview\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+const cartItemPricingSource = htmlSource.match(/function cartItemPricing\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
+const renderCartItemPriceSource = htmlSource.match(/function renderCartItemPrice\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
+const cartPriceSnapshotSource = htmlSource.match(/function cartPriceSnapshot\(product\)\{[\s\S]*?\n\}/)?.[0] || "";
+const cartItemCheckoutSnapshotSource = htmlSource.match(/function cartItemCheckoutSnapshot\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
+const renderOrderItemPriceSource = htmlSource.match(/function renderOrderItemPrice\(item\)\{[\s\S]*?\n\}/)?.[0] || "";
 const inventoryDraftSource = htmlSource.match(/function readOwnerInventoryDraft\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const inventoryRendererSource = htmlSource.match(/function renderOwnerInventoryMatrix\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const inventoryTotalSource = htmlSource.match(/function updateOwnerInventoryTotal\(\)\{[\s\S]*?\n\}/)?.[0] || "";
@@ -75,6 +84,84 @@ assert.match(cloudRequestSource, /AbortController/, "owner cloud requests need a
 assert.match(resetPasswordSource, /if\(cloudMode\)[\s\S]*?cloud passwords can only be changed after signing in/i, "the hosted forgot-password flow must not bypass account verification");
 assert.match(htmlSource, /stock-line \$\{\(Number\(p\.stock\)\|\|0\)<=0\?"out-of-stock":""\}/, "zero-stock products should receive the out-of-stock status style");
 assert.match(htmlSource, /بەردەست نەماوە/, "the storefront should show a localized out-of-stock label");
+assert.ok(productPricingSource, "the storefront should calculate a shared product price breakdown");
+assert.match(productSaveSource, /ownerProductDiscount/, "Owner product saves should include the optional discount field");
+assert.match(productSaveSource, /validDiscount/, "Owner product saves should reject invalid discount percentages before writing");
+assert.match(htmlSource, /id="ownerProductDiscount" type="number" min="1" max="99" step="1"/, "the Owner form should constrain the optional discount to whole values from 1 through 99");
+assert.match(htmlSource, /id="ownerDiscountPreview"[^>]*aria-live="polite"/, "the Owner form should display an accessible final-price preview");
+assert.match(htmlSource, /productDiscountPercent\(p\).*product-discount-badge/s, "discounted product cards should show a red percentage badge on the image");
+assert.match(htmlSource, /detailPrice"\)\.innerHTML=renderProductPricing\(p,\{badge:true\}\)/, "product details should show original, discounted price, and the percentage");
+assert.match(htmlSource, /renderProductPricing\(item,\{badge:true\}\)/, "the Owner list should show the same discounted price breakdown");
+assert.match(htmlSource, /function renderCartItemPrice\(item\)/, "cart items should display their effective discounted totals");
+assert.match(htmlSource, /cartItemPricing\(item\)\.finalPrice/, "cart and checkout totals should use the final discounted unit price");
+assert.match(htmlSource, /items:cart\.map\(cartItemCheckoutSnapshot\)/, "orders should preserve the selected final and original price snapshot");
+assert.match(htmlSource, /renderOrderItemPrice\(item\)/, "customer and Owner order history should show saved item price breakdowns");
+
+const priceSandbox = {
+  Number,
+  BigInt,
+  formatPrice: price => `${Number(price).toLocaleString("en-US")} IQD`,
+};
+const productPricing = runInNewContext(`${productPricingSource}\n${renderPriceBreakdownSource}\n${renderProductPricingSource}\n({getProductPricing,renderProductPricing})`, priceSandbox);
+assert.deepEqual({ ...productPricing.getProductPricing({ price: 12000 }) }, { originalPrice: 12000, discountPercent: 0, finalPrice: 12000 }, "products without a discount should keep the original price");
+for (const [percent, expected] of [[10,10800],[20,9600],[30,8400],[50,6000],[99,120],[1,11880]]) {
+  const pricing = productPricing.getProductPricing({ price: 12000, discount: percent });
+  assert.equal(pricing.finalPrice, expected, `${percent}% should calculate the correct IQD final price`);
+  const markup = productPricing.renderProductPricing({ price: 12000, discount: percent }, { badge: true });
+  assert.match(markup, /original-price/, "a discounted price should retain its struck-through original amount");
+  assert.match(markup, /discounted-price/, "a discounted price should emphasize the final amount");
+  assert.match(markup, new RegExp(`-${percent}%`), "product details should show the discount percentage");
+}
+for (const discount of [0,100,-1,30.5,"bad"]) assert.equal(productPricing.getProductPricing({ price: 12000, discount }), null, `invalid discount ${discount} should not be priced as a valid offer`);
+
+const previewElements = new Map([
+  ["ownerProductPrice", { value: "12000" }],
+  ["ownerProductDiscount", { value: "30", setAttribute(name, value) { this[name] = value; } }],
+  ["ownerDiscountPreview", { textContent: "" }],
+]);
+const previewSandbox = {
+  document: { getElementById: id => previewElements.get(id) || null },
+  getProductPricing: productPricing.getProductPricing,
+  formatPrice: price => `${Number(price).toLocaleString("en-US")} IQD`,
+};
+const updateDiscountPreview = runInNewContext(`${ownerDiscountPreviewSource}\nupdateOwnerDiscountPreview`, previewSandbox);
+assert.equal(updateDiscountPreview(), true, "a valid Owner discount should render a final-price preview");
+assert.match(previewElements.get("ownerDiscountPreview").textContent, /8,400 IQD after 30% off 12,000 IQD/);
+previewElements.get("ownerProductDiscount").value = "";
+assert.equal(updateDiscountPreview(), true, "blank discount should remain a valid no-discount product");
+assert.match(previewElements.get("ownerDiscountPreview").textContent, /12,000 IQD \(no discount\)/);
+previewElements.get("ownerProductDiscount").value = "100";
+assert.equal(updateDiscountPreview(), false, "an invalid Owner discount should be rejected before saving");
+assert.match(previewElements.get("ownerDiscountPreview").textContent, /from 1 to 99/);
+
+const cartPricingProduct = { id: 7, price: 12000, discount: 30 };
+const cartPricingSandbox = {
+  products: [cartPricingProduct],
+  getProductPricing: productPricing.getProductPricing,
+  formatPrice: price => `${Number(price).toLocaleString("en-US")} IQD`,
+};
+const cartPricingFns = runInNewContext(`${renderPriceBreakdownSource}\n${cartItemPricingSource}\n${renderCartItemPriceSource}\n${cartPriceSnapshotSource}\n${cartItemCheckoutSnapshotSource}\n${renderOrderItemPriceSource}\n({cartItemPricing,renderCartItemPrice,cartPriceSnapshot,cartItemCheckoutSnapshot,renderOrderItemPrice})`, cartPricingSandbox);
+const priorCartItem = { productId: 7, price: 12000, qty: 2, size: "M", color: "#ff0000" };
+assert.equal(cartPricingFns.cartItemPricing(priorCartItem).finalPrice, 8400, "a cart should apply the current product discount once");
+const cartMarkup = cartPricingFns.renderCartItemPrice(priorCartItem);
+assert.match(cartMarkup, /24,000 IQD/, "cart should preserve the original extended price for reference");
+assert.match(cartMarkup, /16,800 IQD/, "cart should use the discounted extended price");
+assert.match(cartMarkup, /-30%/, "cart should show the current discount percentage");
+const checkoutSnapshot = cartPricingFns.cartItemCheckoutSnapshot(priorCartItem);
+assert.equal(checkoutSnapshot.price, 8400, "checkout should snapshot the already discounted unit price");
+assert.equal(checkoutSnapshot.originalPrice, 12000, "checkout should snapshot the original unit price");
+assert.equal(checkoutSnapshot.discount, 30, "checkout should snapshot the discount exactly once");
+assert.equal(cartPricingProduct.price, 12000, "applying a discount must never mutate the original product price");
+assert.equal(cartPricingFns.cartItemPricing(checkoutSnapshot).finalPrice, 8400, "a checkout snapshot must not receive the discount twice");
+const orderMarkup = cartPricingFns.renderOrderItemPrice(checkoutSnapshot);
+assert.match(orderMarkup, /24,000 IQD/);
+assert.match(orderMarkup, /16,800 IQD/);
+cartPricingProduct.discount = undefined;
+assert.equal(cartPricingFns.cartItemPricing(checkoutSnapshot).finalPrice, 12000, "removing an active product discount should restore its original price for existing discounted cart items");
+assert.equal(cartPricingFns.cartItemPricing({ productId: 7, price: 11000, qty: 1 }).finalPrice, 11000, "legacy no-discount cart prices should retain their existing snapshot behavior");
+const noDiscountSnapshot = cartPricingFns.cartItemCheckoutSnapshot(checkoutSnapshot);
+assert.equal(Object.hasOwn(noDiscountSnapshot, "discount"), false, "checkout should remove a discount that the Owner has removed");
+assert.equal(Object.hasOwn(noDiscountSnapshot, "originalPrice"), false, "checkout should clear the previous discount reference when no discount remains");
 
 let cropDelegatedClick = null;
 const cropDelegatedModal = {
@@ -136,6 +223,7 @@ class MemoryD1 {
   shop = new Map();
   accounts = new Map();
   sessions = new Map();
+  orders = new Map();
   failNextProductWrite = false;
   failNextMediaWrite = false;
   failNextProductResult = false;
@@ -174,6 +262,10 @@ class MemoryD1 {
   }
 
   async first(sql, values) {
+    if (sql.includes("FROM orders WHERE id=?")) {
+      const order = this.orders.get(values[0]);
+      return order ? { account_id: order.account_id } : null;
+    }
     if (sql.includes("FROM accounts WHERE role='owner'")) {
       const row = [...this.accounts.values()].find(account => account.role === "owner");
       return row ? { id: row.id } : null;
@@ -185,8 +277,9 @@ class MemoryD1 {
       const account = this.accounts.get(session.accountId);
       return account ? { id: account.id, identifier: account.identifier, name: account.name, role: account.role } : null;
     }
-    if (sql.includes("FROM shop_state WHERE key=?")) {
-      const value = this.shop.get(values[0]);
+    if (sql.includes("FROM shop_state WHERE key=?") || sql.includes("FROM shop_state WHERE key='shivan_shop_products'")) {
+      const key = sql.includes("key='shivan_shop_products'") ? "shivan_shop_products" : values[0];
+      const value = this.shop.get(key);
       return value === undefined ? null : { value };
     }
     if (sql.includes("FROM accounts WHERE identifier=?")) {
@@ -202,16 +295,36 @@ class MemoryD1 {
     return null;
   }
 
-  async all(sql) {
+  async all(sql, values) {
     if (sql.includes("FROM shop_state")) {
       return { results: [...this.shop.entries()]
         .filter(([key]) => !key.startsWith("media:"))
         .map(([key, value]) => ({ key, value })) };
     }
+    if (sql.includes("FROM orders")) {
+      const accountId = values?.[0];
+      return { results: [...this.orders.values()]
+        .filter(order => !sql.includes("WHERE account_id=?") || order.account_id === accountId)
+        .map(order => ({ payload: order.payload })) };
+    }
     return { results: [] };
   }
 
   async run(sql, values) {
+    if (sql.includes("UPDATE shop_state SET value=?")) {
+      const [value, , previousValue] = values;
+      if (this.shop.get("shivan_shop_products") !== previousValue) return { success: true, meta: { changes: 0 } };
+      this.shop.set("shivan_shop_products", value);
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.includes("INSERT INTO orders")) {
+      const [id, accountId, payload] = values;
+      if (sql.includes("DO NOTHING") && this.orders.has(id)) return { success: true, meta: { changes: 0 } };
+      this.orders.set(id, { account_id: accountId, payload });
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.includes("INSERT INTO user_state") && sql.includes("SELECT")) return { success: true, meta: { changes: 1 } };
+    if (sql.includes("DELETE FROM user_state")) return { success: true, meta: { changes: 1 } };
     if (sql.includes("INSERT INTO accounts")) {
       const [id, identifier, name, salt, hash, createdAt] = values;
       if ([...this.accounts.values()].some(account => account.identifier.toLowerCase() === identifier.toLowerCase())) throw new Error("Unique identifier");
@@ -365,6 +478,36 @@ assert.equal(storedProducts[0].description, "Product details", "the shared produ
 assert.match(storedProducts[0].image, /^\/api\/media\/shop\//);
 assert.equal(storedProducts[0].images[0].src, imageUrl, "the saved product must keep the uploaded cropped-image URL");
 
+const discountBaseProduct = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
+for (const percent of [1,10,20,30,50,99]) {
+  const response = await context(new Request("https://shop.test/api/sync", {
+    method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...discountBaseProduct, discount: percent }]) }),
+  }));
+  assert.equal(response.status, 200, `${percent}% product discounts should be accepted by the shared API`);
+  const savedDiscountProduct = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
+  assert.equal(savedDiscountProduct.price, 12000, "saving a discount must preserve the original product price");
+  assert.equal(savedDiscountProduct.discount, percent, "the percentage should persist as product data");
+}
+const saved99PercentProduct = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
+for (const invalidDiscount of [0,100,-1,30.5,"not-a-number"]) {
+  const response = await context(new Request("https://shop.test/api/sync", {
+    method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...saved99PercentProduct, discount: invalidDiscount }]) }),
+  }));
+  assert.equal(response.status, 400, `invalid discount ${invalidDiscount} should be rejected by the server`);
+  assert.equal((await response.json()).code, "INVALID_PRODUCT_PRICING");
+  assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].discount, 99, "a rejected discount must leave the previous shared product intact");
+}
+const discountRemovedProduct = { ...saved99PercentProduct };
+delete discountRemovedProduct.discount;
+const discountRemoval = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([discountRemovedProduct]) }),
+}));
+assert.equal(discountRemoval.status, 200, "an owner should be able to remove a saved discount");
+assert.equal(Object.hasOwn(JSON.parse(DB.shop.get("shivan_shop_products"))[0], "discount"), false, "removing a discount should omit it while preserving the original price");
+
 const reloaded = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: cookie } }));
 assert.equal(reloaded.status, 200);
 const reloadedData = await reloaded.json();
@@ -432,7 +575,7 @@ try {
   unconfirmedProductSave = await context(new Request("https://shop.test/api/sync", {
     method: "PUT",
     headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 1, name: "Unconfirmed product", image: imageUrl }]) }),
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...JSON.parse(DB.shop.get("shivan_shop_products"))[0], id: productId + 1, name: "Unconfirmed product" }]) }),
   }));
 } finally {
   console.error = originalConsoleError;
@@ -455,7 +598,7 @@ try {
   unconfirmedCroppedImageReference = await context(new Request("https://shop.test/api/sync", {
     method: "PUT",
     headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 2, name: "Product with unconfirmed crop", image: otherInlineImage }]) }),
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...JSON.parse(DB.shop.get("shivan_shop_products"))[0], id: productId + 2, name: "Product with unconfirmed crop", image: otherInlineImage, images: [{ src: otherInlineImage, color: "#ff0000" }] }]) }),
   }));
 } finally {
   console.error = originalConsoleError;
@@ -494,7 +637,7 @@ try {
   failedSave = await context(new Request("https://shop.test/api/sync", {
     method: "PUT",
     headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ id: productId + 1, name: "Unsaved product" }]) }),
+    body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...JSON.parse(DB.shop.get("shivan_shop_products"))[0], id: productId + 1, name: "Unsaved product" }]) }),
   }));
 } finally {
   console.error = originalConsoleError;
@@ -531,6 +674,67 @@ const signup = await context(new Request("https://shop.test/api/auth/signup", {
 }));
 assert.equal(signup.status, 201, "customer sign-up should work with the shared account API");
 const customerCookie = signup.headers.get("Set-Cookie").split(";")[0];
+const customerAccount = [...DB.accounts.values()].find(account => account.identifier === "customer@example.test");
+assert.ok(customerAccount, "the simulated customer account should exist for offline checkout tests");
+const orderProductBeforeDiscount = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
+const orderProductWithDiscount = { ...orderProductBeforeDiscount, discount: 30 };
+const saveOrderDiscount = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+  body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([orderProductWithDiscount]) }),
+}));
+assert.equal(saveOrderDiscount.status, 200, "the Owner should be able to save the active discount used by checkout");
+const apiDiscountProduct = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
+assert.ok(apiDiscountProduct.variants.some(variant => variant.size === "M" && variant.color.toLowerCase() === "#ff0000" && variant.stock >= 2), `the offline FIB fixture must retain the available M/red variant (${JSON.stringify(apiDiscountProduct.variants)})`);
+
+const originalFetch = globalThis.fetch;
+const fibRequests = [];
+try {
+  env.FIB_CLIENT_ID = "offline-test-client-id";
+  env.FIB_CLIENT_SECRET = "offline-test-client-secret";
+  globalThis.fetch = async (url, options = {}) => {
+    fibRequests.push({ url: String(url), options });
+    if (String(url).includes("/auth/realms/fib-online-shop/")) return new Response(JSON.stringify({ access_token: "offline-test-access-token" }), { status: 200 });
+    if (String(url).includes("/protected/v1/payments")) return new Response(JSON.stringify({
+      paymentId: "offline-discount-payment", personalAppLink: "https://fib.iq/pay/offline-test", status: "UNPAID", validUntil: "2030-01-01T00:00:00Z",
+    }), { status: 201 });
+    throw new Error("Unexpected external request in offline discount test.");
+  };
+  const fibPayment = await context(new Request("https://shop.test/api/fib/create-payment", {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: customerCookie },
+    body: JSON.stringify({ orderId: "Sdiscount-payment-regression-001", items: [{ productId, size: "M", color: "#ff0000", qty: 2 }] }),
+  }));
+  const fibPaymentData = await fibPayment.json();
+  assert.equal(fibPayment.status, 200, `the simulated FIB payment request should use the saved discounted product price (${JSON.stringify(fibPaymentData)})`);
+  assert.equal(fibPaymentData.amount, 18900, "FIB payment amount should use 30% off 13,500 IQD for two units");
+  assert.equal(JSON.parse(fibRequests[1].options.body).monetaryValue.amount, "18900", "the provider payload should contain the server-calculated discounted amount");
+} finally {
+  globalThis.fetch = originalFetch;
+  delete env.FIB_CLIENT_ID;
+  delete env.FIB_CLIENT_SECRET;
+}
+
+const discountedOrderId = "Sdiscount-order-regression-001";
+const spoofedOrder = {
+  id: discountedOrderId, userId: customerAccount.id, date: "offline test", total: 1, paymentMethod: "cash", receiptImage: "",
+  name: "Test Customer", phone: "000", city: "Test City", area: "Test Area", address: "Offline only", status: "pending",
+  items: [{ productId, size: "M", color: "#ff0000", qty: 1, price: 1, originalPrice: 999999, discount: 99 }],
+};
+const discountedOrderResponse = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: customerCookie },
+  body: JSON.stringify({ key: "shivan_shop_orders", value: JSON.stringify([spoofedOrder]) }),
+}));
+const discountedOrderResponseData = await discountedOrderResponse.json();
+assert.equal(discountedOrderResponse.status, 200, `the customer order should save with a server-confirmed discount total (${JSON.stringify(discountedOrderResponseData)})`);
+const trustedOrder = JSON.parse(DB.orders.get(discountedOrderId).payload);
+assert.equal(trustedOrder.total, 9450, "the server should calculate the 30% discounted order total from shared D1 product data");
+assert.equal(trustedOrder.items[0].price, 9450, "the saved order item should use the final discounted unit price");
+assert.equal(trustedOrder.items[0].originalPrice, 13500, "the saved order should retain the original unit price for reference");
+assert.equal(trustedOrder.items[0].discount, 30, "the saved order should retain the verified discount percentage");
+const orderReload = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: customerCookie } }));
+assert.equal(orderReload.status, 200);
+const reloadedOrders = JSON.parse((await orderReload.json()).user.shivan_shop_orders);
+assert.equal(reloadedOrders.find(order => order.id === discountedOrderId).total, 9450, "the discounted order total should survive refresh from shared D1");
+
 const customerLogin = await context(new Request("https://shop.test/api/auth/login", {
   method: "POST", headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ identifier: "customer@example.test", password: "customer-password" }),
@@ -906,6 +1110,7 @@ const productFields = new Map([
   ["ownerProductNameAr", { value: "سترة اختبار" }],
   ["ownerProductNameKu", { value: "کراسێ تاقیکردنەوە" }],
   ["ownerProductPrice", { value: "12000" }],
+  ["ownerProductDiscount", { value: "30" }],
   ["ownerProductImagesData", cropTarget],
   ["ownerProductCategory", { value: "جلوبەرگ" }],
   ["ownerProductSizes", { value: "M" }],
@@ -998,6 +1203,7 @@ const uiStoredProducts = JSON.parse(uiDB.shop.get("shivan_shop_products"));
 assert.equal(uiStoredProducts.length, 1);
 assert.equal(uiStoredProducts[0].id, 20261012001);
 assert.equal(uiStoredProducts[0].price, 12000, "the Owner form should save the entered product price");
+assert.equal(uiStoredProducts[0].discount, 30, "the Owner form should save the optional discount percentage");
 assert.deepEqual(uiStoredProducts[0].sizes, ["M"], "the Owner form should save selected sizes");
 assert.deepEqual(uiStoredProducts[0].colors, ["#ff0000"], "the Owner form should save selected colors");
 assert.equal(uiStoredProducts[0].variants[0].stock, 3, "the Owner form should save the stock quantity");
@@ -1015,6 +1221,7 @@ assert.equal(uiImageReload.status, 200, "the cropped image should remain readabl
 productSandbox.editingProductId = 20261012001;
 productSandbox.ownerProductWorkflowId = "owner-product-edit-regression-001";
 productFields.get("ownerProductPrice").value = "13500";
+productFields.get("ownerProductDiscount").value = "";
 productFields.get("ownerProductDescription").value = "Edited product details";
 productSandbox.readOwnerInventoryDraft = () => new Map([[JSON.stringify(["#ff0000", "M"]), "4"]]);
 await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
@@ -1022,8 +1229,18 @@ assert.equal(productApiResults[2]?.status, 200, "editing a product in the Owner 
 const uiEditedProduct = JSON.parse(uiDB.shop.get("shivan_shop_products"))[0];
 assert.equal(uiEditedProduct.id, 20261012001, "editing an Owner product must retain the existing ID");
 assert.equal(uiEditedProduct.price, 13500, "editing an Owner product should persist its new price");
+assert.equal(Object.hasOwn(uiEditedProduct, "discount"), false, "leaving the optional discount blank should remove it on edit");
 assert.equal(uiEditedProduct.stock, 4, "editing an Owner product should persist its new stock");
 assert.equal(uiEditedProduct.images[0].src, croppedPhotos[0].src, "editing product details must preserve its saved crop");
+
+const productCountBeforeInvalidDiscount = productSandbox.products.length;
+const writesBeforeInvalidDiscount = productApiResults.length;
+productFields.get("ownerProductDiscount").value = "100";
+await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
+assert.equal(productApiResults.length, writesBeforeInvalidDiscount, "the Owner form must reject an invalid percentage before calling the shared API");
+assert.equal(productSandbox.products.length, productCountBeforeInvalidDiscount, "an invalid percentage must not mutate the local product list");
+assert.match(productToasts.at(-1), /from 1 to 99/);
+productFields.get("ownerProductDiscount").value = "";
 
 const productCountBeforeLimit = productSandbox.products.length;
 const apiWriteCountBeforeLimit = productApiResults.length;
@@ -1040,4 +1257,4 @@ assert.ok(ownerSaveLogLines.some(line => line.includes("product.sync.d1_write_co
 assert.equal(ownerSaveLogLines.join("\n").includes("long-test-password"), false, "server diagnostics must not log passwords");
 assert.equal(ownerSaveLogLines.join("\n").includes("07502342153"), false, "server diagnostics must not log owner identifiers");
 
-console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer signup/login/password-change/logout and permissions, product create/edit/delete fields and stock persistence, bounded numeric stock matrix and 120-variant limit, reduced crop compression attempts, delegated mobile crop actions, cancel-during-processing abort without attaching an image, bounded canvas-encoding timeout with a clear recoverable error, category/banner/image shared storage, explicit D1 acknowledgments and traced failures, outbox fallback, bounded portrait/landscape mobile crop and resource cleanup, failed-preparation recovery, crop and product-save recovery without duplicate IDs, refresh and second-device reads, safe request-correlated diagnostics, legacy R2 read compatibility with no new R2 writes, public catalog-image access, sync payload filtering, and D1-safe image-size limits.`);
+console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer signup/login/password-change/logout and permissions, product create/edit/delete fields, optional discount validation/preview/removal, 1/10/20/30/50/99% price calculations, discount cart snapshots and no-double-discount behavior, server-verified FIB and order totals, original-price order history and refresh, shared product/discount persistence, bounded numeric stock matrix and 120-variant limit, reduced crop compression attempts, delegated mobile crop actions, cancel-during-processing abort without attaching an image, bounded canvas-encoding timeout with a clear recoverable error, category/banner/image shared storage, explicit D1 acknowledgments and traced failures, outbox fallback, bounded portrait/landscape mobile crop and resource cleanup, failed-preparation recovery, crop and product-save recovery without duplicate IDs, refresh and second-device reads, safe request-correlated diagnostics, legacy R2 read compatibility with no new R2 writes, public catalog-image access, sync payload filtering, and D1-safe image-size limits.`);

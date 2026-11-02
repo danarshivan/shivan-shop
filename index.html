@@ -686,6 +686,17 @@ button{
   transition:.2s;
 }
 
+.product-discount-badge{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:3px 8px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:#d83d50;color:#fff;font-size:11px;font-weight:900;line-height:1;box-shadow:0 3px 12px rgba(216,61,80,.28)}
+.discount-price-layout{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px;line-height:1.35}
+.discount-price-values{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px}
+.original-price{color:#9b9eaa;font-size:.82em;font-weight:500;text-decoration:line-through;text-decoration-thickness:1.5px}
+.discounted-price{color:#a486ff;font:inherit;font-weight:900}
+.discount-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:999px;background:#d83d50;color:#fff;font-size:10px;font-weight:900;line-height:1.1;white-space:nowrap}
+.cart-sale-prices{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px}
+.order-item-price{display:block;margin-top:3px}
+.owner-discount-preview{min-height:20px;margin:0;color:#c9bbff;font-size:12px;line-height:1.5}
+.owner-discount-hint{display:block;color:#9da2b4;font-size:11px;line-height:1.45}
+
 .product:active{
   transform:scale(.98);
 }
@@ -6191,7 +6202,7 @@ function mergeGuestCartAfterAuthentication(snapshot){
     if(matching.length){matching[0].qty=Math.min(Number(variant.stock),currentQty+accepted);}
     else cart.push({
       id:Date.now()+cart.length,productId:product.id,name:getProductName(product),names:{...(product.names||{}),ku:product.names?.ku||product.name||""},
-      price:product.price,image:productPhotos(product).find(photo=>normalizeHexColor(photo.color)===item.color)?.src||product.image,
+      ...cartPriceSnapshot(product),image:productPhotos(product).find(photo=>normalizeHexColor(photo.color)===item.color)?.src||product.image,
       size:item.size,color:item.color,colorName:getProductColorLabel(product,item.color),qty:accepted
     });
   }
@@ -6693,6 +6704,8 @@ function renderProducts(list, target="productsGrid", append=false){
         ${isFavorite(p.id)?"♥":"♡"}
       </button>
 
+      ${productDiscountPercent(p)?`<span class="product-discount-badge" aria-label="${productDiscountPercent(p)} percent off">-${productDiscountPercent(p)}%</span>`:""}
+
       <img
         class="product-img"
         src="${escapeHtml(safeImageUrl(p.image))}"
@@ -6706,7 +6719,7 @@ function renderProducts(list, target="productsGrid", append=false){
         <div class="product-name" data-product-name-id="${p.id}">${escapeHtml(getProductName(p))}</div>
 
         <div class="price">
-          ${formatPrice(p.price)}
+          ${renderProductPricing(p)}
         </div>
         <div class="stock-line ${(Number(p.stock)||0)<=0?"out-of-stock":""}" role="status">${(Number(p.stock)||0)<=0?translateText("بەردەست نەماوە"):`بەردەست: ${Math.max(0,Number(p.stock)||0)}`}</div>
 
@@ -6896,7 +6909,7 @@ function openProduct(id,options={}){
   if(options.restoreSnapshot)currentQty=Math.max(1,Math.floor(Number(options.restoreSnapshot.quantity)||1));
 
   document.getElementById("detailName").textContent=getProductName(p);
-  document.getElementById("detailPrice").textContent=formatPrice(p.price);
+  document.getElementById("detailPrice").innerHTML=renderProductPricing(p,{badge:true});
   document.getElementById("detailDescription").textContent=p.description;
   renderDetailGallery(true,selectedColor);
   renderSizeOptions();
@@ -7362,7 +7375,7 @@ function addDetailToCart(){
     productId:currentProduct.id,
     name:getProductName(currentProduct),
     names:{...(currentProduct.names||{}),ku:currentProduct.names?.ku||currentProduct.name||""},
-    price:currentProduct.price,
+    ...cartPriceSnapshot(currentProduct),
     image:currentProduct.image,
     size:selectedSize,
     color:selectedColor,
@@ -7399,7 +7412,7 @@ function quickAdd(id){
     productId:p.id,
     name:getProductName(p),
     names:{...(p.names||{}),ku:p.names?.ku||p.name||""},
-    price:p.price,
+    ...cartPriceSnapshot(p),
     image:p.image,
     size:variant.size,
     color:variant.color,
@@ -7689,6 +7702,80 @@ function formatPrice(price){
 
 }
 
+function getProductPricing(product){
+  const originalPrice=Number(product?.price);
+  const rawDiscount=product?.discount;
+  const hasDiscount=rawDiscount!==undefined&&rawDiscount!==null&&rawDiscount!=="";
+  const discountPercent=hasDiscount?Number(rawDiscount):0;
+  if(!Number.isSafeInteger(originalPrice)||originalPrice<0)return null;
+  if(hasDiscount&&(!Number.isInteger(discountPercent)||discountPercent<1||discountPercent>99))return null;
+  const finalPrice=Number((BigInt(originalPrice)*BigInt(100-discountPercent)+50n)/100n);
+  if(!Number.isSafeInteger(finalPrice)||finalPrice<0)return null;
+  return {originalPrice,discountPercent,finalPrice};
+}
+
+function productDiscountPercent(product){return getProductPricing(product)?.discountPercent||0}
+
+function renderPriceBreakdown(originalPrice,finalPrice,discountPercent,{badge=false}={}){
+  if(!discountPercent)return formatPrice(finalPrice);
+  return `<span class="discount-price-layout"><span class="discount-price-values"><del class="original-price">${formatPrice(originalPrice)}</del><strong class="discounted-price">${formatPrice(finalPrice)}</strong></span>${badge?`<span class="discount-pill">-${discountPercent}%</span>`:""}</span>`;
+}
+
+function renderProductPricing(product,options={}){
+  const pricing=getProductPricing(product);
+  return pricing?renderPriceBreakdown(pricing.originalPrice,pricing.finalPrice,pricing.discountPercent,options):formatPrice(Math.max(0,Number(product?.price)||0));
+}
+
+function cartItemPricing(item){
+  const product=products.find(entry=>String(entry.id)===String(item?.productId));
+  const currentPricing=product?getProductPricing(product):null;
+  const hasDiscountSnapshot=item?.discount!==undefined&&item?.discount!==null&&item?.discount!=="";
+  if(currentPricing&&(currentPricing.discountPercent>0||hasDiscountSnapshot))return currentPricing;
+  if(!currentPricing&&hasDiscountSnapshot){
+    const originalPrice=Number(item.originalPrice);
+    const discountPercent=Number(item.discount);
+    const finalPrice=Number(item.price);
+    if(Number.isSafeInteger(originalPrice)&&originalPrice>=0&&Number.isInteger(discountPercent)&&discountPercent>=1&&discountPercent<=99&&Number.isSafeInteger(finalPrice)&&finalPrice>=0){
+      return {originalPrice,discountPercent,finalPrice};
+    }
+  }
+  const price=Math.max(0,Number(item?.price)||0);
+  return {originalPrice:price,discountPercent:0,finalPrice:price};
+}
+
+function cartPriceSnapshot(product){
+  const pricing=getProductPricing(product);
+  return pricing?.discountPercent?{price:pricing.finalPrice,originalPrice:pricing.originalPrice,discount:pricing.discountPercent}:{price:product.price};
+}
+
+function cartItemCheckoutSnapshot(item){
+  const pricing=cartItemPricing(item);
+  const snapshot={...item,price:pricing.finalPrice};
+  delete snapshot.originalPrice;
+  delete snapshot.discount;
+  if(pricing.discountPercent){snapshot.originalPrice=pricing.originalPrice;snapshot.discount=pricing.discountPercent;}
+  return snapshot;
+}
+
+function renderCartItemPrice(item){
+  const quantity=Math.max(1,Math.floor(Number(item?.qty)||1));
+  const pricing=cartItemPricing(item);
+  return pricing.discountPercent
+    ?`<span class="cart-sale-prices">${renderPriceBreakdown(pricing.originalPrice*quantity,pricing.finalPrice*quantity,pricing.discountPercent,{badge:true})}</span>`
+    :formatPrice(pricing.finalPrice*quantity);
+}
+
+function renderOrderItemPrice(item){
+  const quantity=Math.max(1,Math.floor(Number(item?.qty)||1));
+  const price=Math.max(0,Number(item?.price)||0);
+  const originalPrice=Number(item?.originalPrice);
+  const discountPercent=Number(item?.discount);
+  if(Number.isSafeInteger(originalPrice)&&originalPrice>=0&&Number.isInteger(discountPercent)&&discountPercent>=1&&discountPercent<=99){
+    return renderPriceBreakdown(originalPrice*quantity,price*quantity,discountPercent,{badge:true});
+  }
+  return formatPrice(price*quantity);
+}
+
 
 /* =========================================
    SEARCH
@@ -7805,7 +7892,7 @@ function renderCart(){
         </div>
 
         <div class="price">
-          ${formatPrice(item.price * item.qty)}
+          ${renderCartItemPrice(item)}
         </div>
 
       </div>
@@ -7821,7 +7908,7 @@ function renderCart(){
   `).join("");
 
   const total=cart.reduce(
-    (sum,item)=>sum+(item.price*item.qty),
+    (sum,item)=>sum+(cartItemPricing(item).finalPrice*(Number(item.qty)||1)),
     0
   );
 
@@ -8128,7 +8215,7 @@ async function placeOrder(autoFib=false){
   }
 
   const total=cart.reduce(
-    (sum,item)=>sum+(item.price*item.qty),
+    (sum,item)=>sum+(cartItemPricing(item).finalPrice*(Number(item.qty)||1)),
     0
   );
 
@@ -8143,7 +8230,7 @@ async function placeOrder(autoFib=false){
     id:orderId,
     userId:currentUser.id,
     date:new Date().toLocaleString("ku-IQ"),
-    items:cart,
+    items:cart.map(cartItemCheckoutSnapshot),
     total,
     name,
     phone,
@@ -8253,7 +8340,8 @@ function renderOrders(){
                 <div class="order-item-copy">
                   <strong>${escapeHtml(getCartItemName(item))}</strong>
                   <small>${escapeHtml(translateText("ڕەنگ"))}: ${escapeHtml(translateText(item.colorName||item.color||"—"))}</small>
-                  <small>${escapeHtml(translateText("قیاس"))}: ${escapeHtml(translateText(item.size||"—"))} · ${escapeHtml(translateText("ژمارە"))}: ${Number(item.qty)||1}</small>
+                   <small>${escapeHtml(translateText("قیاس"))}: ${escapeHtml(translateText(item.size||"—"))} · ${escapeHtml(translateText("ژمارە"))}: ${Number(item.qty)||1}</small>
+                   <small class="order-item-price">${renderOrderItemPrice(item)}</small>
                 </div>
               </div>
             `).join("")}
@@ -8794,7 +8882,11 @@ function renderOwnerProducts(box){
         <label for="ownerProductNameKu">ناڤێ کوردی</label>
         <input id="ownerProductNameKu" required maxlength="100" placeholder="ناڤێ کوردی" dir="rtl" value="${escapeHtml(productNames.ku||"")}">
       </div>
-      <input id="ownerProductPrice" type="number" min="0" step="1" required placeholder="نرخ بە دینار" value="${product?.price??""}">
+       <input id="ownerProductPrice" type="number" min="0" step="1" required placeholder="نرخ بە دینار" value="${product?.price??""}" oninput="updateOwnerDiscountPreview()">
+       <label for="ownerProductDiscount">Discount (%)</label>
+       <input id="ownerProductDiscount" type="number" min="1" max="99" step="1" inputmode="numeric" placeholder="Optional: 1–99%" value="${product?.discount??""}" oninput="updateOwnerDiscountPreview()">
+       <small class="owner-discount-hint">Leave blank for the original price. Enter a whole percentage from 1 to 99.</small>
+       <p id="ownerDiscountPreview" class="owner-discount-preview" role="status" aria-live="polite"></p>
       <label for="ownerProductCategory">جۆری بەرهەم</label>
       <select id="ownerProductCategory" required>${ownerCategoryOptions(product?.category||DEFAULT_CATEGORIES[0])}</select>
       <input id="ownerProductSizes" required placeholder="قیاس، بۆ نموونە S, M, L" value="${escapeHtml(product?.sizes?.join(", ")||"")}" onchange="renderOwnerInventoryMatrix()">
@@ -8839,7 +8931,7 @@ function renderOwnerProducts(box){
       ${products.length?products.map(item=>`
         <div class="owner-list-item">
           <img src="${escapeHtml(safeImageUrl(item.image))}" alt="">
-          <div class="owner-list-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${formatPrice(item.price)} · ${Number(item.stock)||0} دانە · ${(item.variants||[]).length} جۆر</small></div>
+          <div class="owner-list-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${renderProductPricing(item,{badge:true})} · ${Number(item.stock)||0} دانە · ${(item.variants||[]).length} جۆر</small></div>
           <div class="owner-actions"><button type="button" onclick="editOwnerProduct(${item.id})">دەستکاری</button><button type="button" class="danger" onclick="deleteOwnerProduct(${item.id})">سڕینەوە</button></div>
         </div>
       `).join(""):"<p>هێشتا هیچ بەرهەمێک زیاد نەکراوە.</p>"}
@@ -8851,8 +8943,29 @@ function renderOwnerProducts(box){
     renderOwnerColorPalette();
     renderOwnerInventoryMatrix();
     renderOwnerProductPhotoList();
+    updateOwnerDiscountPreview();
   }
   if(ownerProductMode==="categories")bindOwnerCategoryManager();
+}
+
+function updateOwnerDiscountPreview(){
+  const priceInput=document.getElementById("ownerProductPrice");
+  const discountInput=document.getElementById("ownerProductDiscount");
+  const preview=document.getElementById("ownerDiscountPreview");
+  if(!priceInput||!discountInput||!preview)return false;
+  const priceRaw=String(priceInput.value??"").trim();
+  const discountRaw=String(discountInput.value??"").trim();
+  const price=Number(priceRaw);
+  const validPrice=priceRaw!==""&&Number.isSafeInteger(price)&&price>=0;
+  const discount=discountRaw===""?null:Number(discountRaw);
+  const validDiscount=discount===null||(Number.isInteger(discount)&&discount>=1&&discount<=99);
+  discountInput.setAttribute?.("aria-invalid",validDiscount?"false":"true");
+  if(!validPrice){preview.textContent="Enter a whole nonnegative price to preview the final amount.";return false;}
+  if(!validDiscount){preview.textContent="Discount must be a whole percentage from 1 to 99.";return false;}
+  const pricing=getProductPricing(discount===null?{price}:{price,discount});
+  if(!pricing){preview.textContent="This price cannot be calculated safely.";return false;}
+  preview.textContent=discount===null?`Final price: ${formatPrice(pricing.finalPrice)} (no discount).`:`Final price: ${formatPrice(pricing.finalPrice)} after ${discount}% off ${formatPrice(pricing.originalPrice)}.`;
+  return true;
 }
 
 function parseOwnerColorEntries(raw){
@@ -8937,6 +9050,10 @@ async function saveOwnerProduct(event){
     };
     const name=names.ku||names.en||names.ar;
     const price=Number(document.getElementById("ownerProductPrice").value);
+    const discountRaw=String(document.getElementById("ownerProductDiscount")?.value??"").trim();
+    const discount=discountRaw===""?null:Number(discountRaw);
+    const validPrice=Number.isSafeInteger(price)&&price>=0;
+    const validDiscount=discount===null||(Number.isInteger(discount)&&discount>=1&&discount<=99);
     const images=readOwnerProductPhotos();
     const image=images[0]?.src||"";
     const category=document.getElementById("ownerProductCategory").value.trim();
@@ -8961,13 +9078,14 @@ async function saveOwnerProduct(event){
     const validInventory=variants.length===colors.length*sizes.length&&variants.every(item=>Number.isInteger(item.stock)&&item.stock>=0);
     const validColors=colors.length>0&&new Set(colors).size===colors.length&&colorTokens.length===colors.length;
     const validImages=images.length>0&&images.every(photo=>safeImageUrl(photo.src)&&(!photo.color||colors.includes(photo.color)));
-    if(!names.en||!names.ar||!names.ku||!Number.isFinite(price)||price<0||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
+    if(!names.en||!names.ar||!names.ku||!validPrice||!validDiscount||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
       ownerSaveDiagnostic("product.validation_failed",{requestId,stage:"owner_form",code:"INVALID_PRODUCT_FIELDS"});
-      showToast("تکایە هەموو زانیارییێن دروست بنڤیسە.");
+      showToast(validDiscount?"تکایە هەموو زانیارییێن دروست بنڤیسە.":"Discount must be a whole percentage from 1 to 99, or left blank.");
       return;
     }
     const stock=variants.reduce((sum,item)=>sum+item.stock,0);
     record={id:editingProductId??createOwnerProductId(),name,names,price,image,images,category,sizes,colors,colorNames,variants,stock,description};
+    if(discount!==null)record.discount=discount;
     const index=products.findIndex(item=>item.id===record.id);
     const previous=index<0?null:products[index];
     if(index<0) products.unshift(record); else products[index]=record;
@@ -9169,7 +9287,7 @@ function renderOwnerOrders(box){
         <p style="color:#aaa">${escapeHtml(order.address)}</p>
         ${order.paymentMethod?`<p class="order-payment">${escapeHtml(translateText("شێوازی پارەدان"))}: ${escapeHtml(paymentMethodLabel(order.paymentMethod,order))}</p>`:""}
         ${order.paymentMethod==="fib"?`<p class="order-payment">${escapeHtml(translateText(order.fibPaymentTest?"FIB mock test (simulated; no real transfer)":order.paymentStatus==="PAID"?"پارەدان ل FIB پشتڕاستکرایە":receiptUrl?"پسوول بۆ پشتڕاستکردنەوە هاتە بارکرن":"پسوولا FIB نەهاتییە بارکرن."))}</p>${receiptUrl?`<div class="owner-order-receipt"><strong>${escapeHtml(translateText("پسوول بۆ پشتڕاستکردنەوە هاتە بارکرن"))}</strong><a href="${escapeHtml(receiptUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(receiptUrl)}" alt="${escapeHtml(translateText("پێشبینینا پسوولا پارەدان"))}" loading="lazy"></a></div>`:""}`:""}
-        <p style="color:#bbb">${(order.items||[]).map(item=>`${escapeHtml(getCartItemName(item))} × ${Number(item.qty)||1} · ${escapeHtml(item.size)} · ${escapeHtml(item.colorName||item.color)}`).join("<br>")}</p>
+         <p style="color:#bbb">${(order.items||[]).map(item=>`${escapeHtml(getCartItemName(item))} × ${Number(item.qty)||1} · ${escapeHtml(item.size)} · ${escapeHtml(item.colorName||item.color)}<br><small class="order-item-price">${renderOrderItemPrice(item)}</small>`).join("<br>")}</p>
         <p style="color:#999;font-size:12px">${escapeHtml(order.date)}</p>
         <div class="price">${formatPrice(order.total)}</div>
         <label>دۆخ</label>
