@@ -5776,10 +5776,11 @@ function hideShopOnboarding(){
   shopOnboardingTransitionTimer=0;
   shopOnboardingTransitionLocked=false;
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer)return;
-  layer.classList.remove("is-transitioning");
-  layer.hidden=true;
-  layer.setAttribute("aria-hidden","true");
+  if(layer){
+    layer.classList.remove("is-transitioning");
+    layer.hidden=true;
+    layer.setAttribute("aria-hidden","true");
+  }
   document.documentElement?.classList.remove("shop-promo-onboarding-open");
   document.body?.classList.remove("shop-promo-onboarding-open");
   const authPage=document.getElementById("authPage");
@@ -6326,6 +6327,11 @@ function openMain(options={}){
 function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
+  const onboardingLayer=document.getElementById("shopPromoOnboarding");
+  if(!onboardingLayer||onboardingLayer.hidden){
+    const staleOnboardingLock=document.documentElement?.classList.contains("shop-promo-onboarding-open")||document.body?.classList.contains("shop-promo-onboarding-open");
+    if(staleOnboardingLock)hideShopOnboarding();
+  }
   if(!options.preserveProductReturn){
     document.querySelectorAll(".product-backdrop-revealed").forEach(element=>element.classList.remove("product-backdrop-revealed"));
   }

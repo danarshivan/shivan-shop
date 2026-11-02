@@ -95,6 +95,8 @@ assert.match(extractFunction("renderOwnerPanel"), /section==="onboarding"\) rend
 assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingStartupView/);
 assert.match(extractFunction("showShopOnboarding"), /document\.documentElement\?\.classList\.add\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.add\("shop-promo-onboarding-open"\)/, "showing onboarding should lock both root and body before reveal");
 assert.match(extractFunction("hideShopOnboarding"), /document\.documentElement\?\.classList\.remove\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.remove\("shop-promo-onboarding-open"\)/, "closing onboarding should restore normal root and body scrolling");
+assert.doesNotMatch(extractFunction("hideShopOnboarding"), /if\(!layer\)return/, "onboarding scroll locks must still be cleared if its overlay element is missing");
+assert.match(extractFunction("openView"), /if\(!onboardingLayer\|\|onboardingLayer\.hidden\)[\s\S]*?if\(staleOnboardingLock\)hideShopOnboarding\(\)/, "normal route navigation should remove stale onboarding locks before opening a section");
 assert.match(extractFunction("finishShopOnboarding"), /openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "Explore Models must enter Shop without replaying a pending intent");
 assert.match(extractFunction("startShopOnboardingSignup"), /showAuth\("signup"\)/, "Create Account should use the existing sign-up screen");
 assert.match(extractFunction("startShopOnboardingSignup"), /hideShopOnboarding\(\)[\s\S]*?mainApp\.style\.display="none"[\s\S]*?authPage\.style\.display=""/, "registration should replace onboarding without recreating account state");
@@ -130,7 +132,7 @@ const flowSource = [
   "let shopAppWasHidden=false;",
   "let shopStartupCompleted=true;",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
-  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive})",
+  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive})",
 ].join("\n");
 function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home",reducedMotion=false}={}){
   const values = new Map();
@@ -280,6 +282,13 @@ assert.equal(accountFlow.runtime.currentUser.id,'saved-customer','opening regist
 assert.equal(accountFlow.storage.getItem('test-session'),preservedSession,'registration navigation should preserve the saved session');
 assert.equal(accountFlow.storage.getItem('test-cart'),preservedCart,'registration navigation should preserve the cart');
 
+const missingLayerFlow=createFlow();
+missingLayerFlow.flow.show();
+missingLayerFlow.elements.delete("shopPromoOnboarding");
+missingLayerFlow.flow.hide();
+assert.equal(missingLayerFlow.rootClasses.has("shop-promo-onboarding-open"),false,"closing onboarding should unlock document scrolling even if the overlay element was removed");
+assert.equal(missingLayerFlow.bodyClasses.has("shop-promo-onboarding-open"),false,"closing onboarding should unlock body scrolling even if the overlay element was removed");
+
 const savedCustomer = { id:'saved-customer', name:'Existing Customer', role:'customer' };
 const savedSession = JSON.stringify({ accountId:savedCustomer.id });
 const signedInFlow = createFlow({currentUser:savedCustomer,activeView:'profile'});
@@ -366,6 +375,46 @@ assert.equal(hiddenDuringStartup.show,false);
 const returnedDuringStartup=lifecycleFlow.flow.visibility(false,true,false);
 assert.equal(returnedDuringStartup.wasHidden,false);
 assert.equal(returnedDuringStartup.show,false,'a hidden interval during startup does not replace the initial splash handoff');
+
+// Exercise the production route function with a small DOM stub. The overlay is
+// dismissed before the route sequence, and every destination must retain the
+// normal root/body scrolling state.
+const navClasses=new Map();
+const navNode=id=>({id,hidden:false,inert:false,style:{display:""},classList:{
+  add(name){const current=navClasses.get(id)||new Set();current.add(name);navClasses.set(id,current);},
+  remove(name){const current=navClasses.get(id)||new Set();current.delete(name);navClasses.set(id,current);},
+  toggle(name,enabled){const current=navClasses.get(id)||new Set();enabled?current.add(name):current.delete(name);navClasses.set(id,current);},
+  contains(name){return (navClasses.get(id)||new Set()).has(name);},
+},setAttribute(){}});
+const navIds=["shopPromoOnboarding","homeView","searchView","cartView","profileView","detailView","ownerView","navHome","navSearch","navCart","navProfile","ownerPanelButton","authenticatedProfileCard","profileGuestAccess"];
+const navElements=new Map(navIds.map(id=>[id,navNode(id)]));
+navElements.get("shopPromoOnboarding").hidden=true;
+const navRootClasses=new Set(["shop-promo-onboarding-open"]);
+const navBodyClasses=new Set(["shop-promo-onboarding-open"]);
+const navPageList=target=>({
+  add(name){target.add(name);},remove(name){target.delete(name);},contains(name){return target.has(name);},
+  toggle(name,enabled){enabled?target.add(name):target.delete(name);},
+});
+const navDocument={
+  documentElement:{classList:navPageList(navRootClasses)},body:{classList:navPageList(navBodyClasses)},
+  getElementById:id=>navElements.get(id)||null,
+  querySelectorAll:selector=>selector===".nav-item"?[navElements.get("navHome"),navElements.get("navSearch"),navElements.get("navCart"),navElements.get("navProfile"),navElements.get("ownerPanelButton")]:[],
+  querySelector:selector=>selector===".app"?navNode("app"):null,
+};
+let routeRuntime;
+routeRuntime={
+  document:navDocument,window:{scrollTo(){}},productDetailClosing:false,shopOnboardingActive:true,
+  currentUser:{id:"offline-customer"},cloudAccount:null,pendingAuthenticationIntent:null,ownerPanel:"products",
+  hideShopOnboarding(){routeRuntime.shopOnboardingActive=false;navRootClasses.delete("shop-promo-onboarding-open");navBodyClasses.delete("shop-promo-onboarding-open");navElements.get("shopPromoOnboarding").hidden=true;},
+  restoreProfileAuthCard(){},closeDetailImageFullscreen(){},isOwner:()=>true,showToast(){},renderCart(){},renderOwnerPanel(){},updateProfile(){},showGuestProfileChoices(){},requestAnimationFrame(callback){callback();},syncDetailPhotoTracks(){},
+};
+const routeFunction=runInNewContext(`${extractFunction("openView")}\nopenView`,routeRuntime);
+for(const view of ["home","search","profile","owner"]){
+  routeFunction(view);
+  assert.ok(navClasses.get(`${view}View`)?.has("active"),`${view} navigation should activate its expected view`);
+  assert.equal(navRootClasses.has("shop-promo-onboarding-open"),false,`${view} should not inherit the onboarding root scroll lock`);
+  assert.equal(navBodyClasses.has("shop-promo-onboarding-open"),false,`${view} should not inherit the onboarding body scroll lock`);
+}
 
 const imageFlow = createFlow();
 const savedSlideImages = ['https://cdn.example.test/first.webp', 'https://cdn.example.test/second.webp', 'https://cdn.example.test/third.webp'];
