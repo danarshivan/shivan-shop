@@ -7181,13 +7181,28 @@ function renderDetailReviews(){
   }).join("");
 }
 
+function uniqueRecommendationProducts(list,currentProductId){
+  const seenIds=new Set();
+  const currentId=currentProductId==null?"":String(currentProductId).trim();
+  if(currentId)seenIds.add(currentId);
+  const unique=[];
+  for(const product of Array.isArray(list)?list:[]){
+    if(!product||product.id===undefined||product.id===null)continue;
+    const id=String(product.id).trim();
+    if(!id||seenIds.has(id)||Number(product.stock)<=0)continue;
+    seenIds.add(id);
+    unique.push(product);
+  }
+  return unique;
+}
+
 function resetDetailRecommendations(){
   const grid=document.getElementById("detailRecommendations");
   const sentinel=document.getElementById("detailRecommendationSentinel");
   if(!grid||!sentinel||!currentProduct)return;
   if(detailRecommendationObserver){detailRecommendationObserver.disconnect();detailRecommendationObserver=null;}
   const currentCategory=resolveCategoryName(currentProduct.category);
-  detailRecommendationPool=products.filter(product=>product.id!==currentProduct.id&&Number(product.stock)>0);
+  detailRecommendationPool=uniqueRecommendationProducts(products,currentProduct.id);
   detailRecommendationPool.sort((a,b)=>Number(resolveCategoryName(b.category)===currentCategory)-Number(resolveCategoryName(a.category)===currentCategory));
   detailRecommendationCursor=0;
   grid.innerHTML="";
@@ -7197,7 +7212,7 @@ function resetDetailRecommendations(){
     return;
   }
   loadMoreDetailRecommendations();
-  if(detailRecommendationPool.length>1&&"IntersectionObserver" in window){
+  if(detailRecommendationCursor<detailRecommendationPool.length&&"IntersectionObserver" in window){
     const detailScroller=document.getElementById("detailView");
     detailRecommendationObserver=new IntersectionObserver(entries=>{
       if(entries.some(entry=>entry.isIntersecting)&&document.getElementById("detailView")?.classList.contains("active"))loadMoreDetailRecommendations();
@@ -7211,20 +7226,22 @@ function loadMoreDetailRecommendations(){
   const grid=document.getElementById("detailRecommendations");
   const sentinel=document.getElementById("detailRecommendationSentinel");
   if(!grid||!sentinel)return;
-  const batchSize=Math.min(8,detailRecommendationPool.length);
-  const batch=[];
-  for(let index=0;index<batchSize;index++){
-    if(detailRecommendationCursor>0&&detailRecommendationCursor%detailRecommendationPool.length===0){
-      for(let i=detailRecommendationPool.length-1;i>0;i--){
-        const swap=Math.floor(Math.random()*(i+1));
-        [detailRecommendationPool[i],detailRecommendationPool[swap]]=[detailRecommendationPool[swap],detailRecommendationPool[i]];
-      }
-    }
-    batch.push(detailRecommendationPool[detailRecommendationCursor%detailRecommendationPool.length]);
-    detailRecommendationCursor++;
+  const start=detailRecommendationCursor;
+  const end=Math.min(start+8,detailRecommendationPool.length);
+  if(start>=end){
+    sentinel.textContent=translateText("More styles coming soon");
+    detailRecommendationObserver?.disconnect();
+    detailRecommendationObserver=null;
+    return;
   }
+  const batch=detailRecommendationPool.slice(start,end);
+  detailRecommendationCursor=end;
   renderProducts(batch,"detailRecommendations",true);
-  sentinel.textContent=detailRecommendationPool.length<2?translateText("More styles coming soon"):"";
+  if(detailRecommendationCursor>=detailRecommendationPool.length){
+    sentinel.textContent=translateText("More styles coming soon");
+    detailRecommendationObserver?.disconnect();
+    detailRecommendationObserver=null;
+  }else sentinel.textContent="";
 }
 
 function renderDetailFullscreenGallery(){
