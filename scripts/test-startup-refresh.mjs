@@ -44,7 +44,7 @@ assert.match(startup, /openMain\(\{resumeIntent:false\}\)/, "cached guest render
 assert.doesNotMatch(startup, /location\.reload\(/, "startup and refresh must not reload the document");
 assert.match(html, /if\(!changed\)return;/, "unchanged cloud data should not trigger a rerender");
 assert.match(apply, /if\(productsChanged\)loadProducts\(\)/, "only product changes should re-read the product cache");
-assert.match(apply, /if\(productsChanged\|\|favoritesChanged\)renderProducts\(products\)/, "banner-only refreshes should not rebuild the product image grid");
+assert.match(apply, /if\(productsChanged\|\|favoritesChanged\)renderVisibleProductGrid\(\)/, "a product or favorite update should refresh the active browsing grid");
 assert.match(finishSplash, /shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/, "the model-selection flow should show onboarding after the branded splash");
 
 function deferred() {
