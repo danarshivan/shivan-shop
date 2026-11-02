@@ -693,7 +693,7 @@ button{
 .discount-price-layout{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px;line-height:1.35}
 .discount-price-values{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px}
 .original-price{color:#9b9eaa;font-size:.82em;font-weight:500;text-decoration:line-through;text-decoration-thickness:1.5px}
-.discounted-price{color:#a486ff;font:inherit;font-weight:900}
+.discounted-price{color:#8966ff;font:inherit;font-weight:900}
 .product.has-discount .price{text-align:left;direction:ltr}
 .product.has-discount .discount-price-layout{display:flex;width:100%;justify-content:flex-start;text-align:left;direction:ltr}
 .product.has-discount .discount-price-values{justify-content:flex-start}
@@ -701,7 +701,7 @@ button{
 .product.has-discount .stock-line{text-align:left;direction:ltr}
 .discount-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:999px;background:#d83d50;color:#fff;font-size:10px;font-weight:900;line-height:1.1;white-space:nowrap}
 .cart-sale-prices{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px}
-.order-item-price{display:block;margin-top:3px}
+.order-item-price{display:block;margin-top:3px;color:#8966ff}
 .owner-discount-preview{min-height:20px;margin:0;color:#c9bbff;font-size:12px;line-height:1.5}
 .owner-discount-hint{display:block;color:#9da2b4;font-size:11px;line-height:1.45}
 
@@ -840,7 +840,7 @@ button{
 }
 
 .detail-price{
-  color:#8d69ff;
+  color:#8966ff;
   font-size:21px;
   font-weight:bold;
   margin-bottom:18px;
@@ -4582,6 +4582,8 @@ function applyOwnerAppearance(force=false){
     .product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card{background-color:${surface}!important}
     .main-btn,.hero-copy button,.option.active,.tabs button.active,.owner-tab.active,.category.active,.add-mini{background:${accent}!important;border-color:${accent}!important}
     .price,.nav-item.active,.section-head button,.status,.logo-small,.detail-price,.hero-copy small{color:${accent}!important}
+    .discounted-price,.order-item-price{color:${accent}!important}
+    .original-price{color:#9b9eaa!important}
     .hero-copy h2 span{color:${accent}!important}
     .option.active,.category.active,.main-btn,.hero-copy button,.add-mini{color:#fff!important}
     .owner-tab.active,.badge{color:#fff!important}
