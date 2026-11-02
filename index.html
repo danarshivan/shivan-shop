@@ -3716,6 +3716,9 @@ let shopOnboardingTransitionLocked=false;
 let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
 let shopOnboardingActive=false;
 let shopAppWasHidden=false;
+let shopOnboardingResumeState=null;
+const shopViewScrollPositions=new Map();
+let ownerPanelRefreshPending=false;
 let ownerProductWorkflowId="";
 let ownerAdWorkflowId="";
 let checkoutSubmitting=false;
@@ -3992,6 +3995,32 @@ async function confirmCloudShopWrite(key,requestId=""){
   return confirmCloudShopWrites([key],requestId);
 }
 
+function ownerPanelHasPendingWork(){
+  if(pendingImageCrop||ownerProductImageQueue)return true;
+  const content=document.getElementById("ownerPanelContent");
+  if(content?.querySelector('form[data-shivan-draft-dirty="true"],form[data-saving="true"]'))return true;
+  return ownerPanel==="products"&&ownerProductMode==="form"&&Boolean(ownerProductWorkflowId);
+}
+
+function refreshOwnerPanelIfSafe(){
+  if(!isOwner()||!ownerPanel)return false;
+  if(ownerPanelHasPendingWork()){
+    ownerPanelRefreshPending=true;
+    return false;
+  }
+  ownerPanelRefreshPending=false;
+  renderOwnerPanel(ownerPanel);
+  return true;
+}
+
+function markOwnerPanelDraft(event){
+  const form=event.target?.closest?.("#ownerPanelContent form");
+  if(form)form.dataset.shivanDraftDirty="true";
+}
+
+document.addEventListener("input",markOwnerPanelDraft,true);
+document.addEventListener("change",markOwnerPanelDraft,true);
+
 function applyCloudData(data){
   if(!data)return;
   let changed=false;
@@ -4026,12 +4055,12 @@ function applyCloudData(data){
   if(appearanceChanged)loadOwnerAppearance();
   if(bannersChanged||appearanceChanged){advertisements=getAdvertisements();renderAdvertisements();}
   if(productsChanged||categoriesChanged)renderCategoryButtons();
-  if(productsChanged||favoritesChanged)renderProducts(products);
+  if(productsChanged||favoritesChanged)renderVisibleProductGrid();
   updateCartBadge();
   if(document.getElementById("mainApp")?.style.display!=="none"){
-    renderOrders();
+    if(changedKeys.has(ORDERS_KEY))renderOrders();
     updateProfile();
-    if(isOwner()&&ownerPanel)renderOwnerPanel(ownerPanel);
+    if(isOwner()&&ownerPanel)refreshOwnerPanelIfSafe();
   }
 }
 
@@ -4046,12 +4075,12 @@ window.addEventListener("storage",event=>{
   if(key===OWNER_APPEARANCE_KEY)loadOwnerAppearance();
   if(key===ADS_KEY||key===OWNER_APPEARANCE_KEY){advertisements=getAdvertisements();renderAdvertisements();}
   if(productsChanged||categoriesChanged)renderCategoryButtons();
-  if(productsChanged||favoritesChanged)renderProducts(products);
+  if(productsChanged||favoritesChanged)renderVisibleProductGrid();
   updateCartBadge();
   if(document.getElementById("mainApp")?.style.display!=="none"){
     if(key===ORDERS_KEY)renderOrders();
     if([ACCOUNT_KEY,SETTINGS_KEY,SUPPORT_KEY].includes(key))updateProfile();
-    if(isOwner()&&ownerPanel&&CLOUD_OWNER_KEYS.has(key))renderOwnerPanel(ownerPanel);
+    if(isOwner()&&ownerPanel&&CLOUD_OWNER_KEYS.has(key))refreshOwnerPanelIfSafe();
   }
 });
 
@@ -5327,10 +5356,12 @@ function getAllCategories(){
 function renderCategoryButtons(){
   const container=document.getElementById("categoryButtons");
   if(!container)return;
+  const previousScrollLeft=container.scrollLeft;
   const categories=["هەموو",...getAllCategories()];
   container.innerHTML=categories.map(category=>{
     return `<button class="category${currentCategory===category?" active":""}" type="button" data-category="${escapeHtml(category)}"><span class="cat-icon" aria-hidden="true">${escapeHtml(categoryEmoji(category))}</span><span>${escapeHtml(categoryLabel(category))}</span></button>`;
   }).join("");
+  container.scrollLeft=previousScrollLeft;
   container.querySelectorAll("[data-category]").forEach(button=>button.addEventListener("click",()=>filterCategory(button.dataset.category)));
 }
 
@@ -5661,6 +5692,59 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
   return {wasHidden:false,show:Boolean(wasHidden&&startupComplete)};
 }
 
+function getActiveShopView(){
+  return ["home","search","cart","profile","detail","owner"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||"home";
+}
+
+function readShopViewPosition(view=getActiveShopView()){
+  const viewElement=document.getElementById(`${view}View`);
+  return {
+    windowY:Math.max(0,Number(window.scrollY??document.documentElement?.scrollTop??document.body?.scrollTop??0)||0),
+    viewTop:Math.max(0,Number(viewElement?.scrollTop)||0),
+    authTop:Math.max(0,Number(document.getElementById("authPage")?.scrollTop)||0)
+  };
+}
+
+function captureShopOnboardingResumeState(){
+  const view=getActiveShopView();
+  const position=readShopViewPosition(view);
+  const mainApp=document.getElementById("mainApp");
+  const authPage=document.getElementById("authPage");
+  return {
+    view,position,
+    mainDisplay:mainApp?.style.display??"",
+    authDisplay:authPage?.style.display??"",
+    authMode:Boolean(document.querySelector(".app")?.classList.contains("auth-mode")),
+    sessionIdentity:`${currentUser?.id??""}|${cloudAccount?.id??""}`
+  };
+}
+
+function restoreShopOnboardingResumeState(snapshot){
+  if(!snapshot||snapshot.sessionIdentity!==`${currentUser?.id??""}|${cloudAccount?.id??""}`)return false;
+  const mainApp=document.getElementById("mainApp");
+  const authPage=document.getElementById("authPage");
+  const app=document.querySelector(".app");
+  if(mainApp&&mainApp.style.display!==snapshot.mainDisplay)mainApp.style.display=snapshot.mainDisplay;
+  if(authPage&&authPage.style.display!==snapshot.authDisplay)authPage.style.display=snapshot.authDisplay;
+  if(app)app.classList.toggle("auth-mode",snapshot.authMode);
+  const currentView=getActiveShopView();
+  if(snapshot.mainDisplay!=="none"&&snapshot.view&&currentView!==snapshot.view){
+    if(snapshot.view==="owner"&&!isOwner())return false;
+    if(snapshot.view==="detail"&&currentProduct&&!products.some(product=>String(product.id)===String(currentProduct.id)))return false;
+    openView(snapshot.view,{preserveOwnerPanel:true,restorePosition:snapshot.position});
+  }
+  const viewElement=document.getElementById(`${snapshot.view}View`);
+  if(viewElement)viewElement.scrollTop=snapshot.position.viewTop;
+  const authScroller=document.getElementById("authPage");
+  if(authScroller)authScroller.scrollTop=snapshot.position.authTop;
+  const root=document.documentElement;
+  const previousBehavior=root.style.scrollBehavior;
+  root.style.scrollBehavior="auto";
+  try{window.scrollTo(0,snapshot.position.windowY);}
+  finally{root.style.scrollBehavior=previousBehavior;}
+  return true;
+}
+
 function prefersReducedShopOnboardingMotion(){
   return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
 }
@@ -5668,7 +5752,10 @@ function prefersReducedShopOnboardingMotion(){
 function handleShopOnboardingVisibilityChange(hidden=document.hidden){
   const action=getShopOnboardingVisibilityAction(hidden,shopAppWasHidden,shopStartupCompleted);
   shopAppWasHidden=action.wasHidden;
-  if(action.show)showShopOnboarding();
+  if(action.show){
+    shopOnboardingResumeState=captureShopOnboardingResumeState();
+    showShopOnboarding();
+  }
   return action.show;
 }
 
@@ -5831,6 +5918,7 @@ function advanceShopOnboarding(){
 function startShopOnboardingSignup(){
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer||layer.hidden)return;
+  shopOnboardingResumeState=null;
   hideShopOnboarding();
   document.querySelector(".app")?.classList.add("auth-mode");
   const mainApp=document.getElementById("mainApp");
@@ -5843,7 +5931,10 @@ function startShopOnboardingSignup(){
 function finishShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer||layer.hidden)return false;
+  const resumeState=shopOnboardingResumeState;
+  shopOnboardingResumeState=null;
   hideShopOnboarding();
+  if(resumeState&&restoreShopOnboardingResumeState(resumeState))return true;
   openMain({resumeIntent:false});
   openView("home");
   return true;
@@ -6219,6 +6310,7 @@ async function logout(){
 
   currentUser = null;
   pendingAuthenticationIntent=null;
+  shopOnboardingResumeState=null;
 
   document.querySelector(".app")?.classList.add("auth-mode");
   document.getElementById("mainApp").style.display="none";
@@ -6327,6 +6419,8 @@ function openMain(options={}){
 function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
+  const previousView=getActiveShopView();
+  if(previousView!==view)shopViewScrollPositions.set(previousView,readShopViewPosition(previousView));
   const onboardingLayer=document.getElementById("shopPromoOnboarding");
   if(!onboardingLayer||onboardingLayer.hidden){
     const staleOnboardingLock=document.documentElement?.classList.contains("shop-promo-onboarding-open")||document.body?.classList.contains("shop-promo-onboarding-open");
@@ -6364,9 +6458,8 @@ function openView(view,options={}){
   document.querySelector(".app")?.classList.toggle("detail-mode",view==="detail");
   document.documentElement.classList.toggle("detail-view-open",view==="detail");
   document.body.classList.toggle("detail-view-open",view==="detail");
-  window.scrollTo(0,0);
   if(view==="detail"){
-    document.getElementById("detailView").scrollTop=0;
+    document.getElementById("detailView").scrollTop=Math.max(0,Number(options.restorePosition?.viewTop)||0);
     requestAnimationFrame(()=>syncDetailPhotoTracks(null,"auto"));
   }
 
@@ -6393,7 +6486,9 @@ function openView(view,options={}){
   }
 
   if(view==="owner"){
-    renderOwnerPanel(ownerPanel);
+    if(options.preserveOwnerPanel)ownerPanelRefreshPending=false;
+    else if(ownerPanelHasPendingWork())ownerPanelRefreshPending=true;
+    else renderOwnerPanel(ownerPanel);
   }
 
   if(view==="profile"){
@@ -6405,6 +6500,15 @@ function openView(view,options={}){
       updateProfile();
     }else showGuestProfileChoices();
   }
+
+  const position=options.restorePosition||shopViewScrollPositions.get(view)||{windowY:0,viewTop:0,authTop:0};
+  const root=document.documentElement;
+  const previousScrollBehavior=root.style.scrollBehavior;
+  root.style.scrollBehavior="auto";
+  try{
+    if(view!=="detail")document.getElementById(`${view}View`).scrollTop=Math.max(0,Number(position.viewTop)||0);
+    window.scrollTo(0,Math.max(0,Number(position.windowY)||0));
+  }finally{root.style.scrollBehavior=previousScrollBehavior;}
 
 }
 
@@ -6484,6 +6588,22 @@ function renderProducts(list, target="productsGrid", append=false){
   if(append)grid.insertAdjacentHTML("beforeend",cards);
   else grid.innerHTML=cards;
 
+}
+
+function renderVisibleProductGrid(){
+  const activeView=getActiveShopView();
+  const browseView=activeView==="detail"?previousView:activeView;
+  if(browseView==="search"){
+    const input=document.getElementById("searchPageInput");
+    searchProducts(input?.value||"","searchGrid");
+    return;
+  }
+  if(browseView!=="home")return;
+  if(currentCategory!=="هەموو"){
+    const resolved=resolveCategoryName(currentCategory);
+    currentCategory=getAllCategories().includes(resolved)?resolved:"هەموو";
+  }
+  renderProducts(currentCategory==="هەموو"?products:products.filter(product=>product.category===currentCategory));
 }
 
 
@@ -7424,7 +7544,7 @@ function formatPrice(price){
    SEARCH
 ========================================= */
 
-function searchProducts(value){
+function searchProducts(value,forceTarget=""){
 
   const q=value.trim().toLowerCase();
 
@@ -7436,7 +7556,7 @@ function searchProducts(value){
   );
 
   const searchIsOpen=document.getElementById("searchView").classList.contains("active");
-  renderProducts(result,searchIsOpen?"searchGrid":"productsGrid");
+  renderProducts(result,forceTarget||(searchIsOpen?"searchGrid":"productsGrid"));
 
   const searchInput=document.getElementById("searchPageInput");
 
@@ -8085,6 +8205,11 @@ function renderOwnerPanel(section=ownerPanel){
     openView("home");
     return;
   }
+  if(section!==ownerPanel&&ownerPanelHasPendingWork()){
+    ownerPanelRefreshPending=true;
+    showToast("Save or finish the current Owner change before switching sections. Your draft is still open.");
+    return false;
+  }
   const previousPanel=ownerPanel;
   if(previousPanel==="inventory"&&section!=="inventory")stopOwnerQrScanner();
   ownerPanel=section;
@@ -8097,6 +8222,8 @@ function renderOwnerPanel(section=ownerPanel){
   if(section==="appearance") renderOwnerAppearance(box);
   if(section==="onboarding") renderShopOnboardingOwnerEditor(box);
   if(section!==previousPanel&&document.getElementById("ownerView").classList.contains("active"))scrollOwnerTo("ownerView");
+  ownerPanelRefreshPending=false;
+  return true;
 }
 
 function loadQrVendorScript(file,globalName){
@@ -8351,6 +8478,10 @@ function scrollOwnerTo(target,focusId=""){
 
 function startNewOwnerProduct(){
   if(!isOwner())return;
+  if(ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current product draft before starting another one.");
+    return;
+  }
   editingProductId=null;
   ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
@@ -8364,6 +8495,10 @@ function showOwnerProductSection(mode,focusId=""){
   if(!isOwner())return;
   const allowed=["menu","form","list","categories"];
   if(!allowed.includes(mode))mode="menu";
+  if(ownerPanel==="products"&&ownerProductMode==="form"&&mode!=="form"&&ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current product draft before switching product sections.");
+    return;
+  }
   if(mode!=="form")editingProductId=null;
   ownerPanel="products";
   ownerProductMode=mode;
@@ -8734,6 +8869,10 @@ async function saveOwnerProduct(event){
 
 function editOwnerProduct(id){
   if(!isOwner()) return;
+  if(ownerPanelHasPendingWork()){
+    showToast("Save or cancel the current product draft before opening another product.");
+    return;
+  }
   editingProductId=id;
   ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
@@ -8818,7 +8957,6 @@ async function saveOwnerAd(event){
   if(!saveAdvertisements()){
     advertisements=previous;
     showToast("وێنەکان زۆر گەورەن بۆ پاشەکەفتی براوزەر؛ وێنەی بچووکتر هەڵبژێرە.");
-    renderOwnerPanel("ads");
     return;
   }
   if(form)form.dataset.saving="true";
@@ -8838,7 +8976,7 @@ async function saveOwnerAd(event){
   showToast("ڕیکلام پاشەکەفت و هاوبەش کرا.");
 }
 
-function editOwnerAd(index){if(!isOwner())return;editingAdIndex=index;ownerAdWorkflowId=createOwnerSaveRequestId();renderOwnerPanel("ads")}
+function editOwnerAd(index){if(!isOwner())return;if(ownerPanelHasPendingWork()){showToast("Save or cancel the current banner draft before opening another banner.");return;}editingAdIndex=index;ownerAdWorkflowId=createOwnerSaveRequestId();renderOwnerPanel("ads")}
 function cancelAdEdit(){editingAdIndex=null;ownerAdWorkflowId="";renderOwnerPanel("ads")}
 async function deleteOwnerAd(index){
   if(!isOwner())return;

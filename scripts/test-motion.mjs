@@ -55,7 +55,7 @@ assert.doesNotMatch(entranceMotionBlock, /animation-fill-mode\s*:\s*forwards|\b(
 assert.match(html, /\.shop-startup-splash\{/, "the existing logo splash should remain in the website");
 
 const finish = html.match(/function finishShopOnboarding\(\)\{[\s\S]*?\n\}/)?.[0] || "";
-assert.match(finish, /hideShopOnboarding\(\);\s*openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "finishing onboarding should still open Shop / Models immediately");
+assert.match(finish, /hideShopOnboarding\(\);[\s\S]*?if\(resumeState&&restoreShopOnboardingResumeState\(resumeState\)\)return true;[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "foreground onboarding should resume the user's active screen, while a first-time completion still opens Shop / Models");
 assert.doesNotMatch(finish, /setTimeout|requestAnimationFrame|await /, "the animation layer must not delay the final Explore Models handoff");
 
 console.log("Website motion checks passed: screen and list entrances, directional onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and immediate Explore Models handoff.");

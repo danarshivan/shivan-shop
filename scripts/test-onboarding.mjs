@@ -111,7 +111,7 @@ assert.match(html, /function logout\(\)\{[\s\S]*?showShopOnboarding\(\)/, "logou
 
 const flowNames = [
   "getShopOnboardingStartupView", "getNextShopOnboardingStep", "getShopOnboardingSwipeTarget",
-  "getShopOnboardingVisibilityAction", "prefersReducedShopOnboardingMotion", "warmShopOnboardingImages", "renderShopOnboardingSlide", "moveShopOnboardingTo",
+  "getShopOnboardingVisibilityAction", "getActiveShopView", "readShopViewPosition", "captureShopOnboardingResumeState", "restoreShopOnboardingResumeState", "prefersReducedShopOnboardingMotion", "warmShopOnboardingImages", "renderShopOnboardingSlide", "moveShopOnboardingTo",
   "advanceShopOnboarding", "startShopOnboardingSignup",
   "finishShopOnboarding", "hideShopOnboarding", "setupShopOnboardingGestures", "showShopOnboardingIfNeeded", "showShopOnboarding",
   "handleShopOnboardingVisibilityChange",
@@ -130,9 +130,17 @@ const flowSource = [
   "let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];",
   "let shopOnboardingActive=false;",
   "let shopAppWasHidden=false;",
+  "let shopOnboardingResumeState=null;",
+  "let currentCategory=\"هەموو\";",
+  "let currentProduct=null;",
+  "let selectedSize=\"\";",
+  "let selectedColor=\"\";",
+  "let currentQty=1;",
+  "let currentGalleryIndex=0;",
+  "let ownerPanel=\"products\";",
   "let shopStartupCompleted=true;",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
-  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive})",
+  "({advance:advanceShopOnboarding,move:moveShopOnboardingTo,signup:startShopOnboardingSignup,setup:setupShopOnboardingGestures,render:renderShopOnboardingSlide,index:()=>shopOnboardingSlideIndex,locked:()=>shopOnboardingTransitionLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,swipeTarget:getShopOnboardingSwipeTarget,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive,resumeState:()=>shopOnboardingResumeState})",
 ].join("\n");
 function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home",reducedMotion=false}={}){
   const values = new Map();
@@ -173,7 +181,10 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   const choices={hidden:true};
   const authPage={inert:false,style:{display:"none"}};
   const mainApp={inert:false,style:{display:"block"}};
-  const app={classList:{add(name){if(name==="auth-mode")authMode=true;},remove(name){if(name==="auth-mode")authMode=false;}}};
+  const app={classList:{add(name){if(name==="auth-mode")authMode=true;},remove(name){if(name==="auth-mode")authMode=false;},contains(name){return name==="auth-mode"&&authMode;},toggle(name,force){if(name==="auth-mode")authMode=force;}}};
+  const pageView=(id,active)=>{const viewTokens=new Set(active?["active"]:[]);return {scrollTop:0,classList:{add(name){viewTokens.add(name);},remove(name){viewTokens.delete(name);},contains(name){return viewTokens.has(name);},toggle(name,force){force?viewTokens.add(name):viewTokens.delete(name);}}};};
+  const viewElements=new Map(["home","search","cart","profile","detail","owner"].map(view=>[`${view}View`,pageView(`${view}View`,activeView===view)]));
+  const searchInput={value:""};
   const elements=new Map([
     ["shopPromoOnboarding",layer],
     ["shopPromoOnboardingImage",image],
@@ -184,6 +195,8 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     ["shopPromoOnboardingCreateAccount",{focus(){}}],
     ["authPage",authPage],
     ["mainApp",mainApp],
+    ...viewElements,
+    ["searchPageInput",searchInput],
   ]);
   let authScreen = "";
   let openedShop = false;
@@ -193,11 +206,11 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     currentUser,
     cloudAccount,
     pendingAuthenticationIntent,
-    window: {matchMedia:()=>({matches:reducedMotion})},
+    window: {scrollY:0,scrollTo(_x,y){this.scrollY=Number(y)||0;},matchMedia:()=>({matches:reducedMotion})},
     Image: WarmImage,
     setTimeout: (callback,delay) => { const id=++timerSequence; timers.set(id,{callback,delay}); return id; },
     clearTimeout: id => timers.delete(id),
-    document: { documentElement:{classList:pageClassList(rootClasses)}, getElementById: id => elements.get(id)||null, querySelector: selector => selector===".app"?app:null, body:{classList:pageClassList(bodyClasses)} },
+    document: { documentElement:{style:{scrollBehavior:"smooth"},scrollTop:0,classList:pageClassList(rootClasses)}, getElementById: id => elements.get(id)||null, querySelector: selector => selector===".app"?app:null, body:{scrollTop:0,classList:pageClassList(bodyClasses)} },
     requestAnimationFrame: callback => callback(),
     showShopOnboarding: () => { layer.hidden = false; openedOnboarding = true; },
     showAuth: type => { authScreen = type; },
@@ -376,6 +389,34 @@ const returnedDuringStartup=lifecycleFlow.flow.visibility(false,true,false);
 assert.equal(returnedDuringStartup.wasHidden,false);
 assert.equal(returnedDuringStartup.show,false,'a hidden interval during startup does not replace the initial splash handoff');
 
+const resumeFlow=createFlow({activeView:"search"});
+resumeFlow.runtime.window.scrollY=468;
+resumeFlow.elements.get("searchView").scrollTop=27;
+resumeFlow.flow.handleVisibility(true);
+assert.equal(resumeFlow.flow.handleVisibility(false),true,"foreground return should replay onboarding");
+assert.equal(resumeFlow.flow.resumeState().view,"search","foreground onboarding should remember the exact current section");
+assert.equal(resumeFlow.flow.resumeState().position.windowY,468,"foreground onboarding should remember the page scroll position");
+resumeFlow.flow.finish();
+assert.equal(resumeFlow.openedShop,false,"finishing foreground onboarding must not reinitialize the shop");
+assert.equal(resumeFlow.openedView,"search","finishing foreground onboarding should remain on Search");
+assert.equal(resumeFlow.runtime.window.scrollY,468,"finishing foreground onboarding should restore the prior page position");
+assert.equal(resumeFlow.elements.get("searchView").scrollTop,27,"finishing foreground onboarding should restore the prior section scroll");
+assert.equal(resumeFlow.rootClasses.has("shop-promo-onboarding-open"),false,"foreground onboarding completion should unlock document scrolling");
+
+const authResumeFlow=createFlow({activeView:"profile"});
+authResumeFlow.mainApp.style.display="none";
+authResumeFlow.authPage.style.display="";
+authResumeFlow.runtime.document.querySelector(".app").classList.add("auth-mode");
+authResumeFlow.runtime.window.scrollY=116;
+authResumeFlow.authPage.scrollTop=72;
+authResumeFlow.flow.handleVisibility(true);
+authResumeFlow.flow.handleVisibility(false);
+authResumeFlow.flow.finish();
+assert.equal(authResumeFlow.openedShop,false,"foreground onboarding must not replace an active Login / Sign Up screen with Shop");
+assert.equal(authResumeFlow.mainApp.style.display,"none","the auth screen remains visible after foreground onboarding");
+assert.equal(authResumeFlow.authPage.style.display,"","the auth screen remains visible after foreground onboarding");
+assert.equal(authResumeFlow.authPage.scrollTop,72,"the auth screen scroll position is restored");
+
 // Exercise the production route function with a small DOM stub. The overlay is
 // dismissed before the route sequence, and every destination must retain the
 // normal root/body scrolling state.
@@ -389,6 +430,7 @@ const navNode=id=>({id,hidden:false,inert:false,style:{display:""},classList:{
 const navIds=["shopPromoOnboarding","homeView","searchView","cartView","profileView","detailView","ownerView","navHome","navSearch","navCart","navProfile","ownerPanelButton","authenticatedProfileCard","profileGuestAccess"];
 const navElements=new Map(navIds.map(id=>[id,navNode(id)]));
 navElements.get("shopPromoOnboarding").hidden=true;
+navClasses.set("homeView",new Set(["active"]));
 const navRootClasses=new Set(["shop-promo-onboarding-open"]);
 const navBodyClasses=new Set(["shop-promo-onboarding-open"]);
 const navPageList=target=>({
@@ -396,15 +438,17 @@ const navPageList=target=>({
   toggle(name,enabled){enabled?target.add(name):target.delete(name);},
 });
 const navDocument={
-  documentElement:{classList:navPageList(navRootClasses)},body:{classList:navPageList(navBodyClasses)},
+  documentElement:{style:{scrollBehavior:"smooth"},scrollTop:0,classList:navPageList(navRootClasses)},body:{scrollTop:0,classList:navPageList(navBodyClasses)},
   getElementById:id=>navElements.get(id)||null,
   querySelectorAll:selector=>selector===".nav-item"?[navElements.get("navHome"),navElements.get("navSearch"),navElements.get("navCart"),navElements.get("navProfile"),navElements.get("ownerPanelButton")]:[],
   querySelector:selector=>selector===".app"?navNode("app"):null,
 };
 let routeRuntime;
 routeRuntime={
-  document:navDocument,window:{scrollTo(){}},productDetailClosing:false,shopOnboardingActive:true,
+  document:navDocument,window:{scrollY:0,scrollTo(_x,y){this.scrollY=Number(y)||0;}},productDetailClosing:false,shopOnboardingActive:true,shopViewScrollPositions:new Map(),ownerPanelRefreshPending:false,
   currentUser:{id:"offline-customer"},cloudAccount:null,pendingAuthenticationIntent:null,ownerPanel:"products",
+  getActiveShopView(){return ["home","search","cart","profile","detail","owner"].find(view=>navClasses.get(`${view}View`)?.has("active"))||"home";},
+  readShopViewPosition(){return {windowY:0,viewTop:0,authTop:0};},ownerPanelHasPendingWork:()=>false,
   hideShopOnboarding(){routeRuntime.shopOnboardingActive=false;navRootClasses.delete("shop-promo-onboarding-open");navBodyClasses.delete("shop-promo-onboarding-open");navElements.get("shopPromoOnboarding").hidden=true;},
   restoreProfileAuthCard(){},closeDetailImageFullscreen(){},isOwner:()=>true,showToast(){},renderCart(){},renderOwnerPanel(){},updateProfile(){},showGuestProfileChoices(){},requestAnimationFrame(callback){callback();},syncDetailPhotoTracks(){},
 };

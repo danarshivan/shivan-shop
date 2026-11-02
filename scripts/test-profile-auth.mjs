@@ -79,7 +79,7 @@ const sessionSession = makeStorage();
 
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
-  "showAuth", "resumeAuthenticationIntent", "openView",
+  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "openView",
 ];
 const functionSources = functionNames.map(name => {
   const source = html.match(new RegExp(`function ${name}\\([\\s\\S]*?\\n\\}`))?.[0];
@@ -97,6 +97,8 @@ const context = {
   SESSION_KEY: "offline-test-session",
   cloudMode: false,
   ownerPanel: "products",
+  shopViewScrollPositions: new Map(),
+  ownerPanelHasPendingWork: () => false,
   products: [],
   cart: [],
   selectedSize: "",
@@ -130,7 +132,7 @@ const context = {
     },
     querySelectorAll: () => [],
   },
-  window: { scrollTo() {} },
+  window: { scrollY: 0, scrollTo(_x, y) { this.scrollY = Number(y) || 0; } },
   requestAnimationFrame: callback => callback(),
   closeDetailImageFullscreen() {},
   hideShopOnboarding() {},
@@ -144,10 +146,13 @@ const context = {
 };
 runInNewContext(`${functionSources}\n${logoutSource}\nthis.testApi={openView,beginProfileAuthentication,backToProfileAuthChoices,resumeAuthenticationIntent,logout};`, context);
 
+get("homeView").scrollTop = 187;
+context.window.scrollY = 34;
 context.testApi.openView("profile");
 assert.equal(get("profileGuestAccess").hidden, false, "guest Profile opens the two choices first");
 assert.equal(get("authenticatedProfileCard").hidden, true, "guest does not see an authenticated profile card");
 assert.equal(context.pendingAuthenticationIntent.type, "profile");
+assert.equal(context.shopViewScrollPositions.get("home").viewTop, 187, "navigation stores the exact prior Home scroll position");
 
 assert.equal(context.testApi.beginProfileAuthentication("login"), true);
 assert.equal(get("profileGuestAuthMount").hidden, false, "Login form is mounted in the Profile view");
@@ -180,6 +185,8 @@ assert.equal(get("profileGuestAccess").hidden, true);
 assert.equal(get("profileGuestAuthMount").hidden, true);
 assert.equal(authCard.parentNode, host);
 assert.equal(context.pendingAuthenticationIntent, null);
+assert.equal(get("homeView").scrollTop, 187, "returning to Home restores its prior in-page scroll position");
+assert.equal(context.window.scrollY, 34, "returning to Home restores the window scroll position");
 
 context.testApi.openView("profile");
 assert.equal(get("profileView").classList.contains("active"), true, "authenticated customers can still open Profile from navigation");
