@@ -1243,6 +1243,12 @@ button{
 .owner-mobile-toolbar{display:none}
 .owner-mobile-toolbar[hidden]{display:none!important}
 .owner-mobile-toolbar select{width:100%;min-width:0;min-height:46px;padding:9px 12px;border:1px solid #443463;border-radius:13px;background:#100e19;color:#fff;font:inherit}
+.owner-route-header{position:sticky;top:8px;z-index:12;display:flex;align-items:center;gap:12px;min-height:48px;margin:0 0 12px;padding:7px 9px;border:1px solid #302743;border-radius:14px;background:rgba(11,10,18,.94);backdrop-filter:blur(14px);box-shadow:0 8px 24px #0003}
+.owner-route-back{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;min-height:36px;padding:7px 12px;border:1px solid #604695;border-radius:11px;background:linear-gradient(120deg,#382653,#21182f);color:#fff;font:inherit;font-size:13px;font-weight:750;cursor:pointer;touch-action:manipulation}
+.owner-route-back:hover{border-color:#a17be7;background:linear-gradient(120deg,#503274,#2d2040)}
+.owner-route-back:focus-visible{outline:2px solid #bd9cff;outline-offset:2px}
+.owner-route-back-icon{font-size:19px;line-height:1}
+.owner-route-title{min-width:0;overflow:hidden;color:#f5f0ff;font-size:14px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
 .owner-dashboard-banner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:150px;overflow:hidden;padding:clamp(18px,3vw,30px);border:1px solid #5a3f8f;border-radius:22px;background:radial-gradient(ellipse at 82% 10%,#7747c84b,transparent 42%),linear-gradient(116deg,#211538,#100e19 62%,#0b0b12);box-shadow:0 18px 46px #0005,inset 0 1px #ffffff0b}
 .owner-dashboard-banner:after{position:absolute;right:-50px;bottom:-120px;width:250px;height:250px;border:1px solid #a779ff1b;border-radius:50%;box-shadow:0 0 0 24px #a779ff08,0 0 0 52px #a779ff05;content:"";pointer-events:none}
 .owner-dashboard-kicker{margin:0 0 7px;color:#c2a8ff;font-size:10px;font-weight:900;letter-spacing:.18em}
@@ -4574,6 +4580,9 @@ let ownerProductMode = "menu";
 let ownerInventoryDraft = new Map();
 let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""};
 let ownerReportSelection={preset:"month",start:"",end:""};
+let ownerNavigationLedger=createOwnerNavigationLedger();
+let ownerNavigationPopHandler=null;
+let ownerNavigationRestoring=false;
 
 
 /* =========================================
@@ -6700,6 +6709,11 @@ function openView(view,options={}){
   }
   const previousView=getActiveShopView();
   if(previousView!==view)shopViewScrollPositions.set(previousView,readShopViewPosition(previousView));
+  const ownerLedger=typeof ownerNavigationLedger==="undefined"?null:ownerNavigationLedger;
+  if(previousView==="owner"&&view!=="owner"&&ownerLedger&&String(window.history?.state?.__shivanOwnerNavigationId||"")===String(ownerLedger.current()?.id||"")){
+    try{const exitState={...(window.history.state||{}),__shivanOwnerExitView:view};delete exitState.__shivanOwnerNavigation;delete exitState.__shivanOwnerNavigationId;window.history.pushState(exitState,"");}catch(error){}
+  }
+  if(view==="owner"&&previousView!=="owner"&&!options.restoreOwnerHistory&&!window.history?.state?.__shivanOwnerNavigationId)ownerLedger?.clear?.();
   const onboardingLayer=document.getElementById("shopPromoOnboarding");
   if(!onboardingLayer||onboardingLayer.hidden){
     const staleOnboardingLock=document.documentElement?.classList.contains("shop-promo-onboarding-open")||document.body?.classList.contains("shop-promo-onboarding-open");
@@ -6943,6 +6957,7 @@ function ensureProductHistoryListener(){
     const fromSwipe=productHistoryBackFromSwipe;
     productHistoryBackFromSwipe=false;
     const state=event?.state||window.history?.state||{};
+    if(state.__shivanOwnerNavigationId)return;
     const productId=state.__shivanProductDetail?String(state.__shivanProductId||""):"";
     const detailView=document.getElementById("detailView");
     if(detailView?.classList.contains("active")){
@@ -8622,17 +8637,148 @@ async function saveShopOnboardingImages(event){
   }
 }
 
-function renderOwnerPanel(section=ownerPanel){
+function ownerNavigationIdentity(snapshot){
+  return JSON.stringify({panel:snapshot?.panel||"dashboard",nav:snapshot?.nav||"dashboard",productMode:snapshot?.productMode||"menu",editingProductId:snapshot?.editingProductId??null,editingAdIndex:Number.isInteger(snapshot?.editingAdIndex)?snapshot.editingAdIndex:null});
+}
+
+function createOwnerNavigationLedger(){
+  let entries=[];
+  let cursor=-1;
+  let sequence=0;
+  const copy=snapshot=>({...snapshot,analyticsSelection:{...(snapshot?.analyticsSelection||{})},reportSelection:{...(snapshot?.reportSelection||{})},position:{windowY:0,viewTop:0,authTop:0,...(snapshot?.position||{})}});
+  const create=snapshot=>({...copy(snapshot),id:snapshot?.id||`owner-${Date.now().toString(36)}-${(++sequence).toString(36)}`});
+  return {
+    start(snapshot){entries=[create(snapshot)];cursor=0;return copy(entries[0]);},
+    current(){return cursor>=0?copy(entries[cursor]):null;},
+    previous(){return cursor>0?copy(entries[cursor-1]):null;},
+    hasBack(){return cursor>0;},
+    get(id){const entry=entries.find(item=>item.id===id);return entry?copy(entry):null;},
+    updatePosition(position){if(cursor<0)return null;entries[cursor]={...entries[cursor],position:{...entries[cursor].position,...position}};return copy(entries[cursor]);},
+    updateContext(snapshot){
+      if(cursor<0)return null;
+      entries[cursor]={...entries[cursor],analyticsSelection:{...entries[cursor].analyticsSelection,...(snapshot?.analyticsSelection||{})},reportSelection:{...entries[cursor].reportSelection,...(snapshot?.reportSelection||{})},position:{...entries[cursor].position,...(snapshot?.position||{})}};
+      return copy(entries[cursor]);
+    },
+    navigate(snapshot){
+      const current=cursor>=0?entries[cursor]:null;
+      if(current&&ownerNavigationIdentity(current)===ownerNavigationIdentity(snapshot)){
+        entries[cursor]={...create({...snapshot,id:current.id}),position:{...snapshot.position}};
+        return {entry:copy(entries[cursor]),changed:false};
+      }
+      entries=entries.slice(0,cursor+1);const entry=create(snapshot);entries.push(entry);cursor=entries.length-1;return {entry:copy(entry),changed:true};
+    },
+    restore(id){const index=entries.findIndex(entry=>entry.id===id);if(index<0)return null;cursor=index;return copy(entries[index]);},
+    back(){if(cursor<1)return null;cursor-=1;return copy(entries[cursor]);},
+    forward(){if(cursor<0||cursor>=entries.length-1)return null;cursor+=1;return copy(entries[cursor]);},
+    replaceCurrent(snapshot){if(cursor<0)return this.start(snapshot);entries[cursor]=create({...snapshot,id:entries[cursor].id});return copy(entries[cursor]);},
+    clear(){entries=[];cursor=-1;}
+  };
+}
+
+function captureOwnerNavigationSnapshot(position=readShopViewPosition("owner")){
+  return {panel:ownerPanel,nav:ownerDashboardNavKey,productMode:ownerProductMode,editingProductId:editingProductId??null,editingAdIndex:Number.isInteger(editingAdIndex)?editingAdIndex:null,analyticsSelection:{...ownerAnalyticsSelection},reportSelection:{...ownerReportSelection},position:{windowY:0,viewTop:0,authTop:0,...position}};
+}
+
+function ownerNavigationHistoryState(entry){
+  const existing=window.history?.state&&typeof window.history.state==="object"?window.history.state:{};
+  return {...existing,__shivanOwnerNavigation:true,__shivanOwnerNavigationId:String(entry.id)};
+}
+
+function writeOwnerNavigationHistory(entry,replace=false){
+  if(!entry||!window.history)return false;
+  try{window.history[replace?"replaceState":"pushState"](ownerNavigationHistoryState(entry),"");return true;}catch(error){return false;}
+}
+
+function restoreOwnerScrollPosition(position={}){
+  const ownerView=document.getElementById("ownerView");
+  const root=document.documentElement;
+  const previousBehavior=root?.style?.scrollBehavior||"";
+  if(root?.style)root.style.scrollBehavior="auto";
+  try{if(ownerView)ownerView.scrollTop=Math.max(0,Number(position.viewTop)||0);window.scrollTo(0,Math.max(0,Number(position.windowY)||0));}catch(error){}
+  finally{if(root?.style)root.style.scrollBehavior=previousBehavior;}
+}
+
+function ownerNavigationHasUnsavedDraft(){
+  if(pendingImageCrop||ownerProductImageQueue)return true;
+  const content=document.getElementById("ownerPanelContent");
+  return Boolean(content?.querySelector('form[data-shivan-draft-dirty="true"],form[data-saving="true"]'));
+}
+
+function ownerNavigationHeaderMarkup(){
+  let title="Owner";
+  if(ownerPanel==="products"){
+    if(ownerProductMode==="form")title=editingProductId?ownerDashboardText("Edit Product","دەستکاری بەرهەم","تعديل المنتج"):ownerDashboardText("New Product","بەرهەمی نوێ","منتج جديد");
+    else if(ownerProductMode==="categories")title=ownerDashboardText("Categories","جۆرەکان","الفئات");
+    else if(ownerDashboardNavKey==="discounts")title=ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض");
+    else title=ownerDashboardText("Products","بەرهەمەکان","المنتجات");
+  }else{
+    const route=ownerDashboardNavItems().find(([key])=>key===ownerDashboardNavKey);
+    title=route?.[2]||ownerDashboardText("Owner","خاوەن","المالك");
+  }
+  return `<div class="owner-route-header"><button class="owner-route-back" type="button" onclick="ownerNavigateBack()" aria-label="${escapeHtml(ownerDashboardText("Back to previous Owner screen","گەڕانەوە بۆ بەشێ پێشوو","العودة إلى قسم المالك السابق"))}"><span class="owner-route-back-icon" aria-hidden="true">‹</span><span>${escapeHtml(ownerDashboardText("Back","ڤەگەڕە","رجوع"))}</span></button><strong class="owner-route-title">${escapeHtml(title)}</strong></div>`;
+}
+
+function restoreOwnerNavigationEntry(entry){
+  if(!entry||!isOwner())return false;
+  if(ownerNavigationHasUnsavedDraft()){
+    showToast("Save or cancel the current Owner draft before going back. Your work is still open.");
+    window.history?.forward?.();
+    return false;
+  }
+  ownerPanel=entry.panel||"dashboard";ownerDashboardNavKey=entry.nav||"dashboard";ownerProductMode=entry.productMode||"menu";editingProductId=entry.editingProductId??null;editingAdIndex=Number.isInteger(entry.editingAdIndex)?entry.editingAdIndex:null;
+  ownerAnalyticsSelection={...ownerAnalyticsSelection,...(entry.analyticsSelection||{})};ownerReportSelection={...ownerReportSelection,...(entry.reportSelection||{})};
+  if(ownerPanel==="products"&&ownerProductMode==="form")ownerProductWorkflowId ||= createOwnerSaveRequestId();else ownerProductWorkflowId="";
+  if(ownerPanel==="ads"&&Number.isInteger(editingAdIndex))ownerAdWorkflowId ||= createOwnerSaveRequestId();else ownerAdWorkflowId="";
+  ownerNavigationRestoring=true;
+  let rendered=false;
+  try{rendered=renderOwnerPanel(entry.nav||entry.panel||"dashboard",{historyRestore:true});}finally{ownerNavigationRestoring=false;}
+  if(rendered)requestAnimationFrame(()=>restoreOwnerScrollPosition(entry.position));
+  return rendered;
+}
+
+function installOwnerNavigationPopHandler(){
+  if(ownerNavigationPopHandler)return;
+  ownerNavigationPopHandler=event=>{
+    const id=String(event?.state?.__shivanOwnerNavigationId||"");if(!id)return;
+    const target=ownerNavigationLedger.get(id);if(!target||!isOwner())return;
+    if(ownerNavigationHasUnsavedDraft()){
+      showToast("Save or cancel the current Owner draft before going back. Your work is still open.");
+      window.history?.forward?.();
+      return;
+    }
+    const restored=ownerNavigationLedger.restore(id);if(!restored)return;
+    if(!document.getElementById("ownerView")?.classList.contains("active"))openView("owner",{preserveOwnerPanel:true,restoreOwnerHistory:true});
+    restoreOwnerNavigationEntry(restored);
+  };
+  window.addEventListener?.("popstate",ownerNavigationPopHandler);
+  const saveOwnerScrollPosition=()=>{if(document.getElementById("ownerView")?.classList.contains("active"))ownerNavigationLedger.updatePosition(readShopViewPosition("owner"));};
+  document.addEventListener?.("scroll",saveOwnerScrollPosition,true);
+  window.addEventListener?.("scroll",saveOwnerScrollPosition,{passive:true});
+}
+
+function ownerNavigateBack(){
+  if(!isOwner())return false;
+  if(ownerNavigationHasUnsavedDraft()){showToast("Save or cancel the current Owner draft before going back. Your work is still open.");return false;}
+  const current=ownerNavigationLedger.current();const previous=ownerNavigationLedger.previous();
+  if(!previous){renderOwnerPanel("dashboard");return true;}
+  if(String(window.history?.state?.__shivanOwnerNavigationId||"")===String(current?.id||"")){window.history.back();return true;}
+  return restoreOwnerNavigationEntry(ownerNavigationLedger.back());
+}
+
+function renderOwnerPanel(section=ownerPanel,options={}){
   if(!isOwner()){
     showToast("تەنێ خاوەنێ فرۆشگەیێ دەتوانیت ڤێ بەشێ ببینیت.");
     openView("home");
     return;
   }
+  const ownerViewActive=document.getElementById("ownerView")?.classList.contains("active");
+  const positionBeforeRender=readShopViewPosition("owner");
+  if(ownerViewActive&&!ownerNavigationRestoring&&ownerNavigationLedger.current())ownerNavigationLedger.updateContext({analyticsSelection:ownerAnalyticsSelection,reportSelection:ownerReportSelection,position:positionBeforeRender});
   const route=ownerPanelRoute(section);
   const previousPanel=ownerPanel;
   const previousNav=ownerDashboardNavKey;
   if(section===previousPanel&&(previousPanel==="appearance"||previousPanel==="products"))route.nav=previousNav;
-  if((route.panel!==previousPanel||route.nav!==previousNav)&&ownerPanelHasPendingWork()){
+  if(!options.historyRestore&&(route.panel!==previousPanel||route.nav!==previousNav)&&ownerPanelHasPendingWork()){
     ownerPanelRefreshPending=true;
     showToast("Save or finish the current Owner change before switching sections. Your draft is still open.");
     return false;
@@ -8644,7 +8790,20 @@ function renderOwnerPanel(section=ownerPanel){
   ownerPanel=route.panel;
   ownerDashboardNavKey=route.nav;
   if(route.panel==="products"&&route.nav==="categories"){ownerProductMode="categories";editingProductId=null;}
-  if(route.panel==="products"&&(route.nav==="products"||route.nav==="discounts")&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
+  if(!options.historyRestore&&route.panel==="products"&&route.nav==="discounts"&&ownerProductMode!=="form"){ownerProductMode="list";editingProductId=null;}
+  if(!options.historyRestore&&route.panel==="products"&&route.nav==="products"&&ownerProductMode!=="form"&&(previousPanel!=="products"||previousNav!==route.nav)){ownerProductMode="list";editingProductId=null;}
+  const navigationSnapshot=captureOwnerNavigationSnapshot(positionBeforeRender);
+  let navigationEntry=ownerNavigationLedger.current();
+  if(ownerViewActive&&!ownerNavigationRestoring&&!options.historyRestore){
+    installOwnerNavigationPopHandler();
+    if(!navigationEntry){navigationEntry=ownerNavigationLedger.start(navigationSnapshot);writeOwnerNavigationHistory(navigationEntry,false);}
+    else if(options.replaceHistory){navigationEntry=ownerNavigationLedger.replaceCurrent(navigationSnapshot);writeOwnerNavigationHistory(navigationEntry,true);}
+    else{
+      const result=ownerNavigationLedger.navigate(navigationSnapshot);
+      navigationEntry=result.entry;
+      if(result.changed)writeOwnerNavigationHistory(navigationEntry,false);
+    }
+  }
   const dashboard=document.getElementById("ownerDashboardPage");
   const sectionBox=document.getElementById("ownerPanelSectionContent");
   const mobileToolbar=document.getElementById("ownerMobileToolbar");
@@ -8655,6 +8814,7 @@ function renderOwnerPanel(section=ownerPanel){
   if(route.panel==="dashboard"){
     sectionBox.innerHTML="";
     renderOwnerDashboard(dashboard);
+    if(ownerNavigationLedger.hasBack())dashboard.insertAdjacentHTML("afterbegin",ownerNavigationHeaderMarkup());
   }else if(route.panel==="products")renderOwnerProducts(sectionBox);
   else if(route.panel==="ads")renderOwnerAds(sectionBox);
   else if(route.panel==="orders")renderOwnerOrders(sectionBox);
@@ -8664,9 +8824,13 @@ function renderOwnerPanel(section=ownerPanel){
   else if(route.panel==="customers")renderOwnerCustomers(sectionBox);
   else if(route.panel==="analytics")renderOwnerAnalytics(sectionBox);
   else if(route.panel==="reports")renderOwnerReports(sectionBox);
+  if(route.panel!=="dashboard")sectionBox.insertAdjacentHTML("afterbegin",ownerNavigationHeaderMarkup());
   renderOwnerDashboardNavigation();
-  if(route.focus)scrollOwnerTo(route.focus);
-  else if(route.panel!==previousPanel&&document.getElementById("ownerView").classList.contains("active"))scrollOwnerTo("ownerView");
+  if(route.focus&&!options.historyRestore)scrollOwnerTo(route.focus);
+  else if(ownerViewActive){
+    const restorePosition=navigationEntry?.position||positionBeforeRender;
+    requestAnimationFrame(()=>restoreOwnerScrollPosition(restorePosition));
+  }
   ownerPanelRefreshPending=false;
   return true;
 }
@@ -9820,7 +9984,7 @@ function editOwnerProduct(id){
   scrollOwnerTo("ownerProductForm");
 }
 
-function cancelProductEdit(){editingProductId=null;ownerProductWorkflowId="";ownerInventoryDraft.clear();ownerProductMode="list";renderOwnerPanel("products");scrollOwnerTo("ownerProductList")}
+function cancelProductEdit(){editingProductId=null;ownerProductWorkflowId="";ownerInventoryDraft.clear();ownerProductMode="list";renderOwnerPanel("products",{replaceHistory:true});scrollOwnerTo("ownerProductList")}
 
 async function deleteOwnerProduct(id){
   if(!isOwner()) return;
@@ -9916,7 +10080,7 @@ async function saveOwnerAd(event){
 }
 
 function editOwnerAd(index){if(!isOwner())return;if(ownerPanelHasPendingWork()){showToast("Save or cancel the current banner draft before opening another banner.");return;}editingAdIndex=index;ownerAdWorkflowId=createOwnerSaveRequestId();renderOwnerPanel("ads")}
-function cancelAdEdit(){editingAdIndex=null;ownerAdWorkflowId="";renderOwnerPanel("ads")}
+function cancelAdEdit(){editingAdIndex=null;ownerAdWorkflowId="";renderOwnerPanel("ads",{replaceHistory:true})}
 async function deleteOwnerAd(index){
   if(!isOwner())return;
   if(advertisements.length<=1){showToast("پێدڤیە لانیکەم یەک ڕیکلام بمینیت.");return;}
