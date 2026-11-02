@@ -18,6 +18,8 @@ assert.match(html, /#authPage\.auth\.is-shop-auth-modal\{[^}]*position:fixed;ins
 assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{#authPage\.is-shop-auth-modal\{animation:none!important\}\}/, "the modal should honor reduced-motion settings");
 assert.match(html, /html\.shop-auth-modal-open,body\.shop-auth-modal-open\{overflow:hidden!important/, "the modal should lock page scrolling only while open");
 assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?openGuestAuthenticationModal\(view\)/, "guest Cart and Profile should open auth without changing the active view first");
+assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?is-shop-auth-modal[\s\S]*?return false/, "background or repeated navigation must not replace a guest modal's underlying page");
+assert.match(html, /function openMain\(options=\{\}\)\{[\s\S]*?is-shop-auth-modal[\s\S]*?!currentUser&&!cloudAccount[\s\S]*?return false/, "startup hydration must not close the guest modal before authentication succeeds");
 assert.match(html, /if\(intent\.type==="cart"\|\|intent\.type==="profile"\)\{\s*openView\(intent\.type\)/, "successful authentication should resume the Cart or Profile destination that was requested");
 assert.match(signupSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful Sign Up must enter shared post-auth navigation");
 assert.match(loginSource, /currentUser=data\.account;[\s\S]*?openMain\(\)/, "successful cloud Login must enter shared post-auth navigation");
@@ -167,6 +169,10 @@ assert.equal(context.testApi.openView("profile"), true, "guest Profile opens the
 assert.equal(get("homeView").classList.contains("active"), true, "opening guest Profile leaves the existing page active behind the modal");
 assert.equal(get("profileView").classList.contains("active"), false, "guest Profile does not navigate away underneath the modal");
 assert.equal(context.pendingAuthenticationIntent.type, "profile");
+assert.equal(context.testApi.openView("profile"), false, "repeated Profile taps leave the same modal open");
+assert.equal(context.testApi.openView("home"), false, "background navigation cannot replace the page under an open guest modal");
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), true);
+assert.equal(get("homeView").classList.contains("active"), true);
 assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), true);
 assert.equal(get("authPage").role, "dialog");
 assert.equal(get("authPage")["aria-modal"], "true");
@@ -180,6 +186,12 @@ assert.equal(body.classList.contains("shop-auth-modal-open"), true, "the body sc
 assert.equal(get("homeView").scrollTop, 187);
 assert.equal(context.window.scrollY, 34);
 assert.equal(authCard.parentNode, host, "the existing shared Login / Sign Up card is reused");
+
+context.testApi.openMain({resumeIntent:false});
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"), true, "background startup/session hydration must not dismiss a guest authentication modal");
+assert.equal(get("homeView").classList.contains("active"), true, "background hydration must not replace the page behind the guest modal");
+assert.equal(get("homeView").scrollTop, 187, "background hydration must preserve the underlying section scroll position");
+assert.equal(context.window.scrollY, 34, "background hydration must preserve the underlying window scroll position");
 
 context.testApi.showAuth("signup");
 assert.equal(get("signupForm").classList.contains("active"), true, "Sign Up switches inside the same modal");
@@ -206,6 +218,10 @@ assert.equal(context.testApi.openView("cart"), true, "guest Cart opens the same 
 assert.equal(context.pendingAuthenticationIntent.type, "cart");
 assert.equal(get("searchView").classList.contains("active"), true, "Cart auth leaves Search visible behind the modal");
 assert.equal(get("cartView").classList.contains("active"), false);
+assert.equal(context.testApi.openView("profile"), false, "a repeated tap cannot replace the originally requested Cart destination");
+assert.equal(context.pendingAuthenticationIntent.type, "cart");
+assert.equal(context.testApi.openView("home"), false, "navigation stays locked to Search while guest Cart auth is open");
+assert.equal(get("searchView").classList.contains("active"), true);
 context.testApi.closeGuestAuthenticationModal();
 assert.equal(get("searchView").scrollTop, 311, "closing Cart auth restores Search scroll exactly");
 assert.equal(context.window.scrollY, 52);
@@ -271,4 +287,4 @@ await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
 assert.equal(context.pendingAuthenticationIntent, null);
 
-console.log("Offline authentication checks passed: guest Cart/Profile modal display and close, exact page/scroll restoration, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");
+console.log("Offline authentication checks passed: guest Cart/Profile modal behavior, background-hydration race protection, exact page/scroll restoration, repeated-tap protection, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");

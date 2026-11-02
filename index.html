@@ -6023,7 +6023,9 @@ function showAuth(type){
 }
 
 function openGuestAuthenticationModal(destination){
-  if((destination!=="cart"&&destination!=="profile")||currentUser||cloudAccount)return false;
+  const intent=typeof destination==="string"?{type:destination}:destination&&typeof destination==="object"?destination:null;
+  if(!intent||!(["cart","profile","product"].includes(intent.type))||currentUser||cloudAccount)return false;
+  if(intent.type==="product"&&(intent.productId==null||intent.size==null||intent.color==null||!Number.isFinite(Number(intent.quantity))||Number(intent.quantity)<1))return false;
   const authPage=document.getElementById("authPage");
   const mainApp=document.getElementById("mainApp");
   const languageSwitcher=document.querySelector(".language-switcher");
@@ -6038,7 +6040,7 @@ function openGuestAuthenticationModal(destination){
     languageSwitcherInert:Boolean(languageSwitcher?.inert)
   };
   restoreProfileAuthCard();
-  pendingAuthenticationIntent={type:destination};
+  pendingAuthenticationIntent={...intent};
   authPage.classList.add("is-shop-auth-modal");
   authPage.setAttribute("role","dialog");
   authPage.setAttribute("aria-modal","true");
@@ -6092,6 +6094,15 @@ function closeGuestAuthenticationModal({clearIntent=true,restoreContext=true,res
 
 function requireAuthentication(intent, message="Please sign in or create an account to continue."){
   if(currentUser||cloudAccount)return false;
+  if(intent?.type==="product"){
+    const authPage=document.getElementById("authPage");
+    if(authPage?.classList?.contains?.("is-shop-auth-modal"))return true;
+    if(openGuestAuthenticationModal(intent)){
+      const loginMessage=document.getElementById("loginMsg");
+      if(loginMessage)loginMessage.textContent=message;
+      return true;
+    }
+  }
   pendingAuthenticationIntent=intent&&typeof intent==="object"?intent:null;
   hideShopOnboarding();
   document.querySelector(".app")?.classList.add("auth-mode");
@@ -6197,11 +6208,12 @@ function resumeAuthenticationIntent(){
     openView(intent.type);
     return;
   }
-  openView("home");
   if(intent.type==="product"){
     const product=products.find(item=>String(item.id)===String(intent.productId));
     if(!product){showToast("That product is no longer available.");return;}
-    openProduct(product.id);
+    const alreadyShowingProduct=getActiveShopView()==="detail"&&currentProduct&&String(currentProduct.id)===String(product.id);
+    if(alreadyShowingProduct)currentProduct=product;
+    else{openView("home");openProduct(product.id);}
     const variant=product.variants?.find(item=>String(item.size)===String(intent.size)&&normalizeHexColor(item.color)===normalizeHexColor(intent.color));
     if(!variant){showToast("The selected color or size is no longer available. Choose another variant.");return;}
     selectedSize=String(intent.size);selectedColor=normalizeHexColor(intent.color);currentQty=Math.max(1,Math.floor(Number(intent.quantity)||1));
@@ -6214,6 +6226,7 @@ function resumeAuthenticationIntent(){
     return;
   }
   if(intent.type==="checkout"){
+    openView("home");
     mergeGuestCartAfterAuthentication(intent.cart||[]);
     openCheckout();
   }
@@ -6524,7 +6537,11 @@ function resetPassword(){
 
 function openMain(options={}){
 
-  closeGuestAuthenticationModal({clearIntent:false,restoreContext:false,restoreFocus:false});
+  const authPage=document.getElementById("authPage");
+  if(authPage?.classList.contains("is-shop-auth-modal")&&pendingAuthenticationIntent?.type==="product"&&!currentUser&&!cloudAccount)return false;
+  if(authPage?.classList.contains("is-shop-auth-modal")&&!currentUser&&!cloudAccount)return false;
+  const preservePendingProductPage=pendingAuthenticationIntent?.type==="product";
+  closeGuestAuthenticationModal({clearIntent:false,restoreContext:preservePendingProductPage,restoreFocus:preservePendingProductPage});
   restoreProfileAuthCard();
   if(!shopOnboardingActive)hideShopOnboarding();
 
@@ -6546,6 +6563,9 @@ function openMain(options={}){
 function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
+  const authPage=document.getElementById("authPage");
+  if(authPage?.classList.contains("is-shop-auth-modal")&&pendingAuthenticationIntent?.type==="product"&&!currentUser&&!cloudAccount)return false;
+  if(authPage?.classList.contains("is-shop-auth-modal")&&!currentUser&&!cloudAccount)return false;
   if((view==="cart"||view==="profile")&&!currentUser&&!cloudAccount){
     return openGuestAuthenticationModal(view);
   }

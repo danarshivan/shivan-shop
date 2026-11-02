@@ -305,20 +305,25 @@ const extractFunction = name => {
   assert.ok(source, `website should define ${name}`);
   return source;
 };
-const guestElements = new Map([["mainApp", { style: {} }], ["authPage", { style: {}, classList: { toggle() {} } }], ["loginMsg", { textContent: "" }]]);
+const guestElements = new Map([["mainApp", { style: { display: "block" } }], ["authPage", { style: { display: "none" }, classList: { toggle() {}, contains() { return false; } } }], ["loginMsg", { textContent: "" }]]);
 let shownAuth = "";
 let hiddenOnboarding = false;
+let guestModalOpened = false;
 const guestAuthContext = {
   currentUser: null, cloudAccount: null, pendingAuthenticationIntent: null,
   hideShopOnboarding() { hiddenOnboarding = true; },
   document: { querySelector: () => ({ classList: { add() {} } }), getElementById: id => guestElements.get(id) },
   showAuth(type) { shownAuth = type; },
+  openGuestAuthenticationModal(intent) { guestModalOpened = true; shownAuth = "login"; guestAuthContext.pendingAuthenticationIntent = { ...intent }; return true; },
 };
 const guestAuth = runInNewContext(`${extractFunction(guestFlowNames[0])}\n({requireAuthentication,pending:()=>pendingAuthenticationIntent})`, guestAuthContext);
 const pendingProductIntent = { type: "product", productId: 21, size: "S", color: "#f00", quantity: 1 };
-assert.equal(guestAuth.requireAuthentication(pendingProductIntent), true, "a guest purchase attempt should open existing authentication");
+assert.equal(guestAuth.requireAuthentication(pendingProductIntent), true, "a guest purchase attempt should open the existing auth modal");
 assert.equal(shownAuth, "login");
-assert.equal(hiddenOnboarding, true);
+assert.equal(guestModalOpened, true);
+assert.equal(hiddenOnboarding, false, "the guest purchase modal does not replace the product/shop page");
+assert.equal(guestElements.get("mainApp").style.display, "block", "guest purchase authentication keeps the shop visible");
+assert.equal(guestElements.get("authPage").style.display, "none", "guest purchase authentication does not show the full-page auth route");
 assert.deepEqual(JSON.parse(JSON.stringify(guestAuth.pending())), pendingProductIntent, "the exact product, size, color, and quantity must be retained until authentication succeeds");
 
 let resumedProduct = null;
@@ -333,6 +338,7 @@ const resumedState = runInNewContext(`${resumeSource}\nresumeAuthenticationInten
   openProduct(productId) { resumedProduct = productId; },
   get currentUser() { return { id: "signed-in" }; },
   currentProduct: null, selectedSize: "", selectedColor: "", currentQty: 1,
+  getActiveShopView: () => "home",
   normalizeHexColor: value => String(value).toLowerCase(), renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {},
   variantStock: (_product, color, size) => color === "#f00" && size === "S" ? 2 : 0,
   cartVariantCount: () => 0,
