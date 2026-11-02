@@ -1240,9 +1240,6 @@ button{
 .owner-dashboard-nav-item.active .owner-dashboard-nav-icon{background:#6846b4;color:#fff}
 .owner-sidebar-visit{margin-top:auto;border-color:#443165;background:#181126;color:#d8c9ff}
 .owner-admin-main{min-width:0}
-.owner-mobile-toolbar{display:none}
-.owner-mobile-toolbar[hidden]{display:none!important}
-.owner-mobile-toolbar select{width:100%;min-width:0;min-height:46px;padding:9px 12px;border:1px solid #443463;border-radius:13px;background:#100e19;color:#fff;font:inherit}
 .owner-route-header{position:sticky;top:8px;z-index:12;display:flex;align-items:center;gap:12px;min-height:48px;margin:0 0 12px;padding:7px 9px;border:1px solid #302743;border-radius:14px;background:rgba(11,10,18,.94);backdrop-filter:blur(14px);box-shadow:0 8px 24px #0003}
 .owner-route-back{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;min-height:36px;padding:7px 12px;border:1px solid #604695;border-radius:11px;background:linear-gradient(120deg,#382653,#21182f);color:#fff;font:inherit;font-size:13px;font-weight:750;cursor:pointer;touch-action:manipulation}
 .owner-route-back:hover{border-color:#a17be7;background:linear-gradient(120deg,#503274,#2d2040)}
@@ -1307,7 +1304,7 @@ button{
 .owner-analytics-empty{padding:14px;border:1px dashed #403551;border-radius:12px;color:#a69eb3;text-align:center}
 .owner-owner-content[hidden],.owner-dashboard-page[hidden]{display:none!important}
 @media(max-width:1050px){.owner-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-mobile-toolbar{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;gap:8px;margin:0 0 12px}.owner-mobile-toolbar label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
+@media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
 @media(max-width:460px){.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
 @media(prefers-reduced-motion:reduce){.owner-dashboard-nav-item,.owner-stat-card,.owner-quick-action,.owner-management-card{transition:none!important}.owner-stat-card:hover,.owner-quick-action:hover,.owner-management-card:hover{transform:none}}
 .owner-inventory-tools{display:grid;gap:12px;margin:12px 0}
@@ -8806,9 +8803,7 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   }
   const dashboard=document.getElementById("ownerDashboardPage");
   const sectionBox=document.getElementById("ownerPanelSectionContent");
-  const mobileToolbar=document.getElementById("ownerMobileToolbar");
   if(!dashboard||!sectionBox)return false;
-  if(mobileToolbar)mobileToolbar.hidden=route.panel==="dashboard";
   dashboard.hidden=route.panel!=="dashboard";
   sectionBox.hidden=route.panel==="dashboard";
   if(route.panel==="dashboard"){
@@ -8885,7 +8880,6 @@ function ownerDashboardShellMarkup(){
   const overview=items.filter(([route])=>route==="dashboard");
   const management=items.filter(([route])=>["products","categories","discounts","orders","customers","colors","inventory","analytics","reports","backup","store-settings"].includes(route));
   const promotions=items.filter(([route])=>["ads","onboarding"].includes(route));
-  const mobileOptions=items.map(([route,,label])=>`<option value="${route}">${escapeHtml(label)}</option>`).join("");
   return `<div class="owner-admin-shell">
     <aside class="owner-sidebar" aria-label="Owner navigation">
       <div class="owner-sidebar-brand"><span class="owner-sidebar-mark" aria-hidden="true">SH</span><span><strong>SHIVAN SHOP</strong><small>${escapeHtml(ownerDashboardText("Store Owner","خاوەنێ فرۆشگە","مالك المتجر"))}</small></span></div>
@@ -8895,7 +8889,6 @@ function ownerDashboardShellMarkup(){
       <button type="button" class="owner-dashboard-nav-item owner-sidebar-visit" onclick="visitStoreFromOwner()"><span class="owner-dashboard-nav-icon" aria-hidden="true">↗</span><span>${escapeHtml(ownerDashboardText("Visit Store","سەردانا فرۆشگەیێ","زيارة المتجر"))}</span></button>
     </aside>
     <main class="owner-admin-main">
-      <div id="ownerMobileToolbar" class="owner-mobile-toolbar" hidden><label for="ownerMobileNavigation">Owner section</label><select id="ownerMobileNavigation" aria-label="Owner section" onchange="renderOwnerPanel(this.value)">${mobileOptions}</select></div>
       <div id="ownerDashboardPage" class="owner-dashboard-page"></div>
       <div id="ownerPanelSectionContent" class="owner-owner-content" hidden></div>
     </main>
@@ -8912,8 +8905,6 @@ function renderOwnerDashboardNavigation(){
     button.classList.toggle("active",active);
     if(active)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
   });
-  const select=document.getElementById("ownerMobileNavigation");
-  if(select)select.value=ownerDashboardNavKey;
 }
 
 function ownerConfirmedSalesOrder(order){
