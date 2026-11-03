@@ -1391,11 +1391,10 @@ button{
 @media(max-width:460px){.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
 @media(prefers-reduced-motion:reduce){.owner-dashboard-nav-item,.owner-stat-card,.owner-quick-action,.owner-management-card{transition:none!important}.owner-stat-card:hover,.owner-quick-action:hover,.owner-management-card:hover{transform:none}}
 .owner-inventory-tools{display:grid;gap:12px;margin:12px 0}
-.owner-inventory-scanner,.owner-inventory-result,.owner-qr-card{padding:14px;border:1px solid #282d40;border-radius:16px;background:#0b0e18}
+.owner-qr-card{padding:14px;border:1px solid #282d40;border-radius:16px;background:#0b0e18}
 .owner-inventory-actions{display:flex;flex-wrap:wrap;gap:8px}
 .owner-inventory-tools button,.owner-qr-card button{min-height:44px;padding:9px 14px;border:1px solid #3a3650;border-radius:12px;background:#171725;color:#fff;font:inherit;touch-action:manipulation}
 .owner-inventory-tools button:disabled{opacity:.55}
-.owner-inventory-scanner video{display:block;width:100%;max-height:42vh;min-height:180px;object-fit:cover;border-radius:12px;background:#03050d}
 .owner-inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:10px;margin-top:12px}
 .owner-qr-card{min-width:0;display:grid;gap:8px;align-content:start}
 .owner-qr-card strong,.owner-qr-card small{overflow-wrap:anywhere}
@@ -3984,7 +3983,8 @@ let ownerInventoryVariants=[];
 let ownerQrRenderQueue=[];
 let ownerQrSvgById=new Map();
 let ownerInventorySelectedProductId=null;
-let ownerInventoryListScrollY=0;
+let ownerInventoryListPosition={windowY:0,viewTop:0,authTop:0};
+let ownerInventorySelectedQrIdsByProduct=new Map();
 let ownerInventoryStream=null;
 let ownerInventoryScanTimer=null;
 let ownerInventoryScanBusy=false;
@@ -9304,8 +9304,8 @@ function loadQrVendorScript(file,globalName){
 async function renderOwnerInventory(box){
   if(!isOwner()||!box)return;
   stopOwnerQrScanner();
-  ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;ownerInventorySelectedProductId=null;ownerInventoryListScrollY=0;
-  box.innerHTML=`<section class="owner-inventory-tools"><div id="ownerInventoryListView"><h3>QR product inventory</h3><p>Choose a product to view its color and size variants, exact QR codes, and shared stock.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search products, colors, or sizes<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search QR inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All products</option><option value="in-stock">Has stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div id="ownerInventoryProductGrid" class="owner-qr-product-grid" aria-live="polite"></div></div><div id="ownerInventoryDetailView" hidden></div></section>`;
+  ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;ownerInventorySelectedProductId=null;ownerInventoryListPosition={windowY:0,viewTop:0,authTop:0};
+  box.innerHTML=`<section class="owner-inventory-tools"><div id="ownerInventoryListView"><h3>QR product inventory</h3><p>Choose a product to view its color and size variants, exact QR codes, and shared stock.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search products, colors, or sizes<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search QR inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All products</option><option value="in-stock">Has stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div id="ownerInventoryProductGrid" class="owner-qr-product-grid" aria-live="polite"></div></div><div id="ownerInventoryDetailView" hidden></div></section>`;
   try{
     const data=await cloudRequest("/api/inventory/qr/ensure",{method:"POST",body:"{}",timeoutMs:30000});
     if(ownerPanel!=="inventory"||!isOwner())return;
@@ -9320,8 +9320,6 @@ async function renderOwnerInventory(box){
     ownerInventoryVariants=variants;
     const status=document.getElementById("ownerInventoryStatus");
     if(status)status.textContent=`${products.length} products and ${variants.length} unique color-and-size variants loaded from shared inventory.`;
-    const pending=readPendingInventoryOperation();
-    if(pending){const banner=document.getElementById("ownerInventoryPending");if(banner)banner.innerHTML=`<p class="owner-inventory-status">A previous stock change still needs confirmation. Retry it with its original request ID to prevent a duplicate sale.</p><button type="button" onclick="retryPendingInventoryOperation()">Check / retry previous stock change</button>`;}
     renderOwnerInventoryProductList();
   }catch(error){
     if(ownerPanel!=="inventory")return;
@@ -9379,10 +9377,10 @@ function ownerInventoryColorGroups(variants){
   return [...groups.values()];
 }
 
-function ownerInventoryVariantCardMarkup(variant,productImage=""){
+function ownerInventoryVariantCardMarkup(variant,productImage="",selected=false){
   const qrId=String(variant.qrId||"");
   const image=variant.image||productImage;
-  return `<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(qrId)}" data-qr-stock="${variant.stock}" data-qr-search="${escapeHtml(`${variant.productName} ${variant.productId} ${variant.colorName} ${variant.size}`.toLocaleLowerCase())}"><label class="owner-qr-select"><input type="checkbox" value="${escapeHtml(qrId)}" aria-label="Select QR for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}" onchange="updateOwnerInventorySelection()">Select variant</label>${image?`<img class="owner-qr-product-image" src="${escapeHtml(image)}" alt="${escapeHtml(variant.productName)} · ${escapeHtml(variant.colorName)}" loading="lazy">`:""}<button type="button" class="owner-qr-art" data-qr-image="${escapeHtml(qrId)}" aria-label="Identify exact variant ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}, QR ID ${escapeHtml(qrId)}" onclick="inspectOwnerInventoryVariant('${escapeHtml(qrId)}')"><small>Preparing QR…</small></button><strong>${escapeHtml(variant.productName)}</strong><div class="owner-qr-meta"><span>Color: ${escapeHtml(variant.colorName)}</span><span>Size: ${escapeHtml(variant.size)}</span><span class="owner-qr-variant-id">Variant ID: ${escapeHtml(qrId)}</span><span class="owner-qr-stock ${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`}</span><span class="owner-qr-price">${escapeHtml(formatPrice(variant.finalPrice))}</span>${variant.discountPercent?`<span class="owner-qr-original">${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%</span>`:""}</div><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(qrId)}')">Download QR</button><button type="button" onclick="printVariantQr('${escapeHtml(qrId)}')">Print QR</button></div></article>`;
+  return `<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(qrId)}" data-qr-stock="${variant.stock}" data-qr-search="${escapeHtml(`${variant.productName} ${variant.productId} ${variant.colorName} ${variant.size}`.toLocaleLowerCase())}"><label class="owner-qr-select"><input type="checkbox" value="${escapeHtml(qrId)}"${selected?" checked":""} aria-label="Select QR for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}" onchange="updateOwnerInventorySelection()">Select variant</label>${image?`<img class="owner-qr-product-image" src="${escapeHtml(image)}" alt="${escapeHtml(variant.productName)} · ${escapeHtml(variant.colorName)}" loading="lazy">`:""}<button type="button" class="owner-qr-art" data-qr-image="${escapeHtml(qrId)}" aria-label="Identify exact variant ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}, QR ID ${escapeHtml(qrId)}" onclick="inspectOwnerInventoryVariant('${escapeHtml(qrId)}')"><small>Preparing QR…</small></button><strong>${escapeHtml(variant.productName)}</strong><div class="owner-qr-meta"><span>Color: ${escapeHtml(variant.colorName)}</span><span>Size: ${escapeHtml(variant.size)}</span><span class="owner-qr-variant-id">Variant ID: ${escapeHtml(qrId)}</span><span class="owner-qr-stock ${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`}</span><span class="owner-qr-price">${escapeHtml(formatPrice(variant.finalPrice))}</span>${variant.discountPercent?`<span class="owner-qr-original">${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%</span>`:""}</div><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(qrId)}')">Download QR</button><button type="button" onclick="printVariantQr('${escapeHtml(qrId)}')">Print QR</button></div></article>`;
 }
 
 function renderOwnerInventoryProductQrDetails(productId){
@@ -9393,7 +9391,8 @@ function renderOwnerInventoryProductQrDetails(productId){
   const variants=ownerInventoryVariantsForProduct(productId);
   const image=variants.find(variant=>variant.image)?.image||safeImageUrl(productPhotos(product)[0]?.src||product.image||"");
   const groups=ownerInventoryColorGroups(variants);
-  detail.innerHTML=`<div class="owner-qr-detail-header"><div><h3>Product QR Details</h3><p>Every card below represents one exact color and size variant.</p></div><button type="button" class="owner-qr-back" onclick="closeOwnerInventoryProductDetails()" aria-label="Back to QR product list">← Back to products</button></div><section class="owner-qr-product-hero">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(getProductName(product))}" loading="lazy">`:""}<div><h3>${escapeHtml(getProductName(product))}</h3><p>Product ID: ${escapeHtml(String(product.id))}</p><p>${variants.length} ${variants.length===1?"variant":"variants"} · ${groups.length} ${groups.length===1?"color":"colors"}</p><div class="owner-inventory-actions"><button type="button" onclick="printAllVariantQrs()">Print all for this product</button><button type="button" onclick="downloadAllVariantQrSheet()">Download all for this product</button></div></div></section>${variants.length?`<div class="owner-inventory-actions" style="margin-top:12px"><button type="button" onclick="selectVisibleOwnerInventoryQrs(true)">Select all variants</button><button type="button" onclick="selectVisibleOwnerInventoryQrs(false)">Clear selection</button><button id="ownerInventoryPrintSelected" type="button" onclick="printSelectedVariantQrs()" disabled>Print selected</button><button id="ownerInventoryDownloadSelected" type="button" onclick="downloadSelectedVariantQrSheet()" disabled>Download selected sheet</button></div><p id="ownerInventorySelectionStatus" class="owner-inventory-status" role="status" aria-live="polite">No variants selected.</p><div id="ownerInventoryQrGrid">${groups.map(group=>`<section class="owner-qr-color-group"><h4 class="owner-qr-color-heading"><span class="owner-qr-color-swatch" style="--qr-color:${escapeHtml(normalizeHexColor(group.color)||"#7862a8")}"></span>${escapeHtml(group.colorName)} <small>(${group.variants.length} ${group.variants.length===1?"size":"sizes"})</small></h4><div class="owner-inventory-grid">${group.variants.map(variant=>ownerInventoryVariantCardMarkup(variant,image)).join("")}</div></section>`).join("")}</div>`:"<p class=\"owner-inventory-empty\">No color and size variants are available for this product yet.</p>"}`;
+  const selectedIds=ownerInventorySavedSelection(product.id);
+  detail.innerHTML=`<div class="owner-qr-detail-header"><div><h3>Product QR Details</h3><p>Every card below represents one exact color and size variant.</p></div><button type="button" class="owner-qr-back" onclick="closeOwnerInventoryProductDetails()" aria-label="Back to QR product list">← Back to products</button></div><section class="owner-qr-product-hero">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(getProductName(product))}" loading="lazy">`:""}<div><h3>${escapeHtml(getProductName(product))}</h3><p>Product ID: ${escapeHtml(String(product.id))}</p><p>${variants.length} ${variants.length===1?"variant":"variants"} · ${groups.length} ${groups.length===1?"color":"colors"}</p><div class="owner-inventory-actions"><button type="button" onclick="printAllVariantQrs()">Print all for this product</button><button type="button" onclick="downloadAllVariantQrSheet()">Download all for this product</button></div></div></section>${variants.length?`<div class="owner-inventory-actions" style="margin-top:12px"><button type="button" onclick="selectVisibleOwnerInventoryQrs(true)">Select all variants</button><button type="button" onclick="selectVisibleOwnerInventoryQrs(false)">Clear selection</button><button id="ownerInventoryPrintSelected" type="button" onclick="printSelectedVariantQrs()" disabled>Print selected</button><button id="ownerInventoryDownloadSelected" type="button" onclick="downloadSelectedVariantQrSheet()" disabled>Download selected sheet</button></div><p id="ownerInventorySelectionStatus" class="owner-inventory-status" role="status" aria-live="polite">No variants selected.</p><div id="ownerInventoryQrGrid">${groups.map(group=>`<section class="owner-qr-color-group"><h4 class="owner-qr-color-heading"><span class="owner-qr-color-swatch" style="--qr-color:${escapeHtml(normalizeHexColor(group.color)||"#7862a8")}"></span>${escapeHtml(group.colorName)} <small>(${group.variants.length} ${group.variants.length===1?"size":"sizes"})</small></h4><div class="owner-inventory-grid">${group.variants.map(variant=>ownerInventoryVariantCardMarkup(variant,image,selectedIds.has(variant.qrId))).join("")}</div></section>`).join("")}</div>`:"<p class=\"owner-inventory-empty\">No color and size variants are available for this product yet.</p>"}`;
   ownerQrRenderQueue=variants.filter(variant=>!ownerQrSvgById.has(variant.qrId)).map(variant=>({id:variant.qrId,payload:variant.qr}));
   updateOwnerInventorySelection();
   if(ownerQrRenderQueue.length)requestAnimationFrame(renderNextOwnerQrBatch);
@@ -9403,13 +9402,13 @@ function openOwnerInventoryProduct(productId){
   if(!isOwner()||ownerPanel!=="inventory")return;
   const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===String(productId));
   if(!product)return;
-  ownerInventoryListScrollY=window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;
+  ownerInventoryListPosition=readShopViewPosition("owner");
   ownerInventorySelectedProductId=product.id;
   const list=document.getElementById("ownerInventoryListView");const detail=document.getElementById("ownerInventoryDetailView");
   if(!list||!detail)return;
   renderOwnerInventoryProductQrDetails(product.id);
   list.hidden=true;detail.hidden=false;
-  window.scrollTo({top:0,left:0,behavior:"auto"});
+  restoreOwnerScrollPosition({windowY:0,viewTop:0,authTop:0});
 }
 
 function closeOwnerInventoryProductDetails(){
@@ -9417,7 +9416,7 @@ function closeOwnerInventoryProductDetails(){
   const list=document.getElementById("ownerInventoryListView");const detail=document.getElementById("ownerInventoryDetailView");
   if(!list||!detail)return;
   detail.hidden=true;list.hidden=false;ownerInventorySelectedProductId=null;
-  requestAnimationFrame(()=>window.scrollTo({top:ownerInventoryListScrollY,left:0,behavior:"auto"}));
+  requestAnimationFrame(()=>restoreOwnerScrollPosition(ownerInventoryListPosition));
 }
 
 function inspectOwnerInventoryVariant(qrId){
@@ -9440,8 +9439,13 @@ function ownerInventorySelectedIds(){
   return [...document.querySelectorAll("#ownerInventoryQrGrid .owner-qr-select input:checked")].map(input=>input.value);
 }
 
+function ownerInventorySavedSelection(productId){
+  return new Set(ownerInventorySelectedQrIdsByProduct.get(String(productId))||[]);
+}
+
 function updateOwnerInventorySelection(){
   const selected=ownerInventorySelectedIds();
+  if(ownerInventorySelectedProductId!==null)ownerInventorySelectedQrIdsByProduct.set(String(ownerInventorySelectedProductId),new Set(selected));
   const status=document.getElementById("ownerInventorySelectionStatus");
   if(status)status.textContent=selected.length?`${selected.length} variant${selected.length===1?"":"s"} selected.`:"No variants selected.";
   const print=document.getElementById("ownerInventoryPrintSelected");const download=document.getElementById("ownerInventoryDownloadSelected");
