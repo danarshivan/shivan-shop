@@ -57,7 +57,7 @@ const ownerDraftForm = { dataset: { shivanDraftDirty: "true" } };
 const ownerPanelContent = { querySelector: () => ownerDraftActive ? ownerDraftForm : null };
 const ownerSandbox = {
   PRODUCTS_KEY: "shivan_shop_products", ADS_KEY: "shivan_shop_ads",
-  OWNER_APPEARANCE_KEY: "shivan_shop_owner_appearance", SHOP_ONBOARDING_IMAGES_KEY: "shivan_shop_onboarding_images",
+  OWNER_APPEARANCE_KEY: "shivan_shop_owner_appearance", OWNER_SMART_ALERTS_KEY: "shivan_shop_owner_alerts", SHOP_ONBOARDING_IMAGES_KEY: "shivan_shop_onboarding_images",
   OWNER_CATEGORIES_KEY: "shivan_shop_categories", OWNER_CATEGORY_META_KEY: "shivan_shop_category_meta",
   OWNER_CATEGORY_RENAMES_KEY: "shivan_shop_category_renames", OWNER_CATEGORY_DELETED_KEY: "shivan_shop_deleted_categories",
   FAVORITES_KEY: "shivan_shop_favorites", CART_KEY: "shivan_shop_cart", SETTINGS_KEY: "shivan_shop_settings",
@@ -74,7 +74,7 @@ const ownerSandbox = {
   renderOwnerPanel: () => { ownerPanelRenderCount++; },
   loadProducts() {}, loadOwnerAppearance() {}, getAdvertisements: () => [], renderAdvertisements() {},
   renderCategoryButtons() {}, renderVisibleProductGrid() {}, renderShopOnboardingSlide() {}, updateCartBadge() {},
-  renderOrders: () => { orderRenderCount++; }, updateProfile() {},
+  renderOrders: () => { orderRenderCount++; }, reconcileOwnerSmartAlerts() {}, updateProfile() {},
 };
 runInNewContext(`${ownerDraftGuard}\n${safeOwnerRefresh}\n${apply}\nglobalThis.applyRemote=applyCloudData;`, ownerSandbox);
 ownerSandbox.applyRemote({ shop: { shivan_shop_ads: "remote-1" }, user: {} });

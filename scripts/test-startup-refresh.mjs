@@ -159,6 +159,7 @@ const stored = new Map([["shivan_shop_ads", "old"]]);
 const calls = { products: 0, categories: 0, banners: 0 };
 const renderSandbox = {
   PRODUCTS_KEY: "shivan_shop_products", ADS_KEY: "shivan_shop_ads",
+  OWNER_SMART_ALERTS_KEY: "shivan_shop_owner_alerts",
   IOS_ONBOARDING_KEY: "shivan_shop_ios_onboarding_images",
   SHOP_ONBOARDING_IMAGES_KEY: "shivan_shop_onboarding_images",
   OWNER_APPEARANCE_KEY: "shivan_shop_owner_appearance",

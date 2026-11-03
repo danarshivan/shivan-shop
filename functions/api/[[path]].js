@@ -6,6 +6,7 @@ const SHOP_KEYS = new Set([
   "shivan_shop_ads",
   "shivan_shop_ios_onboarding_images",
   "shivan_shop_owner_appearance",
+  "shivan_shop_owner_alerts",
   "shivan_shop_categories",
   "shivan_shop_category_meta",
   "shivan_shop_category_renames",
@@ -290,11 +291,11 @@ async function ownerExists(env) {
   return Boolean(row);
 }
 
-async function getShopState(env) {
+async function getShopState(env, includeOwnerPrivate = false) {
   // Media is stored as separate D1 rows. Never include those large values in
   // bootstrap or realtime sync responses; shop records contain only URLs.
   const result = await env.DB.prepare("SELECT key, value FROM shop_state WHERE key < 'media:' OR key >= 'media;'").all();
-  return Object.fromEntries((result.results || []).map(row => [row.key, row.value]));
+  return Object.fromEntries((result.results || []).filter(row => includeOwnerPrivate || row.key !== "shivan_shop_owner_alerts").map(row => [row.key, row.value]));
 }
 
 function mediaExtension(type) {
@@ -878,7 +879,7 @@ async function handleAuth(request, env, route, secure) {
 
 async function handleSync(request, env, account) {
   if (request.method === "GET") {
-    const shop = await getShopState(env);
+    const shop = await getShopState(env, account?.role === "owner");
     if (!account) return json({ shop, user: null, account: null });
     const result = await env.DB.prepare("SELECT key, value FROM user_state WHERE account_id=? AND key NOT LIKE 'inventory-op:%'").bind(account.id).all();
     const user = Object.fromEntries((result.results || []).map(row => [row.key, row.value]));

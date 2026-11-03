@@ -43,6 +43,9 @@ const context = {
   ownerReportSelection: { preset: "month", start: "", end: "" },
   OWNER_IDENTIFIER: "owner@example.test",
   isOwner: () => true,
+  ownerSmartAlertUnreadCount: () => 0,
+  reconcileOwnerSmartAlerts: () => ({ created: [], state: {} }),
+  ownerSmartAlertDashboardSummaryMarkup: () => '<section class="owner-smart-alert-summary">Smart Alerts</section>',
   products: sourceData.products,
   ownerAppearance: { storeName: "Shivan Shop Test" },
   getOrders: () => sourceData.orders,
@@ -66,6 +69,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("colors"))), 
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("store-settings"))), { panel: "appearance", nav: "store-settings", focus: "ownerAppearanceForm" }, "Store Settings reuses the existing store appearance editor");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("backup"))), { panel: "appearance", nav: "backup", focus: "ownerBackupSync" }, "Backup & Sync opens the existing backup controls");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("analytics"))), { panel: "analytics", nav: "analytics" }, "Analytics opens its owner-only report view");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("alerts"))), { panel: "alerts", nav: "alerts" }, "Smart Alerts opens its Owner-only section");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("discounts"))), { panel: "products", nav: "discounts" }, "Discounts reuse the existing product editor and stored settings");
 
 const dashboard = { innerHTML: "" };
@@ -74,6 +78,8 @@ assert.match(dashboard.innerHTML, /Shivan Shop Test/);
 assert.match(dashboard.innerHTML, /IQD 1400/);
 assert.match(dashboard.innerHTML, /Create Discount/);
 assert.match(dashboard.innerHTML, /Create Ad/);
+assert.match(dashboard.innerHTML, /owner-smart-alert-summary/);
+assert.match(dashboard.innerHTML, /Smart Alerts/);
 assert.match(dashboard.innerHTML, /Limited-Time Discount/);
 assert.match(dashboard.innerHTML, /Create Offer/);
 assert.match(dashboard.innerHTML, /1 active timed offer/);
@@ -90,7 +96,7 @@ assert.match(shell, /class="owner-sidebar"/);
 assert.doesNotMatch(shell, /ownerMobileNavigation|ownerMobileToolbar|owner-mobile-toolbar/, "the Product List section dropdown and wrapper are absent on every screen");
 assert.doesNotMatch(shell, /owner-visit-mobile/, "the redundant mobile Visit Store button is removed");
 assert.match(shell, /Visit Store/);
-for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
+for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Smart Alerts", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
   assert.ok(shell.includes(label), `desktop and mobile navigation should expose ${label}`);
 }
 
