@@ -1,0 +1,209 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { runInNewContext } from "node:vm";
+
+const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const api = await readFile(new URL("../functions/api/[[path]].js", import.meta.url), "utf8");
+const constantsStart = html.indexOf("const OWNER_THEME_PRESETS=");
+const constantsEnd = html.indexOf("\nlet products = [", constantsStart);
+assert.ok(constantsStart >= 0 && constantsEnd > constantsStart, "Owner theme constants and default appearance are present");
+const constants = html.slice(constantsStart, constantsEnd);
+const functionSource = name => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = html.match(new RegExp(`(?:async\\s+)?function ${escaped}\\([^\\n]*\\)\\s*\\{[\\s\\S]*?\\n\\}`));
+  assert.ok(match, `Expected function ${name} to exist`);
+  return match[0];
+};
+const required = [
+  "safeAppearanceColor", "isValidAppearanceHex", "normalizeOwnerAppearance", "ownerAppearanceGlobalCss",
+  "ownerAppearanceThemePreset", "ownerAppearanceHexInput", "ownerAppearancePresetMarkup", "ownerAppearancePreviewMarkup",
+  "readOwnerAppearanceForm", "setOwnerAppearanceStatus", "renderOwnerAppearancePreview", "renderOwnerAppearance",
+  "selectOwnerTheme", "syncOwnerAppearanceColor", "previewOwnerAppearance", "saveOwnerAppearance", "resetOwnerAppearance",
+];
+const functions = required.map(functionSource).join("\n");
+
+const product = { id: "p-1", name: "Evening dress", price: 85000, discount: 25, image: "/dress.jpg", category: "Dresses" };
+const data = new Map();
+const elements = new Map();
+const makeElement = (value = "") => ({
+  value,
+  textContent: "",
+  innerHTML: "",
+  style: {},
+  dataset: {},
+  attributes: {},
+  disabled: false,
+  setAttribute(name, item) { this.attributes[name] = item; },
+  removeAttribute(name) { delete this.attributes[name]; },
+  querySelector() { return this.submitButton || null; },
+});
+const presets = Object.keys({ purple: 1, pink: 1, blue: 1, teal: 1, gold: 1 }).map(name => ({
+  dataset: { ownerTheme: name },
+  attributes: {},
+  label: makeElement(),
+  setAttribute(key, value) { this.attributes[key] = value; },
+  querySelector() { return this.label; },
+}));
+const document = {
+  head: {},
+  getElementById(id) { return elements.get(id) || null; },
+  querySelectorAll(selector) { return selector.includes("ownerThemePresets") ? presets : []; },
+};
+const localStorage = {
+  getItem(key) { return data.has(key) ? data.get(key) : null; },
+  setItem(key, value) { data.set(key, String(value)); },
+  removeItem(key) { data.delete(key); },
+};
+const context = {
+  document,
+  localStorage,
+  window: { confirm: () => true },
+  isOwner: () => true,
+  cloudMode: true,
+  cloudAccount: { id: "owner-test", role: "owner" },
+  products: [product],
+  productDiscountPercent: item => Number(item?.discount) >= 1 && Number(item?.discount) <= 99 ? Number(item.discount) : 0,
+  getProductPricing: item => ({ originalPrice: item.price, finalPrice: Math.round(item.price * (100 - Number(item.discount || 0)) / 100), discountPercent: Number(item.discount || 0) }),
+  productPhotos: item => [{ src: item.image }],
+  safeImageUrl: value => value,
+  getProductName: item => item.name,
+  formatPrice: value => `IQD ${Number(value).toLocaleString("en-US")}`,
+  escapeHtml: value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
+  createOwnerSaveRequestId: () => "theme-test-request",
+  confirmCloudShopWrite: async (key, requestId) => {
+    if (context.failCloudWrite) throw Object.assign(new Error("Cloud sync unavailable"), { requestId: "theme-cloud-failure" });
+    context.confirmedWrites.push({ key, requestId, value: localStorage.getItem(key) });
+  },
+  confirmedWrites: [],
+  showToast: message => { context.lastToast = message; },
+  ownerSaveDiagnostic: (stage, details) => { context.lastDiagnostic = { stage, details }; },
+  ownerSaveDiagnosticCode: () => "TEST_FAILURE",
+  applyOwnerAppearance: () => { context.applyCount = (context.applyCount || 0) + 1; },
+  renderAdvertisements: () => { context.adRenders = (context.adRenders || 0) + 1; },
+  renderOwnerPanel: () => { context.panelRenders = (context.panelRenders || 0) + 1; },
+};
+const runtime = runInNewContext(`const OWNER_APPEARANCE_KEY="shivan_shop_owner_appearance";\n${constants}\n${functions}\n({OWNER_THEME_PRESETS,OWNER_FONT_OPTIONS,OWNER_APPEARANCE_COLOR_FIELDS,${required.join(",")},getAppearance:()=>ownerAppearance,setAppearance:value=>ownerAppearance=value,isAppearanceSaved:()=>ownerAppearanceSaved})`, context);
+
+const presetNames = Object.keys(runtime.OWNER_THEME_PRESETS);
+assert.deepEqual(presetNames, ["purple", "pink", "blue", "teal", "gold"], "exactly five ready-made themes are available");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.purple)), {
+  primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff",
+}, "Purple uses the existing Shivan Shop dark and purple palette");
+assert.equal(runtime.isValidAppearanceHex("#12aBcD"), true, "six-digit HEX accepts mixed-case digits");
+for (const invalid of ["#123", "123456", "#12GG56", "red", ""]) assert.equal(runtime.isValidAppearanceHex(invalid), false, `${invalid || "empty input"} is rejected as an invalid HEX color`);
+
+const legacy = runtime.normalizeOwnerAppearance({ accent: "#123456", surface: "#222222", text: "#eeeeee", font: "segoe" });
+assert.equal(legacy.primary, "#123456", "legacy saved accent migrates to the primary accent");
+assert.equal(legacy.card, "#222222", "legacy saved surface migrates to the card color");
+assert.equal(legacy.font, "roboto", "older saved fonts map to a supported available font");
+const savedForSecondDevice = JSON.stringify(runtime.normalizeOwnerAppearance({ theme: "teal", ...runtime.OWNER_THEME_PRESETS.teal, font: "inter" }));
+const onSecondDevice = runtime.normalizeOwnerAppearance(JSON.parse(savedForSecondDevice));
+assert.equal(onSecondDevice.theme, "teal", "a second device can hydrate the same saved theme");
+assert.equal(onSecondDevice.primary, runtime.OWNER_THEME_PRESETS.teal.primary);
+assert.equal(onSecondDevice.font, "inter");
+
+const globalCss = runtime.ownerAppearanceGlobalCss({ ...runtime.OWNER_THEME_PRESETS.pink, font: "poppins" });
+for (const value of Object.values(runtime.OWNER_THEME_PRESETS.pink)) assert.ok(globalCss.includes(value), `global theme applies ${value}`);
+assert.match(globalCss, /Poppins/);
+assert.match(globalCss, /\.discounted-price,\.order-item-price\{color:#ff63a7!important\}/, "discounted final prices follow the selected primary accent");
+assert.match(globalCss, /\.original-price\{color:#9b9eaa!important\}/, "original discounted prices remain subdued");
+assert.match(globalCss, /\.owner-theme-live-preview \.owner-theme-preview-final-price\{color:var\(--owner-theme-primary\)!important\}/, "global theme overrides leave the independent preview colors intact");
+
+const rendered = { innerHTML: "" };
+runtime.renderOwnerAppearance(rendered);
+assert.match(rendered.innerHTML, /owner-theme-presets/);
+assert.equal((rendered.innerHTML.match(/data-owner-theme=/g) || []).length, 5, "the editor renders exactly five theme choices");
+assert.equal((rendered.innerHTML.match(/type="color"/g) || []).length, 7, "each custom color has a native color picker");
+assert.equal((rendered.innerHTML.match(/type="text"[^>]*pattern=/g) || []).length, 7, "each custom color has an editable validated HEX field");
+for (const font of ["Poppins", "Roboto", "Inter", "Montserrat", "Tahoma"]) assert.ok(rendered.innerHTML.includes(font), `${font} is offered`);
+for (const part of ["owner-theme-preview-header", "owner-theme-preview-nav", "owner-theme-preview-product", "owner-theme-preview-image", "owner-theme-preview-prices", "owner-theme-preview-discount", "owner-theme-preview-category", "Add to cart"]) assert.ok(rendered.innerHTML.includes(part), `live preview includes ${part}`);
+assert.match(rendered.innerHTML, /Evening dress/);
+assert.match(rendered.innerHTML, /25%/);
+assert.match(rendered.innerHTML, /Save Changes/);
+assert.match(rendered.innerHTML, /Reset to Default/);
+assert.match(rendered.innerHTML, /ownerBackupSync/, "the existing backup controls remain available");
+
+const form = makeElement();
+form.dataset.theme = "purple";
+form.submitButton = makeElement();
+elements.set("ownerAppearanceForm", form);
+for (const field of runtime.OWNER_APPEARANCE_COLOR_FIELDS) {
+  elements.set(`${field.id}Picker`, makeElement(runtime.getAppearance()[field.key]));
+  elements.set(`${field.id}Hex`, makeElement(runtime.getAppearance()[field.key].toUpperCase()));
+}
+elements.set("ownerFont", makeElement("tahoma"));
+elements.set("ownerStoreName", makeElement(""));
+elements.set("ownerTagline", makeElement(""));
+elements.set("ownerHeroTitle", makeElement(""));
+elements.set("ownerHeroMessage", makeElement(""));
+elements.set("ownerAppearanceStatus", makeElement());
+elements.set("ownerThemePreviewMount", makeElement());
+elements.set("ownerFontPreview", makeElement());
+runtime.selectOwnerTheme("pink");
+assert.equal(form.dataset.theme, "pink", "selecting a preset updates the editor's pending theme");
+assert.equal(elements.get("ownerThemePrimaryHex").value, "#FF63A7", "preset selection updates HEX inputs");
+assert.equal(elements.get("ownerThemePrimaryPicker").value, "#ff63a7", "preset selection updates color pickers");
+assert.equal(presets.find(button => button.dataset.ownerTheme === "pink").attributes["aria-pressed"], "true", "selected preset is accessible and clearly indicated");
+assert.match(elements.get("ownerThemePreviewMount").innerHTML, /--owner-theme-primary:#ff63a7/);
+assert.equal(runtime.getAppearance().theme, "purple", "unsaved preview changes do not alter the published global theme");
+
+elements.get("ownerThemeSecondaryHex").value = "#12GG56";
+assert.throws(() => runtime.readOwnerAppearanceForm(), /Secondary accent color.*HEX/, "invalid custom HEX values block saving");
+elements.get("ownerThemeSecondaryHex").value = "#FFADD0";
+elements.get("ownerThemeSecondaryPicker").value = "#ffadd0";
+elements.get("ownerThemeButtonHex").value = "#D83E8A";
+elements.get("ownerThemeButtonPicker").value = "#d83e8a";
+elements.get("ownerFont").value = "inter";
+const draft = runtime.readOwnerAppearanceForm();
+assert.equal(draft.secondary, "#ffadd0");
+assert.equal(draft.button, "#d83e8a");
+assert.equal(draft.font, "inter");
+runtime.syncOwnerAppearanceColor("button", "hex");
+assert.match(elements.get("ownerThemePreviewMount").innerHTML, /--owner-theme-button:#d83e8a/, "valid custom HEX edits refresh the live preview immediately");
+
+let prevented = false;
+await runtime.saveOwnerAppearance({ preventDefault() { prevented = true; }, currentTarget: form });
+assert.equal(prevented, true, "theme save does not submit/reload the page");
+assert.equal(runtime.isAppearanceSaved(), true);
+assert.equal(runtime.getAppearance().font, "inter");
+const stored = JSON.parse(localStorage.getItem("shivan_shop_owner_appearance"));
+assert.equal(stored.secondary, "#ffadd0");
+assert.equal(stored.button, "#d83e8a");
+assert.equal(context.confirmedWrites.at(-1).key, "shivan_shop_owner_appearance", "save uses the existing shared Owner appearance key");
+assert.equal(JSON.parse(context.confirmedWrites.at(-1).value).theme, "custom", "custom color edits persist through the existing Owner sync mechanism");
+
+context.failCloudWrite = true;
+elements.get("ownerThemeButtonHex").value = "#aa33cc";
+elements.get("ownerThemeButtonPicker").value = "#aa33cc";
+await runtime.saveOwnerAppearance({ preventDefault() {}, currentTarget: form });
+assert.equal(elements.get("ownerAppearanceStatus").dataset.state, "error", "unconfirmed shared writes display an inline error");
+assert.match(elements.get("ownerAppearanceStatus").textContent, /shared save was not confirmed/i);
+assert.equal(JSON.parse(localStorage.getItem("shivan_shop_owner_appearance")).button, "#aa33cc", "a failed shared confirmation retains the safe local copy for retry");
+context.failCloudWrite = false;
+
+const oldTheme = runtime.getAppearance();
+context.window.confirm = () => false;
+await runtime.resetOwnerAppearance();
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.getAppearance())), JSON.parse(JSON.stringify(oldTheme)), "cancelled reset leaves every appearance setting unchanged");
+assert.ok(localStorage.getItem("shivan_shop_owner_appearance"), "cancelled reset does not delete the saved shared-setting copy");
+context.window.confirm = () => true;
+await runtime.resetOwnerAppearance();
+assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), null, "confirmed reset removes only the existing Owner appearance key");
+assert.equal(runtime.getAppearance().theme, "purple");
+assert.equal(context.confirmedWrites.at(-1).key, "shivan_shop_owner_appearance", "reset uses the same shared Owner setting");
+
+context.isOwner = () => false;
+const protectedBox = { textContent: "", innerHTML: "" };
+runtime.renderOwnerAppearance(protectedBox);
+assert.match(protectedBox.textContent, /Only the store owner/);
+const beforeUnauthorized = localStorage.getItem("shivan_shop_owner_appearance");
+await runtime.saveOwnerAppearance({ preventDefault() {}, currentTarget: form });
+await runtime.resetOwnerAppearance();
+assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), beforeUnauthorized, "non-owners cannot save or reset appearance settings");
+
+assert.match(html, /CLOUD_OWNER_KEYS\s*=\s*new Set\(\[[^\]]*OWNER_APPEARANCE_KEY/);
+assert.match(api, /"shivan_shop_owner_appearance"/, "the existing production API allows this shared setting key");
+assert.match(api, /if \(account\.role !== "owner"\)/, "shared appearance changes remain protected by server-side Owner authorization");
+assert.match(functionSource("confirmCloudShopWrites"), /cloudAccount\.role!=="owner"/);
+
+console.log("Owner theme regression checks passed: five presets, seven validated HEX color controls, font selection, isolated live preview, shared save/hydration, reset confirmation, and Owner-only authorization.");

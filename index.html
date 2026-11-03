@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#050509">
 <title>Shivan Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script>window.__SHIVAN_STARTUP_STARTED_AT=performance.now();</script>
 
 <style>
@@ -1444,6 +1447,49 @@ button{
 @media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print #ownerInventoryQrGrid,body.owner-qr-print #ownerInventoryQrGrid *{visibility:visible!important}body.owner-qr-print #ownerInventoryQrGrid{position:fixed;inset:0;width:100%;display:block!important;margin:0;padding:10mm;background:#fff!important;color:#000!important}body.owner-qr-print .owner-qr-color-group{display:block!important;break-inside:avoid;background:#fff!important;color:#000!important;border-color:#aaa!important}body.owner-qr-print .owner-qr-color-heading{color:#000!important}body.owner-qr-print .owner-qr-color-group .owner-inventory-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}body.owner-qr-print .owner-qr-card[data-qr-print-target="false"]{display:none!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="true"]{position:static;display:grid!important;break-inside:avoid;background:#fff!important;color:#000!important;border:1px solid #aaa!important}body.owner-qr-print .owner-qr-card small,body.owner-qr-print .owner-qr-select{color:#222!important}body.owner-qr-print .owner-qr-price{color:#50308f!important}body.owner-qr-print .owner-qr-art{min-height:150px}}
 .owner-form{display:grid;gap:10px;background:#0b0e18;border:1px solid #282d40;border-radius:17px;padding:14px;margin-bottom:16px}
 .owner-form input,.owner-form textarea,.owner-form select,.settings-select{width:100%;min-height:44px;border-radius:12px;border:1px solid #292d40;background:#10121c;color:white;padding:10px 12px;font:inherit}
+.owner-theme-editor{gap:14px}
+.owner-theme-editor>h3{margin:0 0 2px}
+.owner-theme-hint{margin:0;color:#aaa5b8;font-size:12px;line-height:1.55}
+.owner-theme-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:9px}
+.owner-theme-preset{display:flex;align-items:center;gap:9px;min-height:54px;padding:9px 10px;border:1px solid #302b43;border-radius:13px;background:#10121c;color:#fff;font:inherit;text-align:start;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.owner-theme-preset:hover{transform:translateY(-1px)}
+.owner-theme-preset[aria-pressed="true"]{border-color:var(--owner-theme-primary,#8966ff);box-shadow:0 0 0 2px color-mix(in srgb,var(--owner-theme-primary,#8966ff) 30%,transparent),0 8px 22px #0003}
+.owner-theme-preset-swatches{display:flex;flex:0 0 26px;width:26px;height:26px;border:1px solid #ffffff50;border-radius:50%;overflow:hidden}
+.owner-theme-preset-swatches i{display:block;flex:1}
+.owner-theme-preset-copy{display:grid;gap:2px;min-width:0}
+.owner-theme-preset-copy strong{font-size:12px}
+.owner-theme-preset-copy small{color:#aaa5b8;font-size:10px}
+.owner-theme-color-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.owner-theme-color-field{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:7px 9px;align-items:center;min-width:0;padding:10px;border:1px solid #282d40;border-radius:13px;background:#080b14}
+.owner-theme-color-field label{grid-column:1/-1;color:#ddd7eb;font-size:12px;font-weight:700}
+.owner-theme-color-field input[type="color"]{width:52px;height:44px;min-height:44px;padding:4px}
+.owner-theme-color-field input[type="text"]{min-width:0;text-transform:uppercase;direction:ltr;text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.owner-theme-color-field input[aria-invalid="true"]{border-color:#ff687a;box-shadow:0 0 0 2px #ff687a30}
+.owner-theme-font-preview{padding:13px;border:1px solid #302b43;border-radius:13px;background:#080b14;color:#eee;line-height:1.55}
+.owner-theme-font-preview strong{display:block;margin-bottom:4px;color:#cdbbff}
+.owner-theme-live-preview{--owner-theme-primary:#8966ff;--owner-theme-secondary:#b49aff;--owner-theme-background:#03050d;--owner-theme-card:#0b0e18;--owner-theme-text:#fff;--owner-theme-secondary-text:#a8a3b5;--owner-theme-button:#7045ff;display:grid;gap:10px;overflow:hidden;padding:12px;border:1px solid var(--owner-theme-secondary);border-radius:16px;background:var(--owner-theme-background);color:var(--owner-theme-text);font-family:Tahoma,Arial,sans-serif;box-shadow:0 0 24px color-mix(in srgb,var(--owner-theme-primary) 15%,transparent)}
+.owner-theme-preview-header,.owner-theme-preview-nav,.owner-theme-preview-category{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.owner-theme-preview-header{padding:9px 11px;border:1px solid color-mix(in srgb,var(--owner-theme-secondary) 35%,transparent);border-radius:12px;background:var(--owner-theme-card)}
+.owner-theme-preview-header strong{letter-spacing:.08em}
+.owner-theme-preview-nav{justify-content:flex-start;color:var(--owner-theme-secondary-text);font-size:11px}
+.owner-theme-preview-nav span:first-child{color:var(--owner-theme-primary);font-weight:800}
+.owner-theme-preview-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}
+.owner-theme-preview-product,.owner-theme-preview-category{min-width:0;border:1px solid color-mix(in srgb,var(--owner-theme-secondary) 32%,transparent);border-radius:13px;background:var(--owner-theme-card)}
+.owner-theme-preview-product{overflow:hidden}
+.owner-theme-preview-image{position:relative;height:115px;background:linear-gradient(145deg,#241b34,#0c0c14)}
+.owner-theme-preview-image img{width:100%;height:100%;object-fit:cover;display:block}
+.owner-theme-preview-discount{position:absolute;top:7px;left:7px;padding:4px 6px;border-radius:7px;background:#e7485d;color:#fff;font-size:10px;font-weight:800}
+.owner-theme-preview-product-copy{display:grid;gap:5px;padding:9px}
+.owner-theme-preview-product-copy strong{overflow:hidden;color:var(--owner-theme-text);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.owner-theme-preview-prices{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px}
+.owner-theme-preview-old-price{color:var(--owner-theme-secondary-text);text-decoration:line-through}
+.owner-theme-preview-final-price{color:var(--owner-theme-primary);font-size:12px;font-weight:900}
+.owner-theme-preview-product-copy button{min-height:30px;border:0;border-radius:9px;background:var(--owner-theme-button);color:#fff;font:inherit;font-size:10px;font-weight:800}
+.owner-theme-preview-category{min-height:75px;justify-content:flex-start;padding:12px;color:var(--owner-theme-text);font-size:12px;font-weight:800}
+.owner-theme-preview-category span{color:var(--owner-theme-secondary);font-size:20px}
+.owner-theme-editor .main-btn{margin-top:2px}
+@media(max-width:520px){.owner-theme-color-grid{grid-template-columns:minmax(0,1fr)}.owner-theme-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-theme-live-preview{padding:9px}.owner-theme-preview-image{height:100px}}
+@media(prefers-reduced-motion:reduce){.owner-theme-preset{transition:none}.owner-theme-preset:hover{transform:none}}
 .owner-product-name-fields{display:grid;gap:8px;padding:10px;border:1px solid #282d40;border-radius:13px;background:#080b14}
 .owner-product-name-fields label{color:#c9bbff;font-size:13px;font-weight:700}
 .owner-form textarea{min-height:76px;resize:vertical}
@@ -4541,15 +4587,33 @@ async function exportLegacyBackup(){
   const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="shivan-shop-cloud-backup.json";link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
 }
 
-const OWNER_FONT_OPTIONS = {
-  tahoma:'Tahoma,Arial,sans-serif',
-  arial:'Arial,sans-serif',
-  segoe:'"Segoe UI",Arial,sans-serif',
-  verdana:'Verdana,sans-serif',
-  georgia:'Georgia,serif',
-  mono:'"Courier New",monospace'
-};
-let ownerAppearance={accent:"#7045ff",background:"#03050d",surface:"#0b0e18",text:"#ffffff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:""};
+const OWNER_THEME_PRESETS=Object.freeze({
+  purple:Object.freeze({primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff"}),
+  pink:Object.freeze({primary:"#ff63a7",secondary:"#ffadd0",background:"#10060d",card:"#1b0d17",text:"#fff7fb",secondaryText:"#c7a8b8",button:"#df3f8d"}),
+  blue:Object.freeze({primary:"#55a8ff",secondary:"#9bceff",background:"#050b14",card:"#0c1725",text:"#f4f9ff",secondaryText:"#a5b7ca",button:"#287bd2"}),
+  teal:Object.freeze({primary:"#35d3c0",secondary:"#8ce9de",background:"#03100f",card:"#0a1a19",text:"#f2fffd",secondaryText:"#a2c4bf",button:"#138f83"}),
+  gold:Object.freeze({primary:"#e8bd5a",secondary:"#f4dda0",background:"#100d06",card:"#1b160a",text:"#fffaf0",secondaryText:"#c6b993",button:"#ac7c20"})
+});
+const OWNER_THEME_LABELS=Object.freeze({purple:"Purple",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
+const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"purple",primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",accent:"#8966ff",surface:"#0b0e18"});
+const OWNER_FONT_OPTIONS = Object.freeze({
+  poppins:'"Poppins",Tahoma,Arial,sans-serif',
+  roboto:'"Roboto",Tahoma,Arial,sans-serif',
+  inter:'"Inter",Tahoma,Arial,sans-serif',
+  montserrat:'"Montserrat",Tahoma,Arial,sans-serif',
+  tahoma:'Tahoma,Arial,sans-serif'
+});
+const OWNER_FONT_LABELS=Object.freeze({poppins:"Poppins",roboto:"Roboto",inter:"Inter",montserrat:"Montserrat",tahoma:"Tahoma"});
+const OWNER_APPEARANCE_COLOR_FIELDS=Object.freeze([
+  {key:"primary",id:"ownerThemePrimary",label:"Primary accent color"},
+  {key:"secondary",id:"ownerThemeSecondary",label:"Secondary accent color"},
+  {key:"background",id:"ownerThemeBackground",label:"Page background"},
+  {key:"card",id:"ownerThemeCard",label:"Card background"},
+  {key:"text",id:"ownerThemeText",label:"Main text color"},
+  {key:"secondaryText",id:"ownerThemeSecondaryText",label:"Secondary text color"},
+  {key:"button",id:"ownerThemeButton",label:"Button color"}
+]);
+let ownerAppearance=normalizeOwnerAppearance(OWNER_APPEARANCE_DEFAULT);
 let ownerAppearanceSaved=false;
 
 let products = [
@@ -4761,18 +4825,77 @@ function loadOwnerAppearance(){
   try{
     const saved=JSON.parse(localStorage.getItem(OWNER_APPEARANCE_KEY)||"{}");
     if(saved&&typeof saved==="object"&&!Array.isArray(saved)&&Object.keys(saved).length){
-      ownerAppearance={...ownerAppearance,...saved};
+      ownerAppearance=normalizeOwnerAppearance(saved);
       ownerAppearanceSaved=true;
     }else{
-      ownerAppearance={accent:"#7045ff",background:"#03050d",surface:"#0b0e18",text:"#ffffff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:""};
+      ownerAppearance=normalizeOwnerAppearance(OWNER_APPEARANCE_DEFAULT);
       ownerAppearanceSaved=false;
     }
-  }catch(e){ownerAppearance={accent:"#7045ff",background:"#03050d",surface:"#0b0e18",text:"#ffffff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:""};ownerAppearanceSaved=false;}
+  }catch(e){ownerAppearance=normalizeOwnerAppearance(OWNER_APPEARANCE_DEFAULT);ownerAppearanceSaved=false;}
   applyOwnerAppearance();
 }
 
 function safeAppearanceColor(value,fallback){
   return /^#[0-9a-f]{6}$/i.test(String(value||""))?String(value).toLowerCase():fallback;
+}
+
+function isValidAppearanceHex(value){
+  return /^#[0-9a-f]{6}$/i.test(String(value||"").trim());
+}
+
+function normalizeOwnerAppearance(value={}){
+  const saved=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+  const colors={
+    primary:safeAppearanceColor(saved.primary??saved.accent,OWNER_APPEARANCE_DEFAULT.primary),
+    secondary:safeAppearanceColor(saved.secondary,OWNER_APPEARANCE_DEFAULT.secondary),
+    background:safeAppearanceColor(saved.background,OWNER_APPEARANCE_DEFAULT.background),
+    card:safeAppearanceColor(saved.card??saved.surface,OWNER_APPEARANCE_DEFAULT.card),
+    text:safeAppearanceColor(saved.text,OWNER_APPEARANCE_DEFAULT.text),
+    secondaryText:safeAppearanceColor(saved.secondaryText,OWNER_APPEARANCE_DEFAULT.secondaryText),
+    button:safeAppearanceColor(saved.button,OWNER_APPEARANCE_DEFAULT.button)
+  };
+  const legacyFonts={arial:"roboto",segoe:"roboto",verdana:"tahoma",georgia:"montserrat",mono:"inter"};
+  const requestedFont=legacyFonts[String(saved.font||"").toLowerCase()]||String(saved.font||"tahoma").toLowerCase();
+  const font=Object.hasOwn(OWNER_FONT_OPTIONS,requestedFont)?requestedFont:"tahoma";
+  const exactPreset=Object.entries(OWNER_THEME_PRESETS).find(([,preset])=>Object.entries(preset).every(([key,color])=>colors[key]===color));
+  const theme=Object.hasOwn(OWNER_THEME_PRESETS,String(saved.theme||""))?String(saved.theme):exactPreset?.[0]||"custom";
+  return {
+    ...OWNER_APPEARANCE_DEFAULT,...saved,...colors,theme,font,
+    accent:colors.primary,surface:colors.card,
+    storeName:String(saved.storeName||""),tagline:String(saved.tagline||""),heroTitle:String(saved.heroTitle||""),heroMessage:String(saved.heroMessage||"")
+  };
+}
+
+function ownerAppearanceGlobalCss(appearance={}){
+  const theme=normalizeOwnerAppearance(appearance);
+  const primary=theme.primary,secondary=theme.secondary,background=theme.background,card=theme.card,text=theme.text,secondaryText=theme.secondaryText,button=theme.button;
+  const accent=primary;
+  const font=OWNER_FONT_OPTIONS[theme.font]||OWNER_FONT_OPTIONS.tahoma;
+  return `
+    :root{--shop-primary:${primary};--shop-secondary:${secondary};--shop-page-background:${background};--shop-card-background:${card};--shop-text:${text};--shop-secondary-text:${secondaryText};--shop-button:${button}}
+    html,body,button,input,select,textarea,.app{font-family:${font}!important}
+    html,body{background:${background}!important;color:${text}!important}
+    body,.app{background:${background}!important;color:${text}!important}
+    .app :is(.product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card,.profile-guest-access,.owner-dashboard-card,.owner-dashboard-stat,.owner-dashboard-metric,.owner-analytics-card,.owner-report-card,.owner-qr-product-open,.owner-qr-card,.owner-qr-color-group,.owner-category-manager,.category,.search,.bottom-nav,.owner-route-header){background-color:${card}!important}
+    body,.app,.app *{color:${text}!important}
+    .app :is(.brand-small span,.product-stock,.stock,.section-subtitle,.owner-form small,.owner-list-copy small,.owner-dashboard-muted,.owner-dashboard-stat small,.owner-qr-meta,.owner-report-description){color:${secondaryText}!important}
+    .app :is(.product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card,.profile-guest-access,.owner-dashboard-card,.owner-dashboard-stat,.owner-dashboard-metric,.owner-analytics-card,.owner-report-card,.owner-qr-product-open,.owner-qr-card,.owner-qr-color-group,.owner-category-manager,.category,.search,.bottom-nav,.owner-route-header){border-color:${secondary}!important}
+    .main-btn,.detail-buy,.hero-copy button,.add-mini,.owner-form button[type="submit"],.owner-product-mode-content button[type="submit"]{background:${button}!important;border-color:${button}!important;color:#fff!important}
+    .option.active,.tabs button.active,.owner-tab.active,.category.active{background:${button}!important;border-color:${primary}!important;color:#fff!important}
+    .price,.nav-item.active,.section-head button,.logo-small,.detail-price,.hero-copy small,.discounted-price,.order-item-price,.hero-copy h2 span{color:${primary}!important}
+    .discounted-price,.order-item-price{color:${accent}!important}
+    .original-price{color:#9b9eaa!important}
+    .logo-small{border-color:${secondary}!important}
+    .msg,.logout,.owner-inventory-out,.owner-actions .danger{color:#ff818d!important}
+    .owner-theme-live-preview,.owner-theme-live-preview *{color:var(--owner-theme-text)!important}
+    .owner-theme-live-preview .owner-theme-preview-nav,.owner-theme-live-preview .owner-theme-preview-old-price,.owner-theme-live-preview small{color:var(--owner-theme-secondary-text)!important}
+    .owner-theme-live-preview .owner-theme-preview-final-price{color:var(--owner-theme-primary)!important}
+    .owner-theme-live-preview .owner-theme-preview-category span{color:var(--owner-theme-secondary)!important}
+    .owner-theme-live-preview .owner-theme-preview-discount,.owner-theme-live-preview .owner-theme-preview-product-copy button{color:#fff!important}
+    .owner-theme-preset[aria-pressed="true"],.owner-theme-live-preview{border-color:${secondary}!important}
+    .option.active,.category.active,.main-btn,.detail-buy,.hero-copy button,.add-mini,.owner-tab.active,.badge,.discount-pill,.product-discount-badge,.product-countdown-badge{color:#fff!important}
+    .owner-tabs .owner-tab{font-family:${font}!important}
+  `;
 }
 
 function applyOwnerAppearance(force=false){
@@ -4787,25 +4910,7 @@ function applyOwnerAppearance(force=false){
     return;
   }
   if(!style){style=document.createElement("style");style.id="ownerAppearanceOverrides";document.head.appendChild(style)}
-  const accent=safeAppearanceColor(ownerAppearance.accent,"#7045ff");
-  const background=safeAppearanceColor(ownerAppearance.background,"#03050d");
-  const surface=safeAppearanceColor(ownerAppearance.surface,"#0b0e18");
-  const text=safeAppearanceColor(ownerAppearance.text,"#ffffff");
-  const font=OWNER_FONT_OPTIONS[ownerAppearance.font]||OWNER_FONT_OPTIONS.tahoma;
-  style.textContent=`
-    html,body,button,input,select,textarea,.app{font-family:${font}!important}
-    body,.app,.app *{color:${text}!important}
-    .app{background:${background}!important}
-    .product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card{background-color:${surface}!important}
-    .main-btn,.hero-copy button,.option.active,.tabs button.active,.owner-tab.active,.category.active,.add-mini{background:${accent}!important;border-color:${accent}!important}
-    .price,.nav-item.active,.section-head button,.status,.logo-small,.detail-price,.hero-copy small{color:${accent}!important}
-    .discounted-price,.order-item-price{color:${accent}!important}
-    .original-price{color:#9b9eaa!important}
-    .hero-copy h2 span{color:${accent}!important}
-    .option.active,.category.active,.main-btn,.hero-copy button,.add-mini{color:#fff!important}
-    .owner-tab.active,.badge{color:#fff!important}
-    .owner-tabs .owner-tab{font-family:${font}!important}
-  `;
+  style.textContent=ownerAppearanceGlobalCss(ownerAppearance);
   const brand=document.getElementById("shopBrandName");
   const tagline=document.getElementById("shopTagline");
   const title=document.getElementById("heroMainTitle");
@@ -9735,87 +9840,174 @@ function jumpToOwnerCategoryAdd(){
   showOwnerProductSection("categories","ownerNewCategory");
 }
 
+function ownerAppearanceThemePreset(theme){
+  return Object.hasOwn(OWNER_THEME_PRESETS,String(theme||""))?OWNER_THEME_PRESETS[theme]:null;
+}
+
+function ownerAppearanceHexInput(field,value){
+  const color=safeAppearanceColor(value,"#000000");
+  return `<div class="owner-theme-color-field"><label for="${field.id}Hex">${escapeHtml(field.label)}</label><input id="${field.id}Picker" type="color" value="${color}" aria-label="Choose ${escapeHtml(field.label)}" oninput="syncOwnerAppearanceColor('${field.key}','picker')"><input id="${field.id}Hex" type="text" value="${color.toUpperCase()}" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" inputmode="text" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(field.label)} HEX" aria-describedby="ownerAppearanceStatus" oninput="syncOwnerAppearanceColor('${field.key}','hex')" required></div>`;
+}
+
+function ownerAppearancePresetMarkup(theme){
+  return Object.entries(OWNER_THEME_PRESETS).map(([key,preset])=>`<button type="button" class="owner-theme-preset" data-owner-theme="${key}" aria-pressed="${theme===key?"true":"false"}" style="--owner-theme-primary:${preset.primary}" onclick="selectOwnerTheme('${key}')"><span class="owner-theme-preset-swatches" aria-hidden="true"><i style="background:${preset.primary}"></i><i style="background:${preset.secondary}"></i><i style="background:${preset.button}"></i></span><span class="owner-theme-preset-copy"><strong>${OWNER_THEME_LABELS[key]}</strong><small>${theme===key?"Selected":"Choose theme"}</small></span></button>`).join("");
+}
+
+function ownerAppearancePreviewMarkup(appearance={}){
+  const theme=normalizeOwnerAppearance(appearance);
+  const product=(Array.isArray(products)?products:[]).find(item=>productDiscountPercent(item)>0)||(Array.isArray(products)?products:[])[0]||{name:"Fashion product",price:0,image:""};
+  const pricing=typeof getProductPricing==="function"?getProductPricing(product):null;
+  const original=Math.max(0,Number(pricing?.originalPrice??product.price)||0);
+  const savedDiscount=productDiscountPercent(product);
+  const discount=savedDiscount||20;
+  const final=savedDiscount?Math.max(0,Number(pricing?.finalPrice)||0):Math.round(original*(100-discount)/100);
+  const image=safeImageUrl(productPhotos(product)?.[0]?.src||product.image||"");
+  const productName=typeof getProductName==="function"?getProductName(product):String(product.name||"Fashion product");
+  const category=String(product.category||"New collection");
+  const label=OWNER_FONT_LABELS[theme.font]||OWNER_FONT_LABELS.tahoma;
+  return `<div class="owner-theme-live-preview" id="ownerThemeLivePreview" style="--owner-theme-primary:${theme.primary};--owner-theme-secondary:${theme.secondary};--owner-theme-background:${theme.background};--owner-theme-card:${theme.card};--owner-theme-text:${theme.text};--owner-theme-secondary-text:${theme.secondaryText};--owner-theme-button:${theme.button};font-family:${OWNER_FONT_OPTIONS[theme.font]||OWNER_FONT_OPTIONS.tahoma}"><header class="owner-theme-preview-header"><strong>${escapeHtml(theme.storeName||"SHIVAN SHOP")}</strong><span aria-hidden="true">☰</span></header><nav class="owner-theme-preview-nav" aria-label="Theme preview navigation"><span>Shop</span><span>Search</span><span>Cart</span><span>Profile</span></nav><div class="owner-theme-preview-grid"><article class="owner-theme-preview-product"><div class="owner-theme-preview-image">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(productName)} preview">`:""}<span class="owner-theme-preview-discount">-${discount}%${savedDiscount?"":" preview"}</span></div><div class="owner-theme-preview-product-copy"><strong>${escapeHtml(productName)}</strong><div class="owner-theme-preview-prices"><del class="owner-theme-preview-old-price">${escapeHtml(formatPrice(original))}</del><span class="owner-theme-preview-final-price">${escapeHtml(formatPrice(final))}</span></div><button type="button">Add to cart</button></div></article><div class="owner-theme-preview-category"><span aria-hidden="true">✦</span><span>${escapeHtml(category)}</span></div></div><small>Font preview: ${escapeHtml(label)} · visual preview only; store data is unchanged</small></div>`;
+}
+
 function readOwnerAppearanceForm(){
-  return {
-    accent:document.getElementById("ownerAccent")?.value||"#7045ff",
-    background:document.getElementById("ownerBackground")?.value||"#03050d",
-    surface:document.getElementById("ownerSurface")?.value||"#0b0e18",
-    text:document.getElementById("ownerTextColor")?.value||"#ffffff",
-    font:document.getElementById("ownerFont")?.value||"tahoma",
-    storeName:document.getElementById("ownerStoreName")?.value.trim()||"",
-    tagline:document.getElementById("ownerTagline")?.value.trim()||"",
-    heroTitle:document.getElementById("ownerHeroTitle")?.value.trim()||"",
-    heroMessage:document.getElementById("ownerHeroMessage")?.value.trim()||""
-  };
+  const form=document.getElementById("ownerAppearanceForm");
+  if(!form)throw new Error("The appearance editor is not available. Reopen Colors & Font and try again.");
+  const colors={};
+  for(const field of OWNER_APPEARANCE_COLOR_FIELDS){
+    const input=document.getElementById(`${field.id}Hex`);
+    const value=String(input?.value||"").trim();
+    if(!isValidAppearanceHex(value)){input?.setAttribute("aria-invalid","true");throw new Error(`${field.label} must use a HEX color such as #8966FF.`);}
+    input?.removeAttribute("aria-invalid");
+    colors[field.key]=value.toLowerCase();
+  }
+  const font=document.getElementById("ownerFont")?.value||"tahoma";
+  if(!Object.hasOwn(OWNER_FONT_OPTIONS,font))throw new Error("Choose one of the available fonts.");
+  const value={...ownerAppearance,...colors,theme:form.dataset.theme||ownerAppearance.theme,font,storeName:document.getElementById("ownerStoreName")?.value.trim()||"",tagline:document.getElementById("ownerTagline")?.value.trim()||"",heroTitle:document.getElementById("ownerHeroTitle")?.value.trim()||"",heroMessage:document.getElementById("ownerHeroMessage")?.value.trim()||""};
+  return normalizeOwnerAppearance(value);
+}
+
+function setOwnerAppearanceStatus(message,isError=false){
+  const status=document.getElementById("ownerAppearanceStatus");
+  if(status){status.textContent=String(message||"");status.dataset.state=isError?"error":"success";}
+}
+
+function renderOwnerAppearancePreview(appearance){
+  const preview=document.getElementById("ownerThemePreviewMount");
+  if(preview)preview.innerHTML=ownerAppearancePreviewMarkup(appearance);
+  const font=document.getElementById("ownerFont");
+  const fontPreview=document.getElementById("ownerFontPreview");
+  if(fontPreview&&font)fontPreview.style.fontFamily=OWNER_FONT_OPTIONS[font.value]||OWNER_FONT_OPTIONS.tahoma;
 }
 
 function renderOwnerAppearance(box){
+  if(!isOwner()){box.textContent="Only the store owner can change colors and fonts.";return;}
+  const appearance=normalizeOwnerAppearance(ownerAppearance);
   box.innerHTML=`
-    <form id="ownerAppearanceForm" class="owner-form" onsubmit="saveOwnerAppearance(event)">
-      <h3>ڕەنگ، دەق و فۆنتی ئەپ</h3>
-      <label>ڕەنگی سەرەکی</label><input id="ownerAccent" type="color" value="${safeAppearanceColor(ownerAppearance.accent,"#7045ff")}" oninput="previewOwnerAppearance()">
-      <label>پاشبنەمای ئەپ</label><input id="ownerBackground" type="color" value="${safeAppearanceColor(ownerAppearance.background,"#03050d")}" oninput="previewOwnerAppearance()">
-      <label>ڕەنگی کارتەکان</label><input id="ownerSurface" type="color" value="${safeAppearanceColor(ownerAppearance.surface,"#0b0e18")}" oninput="previewOwnerAppearance()">
-      <label>ڕەنگی نووسین</label><input id="ownerTextColor" type="color" value="${safeAppearanceColor(ownerAppearance.text,"#ffffff")}" oninput="previewOwnerAppearance()">
-      <label>فۆنت</label>
-      <select id="ownerFont" onchange="previewOwnerAppearance()">
-        <option value="tahoma" ${ownerAppearance.font==="tahoma"?"selected":""}>Tahoma</option>
-        <option value="arial" ${ownerAppearance.font==="arial"?"selected":""}>Arial</option>
-        <option value="segoe" ${ownerAppearance.font==="segoe"?"selected":""}>Segoe UI</option>
-        <option value="verdana" ${ownerAppearance.font==="verdana"?"selected":""}>Verdana</option>
-        <option value="georgia" ${ownerAppearance.font==="georgia"?"selected":""}>Georgia</option>
-        <option value="mono" ${ownerAppearance.font==="mono"?"selected":""}>Courier New</option>
-      </select>
-      <label>ناڤێ فرۆشگا</label><input id="ownerStoreName" value="${escapeHtml(ownerAppearance.storeName)}" placeholder="Shivan Shop" oninput="previewOwnerAppearance()">
-      <label>دەقی ژێر ناڤ</label><input id="ownerTagline" value="${escapeHtml(ownerAppearance.tagline)}" placeholder="بەتاڵ بهێڵە بۆ دەقی بنەڕەتی" oninput="previewOwnerAppearance()">
-      <label>سەردێرا سەرەکی</label><input id="ownerHeroTitle" value="${escapeHtml(ownerAppearance.heroTitle)}" placeholder="بەتاڵ بهێڵە بۆ دەقی بنەڕەتی" oninput="previewOwnerAppearance()">
-      <label>پەیاما سەرەکی</label><textarea id="ownerHeroMessage" placeholder="بەتاڵ بهێڵە بۆ دەقی بنەڕەتی" oninput="previewOwnerAppearance()">${escapeHtml(ownerAppearance.heroMessage)}</textarea>
-      <button class="main-btn" type="submit">پاشەکەفتکردنی دیزاین</button>
-      <button class="owner-action" type="button" onclick="resetOwnerAppearance()">گەڕاندنەوەی بنەڕەت</button>
+    <form id="ownerAppearanceForm" class="owner-form owner-theme-editor" data-theme="${escapeHtml(appearance.theme)}" onsubmit="saveOwnerAppearance(event)">
+      <h3>Colors &amp; Font</h3>
+      <p class="owner-theme-hint">Choose a ready-made palette or customize every store color. Preview your changes below before saving; only saved settings are shared with visitors on other devices.</p>
+      <strong>Ready-made themes</strong>
+      <div id="ownerThemePresets" class="owner-theme-presets" role="group" aria-label="Ready-made store themes">${ownerAppearancePresetMarkup(appearance.theme)}</div>
+      <strong>Custom colors</strong>
+      <div class="owner-theme-color-grid">${OWNER_APPEARANCE_COLOR_FIELDS.map(field=>ownerAppearanceHexInput(field,appearance[field.key])).join("")}</div>
+      <label for="ownerFont">Font</label>
+      <select id="ownerFont" onchange="previewOwnerAppearance()">${Object.entries(OWNER_FONT_LABELS).map(([value,label])=>`<option value="${value}" ${appearance.font===value?"selected":""}>${label}</option>`).join("")}</select>
+      <div id="ownerFontPreview" class="owner-theme-font-preview" style="font-family:${OWNER_FONT_OPTIONS[appearance.font]||OWNER_FONT_OPTIONS.tahoma}"><strong>Live font preview</strong><span>Shivan Shop · New collection · Elegant everyday style</span></div>
+      <strong>Live store preview</strong>
+      <div id="ownerThemePreviewMount">${ownerAppearancePreviewMarkup(appearance)}</div>
+      <p id="ownerAppearanceStatus" class="msg" role="status" aria-live="polite"></p>
+      <label for="ownerStoreName">Store name</label><input id="ownerStoreName" value="${escapeHtml(appearance.storeName)}" placeholder="Shivan Shop" oninput="previewOwnerAppearance()">
+      <label for="ownerTagline">Store tagline</label><input id="ownerTagline" value="${escapeHtml(appearance.tagline)}" placeholder="Leave blank for the default tagline" oninput="previewOwnerAppearance()">
+      <label for="ownerHeroTitle">Hero heading</label><input id="ownerHeroTitle" value="${escapeHtml(appearance.heroTitle)}" placeholder="Leave blank for the default heading" oninput="previewOwnerAppearance()">
+      <label for="ownerHeroMessage">Hero message</label><textarea id="ownerHeroMessage" placeholder="Leave blank for the default message" oninput="previewOwnerAppearance()">${escapeHtml(appearance.heroMessage)}</textarea>
+      <button class="main-btn" type="submit">Save Changes</button>
+      <button class="owner-action" type="button" onclick="resetOwnerAppearance()">Reset to Default</button>
     </form>
     <div id="ownerBackupSync" class="owner-form" style="margin-top:12px">
-      <h3>گواستنەوەی زانیاری بۆ مۆبایل و کۆمپیوتەر</h3>
-      <p>لە وێبگەی کۆنەکەت backup دابەزێنە، پاشان لێرە هەمان فایل هەڵبژێرە. وشە نهێنییەکانی هەژمارە کۆنەکان بە شێوەی پارێزراو hash دەکرێن.</p>
-      ${cloudMode?'<label for="cloudBackupFile">هەڵبژاردنی backup بۆ هاوبەشکردنی زانیاری</label><input id="cloudBackupFile" type="file" accept="application/json,.json" onchange="migrateLegacyBackup(this.files[0]);this.value=\'\'">':'<button class="owner-action" type="button" onclick="exportLegacyBackup()">داگرتنی backup ـی زانیارییە کۆنەکان</button><small>ئەم فایلە دواتر لە وێبگەی نوێدا هەڵدەبژێریت.</small>'}
+      <h3>Move store data between devices</h3>
+      <p>Choose an existing backup file here to move its saved information. Passwords from old accounts are kept as secure hashes.</p>
+      ${cloudMode?'<label for="cloudBackupFile">Choose backup to sync store data</label><input id="cloudBackupFile" type="file" accept="application/json,.json" onchange="migrateLegacyBackup(this.files[0]);this.value=\'\'">':'<button class="owner-action" type="button" onclick="exportLegacyBackup()">Download legacy data backup</button><small>You can select this file later from the newer website.</small>'}
     </div>
   `;
 }
 
+function selectOwnerTheme(themeName){
+  if(!isOwner())return;
+  const preset=ownerAppearanceThemePreset(themeName);
+  const form=document.getElementById("ownerAppearanceForm");
+  if(!preset||!form)return;
+  form.dataset.theme=themeName;
+  for(const field of OWNER_APPEARANCE_COLOR_FIELDS){
+    const picker=document.getElementById(`${field.id}Picker`),hex=document.getElementById(`${field.id}Hex`);
+    if(picker)picker.value=preset[field.key];
+    if(hex){hex.value=preset[field.key].toUpperCase();hex.removeAttribute("aria-invalid");}
+  }
+  document.querySelectorAll("#ownerThemePresets [data-owner-theme]").forEach(button=>{
+    const selected=button.dataset.ownerTheme===themeName;
+    button.setAttribute("aria-pressed",String(selected));
+    const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent=selected?"Selected":"Choose theme";
+  });
+  setOwnerAppearanceStatus("");
+  previewOwnerAppearance();
+}
+
+function syncOwnerAppearanceColor(key,source="hex"){
+  if(!isOwner())return;
+  const field=OWNER_APPEARANCE_COLOR_FIELDS.find(item=>item.key===key);
+  if(!field)return;
+  const picker=document.getElementById(`${field.id}Picker`),hex=document.getElementById(`${field.id}Hex`),form=document.getElementById("ownerAppearanceForm");
+  if(!picker||!hex||!form)return;
+  const value=source==="picker"?picker.value:String(hex.value||"").trim();
+  if(!isValidAppearanceHex(value)){hex.setAttribute("aria-invalid","true");setOwnerAppearanceStatus(`${field.label} must use a HEX color such as #8966FF.`,true);return;}
+  hex.value=value.toUpperCase();hex.removeAttribute("aria-invalid");picker.value=value.toLowerCase();form.dataset.theme="custom";
+  document.querySelectorAll("#ownerThemePresets [data-owner-theme]").forEach(button=>{button.setAttribute("aria-pressed","false");const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent="Choose theme";});
+  setOwnerAppearanceStatus("");
+  previewOwnerAppearance();
+}
+
 function previewOwnerAppearance(){
   if(!isOwner())return;
-  ownerAppearance={...ownerAppearance,...readOwnerAppearanceForm()};
-  applyOwnerAppearance(true);
+  try{renderOwnerAppearancePreview(readOwnerAppearanceForm());setOwnerAppearanceStatus("");}
+  catch(error){setOwnerAppearanceStatus(error.message||"Enter valid HEX colors to preview your theme.",true);}
 }
 
 async function saveOwnerAppearance(event){
   event.preventDefault();
   if(!isOwner())return;
   const form=event.currentTarget;
+  if(form?.dataset.saving==="true")return;
   const submitButton=form?.querySelector('button[type="submit"]');
   const requestId=createOwnerSaveRequestId();
-  ownerAppearance={...ownerAppearance,...readOwnerAppearanceForm()};
+  let nextAppearance;
+  try{nextAppearance=readOwnerAppearanceForm();}
+  catch(error){setOwnerAppearanceStatus(error.message||"Review the color values and try again.",true);showToast(error.message||"Some theme colors are invalid.");return;}
+  const previousAppearance=ownerAppearance,previousSaved=ownerAppearanceSaved;
+  ownerAppearance=nextAppearance;
   ownerAppearanceSaved=true;
   try{localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));}
-  catch(e){showToast("ڕێکخستن لە ئامێرەکە پاشەکەفت نەبوو.");return;}
+  catch(error){ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;setOwnerAppearanceStatus("The theme could not be saved on this device. Check available storage and retry.",true);showToast("Theme was not saved on this device.");return;}
   if(form)form.dataset.saving="true";
   if(submitButton)submitButton.disabled=true;
   applyOwnerAppearance();
+  setOwnerAppearanceStatus("Saving your theme…");
   try{
     if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
-    showToast(cloudMode&&cloudAccount?.role==="owner"?"ڕەنگ و فۆنت و دەق پاشەکەفت و هاوبەش کران.":"ڕێکخستنەکان تەنها لەم ئامێرە پاشەکەفت کران.");
+    const message=cloudMode&&cloudAccount?.role==="owner"?"Theme and font saved and synced across devices.":"Theme and font saved on this device. Sign in to the shared Owner service to sync it across devices.";
+    setOwnerAppearanceStatus(message);showToast(message);
   }catch(error){
     ownerSaveDiagnostic("owner.appearance.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
-    showToast(`ڕێکخستن ل ئامێرێ تە ما؛ پاشەکەفت ل داتابەیسی هاوبەش پەسەند نەبوو. Reference: ${error?.requestId||requestId}`);
+    const message=`The theme is saved on this device, but the shared save was not confirmed. It will retry when sync is available. Reference: ${error?.requestId||requestId}`;
+    setOwnerAppearanceStatus(message,true);showToast(message);
   }finally{if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}}
 }
 
 async function resetOwnerAppearance(){
   if(!isOwner())return;
+  if(!window.confirm("Reset the store theme, colors, font, and branding text to the Shivan Shop defaults?"))return;
   const previousAppearance={...ownerAppearance};
   const previousSaved=ownerAppearanceSaved;
   const previousValue=localStorage.getItem(OWNER_APPEARANCE_KEY);
   const requestId=createOwnerSaveRequestId();
-  ownerAppearance={accent:"#7045ff",background:"#03050d",surface:"#0b0e18",text:"#ffffff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:""};
+  ownerAppearance=normalizeOwnerAppearance(OWNER_APPEARANCE_DEFAULT);
   ownerAppearanceSaved=false;
   try{
     localStorage.removeItem(OWNER_APPEARANCE_KEY);
@@ -9823,19 +10015,19 @@ async function resetOwnerAppearance(){
   }catch(error){
     ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
     renderAdvertisements();renderOwnerPanel("appearance");
-    showToast("ڕێکخستنی پێشوو نەگۆڕا؛ ئامێر نەیتوانی ڕێکخستنەکە پاشەکەفت بکات.");
+    showToast("The previous theme was kept because this device could not save the reset.");
     return;
   }
   renderAdvertisements();
   renderOwnerPanel("appearance");
   try{
     if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
-    showToast(cloudMode&&cloudAccount?.role==="owner"?"دیزاین گەڕایەوە سەر بنەڕەت و هاوبەش کرا.":"دیزاین لەم ئامێرە گەڕایەوە سەر بنەڕەت.");
+    showToast(cloudMode&&cloudAccount?.role==="owner"?"Default theme restored and synced across devices.":"Default theme restored on this device.");
   }catch(error){
     ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
     try{if(previousValue===null)localStorage.removeItem(OWNER_APPEARANCE_KEY);else localStorage.setItem(OWNER_APPEARANCE_KEY,previousValue);}catch(restoreError){}
-    renderAdvertisements();renderOwnerPanel("appearance");
-    showToast(`گەڕاندنەوەی دیزاین ل داتابەیسی هاوبەش پەسەند نەبوو؛ گۆڕانکارییەکانی پێشوو پاراسترا. Reference: ${error?.requestId||requestId}`);
+    applyOwnerAppearance();renderAdvertisements();renderOwnerPanel("appearance");
+    showToast(`The shared reset was not confirmed; the previous theme was restored. Reference: ${error?.requestId||requestId}`);
   }
 }
 
