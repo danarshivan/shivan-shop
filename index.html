@@ -1414,9 +1414,35 @@ button{
 .owner-qr-card .owner-inventory-actions button{flex:1;min-width:85px}
 .owner-inventory-status{min-height:24px;color:#c9bbff;line-height:1.5}
 .owner-inventory-out{color:#ff8585;font-weight:800}
+.owner-qr-product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,225px),1fr));gap:12px;margin-top:12px}
+.owner-qr-product-card{min-width:0;overflow:hidden;border:1px solid #302a43;border-radius:17px;background:linear-gradient(145deg,#12101c,#0b0e18);box-shadow:0 8px 24px #0003;transition:border-color .18s ease,transform .18s ease}
+.owner-qr-product-card:hover{border-color:#7653ba;transform:translateY(-2px)}
+.owner-qr-product-open{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:12px;width:100%;min-height:106px;padding:12px;border:0;background:transparent;color:#fff;text-align:left;font:inherit;cursor:pointer;touch-action:manipulation}
+.owner-qr-product-open:focus-visible,.owner-qr-back:focus-visible,.owner-qr-art:focus-visible{outline:2px solid #a47bff;outline-offset:3px}
+.owner-qr-product-open img{width:76px;height:82px;object-fit:cover;border:1px solid #44365f;border-radius:12px;background:#17131f}
+.owner-qr-product-placeholder{display:grid;place-items:center;width:76px;height:82px;border:1px solid #44365f;border-radius:12px;background:linear-gradient(145deg,#34214f,#11101a);color:#e1d3ff;font-weight:800}
+.owner-qr-product-copy{display:grid;gap:7px;min-width:0}
+.owner-qr-product-copy strong{overflow-wrap:anywhere;font-size:14px}
+.owner-qr-product-copy small{color:#b7a6d9;font-size:12px}
+.owner-qr-product-id{color:#8f879c!important;font-size:10px!important;overflow-wrap:anywhere}
+.owner-qr-detail-header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin:4px 0 14px}
+.owner-qr-back{min-height:44px;padding:9px 14px;border:1px solid #49366b;border-radius:12px;background:#171321;color:#e1d3ff;font:inherit;cursor:pointer;touch-action:manipulation}
+.owner-qr-product-hero{display:grid;grid-template-columns:minmax(92px,140px) minmax(0,1fr);align-items:center;gap:15px;padding:14px;border:1px solid #443465;border-radius:17px;background:radial-gradient(ellipse at 8% 0%,#6d42a72b,transparent 48%),#0d0d17}
+.owner-qr-product-hero img{width:100%;height:130px;object-fit:cover;border:1px solid #44365f;border-radius:12px;background:#17131f}
+.owner-qr-product-hero h3{margin:0 0 7px;font-size:clamp(17px,3vw,22px)}
+.owner-qr-product-hero p{margin:5px 0;color:#aaa2b7;font-size:12px}
+.owner-qr-color-group{margin:16px 0;padding:13px;border:1px solid #302a43;border-radius:16px;background:#0a0c14}
+.owner-qr-color-heading{display:flex;align-items:center;gap:9px;margin:0 0 10px;color:#e3d8f8;font-size:14px}
+.owner-qr-color-swatch{width:16px;height:16px;flex:0 0 auto;border:1px solid #ffffff50;border-radius:50%;background:var(--qr-color,#7862a8)}
+.owner-qr-color-group .owner-inventory-grid{margin-top:0}
+.owner-qr-variant-id{overflow-wrap:anywhere;color:#c4b4e6!important;font-size:10px}
+.owner-qr-art{width:100%;border:1px solid #e5e5e5;color:#171717;cursor:pointer}
+.owner-qr-art svg{pointer-events:none}
 @media(max-width:440px){.owner-qr-card{grid-template-columns:minmax(0,1fr);align-items:stretch}.owner-qr-product-image{width:100%;height:150px}.owner-qr-art{grid-row:auto;min-height:120px;padding:8px}.owner-qr-art svg{width:min(100%,150px)}.owner-qr-card .owner-inventory-actions{grid-column:auto}}
 @media(max-width:600px){.owner-analytics-controls,.owner-report-controls{align-items:stretch}.owner-analytics-controls label,.owner-report-controls label{flex:1 1 130px}.owner-analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print #ownerInventoryQrGrid,body.owner-qr-print #ownerInventoryQrGrid *{visibility:visible!important}body.owner-qr-print #ownerInventoryQrGrid{position:fixed;inset:0;width:100%;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:12px;margin:0;padding:10mm;background:#fff!important;color:#000!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="false"]{display:none!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="true"]{position:static;display:grid!important;break-inside:avoid;background:#fff!important;color:#000!important;border:1px solid #aaa!important}body.owner-qr-print .owner-qr-card small,body.owner-qr-print .owner-qr-select{color:#222!important}body.owner-qr-print .owner-qr-price{color:#50308f!important}body.owner-qr-print .owner-qr-art{min-height:150px}}
+@media(max-width:520px){.owner-qr-product-open{grid-template-columns:68px minmax(0,1fr);min-height:94px;padding:10px}.owner-qr-product-open img{width:68px;height:74px}.owner-qr-detail-header{grid-template-columns:1fr}.owner-qr-back{justify-self:start}.owner-qr-product-hero{grid-template-columns:82px minmax(0,1fr);gap:10px;padding:10px}.owner-qr-product-hero img{height:102px}.owner-qr-color-group{padding:9px}}
+@media(prefers-reduced-motion:reduce){.owner-qr-product-card{transition:none}.owner-qr-product-card:hover{transform:none}}
+@media print{body.owner-qr-print *{visibility:hidden!important}body.owner-qr-print #ownerInventoryQrGrid,body.owner-qr-print #ownerInventoryQrGrid *{visibility:visible!important}body.owner-qr-print #ownerInventoryQrGrid{position:fixed;inset:0;width:100%;display:block!important;margin:0;padding:10mm;background:#fff!important;color:#000!important}body.owner-qr-print .owner-qr-color-group{display:block!important;break-inside:avoid;background:#fff!important;color:#000!important;border-color:#aaa!important}body.owner-qr-print .owner-qr-color-heading{color:#000!important}body.owner-qr-print .owner-qr-color-group .owner-inventory-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}body.owner-qr-print .owner-qr-card[data-qr-print-target="false"]{display:none!important}body.owner-qr-print .owner-qr-card[data-qr-print-target="true"]{position:static;display:grid!important;break-inside:avoid;background:#fff!important;color:#000!important;border:1px solid #aaa!important}body.owner-qr-print .owner-qr-card small,body.owner-qr-print .owner-qr-select{color:#222!important}body.owner-qr-print .owner-qr-price{color:#50308f!important}body.owner-qr-print .owner-qr-art{min-height:150px}}
 .owner-form{display:grid;gap:10px;background:#0b0e18;border:1px solid #282d40;border-radius:17px;padding:14px;margin-bottom:16px}
 .owner-form input,.owner-form textarea,.owner-form select,.settings-select{width:100%;min-height:44px;border-radius:12px;border:1px solid #292d40;background:#10121c;color:white;padding:10px 12px;font:inherit}
 .owner-product-name-fields{display:grid;gap:8px;padding:10px;border:1px solid #282d40;border-radius:13px;background:#080b14}
@@ -3957,6 +3983,8 @@ let shopAuthModalReturnState=null;
 let ownerInventoryVariants=[];
 let ownerQrRenderQueue=[];
 let ownerQrSvgById=new Map();
+let ownerInventorySelectedProductId=null;
+let ownerInventoryListScrollY=0;
 let ownerInventoryStream=null;
 let ownerInventoryScanTimer=null;
 let ownerInventoryScanBusy=false;
@@ -9276,8 +9304,8 @@ function loadQrVendorScript(file,globalName){
 async function renderOwnerInventory(box){
   if(!isOwner()||!box)return;
   stopOwnerQrScanner();
-  ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;
-  box.innerHTML=`<section class="owner-inventory-tools"><h3>QR product inventory</h3><p>Every product, color, and size has a stable QR code. Search and filter the catalog, then view, download, or print exact variants.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button><button type="button" onclick="printAllVariantQrs()">Print all QR codes</button><button type="button" onclick="downloadAllVariantQrSheet()">Download all QR codes</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search product, ID, color, or size<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search variant inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All variants</option><option value="in-stock">In stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div class="owner-inventory-actions"><button type="button" onclick="selectVisibleOwnerInventoryQrs(true)">Select visible</button><button type="button" onclick="selectVisibleOwnerInventoryQrs(false)">Clear selection</button><button id="ownerInventoryPrintSelected" type="button" onclick="printSelectedVariantQrs()" disabled>Print selected</button><button id="ownerInventoryDownloadSelected" type="button" onclick="downloadSelectedVariantQrSheet()" disabled>Download selected sheet</button></div><p id="ownerInventorySelectionStatus" class="owner-inventory-status" role="status" aria-live="polite">No variants selected.</p><div id="ownerInventoryQrGrid" class="owner-inventory-grid"></div></section>`;
+  ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;ownerInventorySelectedProductId=null;ownerInventoryListScrollY=0;
+  box.innerHTML=`<section class="owner-inventory-tools"><div id="ownerInventoryListView"><h3>QR product inventory</h3><p>Choose a product to view its color and size variants, exact QR codes, and shared stock.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-scanner"><div class="owner-inventory-actions"><button type="button" onclick="startOwnerQrScanner()">Start camera scanner</button><button type="button" onclick="stopOwnerQrScanner()">Stop camera</button></div><video id="ownerInventoryVideo" playsinline muted hidden aria-label="Camera view for scanning a product QR code"></video><canvas id="ownerInventoryCanvas" hidden></canvas><div id="ownerInventoryResult" class="owner-inventory-result" aria-live="polite">Scan a product variant QR code to view its exact stock.</div><label for="ownerInventoryQuantity">Quantity to change</label><input id="ownerInventoryQuantity" type="number" inputmode="numeric" min="1" max="999999" step="1" value="1"><div class="owner-inventory-actions"><button id="ownerInventorySale" type="button" disabled onclick="adjustInventoryStock('sale')">Record sale / reduce stock</button><button id="ownerInventoryRestock" type="button" disabled onclick="adjustInventoryStock('restock')">Add received stock</button></div><p id="ownerInventoryActionStatus" class="owner-inventory-status" role="status" aria-live="polite"></p><div id="ownerInventoryPending"></div></div><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search products, colors, or sizes<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search QR inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All products</option><option value="in-stock">Has stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div id="ownerInventoryProductGrid" class="owner-qr-product-grid" aria-live="polite"></div></div><div id="ownerInventoryDetailView" hidden></div></section>`;
   try{
     const data=await cloudRequest("/api/inventory/qr/ensure",{method:"POST",body:"{}",timeoutMs:30000});
     if(ownerPanel!=="inventory"||!isOwner())return;
@@ -9291,21 +9319,113 @@ async function renderOwnerInventory(box){
     const variants=products.flatMap(product=>(product.variants||[]).map(variant=>({...inventoryVariantViewForClient(product,variant)})));
     ownerInventoryVariants=variants;
     const status=document.getElementById("ownerInventoryStatus");
-    if(status)status.textContent=`${variants.length} unique product variants loaded from the shared database.`;
-    const grid=document.getElementById("ownerInventoryQrGrid");
-    if(!grid)return;
-    if(!variants.length){grid.innerHTML="<p>No product variants are available yet. Add product colors and sizes first.</p>";return;}
-    grid.innerHTML=variants.map(variant=>`<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(variant.qrId)}" data-qr-stock="${variant.stock}" data-qr-search="${escapeHtml(`${variant.productName} ${variant.productId} ${variant.colorName} ${variant.size}`.toLocaleLowerCase())}"><label class="owner-qr-select"><input type="checkbox" value="${escapeHtml(variant.qrId)}" aria-label="Select QR for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}" onchange="updateOwnerInventorySelection()">Select variant</label>${variant.image?`<img class="owner-qr-product-image" src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.productName)}">`:""}<div class="owner-qr-art" data-qr-image="${escapeHtml(variant.qrId)}" aria-label="QR code for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}"><small>Preparing QR…</small></div><strong>${escapeHtml(variant.productName)}</strong><div class="owner-qr-meta"><span>Product ID: ${escapeHtml(String(variant.productId))}</span><span>${escapeHtml(variant.colorName)} · ${escapeHtml(variant.size)}</span><span class="owner-qr-stock">${variant.stock===0?'OUT OF STOCK':`${variant.stock} in stock`}</span><span class="owner-qr-price">${escapeHtml(formatPrice(variant.finalPrice))}</span>${variant.discountPercent?`<span class="owner-qr-original">${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%</span>`:""}</div><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(variant.qrId)}')">Download SVG</button><button type="button" onclick="printVariantQr('${escapeHtml(variant.qrId)}')">Print</button></div></article>`).join("");
-    ownerQrRenderQueue=variants.map(variant=>({id:variant.qrId,payload:variant.qr}));
+    if(status)status.textContent=`${products.length} products and ${variants.length} unique color-and-size variants loaded from shared inventory.`;
     const pending=readPendingInventoryOperation();
     if(pending){const banner=document.getElementById("ownerInventoryPending");if(banner)banner.innerHTML=`<p class="owner-inventory-status">A previous stock change still needs confirmation. Retry it with its original request ID to prevent a duplicate sale.</p><button type="button" onclick="retryPendingInventoryOperation()">Check / retry previous stock change</button>`;}
-    filterOwnerInventoryQr();updateOwnerInventorySelection();
-    requestAnimationFrame(renderNextOwnerQrBatch);
+    renderOwnerInventoryProductList();
   }catch(error){
     if(ownerPanel!=="inventory")return;
     const status=document.getElementById("ownerInventoryStatus");
     if(status)status.textContent=`Shared inventory could not be loaded: ${error.message||"Please retry."}`;
   }
+}
+
+function ownerInventoryVariantsForProduct(productId){
+  return ownerInventoryVariants.filter(variant=>String(variant.productId)===String(productId));
+}
+
+function ownerInventoryProductSummaries(searchQuery="",stockFilter="all"){
+  const query=String(searchQuery||"").trim().toLocaleLowerCase();
+  return (Array.isArray(products)?products:[]).map(product=>{
+    const variants=ownerInventoryVariantsForProduct(product.id);
+    const searchText=[getProductName(product),product.id,...variants.flatMap(variant=>[variant.colorName,variant.size])].join(" ").toLocaleLowerCase();
+    return {product,variants,variantCount:variants.length,searchText,hasStock:variants.some(variant=>variant.stock>0),allOutOfStock:variants.length>0&&variants.every(variant=>variant.stock===0)};
+  }).filter(summary=>{
+    const matchesText=!query||summary.searchText.includes(query);
+    const matchesStock=stockFilter==="all"||(stockFilter==="in-stock"?summary.hasStock:stockFilter==="out-of-stock"?summary.allOutOfStock:true);
+    return matchesText&&matchesStock;
+  });
+}
+
+function renderOwnerInventoryProductList(){
+  if(!isOwner())return;
+  const grid=document.getElementById("ownerInventoryProductGrid");
+  if(!grid)return;
+  const query=String(document.getElementById("ownerInventorySearch")?.value||"");
+  const stockFilter=document.getElementById("ownerInventoryStockFilter")?.value||"all";
+  const summaries=ownerInventoryProductSummaries(query,stockFilter);
+  if(!products.length){grid.innerHTML="<p>No products are available in shared inventory yet.</p>";return;}
+  if(!summaries.length){grid.innerHTML="<p>No products match this search or stock filter.</p>";return;}
+  grid.innerHTML=summaries.map(({product,variants,variantCount,searchText,hasStock,allOutOfStock})=>{
+    const photo=variants.find(variant=>variant.image)?.image||safeImageUrl(productPhotos(product)[0]?.src||product.image||"");
+    return `<article class="owner-qr-product-card" data-qr-product="${escapeHtml(String(product.id))}" data-qr-in-stock="${hasStock}" data-qr-out-of-stock="${allOutOfStock}" data-qr-search="${escapeHtml(searchText)}"><button type="button" class="owner-qr-product-open" data-product-id="${escapeHtml(String(product.id))}" onclick="openOwnerInventoryProduct(this.dataset.productId)" aria-label="View QR inventory for ${escapeHtml(getProductName(product))}">${photo?`<img src="${escapeHtml(photo)}" alt="${escapeHtml(getProductName(product))}" loading="lazy">`:`<span class="owner-qr-product-placeholder" aria-hidden="true">SH</span>`}<span class="owner-qr-product-copy"><strong>${escapeHtml(getProductName(product))}</strong><small>${variantCount} ${variantCount===1?"variant":"variants"}</small><small class="owner-qr-product-id">Product ID: ${escapeHtml(String(product.id))}</small></span></button></article>`;
+  }).join("");
+  const status=document.getElementById("ownerInventoryStatus");
+  if(status)status.textContent=`Showing ${summaries.length} of ${products.length} products in shared inventory.`;
+}
+
+function filterOwnerInventoryQr(){
+  if(ownerPanel!=="inventory")return;
+  renderOwnerInventoryProductList();
+}
+
+function ownerInventoryColorGroups(variants){
+  const groups=new Map();
+  for(const variant of Array.isArray(variants)?variants:[]){
+    const key=String(variant.color||variant.colorName||"Unspecified");
+    if(!groups.has(key))groups.set(key,{key,color:variant.color||"",colorName:variant.colorName||String(variant.color||"Unspecified"),variants:[]});
+    groups.get(key).variants.push(variant);
+  }
+  return [...groups.values()];
+}
+
+function ownerInventoryVariantCardMarkup(variant,productImage=""){
+  const qrId=String(variant.qrId||"");
+  const image=variant.image||productImage;
+  return `<article class="owner-qr-card" data-qr-print-target="false" data-qr-card="${escapeHtml(qrId)}" data-qr-stock="${variant.stock}" data-qr-search="${escapeHtml(`${variant.productName} ${variant.productId} ${variant.colorName} ${variant.size}`.toLocaleLowerCase())}"><label class="owner-qr-select"><input type="checkbox" value="${escapeHtml(qrId)}" aria-label="Select QR for ${escapeHtml(variant.productName)}, ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}" onchange="updateOwnerInventorySelection()">Select variant</label>${image?`<img class="owner-qr-product-image" src="${escapeHtml(image)}" alt="${escapeHtml(variant.productName)} · ${escapeHtml(variant.colorName)}" loading="lazy">`:""}<button type="button" class="owner-qr-art" data-qr-image="${escapeHtml(qrId)}" aria-label="Identify exact variant ${escapeHtml(variant.colorName)}, size ${escapeHtml(variant.size)}, QR ID ${escapeHtml(qrId)}" onclick="inspectOwnerInventoryVariant('${escapeHtml(qrId)}')"><small>Preparing QR…</small></button><strong>${escapeHtml(variant.productName)}</strong><div class="owner-qr-meta"><span>Color: ${escapeHtml(variant.colorName)}</span><span>Size: ${escapeHtml(variant.size)}</span><span class="owner-qr-variant-id">Variant ID: ${escapeHtml(qrId)}</span><span class="owner-qr-stock ${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`}</span><span class="owner-qr-price">${escapeHtml(formatPrice(variant.finalPrice))}</span>${variant.discountPercent?`<span class="owner-qr-original">${escapeHtml(formatPrice(variant.price))} · -${variant.discountPercent}%</span>`:""}</div><div class="owner-inventory-actions"><button type="button" onclick="downloadVariantQr('${escapeHtml(qrId)}')">Download QR</button><button type="button" onclick="printVariantQr('${escapeHtml(qrId)}')">Print QR</button></div></article>`;
+}
+
+function renderOwnerInventoryProductQrDetails(productId){
+  if(!isOwner())return;
+  const detail=document.getElementById("ownerInventoryDetailView");
+  const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===String(productId));
+  if(!detail||!product){if(detail)detail.innerHTML="<p>This product is no longer available in the shared inventory.</p><button type=\"button\" class=\"owner-qr-back\" onclick=\"closeOwnerInventoryProductDetails()\">Back to products</button>";return;}
+  const variants=ownerInventoryVariantsForProduct(productId);
+  const image=variants.find(variant=>variant.image)?.image||safeImageUrl(productPhotos(product)[0]?.src||product.image||"");
+  const groups=ownerInventoryColorGroups(variants);
+  detail.innerHTML=`<div class="owner-qr-detail-header"><div><h3>Product QR Details</h3><p>Every card below represents one exact color and size variant.</p></div><button type="button" class="owner-qr-back" onclick="closeOwnerInventoryProductDetails()" aria-label="Back to QR product list">← Back to products</button></div><section class="owner-qr-product-hero">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(getProductName(product))}" loading="lazy">`:""}<div><h3>${escapeHtml(getProductName(product))}</h3><p>Product ID: ${escapeHtml(String(product.id))}</p><p>${variants.length} ${variants.length===1?"variant":"variants"} · ${groups.length} ${groups.length===1?"color":"colors"}</p><div class="owner-inventory-actions"><button type="button" onclick="printAllVariantQrs()">Print all for this product</button><button type="button" onclick="downloadAllVariantQrSheet()">Download all for this product</button></div></div></section>${variants.length?`<div class="owner-inventory-actions" style="margin-top:12px"><button type="button" onclick="selectVisibleOwnerInventoryQrs(true)">Select all variants</button><button type="button" onclick="selectVisibleOwnerInventoryQrs(false)">Clear selection</button><button id="ownerInventoryPrintSelected" type="button" onclick="printSelectedVariantQrs()" disabled>Print selected</button><button id="ownerInventoryDownloadSelected" type="button" onclick="downloadSelectedVariantQrSheet()" disabled>Download selected sheet</button></div><p id="ownerInventorySelectionStatus" class="owner-inventory-status" role="status" aria-live="polite">No variants selected.</p><div id="ownerInventoryQrGrid">${groups.map(group=>`<section class="owner-qr-color-group"><h4 class="owner-qr-color-heading"><span class="owner-qr-color-swatch" style="--qr-color:${escapeHtml(normalizeHexColor(group.color)||"#7862a8")}"></span>${escapeHtml(group.colorName)} <small>(${group.variants.length} ${group.variants.length===1?"size":"sizes"})</small></h4><div class="owner-inventory-grid">${group.variants.map(variant=>ownerInventoryVariantCardMarkup(variant,image)).join("")}</div></section>`).join("")}</div>`:"<p class=\"owner-inventory-empty\">No color and size variants are available for this product yet.</p>"}`;
+  ownerQrRenderQueue=variants.filter(variant=>!ownerQrSvgById.has(variant.qrId)).map(variant=>({id:variant.qrId,payload:variant.qr}));
+  updateOwnerInventorySelection();
+  if(ownerQrRenderQueue.length)requestAnimationFrame(renderNextOwnerQrBatch);
+}
+
+function openOwnerInventoryProduct(productId){
+  if(!isOwner()||ownerPanel!=="inventory")return;
+  const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===String(productId));
+  if(!product)return;
+  ownerInventoryListScrollY=window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;
+  ownerInventorySelectedProductId=product.id;
+  const list=document.getElementById("ownerInventoryListView");const detail=document.getElementById("ownerInventoryDetailView");
+  if(!list||!detail)return;
+  renderOwnerInventoryProductQrDetails(product.id);
+  list.hidden=true;detail.hidden=false;
+  window.scrollTo({top:0,left:0,behavior:"auto"});
+}
+
+function closeOwnerInventoryProductDetails(){
+  if(!isOwner()||ownerPanel!=="inventory")return;
+  const list=document.getElementById("ownerInventoryListView");const detail=document.getElementById("ownerInventoryDetailView");
+  if(!list||!detail)return;
+  detail.hidden=true;list.hidden=false;ownerInventorySelectedProductId=null;
+  requestAnimationFrame(()=>window.scrollTo({top:ownerInventoryListScrollY,left:0,behavior:"auto"}));
+}
+
+function inspectOwnerInventoryVariant(qrId){
+  if(!isOwner())return null;
+  const variant=ownerInventoryVariants.find(item=>item.qrId===String(qrId))||null;
+  if(!variant){showToast("This exact product variant was not found in shared inventory.");return null;}
+  showToast(`${variant.productName} · ${variant.colorName} · ${variant.size} · Variant ID ${variant.qrId} · ${variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`}`);
+  return variant;
 }
 
 function inventoryVariantViewForClient(product,variant){
@@ -9314,21 +9434,6 @@ function inventoryVariantViewForClient(product,variant){
   const photo=photos.find(item=>normalizeHexColor(item?.color)===normalizeHexColor(variant.color))||photos[0];
   const pricing=getProductPricing(product)||{originalPrice:Math.max(0,Number(product.price)||0),discountPercent:0,finalPrice:Math.max(0,Number(product.price)||0)};
   return {qrId:String(variant.qrId||""),qr:`SHIVAN-VARIANT:1:${String(variant.qrId||"")}`,productId:product.id,productName:getProductName(product),color:variant.color,colorName:product.colorNames?.[colorIndex]||String(variant.color||""),size:String(variant.size||""),stock:Math.max(0,Math.floor(Number(variant.stock)||0)),image:safeImageUrl(photo?.src||product.image||""),price:pricing.originalPrice,finalPrice:pricing.finalPrice,discountPercent:pricing.discountPercent};
-}
-
-function filterOwnerInventoryQr(){
-  if(ownerPanel!=="inventory")return;
-  const query=String(document.getElementById("ownerInventorySearch")?.value||"").trim().toLocaleLowerCase();
-  const stockFilter=document.getElementById("ownerInventoryStockFilter")?.value||"all";
-  let visible=0;
-  document.querySelectorAll("#ownerInventoryQrGrid [data-qr-card]").forEach(card=>{
-    const matchesText=!query||String(card.dataset.qrSearch||"").includes(query);
-    const stock=Number(card.dataset.qrStock)||0;
-    const matchesStock=stockFilter==="all"||(stockFilter==="in-stock"?stock>0:stock===0);
-    card.hidden=!(matchesText&&matchesStock);if(!card.hidden)visible++;
-  });
-  const status=document.getElementById("ownerInventoryStatus");
-  if(status)status.textContent=`Showing ${visible} of ${ownerInventoryVariants.length} product variants from shared inventory.`;
 }
 
 function ownerInventorySelectedIds(){
@@ -9390,8 +9495,10 @@ function printVariantQr(qrId){
 
 function printAllVariantQrs(){
   if(!isOwner())return;
+  const productVariants=ownerInventoryVariantsForProduct(ownerInventorySelectedProductId);
+  if(!productVariants.length){showToast("Open a product first to print its QR codes.");return;}
   if(ownerQrRenderQueue.length){showToast("Please wait while the QR codes finish preparing.");return;}
-  printOwnerVariantQrs(ownerInventoryVariants.map(item=>item.qrId));
+  printOwnerVariantQrs(productVariants.map(item=>item.qrId));
 }
 
 function printSelectedVariantQrs(){
@@ -9420,7 +9527,9 @@ function downloadSelectedVariantQrSheet(){
 
 function downloadAllVariantQrSheet(){
   if(!isOwner())return;
-  downloadOwnerVariantQrSheet(ownerInventoryVariants.map(item=>item.qrId),"shivan-shop-all-variant-qrs.html");
+  const productVariants=ownerInventoryVariantsForProduct(ownerInventorySelectedProductId);
+  if(!productVariants.length){showToast("Open a product first to download its QR codes.");return;}
+  downloadOwnerVariantQrSheet(productVariants.map(item=>item.qrId),`shivan-shop-product-${String(ownerInventorySelectedProductId)}-variant-qrs.html`);
 }
 
 function downloadOwnerVariantQrSheet(ids,fileName){
@@ -9492,7 +9601,7 @@ function renderOwnerInventoryScanResult(errorMessage=""){
   const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===String(variant.productId));
   const details=product?inventoryVariantViewForClient(product,variant):variant;
   const displayPrice=Number(details.finalPrice??details.price);
-  if(result)result.innerHTML=`${details.image?`<img class="owner-qr-product-image" src="${escapeHtml(details.image)}" alt="${escapeHtml(details.productName||variant.productName)}">`:""}<strong>${escapeHtml(details.productName||variant.productName)}</strong><br>Product ID: ${escapeHtml(String(variant.productId))}<br>${escapeHtml(details.colorName||variant.colorName)} · ${escapeHtml(String(variant.size))}${Number.isFinite(displayPrice)?`<br><span class="owner-qr-price">${escapeHtml(formatPrice(displayPrice))}</span>${details.discountPercent?`<br><span class="owner-qr-original">${escapeHtml(formatPrice(details.price))} · -${details.discountPercent}%</span>`:""}`:""}<br><strong class="${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":"Stock: "+variant.stock}</strong>`;
+  if(result)result.innerHTML=`${details.image?`<img class="owner-qr-product-image" src="${escapeHtml(details.image)}" alt="${escapeHtml(details.productName||variant.productName)}">`:""}<strong>${escapeHtml(details.productName||variant.productName)}</strong><br>Product ID: ${escapeHtml(String(variant.productId))}<br>Variant ID: ${escapeHtml(String(variant.qrId))}<br>${escapeHtml(details.colorName||variant.colorName)} · ${escapeHtml(String(variant.size))}${Number.isFinite(displayPrice)?`<br><span class="owner-qr-price">${escapeHtml(formatPrice(displayPrice))}</span>${details.discountPercent?`<br><span class="owner-qr-original">${escapeHtml(formatPrice(details.price))} · -${details.discountPercent}%</span>`:""}`:""}<br><strong class="${variant.stock===0?"owner-inventory-out":""}">${variant.stock===0?"OUT OF STOCK":"Stock: "+variant.stock}</strong>`;
   if(sale)sale.disabled=variant.stock<=0;if(restock)restock.disabled=false;
 }
 
@@ -9521,7 +9630,9 @@ function applyConfirmedInventoryOperation(data){
   cloudHydrating=true;try{originalStorageSetItem.call(localStorage,PRODUCTS_KEY,JSON.stringify(products));}finally{cloudHydrating=false;}
   renderProducts(products);renderOwnerInventoryScanResult();
   const card=document.querySelector(`[data-qr-card="${variant.qrId}"]`);
-  if(card){card.dataset.qrStock=String(variant.stock);const summary=card.querySelector(".owner-qr-stock");if(summary)summary.textContent=variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`;filterOwnerInventoryQr();}
+  if(card){card.dataset.qrStock=String(variant.stock);const summary=card.querySelector(".owner-qr-stock");if(summary){summary.textContent=variant.stock===0?"OUT OF STOCK":`${variant.stock} in stock`;summary.classList.toggle("owner-inventory-out",variant.stock===0);}}
+  const productCard=document.querySelector(`[data-qr-product="${variant.productId}"]`);
+  if(productCard){const productVariants=ownerInventoryVariantsForProduct(variant.productId);productCard.dataset.qrInStock=String(productVariants.some(item=>item.stock>0));productCard.dataset.qrOutOfStock=String(productVariants.length>0&&productVariants.every(item=>item.stock===0));filterOwnerInventoryQr();}
   const status=document.getElementById("ownerInventoryActionStatus");if(status)status.textContent=`${data.action==="sale"?"Sale recorded":"Stock added"}. Shared quantity is now ${variant.stock}.`;
   clearPendingInventoryOperation();
 }

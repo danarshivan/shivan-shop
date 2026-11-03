@@ -40,6 +40,7 @@ assert.doesNotMatch(apiSource, /CREATE TABLE|DROP TABLE|ALTER TABLE/, "QR invent
 for (const marker of ["ownerInventorySearch", "ownerInventoryStockFilter", "selectVisibleOwnerInventoryQrs", "printSelectedVariantQrs", "downloadSelectedVariantQrSheet", "downloadAllVariantQrSheet", "data-qr-stock", "data-qr-search", "Product ID:", "owner-qr-product-image"]) {
   assert.ok(html.includes(marker), `the Owner QR inventory should support ${marker}`);
 }
+for (const marker of ["ownerInventoryProductGrid", "ownerInventoryDetailView", "Product QR Details", "Variant ID:", "Print all for this product", "Download all for this product", "closeOwnerInventoryProductDetails()", "data-qr-product"]) assert.ok(html.includes(marker), `product-first QR inventory should include ${marker}`);
 assert.match(html, /ownerQrSvgById\.set\(item\.id,svg\)/, "download and print controls use the same persistent variant QR ID generated for the shared database record");
 const qrView = runInNewContext(`${sourceFunction("inventoryVariantViewForClient")}\n({inventoryVariantViewForClient})`, {
   normalizeHexColor: value => String(value || "").toLowerCase(),
@@ -67,47 +68,73 @@ const scanRenderer = runInNewContext(`${sourceFunction("inventoryVariantViewForC
 });
 scanRenderer.renderOwnerInventoryScanResult();
 assert.match(scanResultElement.innerHTML, /Product ID: 7/);
+assert.match(scanResultElement.innerHTML, /Variant ID: stable-qr-id/);
 assert.match(scanResultElement.innerHTML, /Ruby · M/);
 assert.match(scanResultElement.innerHTML, /IQD 7000/);
 assert.match(scanResultElement.innerHTML, /-30%/);
 assert.match(scanResultElement.innerHTML, /src="\/dress.webp"/);
 assert.equal(scanSaleButton.disabled, false);
-const qrCards = [
-  { dataset: { qrSearch: "dress 7 ruby m", qrStock: "0" }, hidden: false },
-  { dataset: { qrSearch: "jacket 8 blue l", qrStock: "5" }, hidden: false },
+const productRecords = [{ id: 7, name: "Dress" }, { id: 8, name: "Jacket" }, { id: 9, name: "No variants" }];
+const inventoryRecords = [
+  { qrId: "dress-ruby-s", productId: 7, productName: "Dress", color: "#a00", colorName: "Ruby", size: "S", stock: 0 },
+  { qrId: "dress-ruby-m", productId: 7, productName: "Dress", color: "#a00", colorName: "Ruby", size: "M", stock: 4 },
+  { qrId: "dress-blue-s", productId: 7, productName: "Dress", color: "#00a", colorName: "Blue", size: "S", stock: 2 },
+  { qrId: "jacket-black-l", productId: 8, productName: "Jacket", color: "#000", colorName: "Black", size: "L", stock: 0 },
 ];
-const qrCheckboxes = [{ value: "dress-qr", checked: false }, { value: "jacket-qr", checked: false }];
-const qrUiElements = {
-  ownerInventorySearch: { value: "dress" },
-  ownerInventoryStockFilter: { value: "all" },
-  ownerInventoryStatus: { textContent: "" },
-  ownerInventorySelectionStatus: { textContent: "" },
-  ownerInventoryPrintSelected: { disabled: true },
-  ownerInventoryDownloadSelected: { disabled: true },
-};
-const qrUiDocument = {
-  getElementById: id => qrUiElements[id] || null,
-  querySelectorAll: selector => selector.includes(":not([hidden])")
-    ? qrCards.flatMap((card, index) => card.hidden ? [] : [qrCheckboxes[index]])
-    : selector.includes(":checked")
-      ? qrCheckboxes.filter(input => input.checked)
-      : qrCards,
-};
-const inventoryUi = runInNewContext(`${sourceFunction("ownerInventorySelectedIds")}\n${sourceFunction("filterOwnerInventoryQr")}\n${sourceFunction("updateOwnerInventorySelection")}\n${sourceFunction("selectVisibleOwnerInventoryQrs")}\n({filterOwnerInventoryQr,updateOwnerInventorySelection,selectVisibleOwnerInventoryQrs})`, {
-  ownerPanel: "inventory", ownerInventoryVariants: [1, 2], isOwner: () => true, document: qrUiDocument,
+const productFirstUi = runInNewContext(`${sourceFunction("ownerInventoryVariantsForProduct")}\n${sourceFunction("ownerInventoryProductSummaries")}\n${sourceFunction("ownerInventoryColorGroups")}\n({ownerInventoryVariantsForProduct,ownerInventoryProductSummaries,ownerInventoryColorGroups})`, {
+  products: productRecords, ownerInventoryVariants: inventoryRecords, getProductName: product => product.name,
 });
-inventoryUi.filterOwnerInventoryQr();
-assert.equal(qrCards[0].hidden, false, "the QR search keeps matching products visible");
-assert.equal(qrCards[1].hidden, true, "the QR search hides nonmatching products without removing their records");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryVariantsForProduct(7).map(item => item.qrId))), ["dress-ruby-s", "dress-ruby-m", "dress-blue-s"], "details include only variants linked to the selected product ID");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryProductSummaries().map(item => [item.product.id, item.variantCount]))), [[7, 3], [8, 1], [9, 0]], "product cards show real variant counts without dropping unconfigured products");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryProductSummaries("blue").map(item => item.product.id))), [7], "search matches a product's saved color names");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryProductSummaries("m").map(item => item.product.id))), [7], "search matches a product's saved sizes");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryProductSummaries("", "in-stock").map(item => item.product.id))), [7], "in-stock filter includes products with any stocked variant");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryProductSummaries("", "out-of-stock").map(item => item.product.id))), [8], "out-of-stock filter includes only products whose variants are all out of stock");
+assert.deepEqual(JSON.parse(JSON.stringify(productFirstUi.ownerInventoryColorGroups(productFirstUi.ownerInventoryVariantsForProduct(7)).map(group => [group.colorName, group.variants.map(item => item.size)]))), [["Ruby", ["S", "M"]], ["Blue", ["S"]]], "product details group every size under its exact color");
+
+const qrCards = ["dress-ruby-s", "dress-ruby-m", "dress-blue-s"].map(qrCard => ({ dataset: { qrCard }, hidden: false }));
+const qrCheckboxes = qrCards.map(card => ({ value: card.dataset.qrCard, checked: false }));
+const qrUiElements = { ownerInventorySelectionStatus: { textContent: "" }, ownerInventoryPrintSelected: { disabled: true }, ownerInventoryDownloadSelected: { disabled: true } };
+const qrUiDocument = { getElementById: id => qrUiElements[id] || null, querySelectorAll: selector => selector.includes(":not([hidden])") ? qrCards.flatMap((card, index) => card.hidden ? [] : [qrCheckboxes[index]]) : selector.includes(":checked") ? qrCheckboxes.filter(input => input.checked) : qrCards };
+const inventoryUi = runInNewContext(`${sourceFunction("ownerInventorySelectedIds")}\n${sourceFunction("updateOwnerInventorySelection")}\n${sourceFunction("selectVisibleOwnerInventoryQrs")}\n({ownerInventorySelectedIds,updateOwnerInventorySelection,selectVisibleOwnerInventoryQrs})`, { isOwner: () => true, document: qrUiDocument });
 inventoryUi.selectVisibleOwnerInventoryQrs(true);
-assert.equal(qrCheckboxes[0].checked, true, "select visible applies only to currently filtered variants");
-assert.equal(qrCheckboxes[1].checked, false);
+assert.deepEqual(JSON.parse(JSON.stringify(inventoryUi.ownerInventorySelectedIds())), ["dress-ruby-s", "dress-ruby-m", "dress-blue-s"], "select-all operates on the product's exact displayed variant QR IDs");
 assert.equal(qrUiElements.ownerInventoryPrintSelected.disabled, false);
-qrUiElements.ownerInventoryStockFilter.value = "out-of-stock";
-qrUiElements.ownerInventorySearch.value = "";
-inventoryUi.filterOwnerInventoryQr();
-assert.equal(qrCards[0].hidden, false, "stock filters can show out-of-stock variants");
-assert.equal(qrCards[1].hidden, true, "stock filters exclude in-stock variants");
+inventoryUi.selectVisibleOwnerInventoryQrs(false);
+assert.equal(inventoryUi.ownerInventorySelectedIds().length, 0, "clearing selection does not affect saved inventory");
+
+const detailList = { hidden: false };
+const detailView = { hidden: true };
+const pendingFrames = [];
+const scrollCalls = [];
+let renderedProductId = null;
+const detailNavigation = runInNewContext(`${sourceFunction("openOwnerInventoryProduct")}\n${sourceFunction("closeOwnerInventoryProductDetails")}\n({openOwnerInventoryProduct,closeOwnerInventoryProductDetails})`, {
+  isOwner: () => true, ownerPanel: "inventory", ownerInventorySelectedProductId: null, ownerInventoryListScrollY: 0, products: productRecords,
+  renderOwnerInventoryProductQrDetails: id => { renderedProductId = id; },
+  document: { getElementById: id => ({ ownerInventoryListView: detailList, ownerInventoryDetailView: detailView })[id] || null, documentElement: { scrollTop: 0 }, body: { scrollTop: 0 } },
+  window: { scrollY: 684, scrollTo: options => scrollCalls.push(options) }, requestAnimationFrame: callback => pendingFrames.push(callback),
+});
+detailNavigation.openOwnerInventoryProduct("7");
+assert.equal(renderedProductId, 7);
+assert.equal(detailList.hidden, true);
+assert.equal(detailView.hidden, false);
+detailNavigation.closeOwnerInventoryProductDetails();
+assert.equal(detailList.hidden, false, "Back reveals the existing list DOM, retaining search and filters");
+assert.equal(detailView.hidden, true);
+pendingFrames.pop()();
+assert.equal(scrollCalls[0].top, 0, "a dedicated product detail view opens at the top");
+assert.equal(scrollCalls.at(-1).top, 684, "Back restores the saved list scroll position");
+
+const variantMarkup = runInNewContext(`${sourceFunction("ownerInventoryVariantCardMarkup")}\n({ownerInventoryVariantCardMarkup})`, {
+  escapeHtml: value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
+  formatPrice: value => `IQD ${value}`,
+});
+const exactVariantMarkup = variantMarkup.ownerInventoryVariantCardMarkup({ ...inventoryRecords[1], image: "/dress-ruby.webp", price: 10000, finalPrice: 9000, discountPercent: 10 }, "/dress.webp");
+for (const marker of ['data-qr-card="dress-ruby-m"', 'data-qr-image="dress-ruby-m"', "Variant ID: dress-ruby-m", "Color: Ruby", "Size: M", "4 in stock", "Download QR", "Print QR", 'src="/dress-ruby.webp"']) assert.ok(exactVariantMarkup.includes(marker), `variant card should include ${marker}`);
+assert.ok(!exactVariantMarkup.includes("dress-blue-s"), "a variant QR card must not contain another color or size identity");
+const inspectVariant = runInNewContext(`${sourceFunction("inspectOwnerInventoryVariant")}\n({inspectOwnerInventoryVariant})`, { isOwner: () => true, ownerInventoryVariants: inventoryRecords, showToast: () => {} });
+assert.equal(inspectVariant.inspectOwnerInventoryVariant("dress-ruby-m").size, "M", "clicking a QR resolves its exact stable variant ID");
+assert.equal(inspectVariant.inspectOwnerInventoryVariant("unknown-qr"), null, "an unknown QR never falls back to another variant");
 
 const makeQr = payload => {
   const qr = qrFactory(0, "M");
@@ -375,7 +402,7 @@ assert.match(guestCheckoutSource, /requireAuthentication\(\{type:"checkout",cart
 assert.match(guestPurchaseSource, /requireAuthentication\(\{type:"product",productId:currentProduct\.id,size:selectedSize,color:selectedColor,quantity:currentQty\}\)/, "a guest product buy action must retain its selected variant");
 assert.match(html, /getUserMedia\(\{video:\{facingMode:\{ideal:"environment"\}/, "Owner QR scanning should request the device rear camera only after the owner starts it");
 assert.match(html, /setTimeout\(scanOwnerInventoryFrame,250\)/, "camera QR decoding should be throttled on mobile instead of blocking every animation frame");
-assert.match(html, /Print all QR codes/);
+assert.match(html, /Print all for this product/);
 assert.match(html, /downloadVariantQr\('/);
 
 const guestFlowNames = ["requireAuthentication", "resumeAuthenticationIntent"];
