@@ -33,7 +33,17 @@ const data = {
   products: [{ id: 1, name: "Dress" }, { id: 2, name: "Jacket" }],
 };
 const baseline = JSON.stringify(data);
+const frozenNow = new Date(2026, 10, 2, 18, 0, 0, 0);
+const TestDate = class extends Date {
+  constructor(...args) {
+    if (args.length) super(...args);
+    else super(frozenNow.getTime());
+  }
+  static now() { return frozenNow.getTime(); }
+};
+assert.equal(new TestDate().toISOString(), frozenNow.toISOString(), "the renderer clock stays fixed to the saved November 2 order fixtures");
 const context = {
+  Date: TestDate,
   OWNER_IDENTIFIER: "owner@example.test",
   ownerAnalyticsSelection: { period: "daily", date: "", month: "", year: "" },
   ownerDashboardText: value => value,

@@ -37,7 +37,8 @@ assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length, 1, "the onboarding 
 const mediaMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-media">[\s\S]*?<\/div>/)?.[0]||"";
 assert.match(mediaMarkup, /<img id="shopPromoOnboardingImage"[\s\S]*?<\/div>/, "the existing fashion image should appear inside its framed media panel");
 assert.match(mediaMarkup, /class="shop-promo-onboarding-shade"/, "the image panel should retain a subtle dark lower gradient");
-assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border:1px solid rgba\(183,137,255,/);
+assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border:1px solid color-mix\(in srgb,var\(--shop-secondary,/,
+  "the promo image frame border should follow the globally saved secondary theme color");
 assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border-radius:/);
 const onboardingMediaCss=html.match(/\.shop-promo-onboarding-media\{[^}]*\}/)?.[0]||"";
 const onboardingImageCss=html.match(/\.shop-promo-onboarding-image\{[^}]*\}/)?.[0]||"";
@@ -62,14 +63,16 @@ const brandMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-bran
 assert.match(brandMarkup, /<span>SHIVAN SHOP<\/span>/, "the centered brand name should appear at the top");
 assert.doesNotMatch(brandMarkup, /<svg|cart|bag/i, "the onboarding brand should not display a shopping icon");
 assert.match(html, /\.shop-promo-onboarding-brand\{[^}]*justify-content:center/, "the header brand should remain centered after removing the icon");
-assert.match(html, /\.shop-promo-onboarding-brand span\{color:#fff/, "the brand wordmark should remain white");
+assert.match(html, /\.shop-promo-onboarding-brand span\{color:var\(--shop-readable-text,/, "the brand wordmark should use the global readable text token");
 assert.match(html, /linear-gradient\(0deg,rgba\(2,2,5,\.88\),rgba\(2,2,5,\.4\) 23%,transparent 50%\)/, "the lower black gradient should keep slide controls legible");
 assert.match(onboardingMarkup, /id="shopPromoOnboardingNext"[^>]*onclick="advanceShopOnboarding\(\)"[^>]*>Next/, "slides one and two should provide a Next button");
 assert.match(onboardingMarkup, /id="shopPromoOnboardingChoices"[^>]*hidden>[\s\S]*?onclick="startShopOnboardingSignup\(\)"[^>]*>Create Account[\s\S]*?onclick="finishShopOnboarding\(\)"[^>]*>Explore Models/, "the last slide should show the two requested choices");
 assert.doesNotMatch(onboardingMarkup, /\bSkip\b|shopPromoOnboardingSkip/);
 assert.ok(onboardingMarkup.indexOf('class="shop-promo-onboarding-actions"')<onboardingMarkup.indexOf('id="shopPromoOnboardingDots"'), "pagination dots should sit beneath the action buttons");
-assert.match(html, /\.shop-promo-onboarding\{[^}]*#030306/);
-assert.match(html, /linear-gradient\(180deg,#07050d 0%,#030306 62%,#020205 100%\)/);
+assert.match(html, /\.shop-promo-onboarding\{--onboarding-purple:var\(--shop-primary,/,
+  "onboarding accents should use the global primary theme token");
+assert.match(html, /linear-gradient\(180deg,color-mix\(in srgb,var\(--shop-page-background,/,
+  "onboarding background should follow the global page background token");
 assert.match(html, /\.shop-promo-onboarding-choices\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "the final choices should sit side by side on phones");
 assert.match(html, /shopMotionOnboardingForward 300ms/);
 assert.match(html, /shopMotionOnboardingBackward 300ms/);

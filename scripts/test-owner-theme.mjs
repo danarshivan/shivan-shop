@@ -15,7 +15,9 @@ const functionSource = name => {
   return match[0];
 };
 const required = [
-  "safeAppearanceColor", "isValidAppearanceHex", "normalizeOwnerAppearance", "ownerAppearanceGlobalCss",
+  "safeAppearanceColor", "isValidAppearanceHex", "normalizeOwnerAppearance", "ownerAppearanceLuminance",
+  "ownerAppearanceContrastRatio", "ownerAppearanceContrastText", "ownerAppearanceReadableText",
+  "ownerAppearanceContrastIssues", "ownerAppearanceGlobalCss",
   "ownerAppearanceThemePreset", "ownerAppearanceHexInput", "ownerAppearancePresetMarkup", "ownerAppearancePreviewMarkup",
   "readOwnerAppearanceForm", "setOwnerAppearanceStatus", "renderOwnerAppearancePreview", "renderOwnerAppearance",
   "selectOwnerTheme", "syncOwnerAppearanceColor", "previewOwnerAppearance", "saveOwnerAppearance", "resetOwnerAppearance",
@@ -102,12 +104,38 @@ assert.equal(onSecondDevice.theme, "teal", "a second device can hydrate the same
 assert.equal(onSecondDevice.primary, runtime.OWNER_THEME_PRESETS.teal.primary);
 assert.equal(onSecondDevice.font, "inter");
 
+for (const [name, preset] of Object.entries(runtime.OWNER_THEME_PRESETS)) {
+  const presetCss = runtime.ownerAppearanceGlobalCss({ ...preset, theme: name });
+  assert.ok(presetCss.includes("--shop-primary:" + preset.primary + ";"), name + " primary accent applies globally");
+  assert.ok(presetCss.includes("--shop-secondary:" + preset.secondary + ";"), name + " secondary accent applies globally");
+  assert.ok(presetCss.includes("--shop-page-background:" + preset.background + ";"), name + " page background applies globally");
+  assert.ok(presetCss.includes("--shop-card-background:" + preset.card + ";"), name + " card background applies globally");
+  assert.ok(presetCss.includes("--shop-button:" + preset.button + ";"), name + " button color applies globally");
+}
+
 const globalCss = runtime.ownerAppearanceGlobalCss({ ...runtime.OWNER_THEME_PRESETS.pink, font: "poppins" });
 for (const value of Object.values(runtime.OWNER_THEME_PRESETS.pink)) assert.ok(globalCss.includes(value), `global theme applies ${value}`);
 assert.match(globalCss, /Poppins/);
-assert.match(globalCss, /\.discounted-price,\.order-item-price\{color:#ff63a7!important\}/, "discounted final prices follow the selected primary accent");
+assert.match(globalCss, /--shop-primary:#ff63a7;/, "the saved primary color is exposed as a centralized document token");
+assert.match(globalCss, /body,body \*,button,input,select,textarea\{font-family:"Poppins"/, "the selected font applies to all document content and controls");
+for (const selector of [
+  ".shop-startup-splash{", ".shop-promo-onboarding{", ".shop-promo-onboarding-media{", ".shop-promo-onboarding-next",
+  "#authPage", ".auth-ad,.hero", ".nav-item.active", ".product", ".detail-box", ".cart-item",
+  ".profile-card", ".owner-form", ".owner-dashboard-banner", ".owner-orders-heading", ".owner-qr-product-hero",
+  ".owner-stat-card", ".owner-customer-card", ".owner-sidebar", ".owner-analytics-bar-fill",
+  ".owner-theme-live-preview .owner-theme-preview-product-copy button"
+]) assert.ok(globalCss.includes(selector), "global styling covers " + selector);
+assert.match(globalCss, /\.owner-orders-stat\.sales strong,\.total-price,\.detail-stock \.stock-line,\.price,\.detail-price,\.discounted-price,\.order-item-price[^\n]*color:#ff63a7!important\}/, "discounted final prices follow the selected primary accent");
 assert.match(globalCss, /\.original-price\{color:#9b9eaa!important\}/, "original discounted prices remain subdued");
-assert.match(globalCss, /\.owner-theme-live-preview \.owner-theme-preview-final-price\{color:var\(--owner-theme-primary\)!important\}/, "global theme overrides leave the independent preview colors intact");
+assert.match(globalCss, /\.owner-theme-live-preview \.owner-theme-preview-final-price\{color:var\(--owner-theme-readable-primary\)!important\}/, "global theme overrides leave the independent preview colors intact");
+assert.equal(runtime.ownerAppearanceContrastText("#d83e8a"), "#111111", "button labels use the more readable black or white foreground");
+assert.ok(runtime.ownerAppearanceContrastRatio("#ffffff", "#000000") >= 21, "contrast calculation follows WCAG relative luminance");
+const lowContrast = runtime.ownerAppearanceContrastIssues({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444" });
+assert.ok(lowContrast.length >= 3, "the preview identifies custom text and accent combinations that need stronger contrast");
+assert.equal(runtime.ownerAppearanceReadableText("#111111", ["#000000", "#080808"]), "#ffffff", "unreadable custom text uses a readable fallback");
+const lowContrastCss = runtime.ownerAppearanceGlobalCss({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444", button: "#d83e8a" });
+assert.match(lowContrastCss, /--shop-readable-text:#ffffff;/, "low-contrast body text receives a readable fallback without changing the selected saved HEX");
+assert.match(lowContrastCss, /--shop-button-text:#111111;/, "button foreground is chosen to preserve readable contrast");
 
 const rendered = { innerHTML: "" };
 runtime.renderOwnerAppearance(rendered);
@@ -121,7 +149,11 @@ assert.match(rendered.innerHTML, /Evening dress/);
 assert.match(rendered.innerHTML, /25%/);
 assert.match(rendered.innerHTML, /Save Changes/);
 assert.match(rendered.innerHTML, /Reset to Default/);
+assert.match(rendered.innerHTML, /owner-theme-button-text:#ffffff/, "the live preview uses a contrast-aware button label");
 assert.match(rendered.innerHTML, /ownerBackupSync/, "the existing backup controls remain available");
+const contrastPreview = runtime.ownerAppearancePreviewMarkup({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444" });
+assert.match(contrastPreview, /owner-theme-contrast-note/, "the live preview explains low-contrast custom selections");
+assert.match(contrastPreview, /owner-theme-readable-text:#ffffff/, "the live preview matches the storefront text fallback");
 
 const form = makeElement();
 form.dataset.theme = "purple";
@@ -206,4 +238,4 @@ assert.match(api, /"shivan_shop_owner_appearance"/, "the existing production API
 assert.match(api, /if \(account\.role !== "owner"\)/, "shared appearance changes remain protected by server-side Owner authorization");
 assert.match(functionSource("confirmCloudShopWrites"), /cloudAccount\.role!=="owner"/);
 
-console.log("Owner theme regression checks passed: five presets, seven validated HEX color controls, font selection, isolated live preview, shared save/hydration, reset confirmation, and Owner-only authorization.");
+console.log("Owner theme regression checks passed: global page coverage, five presets, seven validated HEX color controls, font selection, contrast-safe colors, live preview, shared save/hydration, reset confirmation, and Owner-only authorization.");
