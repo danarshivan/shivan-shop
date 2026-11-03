@@ -1,0 +1,24 @@
+name = "shivan-store"
+compatibility_date = "2026-10-08"
+pages_build_output_dir = "./dist"
+
+[vars]
+FIB_ENV = "stage"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shivan-shop-db"
+database_id = "bc9da050-3780-428f-aeee-b42bb82b95c0"
+migrations_dir = "migrations"
+
+
+[[durable_objects.bindings]]
+name = "SYNC_HUB"
+class_name = "SyncHub"
+script_name = "shivan-shop-sync-hub"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "shivan-shop-images"
+
+

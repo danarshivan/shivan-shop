@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$projectName = "shivan-shop-storefront"
+$projectName = "shivan-store"
 $databaseName = "shivan-shop-db"
 $bucketName = "shivan-shop-images"
 $accountId = "9d76c540342fdbb288b426f195d5c54a"
@@ -22,7 +22,10 @@ $secureFibClientSecret = $null
 $fibClientIdText = $null
 $fibClientSecretText = $null
 $configureFib = $false
-$fibEnvironment = "prod"
+$fibEnvironment = $null
+$productionBranch = "main"
+$r2Enabled = $false
+$r2BucketExists = $false
 $rng = $null
 $bytes = $null
 
@@ -44,6 +47,17 @@ try {
     if ($identityText -notmatch [regex]::Escape($accountId)) { throw "Wrangler is not authenticated to the Cloudflare account configured for this shop ($accountId). No resources were created." }
     Write-Host "Cloudflare account verified: $accountId"
 
+    $r2ListOutput = & $wrangler r2 bucket list 2>&1
+    $r2ListText = $r2ListOutput -join [Environment]::NewLine
+    if ($LASTEXITCODE -eq 0) {
+        $r2Enabled = $true
+        $r2BucketExists = $r2ListText -match [regex]::Escape($bucketName)
+    } elseif ($r2ListText -match 'Please enable R2 through the Cloudflare Dashboard|code:\s*10042') {
+        Write-Warning "R2 is not enabled for this account. D1-based text/catalog sync can deploy, but product image uploads will remain unavailable until R2 is enabled."
+    } else {
+        throw "Could not verify Cloudflare R2 availability: $r2ListText"
+    }
+
     $fibChoice = (Read-Host "Configure FIB payments now? Enter yes or no (no deploys the shop and sync with FIB checkout unavailable until credentials are added)").Trim().ToLowerInvariant()
     if ($fibChoice -notin @("yes", "no")) { throw "Enter yes or no for FIB setup." }
     $configureFib = $fibChoice -eq "yes"
@@ -57,16 +71,20 @@ try {
         Write-Host "FIB setup is pending. The live site will not accept FIB payments until valid merchant credentials are added."
     }
 
-    Write-Host "This will create the Shivan Shop Pages project, D1 database, R2 image bucket, and real-time sync Worker in the verified Cloudflare account. It will store FIB credentials as encrypted Pages secrets and publish the site."
+    $mediaPlan = if ($r2Enabled) { "R2 media storage will be attached." } else { "R2 is disabled; uploaded product images will not sync yet." }
+    Write-Host "This will connect the shivan-store Pages project to D1 and the real-time sync Worker, then publish the updated site. $mediaPlan"
+    Write-Host "It will store FIB credentials as encrypted Pages secrets only if you choose to configure them."
     $confirmation = Read-Host "Type DEPLOY to continue"
     if ($confirmation -cne "DEPLOY") { throw "Deployment cancelled before any Cloudflare resources were created." }
 
-    $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFibClientId)
-    try { $fibClientIdText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
-    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
-    $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFibClientSecret)
-    try { $fibClientSecretText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
-    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
+    if ($configureFib) {
+        $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFibClientId)
+        try { $fibClientIdText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
+        finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
+        $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFibClientSecret)
+        try { $fibClientSecretText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer) }
+        finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
+    }
     $env:WRANGLER_SEND_METRICS = "false"
 
     @("name = `"$projectName`"", "account_id = `"$accountId`"", "compatibility_date = `"2026-10-08`"") |
@@ -99,15 +117,21 @@ try {
     } elseif ($toml -notmatch ('database_id\s*=\s*"' + [regex]::Escape($databaseId) + '"')) {
         throw "wrangler.toml points to a different D1 database than the configured Shivan Shop database."
     }
-    $toml = $toml -replace 'FIB_ENV\s*=\s*"[^"]+"', "FIB_ENV = `"$fibEnvironment`""
+    if ($r2Enabled -and $toml -notmatch '(?m)^\[\[r2_buckets\]\]') {
+        $toml = $toml.TrimEnd() + "`r`n`r`n[[r2_buckets]]`r`nbinding = `"MEDIA`"`r`nbucket_name = `"$bucketName`"`r`n"
+    } elseif (-not $r2Enabled) {
+        $toml = [regex]::Replace($toml, '(?m)^\[\[r2_buckets\]\]\r?\nbinding\s*=\s*"MEDIA"\r?\nbucket_name\s*=\s*"[^"]+"\r?\n?', '')
+    }
+    if ($configureFib) { $toml = $toml -replace 'FIB_ENV\s*=\s*"[^"]+"', "FIB_ENV = `"$fibEnvironment`"" }
     Set-Content -LiteralPath $tomlPath -Value $toml -Encoding utf8
 
-    $bucketOutput = & $wrangler r2 bucket create $bucketName --config $provisionConfig 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        $bucketList = & $wrangler r2 bucket list --json --config $provisionConfig 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "R2 bucket creation failed and existing buckets could not be listed: $($bucketOutput -join ' ')" }
-        $bucketRows = Get-JsonRows $bucketList "R2 bucket"
-        if (-not ($bucketRows | Where-Object { $_.name -eq $bucketName })) { throw "R2 bucket creation failed: $($bucketOutput -join ' ')" }
+    if ($r2Enabled -and -not $r2BucketExists) {
+        $bucketOutput = & $wrangler r2 bucket create $bucketName --config $provisionConfig 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $bucketList = & $wrangler r2 bucket list 2>&1
+            $bucketListText = $bucketList -join [Environment]::NewLine
+            if ($LASTEXITCODE -ne 0 -or $bucketListText -notmatch [regex]::Escape($bucketName)) { throw "R2 bucket creation failed: $($bucketOutput -join ' ')" }
+        }
     }
 
     $projectOutput = & $wrangler pages project create $projectName --production-branch main 2>&1
@@ -115,7 +139,12 @@ try {
         $projectList = & $wrangler pages project list --json 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Pages project creation failed and existing projects could not be listed: $($projectOutput -join ' ')" }
         $projectRows = Get-JsonRows $projectList "Pages project"
-        if (-not ($projectRows | Where-Object { $_.name -eq $projectName })) { throw "Pages project creation failed: $($projectOutput -join ' ')" }
+        $existingProject = $projectRows | Where-Object { ([string]$_.name -eq $projectName) -or ([string]$_.'Project Name' -eq $projectName) } | Select-Object -First 1
+        if (-not $existingProject) { throw "Pages project creation failed: $($projectOutput -join ' ')" }
+        $configuredBranch = [string]$existingProject.production_branch
+        if (-not $configuredBranch) { $configuredBranch = [string]$existingProject.productionBranch }
+        if ($configuredBranch) { $productionBranch = $configuredBranch }
+        Write-Host "Using existing Pages project $projectName with production branch $productionBranch."
     }
 
     & $wrangler deploy --config (Join-Path $root "sync-hub\wrangler.toml")
@@ -139,13 +168,15 @@ try {
     Get-Content -LiteralPath $ownerCodeFile -Raw | & $wrangler pages secret put OWNER_SETUP_TOKEN --project-name $projectName
     if ($LASTEXITCODE -ne 0) { throw "The owner setup secret could not be saved." }
 
-    & $wrangler pages deploy (Join-Path $root "dist") --project-name $projectName --branch main --config $tomlPath
+    & $wrangler pages deploy (Join-Path $root "dist") --project-name $projectName --branch $productionBranch
     if ($LASTEXITCODE -ne 0) { throw "The Pages deployment failed." }
 
     Write-Host ""
     Write-Host "DEPLOYMENT_URL=https://$projectName.pages.dev"
+    if ($r2Enabled) { Write-Host "MEDIA_SETUP=R2 bucket bound" }
+    else { Write-Host "MEDIA_SETUP=awaiting R2 activation; image uploads will not sync" }
     if ($configureFib) { Write-Host "FIB_SETUP=$fibEnvironment credentials configured" }
-    else { Write-Host "FIB_SETUP=pending production merchant credentials" }
+    else { Write-Host "FIB_SETUP=unchanged; no FIB credentials were entered" }
     Write-Host "OWNER_SETUP_CODE=$ownerCode"
     Write-Host "OWNER_SETUP_CODE_EXPIRES=Use once when creating the owner account, then remove OWNER_SETUP_TOKEN from Pages settings."
     Remove-Item -LiteralPath $ownerCodeFile -Force -ErrorAction SilentlyContinue

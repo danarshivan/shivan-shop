@@ -1,0 +1,604 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { webcrypto } from "node:crypto";
+import { runInNewContext } from "node:vm";
+import { PushCoordinator } from "../sync-hub/push.mjs";
+import { base64UrlToBytes, bytesToBase64Url, createVapidAuthorization, encryptWebPush, sendWebPush } from "../sync-hub/webpush.mjs";
+
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const b64 = bytes => bytesToBase64Url(bytes);
+const decode = value => base64UrlToBytes(value);
+
+class MemoryStorage {
+  constructor() { this.values = new Map(); this.alarmAt = 0; this.lock = Promise.resolve(); }
+  async get(key) { return this.values.get(key); }
+  async put(key, value) { this.values.set(key, structuredClone(value)); }
+  async delete(key) { return this.values.delete(key); }
+  async list({ prefix = "" } = {}) { return new Map([...this.values].filter(([key]) => String(key).startsWith(prefix)).map(([key, value]) => [key, structuredClone(value)])); }
+  async transaction(callback) {
+    const previous = this.lock;
+    let release;
+    this.lock = new Promise(resolve => { release = resolve; });
+    await previous;
+    const draft = new Map([...this.values].map(([key, value]) => [key, structuredClone(value)]));
+    const tx = {
+      get: async key => draft.get(key),
+      put: async (key, value) => draft.set(key, structuredClone(value)),
+      delete: async key => draft.delete(key),
+      list: async ({ prefix = "" } = {}) => new Map([...draft].filter(([key]) => String(key).startsWith(prefix))),
+    };
+    try {
+      const result = await callback(tx);
+      this.values = draft;
+      return result;
+    } finally { release(); }
+  }
+  async setAlarm(value) { this.alarmAt = Number(value); }
+  async deleteAlarm() { this.alarmAt = 0; }
+}
+
+function createHarness({ now = 1_800_000_000_000, send = async () => ({ ok: true, status: 201 }), env = {} } = {}) {
+  const storage = new MemoryStorage();
+  const ctx = { storage, getWebSockets: () => [] };
+  let clock = now;
+  const coordinator = new PushCoordinator(ctx, env, { clock: () => clock, send });
+  return { storage, ctx, coordinator, setNow: value => { clock = value; } };
+}
+
+function fakeSubscription(endpoint = "https://fcm.googleapis.com/fcm/send/test-endpoint") {
+  return { endpoint, expirationTime: null, keys: { p256dh: b64(new Uint8Array([4, ...new Uint8Array(64).fill(7)])), auth: b64(new Uint8Array(16).fill(8)) } };
+}
+
+async function call(coordinator, path, { method = "GET", body, search = "" } = {}) {
+  return coordinator.handle(new Request(`https://sync-hub.internal${path}${search}`, { method, headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined }));
+}
+
+async function listPrefix(storage, prefix) { return [...(await storage.list({ prefix })).values()]; }
+
+async function testWebPushCrypto() {
+  const vapidPair = await webcrypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  const vapidJwk = await webcrypto.subtle.exportKey("jwk", vapidPair.privateKey);
+  const vapidPublic = new Uint8Array(await webcrypto.subtle.exportKey("raw", vapidPair.publicKey));
+  const vapidConfig = { publicKey: b64(vapidPublic), privateKey: b64(decode(vapidJwk.d)), subject: "mailto:shop-owner@example.test" };
+  const configured = createHarness({ env: { VAPID_PUBLIC_KEY: vapidConfig.publicKey, VAPID_PRIVATE_KEY: vapidConfig.privateKey, VAPID_SUBJECT: vapidConfig.subject } });
+  const publicConfig = await (await call(configured.coordinator, "/push/config")).json();
+  assert.deepEqual(Object.keys(publicConfig).sort(), ["ok", "publicKey"], "the Worker configuration response contains only its status and public key");
+  assert.equal(publicConfig.publicKey, vapidConfig.publicKey);
+  assert.equal(JSON.stringify(publicConfig).includes(vapidConfig.privateKey), false, "the config endpoint never returns the VAPID private key");
+  const workerSource = await readFile(new URL("../sync-hub/push.mjs", import.meta.url), "utf8");
+  for (const variable of ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT"]) assert.ok(workerSource.includes(`env.${variable}`), `the Worker reads the exact ${variable} binding`);
+  const endpoint = "https://fcm.googleapis.com/fcm/send/local-only";
+  const authorization = await createVapidAuthorization(endpoint, vapidConfig, 1_800_000_000_000);
+  const [header, claims, signature] = authorization.token.split(".");
+  const publicJwk = { kty: "EC", crv: "P-256", x: b64(vapidPublic.slice(1, 33)), y: b64(vapidPublic.slice(33, 65)), ext: true, key_ops: ["verify"] };
+  const verifyKey = await webcrypto.subtle.importKey("jwk", publicJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+  assert.equal(await webcrypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, verifyKey, decode(signature), encoder.encode(`${header}.${claims}`)), true, "VAPID JWT uses a valid ES256 signature");
+  const parsedClaims = JSON.parse(decoder.decode(decode(claims)));
+  assert.equal(parsedClaims.aud, "https://fcm.googleapis.com");
+  assert.equal(parsedClaims.sub, vapidConfig.subject);
+
+  const receiver = await webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
+  const receiverPublic = new Uint8Array(await webcrypto.subtle.exportKey("raw", receiver.publicKey));
+  const auth = webcrypto.getRandomValues(new Uint8Array(16));
+  const subscription = { endpoint, keys: { p256dh: b64(receiverPublic), auth: b64(auth) } };
+  const payload = { title: "New order received", body: "Order #test-1 is ready.", tag: "order:test-1" };
+  const encrypted = await encryptWebPush(subscription, payload);
+  const salt = encrypted.slice(0, 16);
+  const keyLength = encrypted[20];
+  const senderPublic = encrypted.slice(21, 21 + keyLength);
+  const senderKey = await webcrypto.subtle.importKey("raw", senderPublic, { name: "ECDH", namedCurve: "P-256" }, false, []);
+  const shared = new Uint8Array(await webcrypto.subtle.deriveBits({ name: "ECDH", public: senderKey }, receiver.privateKey, 256));
+  const keyInfo = new Uint8Array(13 + receiverPublic.length + senderPublic.length);
+  keyInfo.set(encoder.encode("WebPush: info\0"));
+  keyInfo.set(receiverPublic, 13);
+  keyInfo.set(senderPublic, 13 + receiverPublic.length);
+  const hkdf = async (ikm, hkdfSalt, info, length) => {
+    const key = await webcrypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+    return new Uint8Array(await webcrypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info }, key, length * 8));
+  };
+  const ikm = await hkdf(shared, auth, keyInfo, 32);
+  const cek = await hkdf(ikm, salt, encoder.encode("Content-Encoding: aes128gcm\0"), 16);
+  const nonce = await hkdf(ikm, salt, encoder.encode("Content-Encoding: nonce\0"), 12);
+  const contentKey = await webcrypto.subtle.importKey("raw", cek, "AES-GCM", false, ["decrypt"]);
+  const plaintext = new Uint8Array(await webcrypto.subtle.decrypt({ name: "AES-GCM", iv: nonce, tagLength: 128 }, contentKey, encrypted.slice(21 + keyLength)));
+  assert.equal(plaintext[plaintext.length - 1], 2, "RFC 8291 record terminator is present");
+  assert.deepEqual(JSON.parse(decoder.decode(plaintext.slice(0, -1))), payload, "push payload decrypts with the subscriber keys");
+
+  let sentRequest;
+  const sent = await sendWebPush(subscription, payload, vapidConfig, async (url, options) => {
+    sentRequest = { url, options };
+    return new Response(null, { status: 201 });
+  }, 1_800_000_000_000);
+  assert.equal(sent.ok, true);
+  assert.equal(sentRequest.options.headers["Content-Encoding"], "aes128gcm");
+  assert.match(sentRequest.options.headers.Authorization, /^vapid t=/);
+  assert.equal((await sendWebPush(subscription, payload, vapidConfig, async () => new Response(null, { status: 410 }))).remove, true, "expired push endpoints are identified for pruning");
+  assert.equal((await sendWebPush({ ...subscription, endpoint: "https://attacker.example/push" }, payload, vapidConfig)).remove, true, "unapproved endpoints are never called");
+}
+
+async function testSubscriptionsAndAuthorization() {
+  const h = createHarness({ env: { VAPID_PUBLIC_KEY: "public", VAPID_PRIVATE_KEY: "private", VAPID_SUBJECT: "mailto:owner@example.test" } });
+  assert.equal((await call(createHarness().coordinator, "/push/config")).status, 503, "missing VAPID configuration is reported honestly");
+  assert.equal((await call(h.coordinator, "/push/config")).status, 503, "malformed server key is not exposed as a usable config");
+
+  const base = "https://fcm.googleapis.com/fcm/send/device-";
+  const first = fakeSubscription(base + "1");
+  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: first } })).status, 200);
+  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-B", subscription: first } })).status, 409, "a second owner cannot claim an existing browser endpoint");
+  const status = async (ownerId, endpoint) => call(h.coordinator, "/push/subscription-status", { method: "POST", body: { ownerId, endpoint } });
+  assert.equal((await (await status("owner-A", first.endpoint)).json()).registered, true);
+  assert.equal((await (await status("owner-B", first.endpoint)).json()).registered, false, "subscription status is isolated by owner");
+  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: { ...first, endpoint: "https://attacker.example/steal" } } })).status, 400);
+
+  const renewed = fakeSubscription(base + "renewed");
+  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: renewed, previousEndpoint: first.endpoint } })).status, 200);
+  assert.equal((await (await status("owner-A", first.endpoint)).json()).registered, false, "renewal removes the old endpoint");
+  assert.equal((await (await status("owner-A", renewed.endpoint)).json()).registered, true);
+  for (let i = 2; i <= 10; i++) {
+    const sub = fakeSubscription(base + i);
+    assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: sub } })).status, 200);
+  }
+  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: fakeSubscription(base + "11") } })).status, 429, "device subscription cap is enforced");
+  const wrongOwnerDelete = await call(h.coordinator, "/push/unsubscribe", { method: "POST", body: { ownerId: "owner-B", endpoint: renewed.endpoint } });
+  assert.equal((await wrongOwnerDelete.json()).removed, false, "one owner cannot delete another owner's subscription");
+  const removed = await call(h.coordinator, "/push/unsubscribe", { method: "POST", body: { ownerId: "owner-A", endpoint: renewed.endpoint } });
+  assert.equal((await removed.json()).removed, true);
+}
+
+async function testOwnerSingleDeviceTestNotification() {
+  const sent = [];
+  const h = createHarness({ send: async (subscription, payload) => {
+    await new Promise(resolve => setTimeout(resolve, 5));
+    sent.push({ endpoint: subscription.endpoint, payload });
+    return { ok: true, status: 201 };
+  } });
+  const ownerPhone = fakeSubscription("https://fcm.googleapis.com/fcm/send/owner-phone");
+  const ownerLaptop = fakeSubscription("https://fcm.googleapis.com/fcm/send/owner-laptop");
+  const customerPhone = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-phone");
+  for (const subscription of [ownerPhone, ownerLaptop]) {
+    assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } })).status, 200);
+  }
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: {
+    customerId: "customer-A", subscription: customerPhone,
+    preferences: { newArrivals: true, discounts: true, specialOffers: true },
+  } })).status, 200);
+
+  const requestId = "one-device-test-123";
+  const request = () => call(h.coordinator, "/push/test", { method: "POST", body: {
+    ownerId: "owner-A", endpoint: ownerPhone.endpoint, requestId,
+  } });
+  const concurrent = await Promise.all([request(), request()]);
+  assert.deepEqual(concurrent.map(response => response.status).sort(), [200, 409], "concurrent duplicate taps send only one test");
+  assert.equal(sent.length, 1, "exactly one push send is attempted");
+  assert.equal(sent[0].endpoint, ownerPhone.endpoint, "the test goes only to the requested registered Owner device");
+  assert.equal(sent[0].payload.title, "Shivan Shop push test");
+  assert.equal(sent[0].payload.data.audience, "owner");
+  assert.equal(sent[0].payload.data.type, "test");
+  assert.equal(sent[0].payload.data.url, "/?ownerPush=alerts");
+  assert.equal((await request()).status, 200, "a later retry with the same request ID returns the prior accepted result");
+  assert.equal(sent.length, 1, "retry does not send a second notification");
+  assert.equal((await call(h.coordinator, "/push/test", { method: "POST", body: {
+    ownerId: "owner-A", endpoint: ownerLaptop.endpoint, requestId,
+  } })).status, 409, "the same request ID cannot be redirected to another Owner device");
+  assert.equal((await call(h.coordinator, "/push/test", { method: "POST", body: {
+    ownerId: "owner-A", endpoint: customerPhone.endpoint, requestId: "customer-target-123",
+  } })).status, 404, "a customer subscription cannot be used as an Owner test target");
+  assert.equal(sent.some(item => item.endpoint === ownerLaptop.endpoint || item.endpoint === customerPhone.endpoint), false);
+
+  let failedSends = 0;
+  const failed = createHarness({ send: async () => { failedSends++; return { ok: false, status: 503 }; } });
+  await call(failed.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerPhone } });
+  const failedBody = { ownerId: "owner-A", endpoint: ownerPhone.endpoint, requestId: "failed-test-request-1" };
+  assert.equal((await call(failed.coordinator, "/push/test", { method: "POST", body: failedBody })).status, 502, "delivery rejection is reported as failure");
+  assert.equal((await call(failed.coordinator, "/push/test", { method: "POST", body: failedBody })).status, 409, "a failed request is not silently resent under the same id");
+  assert.equal(failedSends, 1, "a failed test requires a new explicit request ID before another attempt");
+}
+
+async function testCustomerSubscriptionsPreferencesAndBroadcasts() {
+  const sent = [];
+  const h = createHarness({ send: async (subscription, payload) => { sent.push({ endpoint: subscription.endpoint, payload }); return { ok: true, status: 201 }; } });
+  const arrivalSub = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-arrival");
+  const discountSub = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-discount");
+  const discountSubSecondDevice = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-discount-second");
+  const arrivalPrefs = { newArrivals: true, discounts: false, specialOffers: false };
+  const discountPrefs = { newArrivals: false, discounts: true, specialOffers: true };
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: arrivalSub, preferences: arrivalPrefs } })).status, 200);
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-B", subscription: discountSub, preferences: discountPrefs } })).status, 200);
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-B", subscription: discountSubSecondDevice, preferences: discountPrefs } })).status, 200);
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-C", subscription: fakeSubscription("https://fcm.googleapis.com/fcm/send/no-opt-in"), preferences: { newArrivals: false, discounts: false, specialOffers: false } } })).status, 400, "a customer cannot subscribe without selecting an event type");
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-C", subscription: arrivalSub, preferences: arrivalPrefs } })).status, 409, "one customer cannot claim another customer's endpoint");
+  const saved = await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-A", preferences: { action: "get" } } });
+  assert.deepEqual((await saved.json()).preferences, arrivalPrefs, "notification preferences are saved by customer account");
+  const status = await call(h.coordinator, "/push/customer-subscription-status", { method: "POST", body: { customerId: "customer-A", endpoint: arrivalSub.endpoint } });
+  assert.equal((await status.json()).registered, true);
+
+  const arrival = { eventId: "new-arrival:dress-7", type: "new_arrival", title: "New arrival: Dress 7", body: "A new fashion model is here.", url: "/?customerPush=product&productId=dress-7", productId: "dress-7", image: "/api/media/shop/" + "a".repeat(43) + ".webp" };
+  const discount = { eventId: "discount:dress-8:25:ongoing", type: "discount", title: "25% off: Dress 8", body: "A new 25% offer is available.", url: "/?customerPush=product&productId=dress-8", productId: "dress-8" };
+  const offer = { eventId: "special-offer:campaign-12345", type: "special_offer", title: "Weekend offer", body: "A special offer is ready.", url: "/?customerPush=offers&offerId=special-offer%3Acampaign-12345" };
+  const duplicates = await Promise.all(Array.from({ length: 6 }, () => call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: arrival } })));
+  assert.equal(duplicates.filter(response => response.status === 202).length, 1, "concurrent duplicate arrival events queue once");
+  assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: discount } })).status, 202);
+  assert.equal((await call(h.coordinator, "/push/customer-broadcast", { method: "POST", body: { ownerId: "owner-A", event: offer } })).status, 202);
+  assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...offer, eventId: "bad-image-offer", image: "data:image/png;base64,private" } } })).status, 400, "only saved shop image URLs can accompany notifications");
+  await h.coordinator.alarm();
+  assert.equal(sent.length, 5, "only subscribed matching customer topics receive events on each opted-in device");
+  assert.deepEqual(sent.map(row => [row.endpoint, row.payload.data.type]).sort(), [
+    [arrivalSub.endpoint, "new_arrival"],
+    [discountSub.endpoint, "discount"],
+    [discountSubSecondDevice.endpoint, "discount"],
+    [discountSub.endpoint, "special_offer"],
+    [discountSubSecondDevice.endpoint, "special_offer"],
+  ].sort());
+  assert.equal(sent.find(row => row.payload.data.type === "new_arrival").payload.image, arrival.image, "supported product image path is included");
+  assert.equal(sent.find(row => row.payload.data.type === "new_arrival").payload.data.url, arrival.url, "new-arrival click target identifies the exact product");
+  const history = await call(h.coordinator, "/push/customer-broadcasts");
+  const rows = (await history.json()).broadcasts;
+  assert.equal(rows.length, 3, "Owner history includes customer notifications and automatic product events");
+  assert.equal(JSON.stringify(rows).includes(arrivalSub.endpoint), false, "Owner history never exposes subscription endpoints");
+  assert.equal(JSON.stringify(rows).includes("customer-A"), false, "Owner history never exposes customer account IDs");
+  const publicOffer = await call(h.coordinator, "/push/customer-offer", { search: `?eventId=${encodeURIComponent(offer.eventId)}` });
+  assert.equal((await publicOffer.json()).offer.title, offer.title, "promotion click can retrieve the public offer content without subscription details");
+
+  const updatePreferences = await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", endpoint: discountSub.endpoint, preferences: { newArrivals: false, discounts: false, specialOffers: false } } });
+  assert.equal((await updatePreferences.json()).notificationsEnabled, false);
+  assert.deepEqual((await (await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", preferences: { action: "get" } } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false }, "preference changes sync at the account level");
+  assert.deepEqual((await (await call(h.coordinator, "/push/customer-subscription-status", { method: "POST", body: { customerId: "customer-B", endpoint: discountSubSecondDevice.endpoint } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false }, "preference changes propagate to every device for the account");
+  await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...offer, eventId: "special-offer:no-preference" } } });
+  await h.coordinator.alarm();
+  assert.equal((await listPrefix(h.storage, "shivan-push:customer-event:")).find(item => item.eventId === "special-offer:no-preference").status, "no_subscribers", "turned-off preferences suppress customer delivery");
+  await call(h.coordinator, "/push/customer-unsubscribe", { method: "POST", body: { customerId: "customer-A", endpoint: arrivalSub.endpoint } });
+  assert.equal((await (await call(h.coordinator, "/push/customer-subscription-status", { method: "POST", body: { customerId: "customer-A", endpoint: arrivalSub.endpoint } })).json()).registered, false, "customers can remove their device subscription");
+  assert.equal((await listPrefix(h.storage, "shivan-push:subscription:")).length, 0, "customer subscriptions remain separate from Owner subscriptions");
+
+  let fail = true;
+  const retry = createHarness({ send: async () => fail ? { ok: false, status: 503 } : { ok: true, status: 201 } });
+  await call(retry.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: arrivalSub, preferences: { newArrivals: false, discounts: false, specialOffers: true } } });
+  await call(retry.coordinator, "/push/customer-broadcast", { method: "POST", body: { ownerId: "owner-A", event: offer } });
+  await retry.coordinator.alarm();
+  assert.equal((await listPrefix(retry.storage, "shivan-push:customer-event:"))[0].status, "pending", "customer delivery failures are retried");
+  fail = false;retry.setNow((await listPrefix(retry.storage, "shivan-push:customer-event:"))[0].nextAttemptAt + 1);await retry.coordinator.alarm();
+  assert.equal((await listPrefix(retry.storage, "shivan-push:customer-event:"))[0].status, "sent");
+  const gone = createHarness({ send: async () => ({ ok: false, status: 410, remove: true }) });
+  await call(gone.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: arrivalSub, preferences: arrivalPrefs } });
+  await call(gone.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: arrival } });await gone.coordinator.alarm();
+  assert.equal((await listPrefix(gone.storage, "shivan-push:customer-subscription:")).length, 0, "expired customer endpoints are pruned");
+}
+
+async function testEventDeliveryAndFailures() {
+  let calls = 0;
+  const h = createHarness({ send: async () => { calls++; return { ok: true, status: 201 }; } });
+  const subscription = fakeSubscription();
+  await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } });
+  const event = { eventId: "order:local-42", type: "new_order", title: "New order received", body: "Order #local-42 is ready.", url: "/?ownerPush=orders&order=local-42" };
+  const duplicateResults = await Promise.all(Array.from({ length: 8 }, () => call(h.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event } })));
+  assert.equal(duplicateResults.filter(result => result.status === 202).length, 1, "concurrent duplicate alert events queue once");
+  assert.equal(duplicateResults.filter(result => result.status === 200).length, 7);
+  await h.coordinator.alarm();
+  assert.equal(calls, 1, "an alert is delivered once to a subscription");
+  assert.equal((await listPrefix(h.storage, "shivan-push:event:"))[0].status, "sent");
+
+  let fail = true;
+  const retry = createHarness({ now: 1_800_000_000_000, send: async () => fail ? { ok: false, status: 503 } : { ok: true, status: 201 } });
+  await call(retry.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } });
+  await call(retry.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { ...event, eventId: "stock:retry", type: "low_stock", url: "/?ownerPush=alerts" } } });
+  await retry.coordinator.alarm();
+  const pending = (await listPrefix(retry.storage, "shivan-push:event:"))[0];
+  assert.equal(pending.status, "pending", "temporary delivery failures are retried");
+  assert.ok(pending.nextAttemptAt > 1_800_000_000_000, "retry is scheduled with exponential backoff");
+  fail = false;
+  retry.setNow(pending.nextAttemptAt + 1);
+  await retry.coordinator.alarm();
+  assert.equal((await listPrefix(retry.storage, "shivan-push:event:"))[0].status, "sent");
+
+  const gone = createHarness({ send: async () => ({ ok: false, status: 410, remove: true }) });
+  await call(gone.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } });
+  await call(gone.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { ...event, eventId: "out:gone", type: "out_of_stock", url: "/?ownerPush=alerts" } } });
+  await gone.coordinator.alarm();
+  assert.equal((await listPrefix(gone.storage, "shivan-push:subscription:")).length, 0, "410 endpoints are removed");
+  assert.equal((await listPrefix(gone.storage, "shivan-push:event:"))[0].status, "failed");
+
+  const noSubscribers = createHarness();
+  await call(noSubscribers.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event } });
+  await noSubscribers.coordinator.alarm();
+  assert.equal((await listPrefix(noSubscribers.storage, "shivan-push:event:"))[0].status, "no_subscribers");
+  assert.equal((await call(noSubscribers.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { ...event, url: "https://phishing.test" } } })).status, 400, "external notification navigation URLs are rejected");
+}
+
+async function testStockAndDiscountScheduling() {
+  const sent = [];
+  const h = createHarness({ send: async (_sub, payload) => { sent.push(payload); return { ok: true, status: 201 }; } });
+  await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: fakeSubscription() } });
+  const product = { id: "dress-9", name: "Evening Dress", variants: [{ qrId: "dress-9-red-S", color: "Red", size: "S", stock: 12 }] };
+  await call(h.coordinator, "/push/stock-snapshot", { method: "POST", body: { ownerId: "owner-A", products: [product] } });
+  await call(h.coordinator, "/push/stock-snapshot", { method: "POST", body: { ownerId: "owner-A", products: [{ ...product, variants: [{ ...product.variants[0], stock: 5 }] }] } });
+  await h.coordinator.alarm();
+  assert.equal(sent.at(-1).title, "Product variant low on stock");
+  await call(h.coordinator, "/push/stock-snapshot", { method: "POST", body: { ownerId: "owner-A", products: [{ ...product, variants: [{ ...product.variants[0], stock: 0 }] }] } });
+  await h.coordinator.alarm();
+  assert.equal(sent.at(-1).title, "Product variant out of stock");
+  const lowEventCount = (await listPrefix(h.storage, "shivan-push:event:")).length;
+  await call(h.coordinator, "/push/stock-snapshot", { method: "POST", body: { ownerId: "owner-A", products: [{ ...product, variants: [{ ...product.variants[0], stock: 0 }] }] } });
+  assert.equal((await listPrefix(h.storage, "shivan-push:event:")).length, lowEventCount, "unchanged stock state does not duplicate an alert");
+
+  const endAt = h.coordinator.clock() + 30 * 60 * 60 * 1000;
+  const timed = { ...product, discount: 25, discountTimerEnabled: true, discountEndsAt: new Date(endAt).toISOString() };
+  await call(h.coordinator, "/push/discounts", { method: "POST", body: { ownerId: "owner-A", products: [timed] } });
+  h.setNow(endAt - 24 * 60 * 60 * 1000 + 1000);
+  await h.coordinator.alarm();
+  assert.equal(sent.at(-1).title, "Timed discount ending soon");
+  assert.equal(sent.at(-1).data.url, "/?ownerPush=alerts");
+  h.setNow(endAt + 1000);
+  await h.coordinator.alarm();
+  assert.equal(sent.at(-1).title, "Timed discount expired");
+  const counts = (await listPrefix(h.storage, "shivan-push:event:")).length;
+  await call(h.coordinator, "/push/discounts", { method: "POST", body: { ownerId: "owner-A", products: [timed] } });
+  assert.equal((await listPrefix(h.storage, "shivan-push:event:")).length, counts, "discount warning and expiry identifiers deduplicate");
+}
+
+async function testPagesOwnerAuthorization() {
+  const apiSource = await readFile(new URL("../functions/api/[[path]].js", import.meta.url), "utf8");
+  const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
+  const { onRequest } = await import(apiUrl);
+  const token = "local-owner-session-token";
+  const tokenHash = Buffer.from(await webcrypto.subtle.digest("SHA-256", encoder.encode(token))).toString("base64url");
+  const ownerToken = "local-owner-session-token", customerToken = "local-customer-session-token";
+  const hashToken = async value => Buffer.from(await webcrypto.subtle.digest("SHA-256", encoder.encode(value))).toString("base64url");
+  const accountByRole = role => ({ id: role === "owner" ? "owner-account-1" : "customer-account-1", identifier: "local@example.test", name: "Offline Test", role });
+  const internalCalls = [];
+  const env = {
+    DB: { prepare(sql) { return { bind(...args) { return { first: async () => {
+      if (sql.includes("FROM sessions s JOIN accounts a")) return args[0] === tokenHash ? { ...accountByRole("owner"), expires_at: Math.floor(Date.now() / 1000) + 3600 } : args[0] === await hashToken(customerToken) ? { ...accountByRole("customer"), expires_at: Math.floor(Date.now() / 1000) + 3600 } : null;
+      if (sql.includes("FROM shop_state")) return { value: "[]" };
+      return null;
+    } }; } }; } },
+    SYNC_HUB: { idFromName: name => name, get: () => ({ fetch: async (input, options = {}) => {
+      const url = new URL(typeof input === "string" ? input : input.url); const method = options.method || input.method || "GET"; const body = method === "POST" ? JSON.parse(options.body || await input.text()) : null;
+      internalCalls.push({ path: url.pathname, search: url.search, body });
+      return Response.json(url.pathname === "/push/config" ? { ok: true, publicKey: "PUBLIC_ONLY", privateKey: "TEST_SENTINEL_MUST_BE_STRIPPED", unexpected: "TEST_SENTINEL_MUST_BE_STRIPPED" } : url.pathname === "/push/test" ? { ok: true, status: "sent", acceptedByPushService: true } : { ok: true, registered: true });
+    } }) },
+  };
+  const request = (path, role = "owner", origin = "https://shop.example.test") => new Request(`https://shop.example.test/api/${path}`, { headers: { ...(role === "owner" ? { cookie: `shivan_session=${encodeURIComponent(token)}` } : role === "customer" ? { cookie: `shivan_session=${encodeURIComponent(customerToken)}` } : {}), ...(origin ? { origin } : {}) } });
+  const ownerResult = await onRequest({ request: request("push/config"), env });
+  assert.equal(ownerResult.status, 200, `authorized Owner can load public VAPID configuration: ${await ownerResult.clone().text()}`);
+  const ownerPublicConfig = await ownerResult.json();
+  assert.deepEqual(Object.keys(ownerPublicConfig).sort(), ["ok", "publicKey"], "the Pages API whitelists only the public key response");
+  assert.equal(ownerPublicConfig.publicKey, "PUBLIC_ONLY", "private VAPID material is never returned to the browser");
+  assert.equal(JSON.stringify(ownerPublicConfig).includes("TEST_SENTINEL"), false);
+  const customer = await onRequest({ request: request("push/config", "customer", ""), env });
+  assert.equal(customer.status, 403, "customers cannot read Owner push config");
+  const guest = await onRequest({ request: new Request("https://shop.example.test/api/push/config"), env });
+  assert.equal(guest.status, 401, "guests must authenticate before reading Owner push config");
+  const crossOrigin = await onRequest({ request: request("push/config", "owner", "https://attacker.example"), env });
+  assert.equal(crossOrigin.status, 403, "cross-origin subscription management is rejected");
+  const customerConfig = await onRequest({ request: request("customer-push/config", "customer"), env });
+  assert.equal(customerConfig.status, 200, "authenticated customers can request only the public VAPID key");
+  const customerPublicConfig = await customerConfig.json();
+  assert.deepEqual(Object.keys(customerPublicConfig).sort(), ["ok", "publicKey"]);
+  assert.equal(JSON.stringify(customerPublicConfig).includes("TEST_SENTINEL"), false, "the customer config also strips every non-public upstream field");
+  assert.equal((await onRequest({ request: request("customer-push/config", "owner"), env })).status, 403, "Owner accounts cannot register as customers");
+  assert.equal((await onRequest({ request: new Request("https://shop.example.test/api/customer-push/config"), env })).status, 401, "guests cannot manage customer push subscriptions");
+  const customerSubscription = await onRequest({ request: new Request("https://shop.example.test/api/customer-push/subscription", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(customerToken)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ customerId: "attacker-selected-id", subscription: fakeSubscription("https://fcm.googleapis.com/fcm/send/api-customer"), preferences: { newArrivals: true, discounts: false, specialOffers: true } }) }), env });
+  assert.equal(customerSubscription.status, 200);
+  assert.equal(internalCalls.some(item => item.path === "/push/customer-subscription" && item.body?.customerId === "customer-account-1"), true, "the API derives customer identity from the authenticated session, not request input");
+  const customerPreferences = await onRequest({ request: new Request("https://shop.example.test/api/customer-push/preferences", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(customerToken)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ preferences: { action: "get" } }) }), env });
+  assert.equal(customerPreferences.status, 200);
+  assert.equal(internalCalls.some(item => item.path === "/push/customer-preferences" && item.body?.customerId === "customer-account-1"), true);
+  assert.equal((await onRequest({ request: request("push/customer-broadcasts", "customer"), env })).status, 403, "customers cannot view Owner broadcast controls");
+  assert.equal((await onRequest({ request: request("push/customer-broadcasts", "owner"), env })).status, 200, "only the Owner can view sanitized customer notification history");
+  const broadcastRequest = new Request("https://shop.example.test/api/push/customer-broadcast", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ title: "Special offer", message: "A saved shop offer.", requestId: "campaign-request-123" }) });
+  assert.equal((await onRequest({ request: broadcastRequest, env })).status, 200, "Owner may send an optional special-offer campaign");
+  assert.equal(internalCalls.some(item => item.path === "/push/customer-broadcast" && item.body?.ownerId === "owner-account-1" && item.body?.event?.type === "special_offer"), true, "manual campaign uses the separate customer broadcast event route");
+  const unsavedProductBroadcast = new Request("https://shop.example.test/api/push/customer-broadcast", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ title: "Unsaved", message: "Not yet saved.", productId: "missing-product", requestId: "campaign-request-234" }) });
+  assert.equal((await onRequest({ request: unsavedProductBroadcast, env })).status, 409, "Owner cannot send a product offer for an item absent from the saved catalog");
+  assert.equal((await onRequest({ request: new Request("https://shop.example.test/api/customer-push/offer?eventId=special-offer%3Atest-campaign") , env })).status, 200, "public campaign details do not expose subscriber information");
+  const registered = await onRequest({ request: new Request("https://shop.example.test/api/push/subscription", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ subscription: fakeSubscription() }) }), env });
+  assert.equal(registered.status, 200);
+  assert.equal(internalCalls.some(item => item.path === "/push/subscription" && item.body?.ownerId === "owner-account-1"), true, "the server derives the push owner from the session, never the request body");
+  assert.equal(internalCalls.some(item => item.path === "/push/stock-snapshot"), true, "current shared product state is synchronized after subscription");
+  const statusCheck = await onRequest({ request: new Request("https://shop.example.test/api/push/subscription/status", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ endpoint: fakeSubscription().endpoint }) }), env });
+  assert.equal(statusCheck.status, 200);
+  assert.equal(internalCalls.some(item => item.path === "/push/subscription-status" && item.search === "" && item.body?.ownerId === "owner-account-1"), true, "push endpoint values stay in authenticated request bodies, not URLs");
+  const testRequestBody = { ownerId: "attacker-selected-owner", endpoint: fakeSubscription("https://fcm.googleapis.com/fcm/send/test-phone").endpoint, requestId: "owner-device-test-123" };
+  const testRequest = (role = "owner", origin = "https://shop.example.test", body = testRequestBody) => new Request("https://shop.example.test/api/push/test", { method: "POST", headers: { ...(role === "owner" ? { cookie: `shivan_session=${encodeURIComponent(ownerToken)}` } : role === "customer" ? { cookie: `shivan_session=${encodeURIComponent(customerToken)}` } : {}), ...(origin ? { origin } : {}), "content-type": "application/json" }, body: JSON.stringify(body) });
+  const ownerTest = await onRequest({ request: testRequest(), env });
+  assert.equal(ownerTest.status, 200, "the Owner can request a one-device test notification");
+  assert.equal((await ownerTest.json()).acceptedByPushService, true);
+  const testCall = internalCalls.findLast(item => item.path === "/push/test");
+  assert.equal(testCall.body.ownerId, "owner-account-1", "test delivery owner comes from the authenticated session, not request input");
+  assert.equal(testCall.body.endpoint, testRequestBody.endpoint, "only the explicitly selected registered-device endpoint is forwarded");
+  assert.equal(testCall.body.requestId, testRequestBody.requestId);
+  assert.equal(testCall.search, "", "device endpoints are never put in the internal request URL");
+  assert.equal((await onRequest({ request: testRequest("guest"), env })).status, 401, "guests cannot trigger a push test");
+  assert.equal((await onRequest({ request: testRequest("customer"), env })).status, 403, "customers cannot trigger the Owner push test");
+  assert.equal((await onRequest({ request: testRequest("owner", "https://attacker.example"), env })).status, 403, "cross-origin requests cannot trigger a push test");
+  assert.equal((await onRequest({ request: testRequest("owner", "https://shop.example.test", { ...testRequestBody, requestId: "bad" }), env })).status, 400, "invalid idempotency tokens are rejected before delivery");
+  assert.equal(internalCalls.filter(item => item.path === "/push/test").length, 1, "unauthorized and invalid requests never reach the Worker");
+  assert.match(apiSource, /route === "push\/test" && request\.method === "POST"/, "the Pages route matches the Owner interface endpoint");
+  assert.match(apiSource, /queueNewOrderPush\(env, saved\.id\)/, "confirmed customer orders enqueue the existing Smart Alert identifier for push");
+  assert.match(apiSource, /await syncCurrentOwnerPushProducts\(env, String\(account\.id\)\)/, "confirmed stock and product writes refresh server-side Smart Alert state");
+  assert.ok(apiSource.indexOf("persistedValue = await saveShopValue(env, key, value, requestId)") < apiSource.indexOf("if (previousProductList) await queueCustomerProductEvents(env, String(account.id)"), "arrival and discount broadcasts are queued only after the product data write is confirmed");
+}
+
+async function testProductSaveBroadcastOrdering() {
+  const apiSource = await readFile(new URL("../functions/api/[[path]].js", import.meta.url), "utf8");
+  const { onRequest } = await import(`data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`);
+  const token = "product-save-owner-session";
+  const tokenHash = Buffer.from(await webcrypto.subtle.digest("SHA-256", encoder.encode(token))).toString("base64url");
+  const state = { products: "[]", writes: 0, failWrite: false };
+  const calls = [];
+  const env = {
+    DB: {
+      prepare(sql) { return { bind(...args) { return {
+        first: async () => {
+          if (sql.includes("FROM sessions s JOIN accounts a")) return args[0] === tokenHash ? { id: "owner-account-1", identifier: "owner@example.test", name: "Owner", role: "owner" } : null;
+          if (sql.includes("FROM shop_state") && sql.includes("SELECT value")) return { value: state.products };
+          return null;
+        },
+        run: async () => {
+          if (sql.includes("INSERT INTO shop_state")) {
+            if (state.failWrite) throw new Error("simulated D1 failure");
+            state.products = args[1];state.writes++;
+            return { success: true, meta: { changes: 1 } };
+          }
+          return { success: true, meta: { changes: 1 } };
+        },
+      }; } }; },
+      batch: async () => [],
+    },
+    SYNC_HUB: { idFromName: name => name, get: () => ({ fetch: async (input, options = {}) => {
+      const url = new URL(typeof input === "string" ? input : input.url);
+      const method = options.method || input.method || "GET";
+      const body = method === "POST" ? JSON.parse(options.body || await input.text()) : null;
+      if (url.pathname === "/push/customer-event") calls.push({ path: url.pathname, event: body.event, writesAtQueue: state.writes });
+      return Response.json({ ok: true, queued: true, broadcasts: [] }, { status: url.pathname === "/push/customer-event" ? 202 : 200 });
+    } }) },
+  };
+  const save = (products, requestId) => onRequest({ request: new Request("https://shop.example.test/api/sync", { method: "PUT", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, "content-type": "application/json", origin: "https://shop.example.test", "X-Client-Request-ID": requestId }, body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify(products) }) }), env });
+  const first = { id: 77, name: "Test Dress", price: 10000, discount: 20, stock: 4, colors: ["#111111"], sizes: ["M"] };
+  assert.equal((await save([first], "save-request-001")).status, 200, "new product successfully persists before customer notifications are queued");
+  assert.equal(calls.filter(item => item.event.type === "new_arrival").length, 1);
+  assert.equal(calls.filter(item => item.event.type === "discount").length, 1, "a newly published discounted product reports both its arrival and discount");
+  assert.ok(calls.every(item => item.writesAtQueue === 1), "no automatic customer notification is queued before D1 confirms the product save");
+  const updated = { ...first, discount: 30 };
+  assert.equal((await save([updated], "save-request-002")).status, 200);
+  assert.equal(calls.filter(item => item.event.type === "discount").length, 2, "a changed active discount queues a new customer notice");
+  const { discount: _removedDiscount, ...regularProduct } = updated;
+  assert.equal((await save([regularProduct], "save-request-003")).status, 200, "removing a discount does not send an active discount notice");
+  assert.equal(calls.filter(item => item.event.type === "discount").length, 2);
+  assert.equal((await save([{ ...regularProduct, discount: 20 }], "save-request-004")).status, 200, "reactivating a previous discount queues a fresh notice");
+  assert.equal(calls.filter(item => item.event.type === "discount").length, 3, "different activation cycles have distinct dedupe keys");
+  assert.equal((await save([{ ...regularProduct, discount: 20 }], "save-request-004")).status, 200, "a duplicate save with the same request identifier remains idempotent");
+  assert.equal(calls.filter(item => item.event.type === "discount").length, 3);
+  state.failWrite = true;
+  const before = calls.length;
+  assert.equal((await save([{ ...updated, id: 78, name: "Unsaved Dress" }], "save-request-005")).status, 503, "failed shared writes return a real error");
+  assert.equal(calls.length, before, "a failed product write never queues customer notifications");
+}
+
+async function testServiceWorkerAndOwnerControls() {
+  const source = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
+  const listeners = new Map();
+  const savedSettings = new Map();
+  const notifications = [];
+  const opened = [];
+  const posted = [];
+  let subscriptionCalls = 0;
+  let apiPostBody = null;
+  const registration = {
+    showNotification: async (title, options) => notifications.push({ title, options }),
+    pushManager: { subscribe: async options => { subscriptionCalls++; assert.equal(options.userVisibleOnly, true); return { toJSON: () => fakeSubscription().toJSON?.() || fakeSubscription(), unsubscribe: async () => true }; } },
+  };
+  const db = {
+    createObjectStore() {}, close() {},
+    transaction(_store, mode) { const transaction = { objectStore() { return {
+      get(key) { const request = {}; queueMicrotask(() => { request.result = savedSettings.get(key); request.onsuccess?.(); }); return request; },
+      put(value, key) { const request = {}; queueMicrotask(() => { savedSettings.set(key, value); request.onsuccess?.(); }); return request; },
+    }; } }; Object.defineProperty(transaction, "oncomplete", { set(handler) { queueMicrotask(() => handler?.()); } }); return transaction; },
+  };
+  const indexedDB = { open() { const request = {}; queueMicrotask(() => { request.result = db; if (!savedSettings.has("__dbCreated")) { savedSettings.set("__dbCreated", true); request.onupgradeneeded?.(); } request.onsuccess?.(); }); return request; } };
+  const client = { url: "https://shop.example.test/", focus: async () => { focused = true; }, postMessage: message => posted.push(message) };
+  let focused = false;
+  const workerSelf = {
+    location: { origin: "https://shop.example.test" }, registration,
+    skipWaiting: async () => {}, clients: { claim: async () => {}, matchAll: async () => [client], openWindow: async url => opened.push(url) },
+    addEventListener: (type, callback) => { const list = listeners.get(type) || []; list.push(callback); listeners.set(type, list); },
+  };
+  const fetchCalls = [];
+  const notificationApi = { permission: "granted" };
+  const fetchImpl = async (url, options = {}) => {
+    fetchCalls.push(String(url));
+    if (options.method === "POST") apiPostBody = JSON.parse(options.body);
+    return Response.json(String(url).includes("config") ? { publicKey: b64(new Uint8Array([4, ...new Uint8Array(64).fill(7)])) } : { ok: true });
+  };
+  runInNewContext(source, { self: workerSelf, indexedDB, Notification: notificationApi, URL, Uint8Array, Promise, atob, fetch: fetchImpl, Response, setTimeout, clearTimeout, console });
+  const dispatch = async (type, event) => {
+    for (const callback of listeners.get(type) || []) callback(event);
+    await event.waitPromise;
+  };
+  const pushEvent = { data: { json: () => ({ title: "New order received", body: "Order #x is ready.", tag: "order:x", data: { eventId: "order:x", type: "new_order", url: "/?ownerPush=orders&order=x" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
+  await dispatch("push", pushEvent);
+  assert.equal(notifications[0].title, "New order received");
+  assert.equal(notifications[0].options.tag, "order:x");
+  let clickPromise;
+  await dispatch("notificationclick", { notification: { data: notifications[0].options.data, close() {} }, waitUntil(promise) { clickPromise = promise; } });
+  await clickPromise;
+  assert.equal(focused, true);
+  assert.equal(posted[0].target.url, "https://shop.example.test/?ownerPush=orders&order=x");
+
+  const customerImage = "/api/media/shop/" + "b".repeat(43) + ".webp";
+  const customerPush = { data: { json: () => ({ title: "New arrival: Dress", body: "A new fashion model is available.", tag: "new-arrival:dress-1", image: customerImage, data: { audience: "customer", eventId: "new-arrival:dress-1", type: "new_arrival", productId: "dress-1", url: "/?customerPush=product&productId=dress-1" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
+  await dispatch("push", customerPush);
+  assert.equal(notifications[1].options.image, customerImage, "customer push displays a saved product image where supported");
+  await dispatch("notificationclick", { notification: { data: notifications[1].options.data, close() {} }, waitUntil(promise) { clickPromise = promise; } });
+  await clickPromise;
+  assert.equal(posted[1].type, "shivan-customer-push-open");
+  assert.equal(posted[1].target.url, "https://shop.example.test/?customerPush=product&productId=dress-1", "customer notification opens its exact product route");
+
+  await dispatch("message", { data: { type: "shivan-push-disable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(savedSettings.get("disabled"), true);
+  await dispatch("pushsubscriptionchange", { oldSubscription: { endpoint: "https://fcm.googleapis.com/fcm/send/old" }, waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(subscriptionCalls, 0, "a disabled device does not silently renew push");
+  await dispatch("message", { data: { type: "shivan-push-enable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(savedSettings.get("disabled"), false);
+  await dispatch("pushsubscriptionchange", { oldSubscription: { endpoint: "https://fcm.googleapis.com/fcm/send/old" }, waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(subscriptionCalls, 1, "enabled subscriptions renew when the browser reports expiry");
+  assert.equal(apiPostBody.previousEndpoint, "https://fcm.googleapis.com/fcm/send/old");
+  assert.equal(fetchCalls.includes("/api/push/config"), true);
+
+  const customerPreferences = { newArrivals: true, discounts: false, specialOffers: true };
+  await dispatch("message", { data: { type: "shivan-customer-push-enable", preferences: customerPreferences }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(savedSettings.get("customerDisabled"), false);
+  assert.deepEqual(savedSettings.get("customerPreferences"), customerPreferences);
+  assert.equal(savedSettings.get("disabled"), false, "customer push settings do not alter Owner push state");
+  await dispatch("message", { data: { type: "shivan-customer-push-disable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
+  const visibleBeforeDisable = notifications.length;
+  await dispatch("push", customerPush);
+  assert.equal(notifications.length, visibleBeforeDisable, "a customer-disabled device suppresses customer push locally");
+  assert.equal(savedSettings.get("disabled"), false, "disabling customer messages does not turn off Owner alerts");
+  notificationApi.permission="denied";
+  await dispatch("push", customerPush);
+  assert.equal(notifications.length, visibleBeforeDisable, "revoked browser permission suppresses customer push display");
+  notificationApi.permission="granted";
+  await dispatch("message", { data: { type: "shivan-customer-push-enable", preferences: customerPreferences }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
+  await dispatch("pushsubscriptionchange", { oldSubscription: { endpoint: "https://fcm.googleapis.com/fcm/send/old-customer" }, waitUntil(promise) { this.waitPromise = promise; } });
+  assert.equal(subscriptionCalls, 2, "an enabled customer subscription renews separately");
+  assert.equal(fetchCalls.includes("/api/customer-push/config"), true);
+  assert.deepEqual(apiPostBody.preferences, customerPreferences, "renewal retains customer-selected notification topics");
+
+  const ownerTestPush = { data: { json: () => ({ title: "Shivan Shop push test", body: "Push notifications are working on this device.", tag: "owner-push-test:local-only", data: { audience: "owner", eventId: "local-only", type: "test", url: "/?ownerPush=alerts" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
+  await dispatch("push", ownerTestPush);
+  assert.equal(notifications.at(-1).title, "Shivan Shop push test", "the service worker displays the one-device Owner test");
+  assert.equal(notifications.at(-1).options.data.audience, "owner", "the test notification remains in the Owner audience");
+  assert.equal(notifications.at(-1).options.data.url, "/?ownerPush=alerts");
+  await dispatch("notificationclick", { notification: { data: notifications.at(-1).options.data, close() {} }, waitUntil(promise) { clickPromise = promise; } });
+  await clickPromise;
+  assert.equal(posted.at(-1).target.url, "https://shop.example.test/?ownerPush=alerts", "tapping the test returns to the Owner Smart Alerts section");
+
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.equal((html.match(/Notification\.requestPermission\(/g) || []).length, 2, "permission is requested only from explicit Owner and customer enable handlers");
+  assert.match(html, /function enableOwnerPushNotifications\(\)/);
+  assert.match(html, /if\(!isOwner\(\)\)return false/);
+  assert.match(html, /function enableCustomerPushNotifications\(\)/);
+  assert.match(html, /customer-push\/subscription/);
+  assert.match(html, /id="ownerPushTest"[^>]*onclick="sendOwnerPushTestNotification\(\)"/);
+  assert.match(html, /function sendOwnerPushTestNotification\(\)/);
+  assert.match(html, /\/api\/push\/test/);
+  assert.doesNotMatch(html, /\/api\/push\/test-notification/, "the Owner test action uses the routed Pages endpoint");
+  assert.match(html, /renderOwnerCustomerNotifications\(sectionBox\)/);
+  assert.match(html, /navigator\.serviceWorker\.register\("\/service-worker\.js"/);
+  assert.match(html, /openOwnerOrderDetail\(orderId\)/);
+}
+
+await testWebPushCrypto();
+await testSubscriptionsAndAuthorization();
+await testOwnerSingleDeviceTestNotification();
+await testEventDeliveryAndFailures();
+await testStockAndDiscountScheduling();
+await testCustomerSubscriptionsPreferencesAndBroadcasts();
+await testPagesOwnerAuthorization();
+await testProductSaveBroadcastOrdering();
+await testServiceWorkerAndOwnerControls();
+console.log("Push regression tests passed (Owner one-device test authorization and deduplication, Owner Smart Alerts, customer opt-in/preferences, event filtering, broadcasts, saved-product ordering, retries, failure pruning, notification clicks, and renewal).");

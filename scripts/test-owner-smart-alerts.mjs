@@ -51,6 +51,8 @@ const context = {
   ownerPanel: "alerts",
   escapeHtml: value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
   updateOwnerSmartAlertBadges() {},
+  ownerPushControlMarkup: () => '<section class="owner-push-controls">Push notification controls</section>',
+  refreshOwnerPushControls() {},
   scheduleOwnerSmartAlertEvaluation() {},
   showToast(message) { elements.push(String(message)); },
 };
@@ -104,6 +106,7 @@ assert.match(ownerAlertsBox.innerHTML, /owner-smart-alert-panel/);
 assert.match(ownerAlertsBox.innerHTML, /New order received/);
 assert.match(ownerAlertsBox.innerHTML, /Timed discount expired/);
 assert.match(ownerAlertsBox.innerHTML, /owner-smart-alert-count/);
+assert.match(ownerAlertsBox.innerHTML, /owner-push-controls/, "the Owner Smart Alerts screen includes the device push controls");
 assert.match(runtime.ownerSmartAlertDashboardSummaryMarkup(), /View all alerts/);
 assert.match(runtime.ownerSmartAlertDashboardSummaryMarkup(), /Smart Alerts/);
 
@@ -113,7 +116,7 @@ const merged = runtime.mergeOwnerSmartAlertStates(remote, JSON.parse(storage.get
 assert.equal(merged.alerts.filter(alert => alert.id === newOrderAlert.id).length, 1, "merging two device snapshots keeps one record per event ID");
 assert.ok(merged.alerts.find(alert => alert.id === newOrderAlert.id)?.readAt, "a read status is preserved while device snapshots merge");
 
-const persistedRuntime = runInNewContext(`${sources}\n({readOwnerSmartAlertState,ownerSmartAlertUnreadCount})`, context);
+const persistedRuntime = runInNewContext(`${sources}\n({readOwnerSmartAlertState,ownerSmartAlertUnreadCount})`, { ...context });
 assert.equal(persistedRuntime.readOwnerSmartAlertState().alerts.length, runtime.readOwnerSmartAlertState().alerts.length, "alert records remain available after creating a fresh runtime");
 assert.ok(persistedRuntime.readOwnerSmartAlertState().alerts.find(alert => alert.id === newOrderAlert.id)?.readAt, "read status survives reload");
 assert.ok(runtime.markAllOwnerSmartAlertsRead(), "the Owner can mark all alerts read");

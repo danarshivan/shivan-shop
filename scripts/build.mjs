@@ -15,4 +15,7 @@ await writeFile(resolve(output, "index.html"), deployable);
 for (const file of ["qrcode-generator.js", "qrcode-generator-LICENSE.txt", "jsQR.js", "jsQR-LICENSE.txt"]) {
   await copyFile(resolve(root, "vendor", "qr", file), resolve(qrOutput, file));
 }
+for (const file of ["service-worker.js", "manifest.webmanifest", "push-icon.svg"]) {
+  await copyFile(resolve(root, file), resolve(output, file));
+}
 console.log("Built Shivan Shop into dist/ with local QR tools.");

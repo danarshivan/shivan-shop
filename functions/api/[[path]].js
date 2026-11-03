@@ -224,6 +224,322 @@ async function broadcastSync(env) {
   }
 }
 
+async function pushHubRequest(env, path, body) {
+  if (!env.SYNC_HUB) throw new Error("Owner push delivery is not connected.");
+  const id = env.SYNC_HUB.idFromName("shivan-shop");
+  const hub = env.SYNC_HUB.get(id);
+  const response = await hub.fetch(`https://sync-hub.internal${path}`, {
+    method: body ? "POST" : "GET",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const payload = await response.json().catch(() => ({}));
+  return { response, payload };
+}
+
+function publicPushConfiguration(result) {
+  if (!result.response.ok) return error("Push notifications are not configured yet.", result.response.status || 503);
+  const publicKey = typeof result.payload?.publicKey === "string" ? result.payload.publicKey : "";
+  if (!publicKey) return error("The public push key is unavailable.", 503);
+  return json({ ok: true, publicKey }, 200, { "Cache-Control": "no-store" });
+}
+
+async function queueOwnerPushEvent(env, ownerId, event) {
+  if (!env.SYNC_HUB) return false;
+  try {
+    const result = await pushHubRequest(env, "/push/event", { ownerId, event });
+    if (!result.response.ok) console.warn("Owner push event queue rejected.", { status: result.response.status, code: String(result.payload?.code || "PUSH_QUEUE_FAILED") });
+    return result.response.ok;
+  } catch (exception) {
+    console.warn("Owner push event could not be queued.", { code: String(exception?.name || "PUSH_QUEUE_FAILED") });
+    return false;
+  }
+}
+
+function customerPushImage(product) {
+  const values = [product?.image, ...(Array.isArray(product?.images) ? product.images : [])];
+  for (const value of values) {
+    const image = String(typeof value === "object" ? value?.url || value?.src || "" : value || "");
+    if (/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(?:jpg|png|webp|gif)$/i.test(image)) return image;
+  }
+  return "";
+}
+
+function customerProductDiscount(product) {
+  const value = Number(product?.discount ?? product?.discountPercent ?? product?.discount_percent ?? 0);
+  if (!Number.isInteger(value) || value < 1 || value > 99) return 0;
+  if (product?.discountTimerEnabled === true) {
+    const endAt = Date.parse(String(product?.discountEndsAt || ""));
+    if (!Number.isFinite(endAt) || endAt <= Date.now()) return 0;
+  }
+  return value;
+}
+
+async function queueCustomerProductEvents(env, ownerId, previousProducts, nextProducts, requestId = crypto.randomUUID()) {
+  if (!env.SYNC_HUB || !Array.isArray(previousProducts) || !Array.isArray(nextProducts)) return;
+  const previousById = new Map(previousProducts.map(product => [String(product?.id ?? ""), product]).filter(([id]) => id));
+  for (const product of nextProducts) {
+    const id = String(product?.id ?? "").slice(0, 100);
+    if (!id) continue;
+    const name = String(product?.name || product?.names?.en || "New fashion model").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 100) || "New fashion model";
+    const previous = previousById.get(id);
+    const image = customerPushImage(product);
+    const url = `/?customerPush=product&productId=${encodeURIComponent(id)}`;
+    const events = [];
+    if (!previous) {
+      events.push({ eventId: `new-arrival:${encodeURIComponent(id)}:${encodeURIComponent(requestId)}`, type: "new_arrival", title: `New arrival: ${name}`, body: "A new fashion model is now available at Shivan Shop.", url, productId: id, image });
+    }
+    const before = previous ? customerProductDiscount(previous) : 0;
+    const after = customerProductDiscount(product);
+    const beforeEnd = previous?.discountTimerEnabled === true ? String(previous.discountEndsAt || "") : "";
+    const afterEnd = product?.discountTimerEnabled === true ? String(product.discountEndsAt || "") : "";
+    if (after && (!previous || before !== after || beforeEnd !== afterEnd)) {
+      const endSignature = afterEnd || "ongoing";
+      events.push({ eventId: `discount:${encodeURIComponent(id)}:${after}:${encodeURIComponent(endSignature)}:${encodeURIComponent(requestId)}`, type: "discount", title: `${after}% off: ${name}`, body: `A new ${after}% offer is available at Shivan Shop.`, url, productId: id, image });
+    }
+    for (const event of events) {
+      try {
+        const result = await pushHubRequest(env, "/push/customer-event", { ownerId: String(ownerId), event });
+        if (!result.response.ok) console.warn("Customer product notification queue rejected.", { status: result.response.status, type: event.type });
+      } catch (exception) {
+        console.warn("Customer product notification could not be queued.", { code: String(exception?.name || "CUSTOMER_PUSH_QUEUE_FAILED"), type: event.type });
+      }
+    }
+  }
+}
+
+async function queueNewOrderPush(env, orderId) {
+  try {
+    const owner = await env.DB.prepare("SELECT id FROM accounts WHERE role='owner' LIMIT 1").first();
+    if (!owner?.id) return false;
+    const id = String(orderId || "").slice(0, 100);
+    if (!id) return false;
+    return queueOwnerPushEvent(env, String(owner.id), {
+      eventId: `order:${encodeURIComponent(id)}`,
+      type: "new_order",
+      title: "New order received",
+      body: `Order #${id} is ready to review.`,
+      url: `/?ownerPush=orders&order=${encodeURIComponent(id)}`,
+    });
+  } catch {
+    console.warn("Owner order push could not resolve its recipient.");
+    return false;
+  }
+}
+
+function compactPushProducts(products) {
+  return (Array.isArray(products) ? products : []).slice(0, 10000).map(product => ({
+    id: String(product?.id || "").slice(0, 100),
+    name: String(product?.name || product?.names?.en || "Product").slice(0, 100),
+    discount: product?.discount,
+    discountPercent: product?.discountPercent,
+    discount_percent: product?.discount_percent,
+    discountTimerEnabled: product?.discountTimerEnabled === true,
+    discountEndsAt: product?.discountEndsAt,
+    stock: product?.stock,
+    variants: (Array.isArray(product?.variants) ? product.variants : []).slice(0, 120).map(variant => ({
+      qrId: String(variant?.qrId || "").slice(0, 140),
+      color: String(variant?.color || "").slice(0, 40),
+      size: String(variant?.size || "").slice(0, 40),
+      stock: variant?.stock,
+    })),
+  }));
+}
+
+async function syncOwnerPushProductEvents(env, ownerId, products) {
+  if (!env.SYNC_HUB || !ownerId) return;
+  const compact = compactPushProducts(products);
+  for (const [path, key] of [["/push/stock-snapshot", "products"], ["/push/discounts", "products"]]) {
+    try {
+      const result = await pushHubRequest(env, path, { ownerId, [key]: compact });
+      if (!result.response.ok) console.warn("Owner push state sync rejected.", { path, status: result.response.status });
+    } catch (exception) {
+      console.warn("Owner push state sync failed.", { path, code: String(exception?.name || "PUSH_SYNC_FAILED") });
+    }
+  }
+}
+
+async function syncCurrentOwnerPushProducts(env, ownerId, { strict = false } = {}) {
+  try {
+    const row = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+    const products = asJson(row?.value, []);
+    if (!Array.isArray(products)) throw new Error("Shared product data is unavailable.");
+    await syncOwnerPushProductEvents(env, ownerId, products);
+  } catch (exception) {
+    console.warn("Owner push inventory state could not be synchronized.", { code: String(exception?.name || "PUSH_SYNC_FAILED") });
+    if (strict) throw exception;
+  }
+}
+
+async function handleOwnerPush(request, env, account, route, url) {
+  const denied = requireOwner(account);
+  if (denied) return denied;
+  if (request.headers.get("Origin") && request.headers.get("Origin") !== url.origin) return error("Cross-origin push settings are not allowed.", 403);
+  if (route === "push/customer-broadcasts" && request.method === "GET") {
+    try {
+      const result = await pushHubRequest(env, "/push/customer-broadcasts");
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("Customer notification history is temporarily unavailable.", 503); }
+  }
+  if (route === "push/customer-broadcast" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5000) return error("The customer notification is too large.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const title = String(body?.title || "").trim().slice(0, 100);
+    const message = String(body?.message || "").trim().slice(0, 220);
+    const requestId = String(body?.requestId || "");
+    if (!title || !message || !/^[A-Za-z0-9_-]{8,100}$/.test(requestId)) return error("Add a title and message before sending the customer offer.");
+    const productId = String(body?.productId || "").trim().slice(0, 100);
+    let product = null;
+    if (productId) {
+      try {
+        const row = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+        const products = asJson(row?.value, null);
+        if (!Array.isArray(products)) return error("Saved product data could not be checked. The notification was not sent.", 503);
+        product = products.find(item => String(item?.id ?? "") === productId) || null;
+      } catch { return error("Saved product data could not be checked. The notification was not sent.", 503); }
+      if (!product) return error("That product is not saved in the shared catalog. Save and publish it before sending an offer.", 409);
+    }
+    const eventId = `special-offer:${requestId}`;
+    const path = product ? `/?customerPush=product&productId=${encodeURIComponent(productId)}` : `/?customerPush=offers&offerId=${encodeURIComponent(eventId)}`;
+    const event = {
+      eventId, type: "special_offer", title, body: message,
+      url: path, productId, image: product ? customerPushImage(product) : "",
+    };
+    try {
+      const result = await pushHubRequest(env, "/push/customer-broadcast", { ownerId: String(account.id), event });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("The offer could not be queued. Check the connection and try again.", 503); }
+  }
+  if (route === "push/config" && request.method === "GET") {
+    try {
+      const result = await pushHubRequest(env, "/push/config");
+      return publicPushConfiguration(result);
+    } catch {
+      return error("Owner push notifications are not connected yet.", 503);
+    }
+  }
+  if (route === "push/subscription/status" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5000) return error("The device push subscription is invalid.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const endpoint = String(body?.endpoint || "");
+    if (endpoint.length > 4096) return error("The device push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/subscription-status", { ownerId: String(account.id), endpoint });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch {
+      return error("This device notification status could not be checked.", 503);
+    }
+  }
+  if (route === "push/test" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5000) return error("The test request is too large.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const endpoint = String(body?.endpoint || "");
+    const requestId = String(body?.requestId || "");
+    if (!endpoint || endpoint.length > 4096 || !/^[A-Za-z0-9_-]{8,100}$/.test(requestId)) return error("A registered device and valid test request are required.");
+    try {
+      const result = await pushHubRequest(env, "/push/test", { ownerId: String(account.id), endpoint, requestId });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch {
+      return error("The one-device test notification could not be submitted. Check the device before retrying.", 503);
+    }
+  }
+  if (route === "push/subscription" && request.method === "POST") {
+    const contentLength = Number(request.headers.get("Content-Length") || 0);
+    if (contentLength > 16000) return error("Push subscription is too large.", 413);
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 16000) return error("Push subscription is too large.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    if (!body?.subscription || typeof body.subscription !== "object") return error("The browser push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/subscription", { ownerId: String(account.id), subscription: body.subscription, previousEndpoint: String(body.previousEndpoint || "") });
+      if (result.response.ok) {
+        try { await syncCurrentOwnerPushProducts(env, String(account.id), { strict: true }); }
+        catch {
+          await pushHubRequest(env, "/push/unsubscribe", { ownerId: String(account.id), endpoint: String(body.subscription.endpoint || "") }).catch(() => {});
+          return error("The device subscription could not be prepared with the current store offers. Try enabling notifications again.", 503);
+        }
+      }
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch {
+      return error("The device could not be registered for Owner notifications.", 503);
+    }
+  }
+  if (route === "push/subscription" && request.method === "DELETE") {
+    const body = await request.json().catch(() => null);
+    const endpoint = String(body?.endpoint || "");
+    if (!endpoint || endpoint.length > 4096) return error("The device push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/unsubscribe", { ownerId: String(account.id), endpoint });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch {
+      return error("This device could not be removed from Owner notifications.", 503);
+    }
+  }
+  return error("Owner push route not found.", 404);
+}
+
+async function handleCustomerPush(request, env, account, route, url) {
+  if (!account) return error("Sign in to manage customer notifications.", 401);
+  if (account.role !== "customer") return error("Customer notifications are available to customer accounts only.", 403);
+  if (request.headers.get("Origin") && request.headers.get("Origin") !== url.origin) return error("Cross-origin notification settings are not allowed.", 403);
+  if (route === "customer-push/config" && request.method === "GET") {
+    try {
+      const result = await pushHubRequest(env, "/push/config");
+      return publicPushConfiguration(result);
+    } catch { return error("Customer notifications are not connected yet.", 503); }
+  }
+  if (route === "customer-push/subscription" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 16000) return error("Push subscription is too large.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    if (!body?.subscription || typeof body.subscription !== "object") return error("The browser push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/customer-subscription", {
+        customerId: String(account.id), subscription: body.subscription,
+        preferences: body.preferences, previousEndpoint: String(body.previousEndpoint || ""),
+      });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("This device could not be registered for customer notifications.", 503); }
+  }
+  if (route === "customer-push/subscription/status" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5000) return error("The device push subscription is invalid.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const endpoint = String(body?.endpoint || "");
+    if (!endpoint || endpoint.length > 4096) return error("The device push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/customer-subscription-status", { customerId: String(account.id), endpoint });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("This device notification status could not be checked.", 503); }
+  }
+  if (route === "customer-push/preferences" && request.method === "POST") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 2000) return error("Notification preferences are too large.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const endpoint = String(body?.endpoint || "");
+    if (endpoint.length > 4096) return error("The device push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/customer-preferences", { customerId: String(account.id), endpoint, preferences: body.preferences });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("Notification preferences could not be saved.", 503); }
+  }
+  if (route === "customer-push/subscription" && request.method === "DELETE") {
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5000) return error("The device push subscription is invalid.", 413);
+    const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const endpoint = String(body?.endpoint || "");
+    if (!endpoint || endpoint.length > 4096) return error("The device push subscription is invalid.");
+    try {
+      const result = await pushHubRequest(env, "/push/customer-unsubscribe", { customerId: String(account.id), endpoint });
+      return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
+    } catch { return error("This device could not be removed from customer notifications.", 503); }
+  }
+  return error("Customer notification route not found.", 404);
+}
+
 function base64url(bytes) {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -758,6 +1074,7 @@ async function handleInventory(request, env, account, route) {
     }
     if (Number(results?.[1]?.meta?.changes) !== 1 || Number(results?.[2]?.meta?.changes) !== 1) return error("The stock change could not be confirmed. Refresh the inventory before retrying.", 503);
     await broadcastSync(env);
+    await syncCurrentOwnerPushProducts(env, String(account.id));
     return json({ ok: true, duplicate: false, variant: resultVariant, action, quantity });
   }
   return error("Inventory route not found.", 404);
@@ -943,13 +1260,24 @@ async function handleSync(request, env, account) {
       return tracedError("Only the store owner can change shop settings.", 403, requestId, "OWNER_REQUIRED", isProductSave ? "product.sync.auth" : "shop.sync.auth");
     }
     const productList = isProductSave ? asJson(value, []) : [];
+    let previousProductList = null;
+    if (isProductSave) {
+      try {
+        const previousRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+        const previous = asJson(previousRow?.value, []);
+        if (Array.isArray(previous)) previousProductList = previous;
+      } catch (exception) {
+        console.warn("Customer product notifications skipped because the previous shared catalog could not be read.", { code: d1FailureCode(exception) });
+      }
+    }
     if (isProductSave) logOwnerSave("product.sync.request_received", requestId, {
       method: request.method,
       payloadBytes: new TextEncoder().encode(value).byteLength,
       productCount: Array.isArray(productList) ? productList.length : 0,
       imageCount: Array.isArray(productList) ? productList.reduce((sum, product) => sum + (Array.isArray(product?.images) ? product.images.length : product?.image ? 1 : 0), 0) : 0,
     });
-    try { await saveShopValue(env, key, value, requestId); }
+    let persistedValue = value;
+    try { persistedValue = await saveShopValue(env, key, value, requestId); }
     catch (exception) {
       if (exception?.code === "INVALID_PROMOTIONAL_IMAGES") {
         return tracedError(exception.message, 400, requestId, exception.code, "shop.sync.validate");
@@ -976,6 +1304,8 @@ async function handleSync(request, env, account) {
     }
     await broadcastSync(env);
     if (isProductSave) {
+      if (previousProductList) await queueCustomerProductEvents(env, String(account.id), previousProductList, asJson(persistedValue, []), requestId);
+      await syncCurrentOwnerPushProducts(env, String(account.id));
       logOwnerSave("product.sync.d1_write_confirmed", requestId, {
         payloadBytes: new TextEncoder().encode(value).byteLength,
         productCount: Array.isArray(productList) ? productList.length : 0,
@@ -1105,6 +1435,13 @@ async function handleSync(request, env, account) {
         if (customerOrderWrites.some((_, index) => Number(results?.[index + 2]?.meta?.changes) !== 1)) return error("The shared database could not confirm every order item.", 503);
       } catch { return error("The order could not be confirmed by the shared database. Inventory was not confirmed as changed.", 503); }
       await broadcastSync(env);
+      if (account.role !== "owner") {
+        for (const saved of savedOrders) await queueNewOrderPush(env, saved.id);
+      }
+      if (inventoryChanged) {
+        const owner = await env.DB.prepare("SELECT id FROM accounts WHERE role='owner' LIMIT 1").first().catch(() => null);
+        if (owner?.id) await syncCurrentOwnerPushProducts(env, String(owner.id));
+      }
       return json({ ok: true, savedOrders });
     }
     if (updates.length) {
@@ -1292,8 +1629,18 @@ export async function onRequest({ request, env }) {
   if (route === "bootstrap" && request.method === "GET") {
     return json({ ownerSetupRequired: !(await ownerExists(env)), shop: await getShopState(env) });
   }
+  if (route === "customer-push/offer" && request.method === "GET") {
+    const eventId = String(url.searchParams.get("eventId") || "").slice(0, 300);
+    if (!eventId) return error("Offer not found.", 404);
+    try {
+      const result = await pushHubRequest(env, `/push/customer-offer?eventId=${encodeURIComponent(eventId)}`);
+      return json(result.payload, result.response.status, { "Cache-Control": "public, max-age=60" });
+    } catch { return error("This offer is temporarily unavailable.", 503); }
+  }
   if (route.startsWith("auth/")) return handleAuth(request, env, route, secure);
   const account = await currentAccount(request, env);
+  if (route.startsWith("push/")) return handleOwnerPush(request, env, account, route, url);
+  if (route.startsWith("customer-push/")) return handleCustomerPush(request, env, account, route, url);
   if (route.startsWith("inventory/")) return handleInventory(request, env, account, route);
   if (route.startsWith("orders/") && route.endsWith("/next-status")) return handleNextOwnerOrderStatus(request, env, account, route);
   if (route === "realtime") {

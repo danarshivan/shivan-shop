@@ -1,0 +1,12 @@
+{
+  "name": "Shivan Shop",
+  "short_name": "Shivan Shop",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#03050d",
+  "theme_color": "#050509",
+  "icons": [
+    { "src": "/push-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

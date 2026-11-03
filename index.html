@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#050509">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
 <title>Shivan Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1394,10 +1397,12 @@ button{
 .owner-smart-alert-summary,.owner-smart-alert-panel{min-width:0;padding:16px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 38%,#302743);border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--shop-card-background,#0b0e18) 90%,var(--shop-primary,#8966ff) 10%),var(--shop-card-background,#0b0e18));box-shadow:0 12px 30px #0003}
 .owner-smart-alert-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.owner-smart-alert-section-head h3{margin:0;color:var(--shop-text,#fff);font-size:16px}.owner-smart-alert-section-head p{margin:5px 0 0;color:var(--shop-secondary-text,#aaa2b7);font-size:11px;line-height:1.5}
 .owner-smart-alert-count,.owner-smart-alert-nav-count{display:inline-grid;place-items:center;flex:0 0 auto;min-width:28px;height:28px;padding:0 7px;border:1px solid color-mix(in srgb,var(--shop-primary,#8966ff) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--shop-primary,#8966ff) 22%,var(--shop-card-background,#0b0e18));color:var(--shop-readable-card-primary,#d9c9ff);font-size:12px;font-weight:850}.owner-smart-alert-nav-count{min-width:20px;height:20px;margin-inline-start:auto;padding:0 5px;font-size:10px}.owner-smart-alert-count[hidden],.owner-smart-alert-nav-count[hidden]{display:none!important}
+ .owner-push-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin:0 0 12px;padding:12px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 32%,#302743);border-radius:14px;background:color-mix(in srgb,var(--shop-card-background,#0b0e18) 92%,var(--shop-primary,#8966ff) 8%)}.owner-push-copy{min-width:0}.owner-push-copy strong{display:block;color:var(--shop-text,#fff);font-size:12px}.owner-push-copy p{margin:4px 0 0;color:var(--shop-secondary-text,#aaa2b7);font-size:11px;line-height:1.45}.owner-push-status{display:block;margin-top:4px;color:var(--shop-secondary-text,#aaa2b7);font-size:10px;line-height:1.4}.owner-push-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.owner-push-controls button{min-height:40px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 48%,#302743);border-radius:11px;background:var(--shop-button,#7045ff);color:var(--shop-button-text,#fff);font:inherit;font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation}.owner-push-controls button.secondary{background:transparent;color:var(--shop-readable-card-primary,#d9c9ff)}.owner-push-controls button:disabled{opacity:.55;cursor:wait}
+.customer-push-settings,.owner-customer-notifications{display:grid;gap:12px;margin-top:16px;padding:15px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 36%,#302743);border-radius:16px;background:color-mix(in srgb,var(--shop-card-background,#0b0e18) 92%,var(--shop-primary,#8966ff) 8%);color:var(--shop-text,#fff)}.customer-push-settings[hidden]{display:none!important}.customer-push-heading strong{font-size:14px}.customer-push-heading p,.customer-push-status,.owner-customer-help{margin:4px 0 0;color:var(--shop-secondary-text,#aaa2b7);font-size:12px;line-height:1.5}.customer-push-preferences{display:flex;flex-wrap:wrap;gap:8px 14px}.customer-push-preferences label{display:inline-flex;align-items:center;gap:7px;min-height:40px;color:var(--shop-text,#fff);font-size:12px}.customer-push-preferences input{width:18px;height:18px;accent-color:var(--shop-primary,#8966ff)}.customer-push-actions{display:flex;flex-wrap:wrap;gap:8px}.customer-push-actions button,.owner-customer-notifications button{min-height:42px;padding:9px 13px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 48%,#302743);border-radius:11px;background:var(--shop-button,#7045ff);color:var(--shop-button-text,#fff);font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation}.customer-push-actions button.secondary{background:transparent;color:var(--shop-readable-card-primary,#d9c9ff)}.customer-push-actions button[hidden]{display:none!important}.owner-customer-notifications{max-width:900px}.owner-customer-notifications h3{margin:0;color:var(--shop-text,#fff)}.owner-customer-form{display:grid;gap:10px}.owner-customer-form label{display:grid;gap:6px;color:var(--shop-text,#fff);font-size:12px;font-weight:700}.owner-customer-form input,.owner-customer-form textarea,.owner-customer-form select{width:100%;min-height:42px;padding:10px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 38%,#302743);border-radius:10px;background:var(--shop-card-background,#0b0e18);color:var(--shop-text,#fff);font:inherit}.owner-customer-form textarea{min-height:92px;resize:vertical}.owner-customer-preview{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center;padding:12px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 30%,#302743);border-radius:13px;background:var(--shop-background,#07080d)}.owner-customer-preview[hidden]{display:none!important}.owner-customer-preview img{width:64px;height:64px;object-fit:cover;border-radius:10px}.owner-customer-preview img[hidden]{display:none}.owner-customer-preview strong{display:block}.owner-customer-preview p{margin:4px 0 0;color:var(--shop-secondary-text,#aaa2b7);font-size:12px;overflow-wrap:anywhere}.owner-customer-actions{display:flex;flex-wrap:wrap;gap:8px}.owner-customer-history{display:grid;gap:8px}.owner-customer-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 25%,#302743);border-radius:12px;background:var(--shop-card-background,#0b0e18)}.owner-customer-history-row strong{display:block;overflow-wrap:anywhere}.owner-customer-history-row small{color:var(--shop-secondary-text,#aaa2b7)}
 .owner-smart-alert-preview,.owner-smart-alert-list{display:grid;gap:8px;min-width:0}.owner-smart-alert-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px;min-width:0;padding:11px;border:1px solid color-mix(in srgb,var(--shop-secondary,#b49aff) 30%,#302743);border-radius:13px;background:var(--shop-card-background,#0b0e18);color:var(--shop-text,#fff)}.owner-smart-alert-row.is-unread{border-inline-start:3px solid var(--shop-primary,#8966ff)}.owner-smart-alert-row.is-read{opacity:.78}
 .owner-smart-alert-symbol{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:color-mix(in srgb,var(--shop-primary,#8966ff) 18%,transparent);color:var(--shop-readable-card-primary,#d9c9ff);font-size:16px;font-weight:900}.owner-smart-alert-row.tone-low .owner-smart-alert-symbol{background:#d99a271e;color:#ffc76a}.owner-smart-alert-row.tone-out .owner-smart-alert-symbol,.owner-smart-alert-row.tone-expired .owner-smart-alert-symbol{background:#e14b5b20;color:#ff7e88}.owner-smart-alert-row.tone-order .owner-smart-alert-symbol{background:#4e9dff20;color:#81baff}.owner-smart-alert-row.tone-discount .owner-smart-alert-symbol{background:#b687ff22;color:#c9a6ff}
 .owner-smart-alert-copy{min-width:0}.owner-smart-alert-copy strong{display:block;overflow-wrap:anywhere;color:var(--shop-text,#fff);font-size:12px}.owner-smart-alert-copy p{margin:3px 0;color:var(--shop-secondary-text,#aaa2b7);font-size:11px;line-height:1.45;overflow-wrap:anywhere}.owner-smart-alert-copy time{color:var(--shop-secondary-text,#aaa2b7);font-size:10px}.owner-smart-alert-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.owner-smart-alert-actions button,.owner-smart-alert-toolbar button,.owner-smart-alert-view-all{min-height:36px;padding:7px 10px;border:1px solid color-mix(in srgb,var(--shop-primary,#8966ff) 44%,#302743);border-radius:10px;background:color-mix(in srgb,var(--shop-button,#7045ff) 20%,var(--shop-card-background,#0b0e18));color:var(--shop-readable-card-primary,#d9c9ff);font:inherit;font-size:11px;font-weight:750;cursor:pointer;touch-action:manipulation}.owner-smart-alert-actions button.is-clear{border-color:#75454d;background:#31191d;color:#ffacb2}.owner-smart-alert-toolbar{display:flex;justify-content:flex-end;margin:0 0 9px}.owner-smart-alert-view-all{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:9px;background:var(--shop-button,#7045ff);color:var(--shop-button-text,#fff)}.owner-smart-alert-empty{margin:0;padding:15px;border:1px dashed color-mix(in srgb,var(--shop-secondary,#b49aff) 34%,#302743);border-radius:12px;color:var(--shop-secondary-text,#aaa2b7);font-size:12px;text-align:center}
-@media(max-width:540px){.owner-smart-alert-summary,.owner-smart-alert-panel{padding:12px;border-radius:15px}.owner-smart-alert-row{grid-template-columns:32px minmax(0,1fr);gap:8px;padding:9px}.owner-smart-alert-symbol{width:31px;height:31px}.owner-smart-alert-actions{grid-column:2;justify-content:flex-start}.owner-smart-alert-actions button{min-height:40px}.owner-smart-alert-section-head{align-items:flex-start}}@media(prefers-reduced-motion:reduce){.owner-smart-alert-row,.owner-smart-alert-actions button,.owner-smart-alert-view-all{transition:none!important}}
+ @media(max-width:540px){.owner-smart-alert-summary,.owner-smart-alert-panel{padding:12px;border-radius:15px}.owner-smart-alert-row{grid-template-columns:32px minmax(0,1fr);gap:8px;padding:9px}.owner-smart-alert-symbol{width:31px;height:31px}.owner-smart-alert-actions{grid-column:2;justify-content:flex-start}.owner-smart-alert-actions button{min-height:40px}.owner-smart-alert-section-head{align-items:flex-start}.owner-push-controls{grid-template-columns:minmax(0,1fr);gap:9px}.owner-push-actions{justify-content:flex-start}.owner-push-controls button{flex:1 1 auto}.customer-push-preferences{display:grid;grid-template-columns:1fr}.customer-push-actions button,.owner-customer-actions button{flex:1 1 100%}.owner-customer-history-row{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.owner-smart-alert-row,.owner-smart-alert-actions button,.owner-smart-alert-view-all,.owner-push-controls button,.customer-push-actions button,.owner-customer-notifications button{transition:none!important}}
 @media(max-width:1050px){.owner-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.owner-admin-shell{display:block}.owner-sidebar{display:none}.owner-dashboard-banner{min-height:132px;border-radius:18px}.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-stat-card:last-child{grid-column:span 2}.owner-dashboard-section{margin-top:17px}}
 @media(max-width:460px){.owner-dashboard-banner{align-items:flex-start;min-height:122px;padding:16px}.owner-dashboard-banner p{font-size:11px}.owner-dashboard-emblem{border-radius:20px}.owner-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-quick-action{min-height:60px;padding:9px;font-size:12px}.owner-management-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.owner-management-card{min-height:58px;padding:8px;font-size:11px}.owner-offer-banner{align-items:flex-start;flex-direction:column}.owner-offer-action{width:100%}}
@@ -3219,6 +3224,21 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
       </div>
 
+      <section id="customerPushSettings" class="customer-push-settings" aria-labelledby="customerPushHeading" hidden>
+        <div class="customer-push-heading"><strong id="customerPushHeading">Shivan Shop notifications</strong><p>Choose which shop updates you want to receive on this device.</p></div>
+        <div class="customer-push-preferences">
+          <label><input id="customerPushNewArrivals" type="checkbox"> New arrivals</label>
+          <label><input id="customerPushDiscounts" type="checkbox"> Discounts</label>
+          <label><input id="customerPushSpecialOffers" type="checkbox"> Special offers</label>
+        </div>
+        <p id="customerPushStatus" class="customer-push-status" role="status" aria-live="polite"></p>
+        <div class="customer-push-actions">
+          <button id="customerPushEnable" type="button" onclick="enableCustomerPushNotifications()">Enable notifications</button>
+          <button id="customerPushSave" type="button" onclick="saveCustomerPushPreferences()" hidden>Save preferences</button>
+          <button id="customerPushDisable" type="button" class="secondary" onclick="disableCustomerPushNotifications()" hidden>Turn off notifications</button>
+        </div>
+      </section>
+
     </div>
 
   </div>
@@ -4927,8 +4947,8 @@ function ownerAppearanceGlobalCss(appearance={}){
   const buttonText=ownerAppearanceContrastText(button);
   const readablePrimary=ownerAppearanceReadableText(primary,surfaces);
   const font=OWNER_FONT_OPTIONS[theme.font]||OWNER_FONT_OPTIONS.tahoma;
-  const cards=".product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card,.profile-guest-access,.owner-dashboard-card,.owner-dashboard-stat,.owner-stat-card,.owner-dashboard-metric,.owner-analytics-card,.owner-report-card,.owner-qr-product-open,.owner-qr-card,.owner-qr-color-group,.owner-category-manager,.category,.search,.bottom-nav,.owner-route-header,.owner-orders-heading,.owner-orders-controls,.owner-order-card,.owner-order-detail-heading,.owner-order-detail-panel,.owner-orders-stat,.owner-analytics-metric,.owner-report-chart,.owner-management-card,.owner-quick-action,.owner-product-home-card,.owner-product-nav,.owner-confirm-card,.crop-modal-card,.profile-guest-choices,.owner-sidebar,.owner-customer-card,.owner-product-name-fields,.owner-category-edit-row,.owner-color-picker,.owner-color-custom-row,.owner-promo-slide,.owner-inventory-scroll,.owner-inventory-tools,.owner-inventory-filter-row,.owner-analytics-chart,.owner-analytics-top-products,.owner-analytics-controls,.owner-report-controls,.owner-orders-tab,.owner-orders-tabs,.owner-orders-empty,.owner-qr-product-card,.owner-qr-detail-header,.owner-qr-product-placeholder,.owner-theme-color-field,.owner-theme-font-preview,.owner-discount-timer,.owner-photo-row,.owner-order-product,.owner-order-meta-cell,.owner-order-detail-item,.owner-order-detail-field,.owner-smart-alert-row,.owner-smart-alert-summary,.owner-smart-alert-panel,.owner-smart-alert-list";
-  const buttonTextSelectors=".main-btn,.detail-buy,.hero-copy button,.add-mini,.owner-form button[type=\"submit\"],.owner-product-mode-content button[type=\"submit\"],.profile-guest-choices button:first-child,.owner-dashboard-nav-item.active,.owner-product-nav button.active,.owner-tab.active,.owner-orders-tab[aria-pressed=\"true\"],.owner-order-open,.owner-order-next,.owner-confirm-actions button:not(.confirm-delete),.owner-category-add button:not([data-delete-category]),.owner-category-edit-row button:not([data-delete-category]),.owner-color-custom-row button,.owner-actions button:not(.danger),.owner-inventory-tools button:not(.danger),.owner-qr-card button:not(.danger),.owner-action:not(.danger),.owner-list-item button:not(.danger),.owner-sidebar-visit,.owner-route-back,.owner-qr-back,.owner-offer-action";
+  const cards=".product,.detail-box,.profile-card,.owner-form,.owner-list-item,.cart-item,.order-card,.total,.modal-card,.auth-card,.profile-guest-access,.owner-dashboard-card,.owner-dashboard-stat,.owner-stat-card,.owner-dashboard-metric,.owner-analytics-card,.owner-report-card,.owner-qr-product-open,.owner-qr-card,.owner-qr-color-group,.owner-category-manager,.category,.search,.bottom-nav,.owner-route-header,.owner-orders-heading,.owner-orders-controls,.owner-order-card,.owner-order-detail-heading,.owner-order-detail-panel,.owner-orders-stat,.owner-analytics-metric,.owner-report-chart,.owner-management-card,.owner-quick-action,.owner-product-home-card,.owner-product-nav,.owner-confirm-card,.crop-modal-card,.profile-guest-choices,.owner-sidebar,.owner-customer-card,.owner-product-name-fields,.owner-category-edit-row,.owner-color-picker,.owner-color-custom-row,.owner-promo-slide,.owner-inventory-scroll,.owner-inventory-tools,.owner-inventory-filter-row,.owner-analytics-chart,.owner-analytics-top-products,.owner-analytics-controls,.owner-report-controls,.owner-orders-tab,.owner-orders-tabs,.owner-orders-empty,.owner-qr-product-card,.owner-qr-detail-header,.owner-qr-product-placeholder,.owner-theme-color-field,.owner-theme-font-preview,.owner-discount-timer,.owner-photo-row,.owner-order-product,.owner-order-meta-cell,.owner-order-detail-item,.owner-order-detail-field,.owner-smart-alert-row,.owner-smart-alert-summary,.owner-smart-alert-panel,.owner-smart-alert-list,.owner-push-controls";
+  const buttonTextSelectors=".main-btn,.detail-buy,.hero-copy button,.add-mini,.owner-form button[type=\"submit\"],.owner-product-mode-content button[type=\"submit\"],.profile-guest-choices button:first-child,.owner-dashboard-nav-item.active,.owner-product-nav button.active,.owner-tab.active,.owner-orders-tab[aria-pressed=\"true\"],.owner-order-open,.owner-order-next,.owner-confirm-actions button:not(.confirm-delete),.owner-category-add button:not([data-delete-category]),.owner-category-edit-row button:not([data-delete-category]),.owner-color-custom-row button,.owner-actions button:not(.danger),.owner-inventory-tools button:not(.danger),.owner-qr-card button:not(.danger),.owner-action:not(.danger),.owner-list-item button:not(.danger),.owner-sidebar-visit,.owner-route-back,.owner-qr-back,.owner-offer-action,.owner-push-controls button:not(.secondary)";
   return [
     ":root{--shop-primary:"+primary+";--shop-secondary:"+secondary+";--shop-page-background:"+background+";--shop-card-background:"+card+";--shop-text:"+text+";--shop-secondary-text:"+secondaryText+";--shop-button:"+button+";--shop-button-text:"+buttonText+";--shop-readable-text:"+readableBackgroundText+";--shop-readable-card-text:"+readableCardText+";--shop-readable-secondary:"+(ownerAppearanceContrastRatio(secondaryText,background)>=4.5?secondaryText:readableBackgroundText)+";--shop-readable-card-secondary:"+(ownerAppearanceContrastRatio(secondaryText,card)>=4.5?secondaryText:readableCardText)+";--shop-readable-primary:"+(ownerAppearanceContrastRatio(primary,background)>=4.5?primary:readableBackgroundText)+";--shop-readable-card-primary:"+(ownerAppearanceContrastRatio(primary,card)>=4.5?primary:readableCardText)+"}",
     "body,body *,button,input,select,textarea{font-family:"+font+"!important}",
@@ -7007,6 +7027,8 @@ function openMain(options={}){
   renderOrders();
   updateProfile();
   if(options.resumeIntent!==false)resumeAuthenticationIntent();
+  if(typeof pendingOwnerPushTarget!=="undefined"&&pendingOwnerPushTarget&&cloudInitializationComplete)consumeOwnerPushNavigation();
+  if(typeof pendingCustomerPushTarget!=="undefined"&&pendingCustomerPushTarget&&cloudInitializationComplete)consumeCustomerPushNavigation();
 
 }
 
@@ -7126,10 +7148,11 @@ function openView(view,options={}){
 function renderProducts(list, target="productsGrid", append=false){
 
   const grid = document.getElementById(target);
+  const displayList=prioritizeDiscountedProducts(list);
 
   if(!grid) return;
 
-  if(!list.length){
+  if(!displayList.length){
     if(!append)grid.innerHTML = `
         <div class="empty" style="grid-column:1/-1">
           هیچ بەرهەمێک نەدۆزرایەوە.
@@ -7139,7 +7162,7 @@ function renderProducts(list, target="productsGrid", append=false){
     return;
   }
 
-  const cards=list.map(p=>`
+  const cards=displayList.map(p=>`
 
     <div class="product ${productDiscountPercent(p)?"has-discount":""}" onclick="openProduct(${p.id})">
 
@@ -7635,6 +7658,7 @@ function resetDetailRecommendations(){
   const currentCategory=resolveCategoryName(currentProduct.category);
   detailRecommendationPool=uniqueRecommendationProducts(products,currentProduct.id);
   detailRecommendationPool.sort((a,b)=>Number(resolveCategoryName(b.category)===currentCategory)-Number(resolveCategoryName(a.category)===currentCategory));
+  detailRecommendationPool=prioritizeDiscountedProducts(detailRecommendationPool);
   detailRecommendationCursor=0;
   grid.innerHTML="";
   sentinel.textContent="";
@@ -7657,6 +7681,7 @@ function loadMoreDetailRecommendations(){
   const grid=document.getElementById("detailRecommendations");
   const sentinel=document.getElementById("detailRecommendationSentinel");
   if(!grid||!sentinel)return;
+  detailRecommendationPool=prioritizeDiscountedProducts(detailRecommendationPool);
   const start=detailRecommendationCursor;
   const end=Math.min(start+8,detailRecommendationPool.length);
   if(start>=end){
@@ -8227,6 +8252,14 @@ function refreshDiscountCountdownBadges(){
 
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshDiscountCountdownBadges();});
 
+function prioritizeDiscountedProducts(list){
+  const discounted=[];
+  const regular=[];
+  for(const product of Array.isArray(list)?list:[]){
+    (productDiscountPercent(product)>0?discounted:regular).push(product);
+  }
+  return discounted.concat(regular);
+}
 
 function renderPriceBreakdown(originalPrice,finalPrice,discountPercent,{badge=false}={}){
   if(!discountPercent)return formatPrice(finalPrice);
@@ -9131,6 +9164,7 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   else if(route.panel==="ads")renderOwnerAds(sectionBox);
   else if(route.panel==="orders")renderOwnerOrders(sectionBox);
   else if(route.panel==="alerts")renderOwnerSmartAlerts(sectionBox);
+  else if(route.panel==="customer-notifications")renderOwnerCustomerNotifications(sectionBox);
   else if(route.panel==="inventory")renderOwnerInventory(sectionBox);
   else if(route.panel==="appearance")renderOwnerAppearance(sectionBox);
   else if(route.panel==="onboarding")renderShopOnboardingOwnerEditor(sectionBox);
@@ -9161,6 +9195,7 @@ function ownerPanelRoute(section){
     ads:{panel:"ads",nav:"ads"},
     orders:{panel:"orders",nav:"orders"},
     alerts:{panel:"alerts",nav:"alerts"},
+    "customer-notifications":{panel:"customer-notifications",nav:"customer-notifications"},
     customers:{panel:"customers",nav:"customers"},
     inventory:{panel:"inventory",nav:"inventory"},
     analytics:{panel:"analytics",nav:"analytics"},
@@ -9182,6 +9217,7 @@ function ownerDashboardNavItems(){
     ["categories","▤",ownerDashboardText("Categories","جۆرەکان","الفئات")],
     ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
     ["alerts","◉",ownerDashboardText("Smart Alerts","ئاگاداریێن زیرەک","التنبيهات الذكية")],
+    ["customer-notifications","◉",ownerDashboardText("Customer Notifications","ئاگاداریێن کڕیاران","إشعارات العملاء")],
     ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
     ["discounts","％",ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض")],
     ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
@@ -9199,7 +9235,7 @@ function ownerDashboardShellMarkup(){
   const items=ownerDashboardNavItems();
   const nav=(routes,extraClass="")=>routes.map(([route,icon,label])=>`<button type="button" class="owner-dashboard-nav-item ${extraClass}" data-owner-route="${route}" onclick="renderOwnerPanel('${route}')"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span>${route==="alerts"?`<span class="owner-smart-alert-nav-count" ${ownerSmartAlertUnreadCount()?"":"hidden"}>${ownerSmartAlertUnreadCount()}</span>`:""}</button>`).join("");
   const overview=items.filter(([route])=>route==="dashboard");
-  const management=items.filter(([route])=>["products","categories","discounts","orders","alerts","customers","colors","inventory","analytics","reports","backup","store-settings"].includes(route));
+  const management=items.filter(([route])=>["products","categories","discounts","orders","alerts","customer-notifications","customers","colors","inventory","analytics","reports","backup","store-settings"].includes(route));
   const promotions=items.filter(([route])=>["ads","onboarding"].includes(route));
   return `<div class="owner-admin-shell">
     <aside class="owner-sidebar" aria-label="Owner navigation">
@@ -9280,7 +9316,100 @@ function clearOwnerSmartAlert(id){if(!isOwner())return false;const s=readOwnerSm
 function markAllOwnerSmartAlertsRead(){if(!isOwner())return false;const s=readOwnerSmartAlertState(),t=new Date().toISOString();s.alerts=s.alerts.map(a=>({...a,readAt:a.readAt||t}));writeOwnerSmartAlertState(s);refreshOwnerSmartAlertView();return true;}
 function scheduleOwnerSmartAlertEvaluation(now=Date.now()){if(ownerSmartAlertTimer){clearTimeout(ownerSmartAlertTimer);ownerSmartAlertTimer=0;}if(!isOwner()||typeof setTimeout!=="function")return;const times=(Array.isArray(products)?products:[]).filter(p=>p?.discountTimerEnabled===true&&productDiscountPercent(p)>0).map(p=>Date.parse(String(p.discountEndsAt||""))).filter(x=>Number.isFinite(x)&&x>now).map(x=>x-now>OWNER_SMART_ALERT_EXPIRING_MS?x-OWNER_SMART_ALERT_EXPIRING_MS:x);if(!times.length)return;ownerSmartAlertTimer=setTimeout(()=>{ownerSmartAlertTimer=0;reconcileOwnerSmartAlerts({notify:true});},Math.max(1000,Math.min(2147480000,Math.min(...times)-now+1000)));}
 function reconcileOwnerSmartAlerts(options={}){if(!isOwner())return {created:[],state:normalizeOwnerSmartAlertState({})};const now=Number.isFinite(Number(options.now))?Number(options.now):Date.now(),notify=options.notify!==false,s=readOwnerSmartAlertState(),created=[],ids=[...new Set((typeof getOrders==="function"?getOrders():[]).map(o=>String(o?.id||o?.orderId||"")).filter(Boolean))];if(!s.initialized){s.initialized=true;s.seenOrderIds=ids;}else{const seen=new Set(s.seenOrderIds);for(const id of ids){if(seen.has(id))continue;const e={id:"order:"+encodeURIComponent(id),type:"new_order",entityId:id};if(recordOwnerSmartAlert(s,e,now))created.push(e);seen.add(id);}s.seenOrderIds=[...seen];}const all=Array.isArray(products)?products:[],baseline=!s.stockInitialized;for(const p of all){const pid=String(p?.id||"");if(!pid)continue;const variants=Array.isArray(p.variants)&&p.variants.length?p.variants:[{color:"",size:"",stock:p.stock}];for(const v of variants){const color=String(v?.color||""),size=String(v?.size||""),variantId=String(v?.qrId||""),key=pid+"|"+(variantId||pid+"|"+color+"|"+size),qty=Math.max(0,Math.floor(Number(v?.stock)||0)),status=qty===0?"out":qty<=OWNER_SMART_ALERT_LOW_STOCK?"low":"normal",prev=s.stockState[key];if(!prev){s.stockState[key]={status,cycle:0,updatedAt:new Date(now).toISOString()};if(!baseline&&status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":1",type,entityId:pid,variantId,color,size,quantity:qty,status};if(recordOwnerSmartAlert(s,e,now))created.push(e);s.stockState[key].cycle=1;}}else if(prev.status!==status){const cycle=(Number(prev.cycle)||0)+1;s.stockState[key]={status,cycle,updatedAt:new Date(now).toISOString()};if(status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":"+cycle,type,entityId:pid,variantId,color,size,quantity:qty,status};if(recordOwnerSmartAlert(s,e,now))created.push(e);}}}}s.stockInitialized=true;const active=new Set();for(const p of all){const pid=String(p?.id||""),end=Date.parse(String(p?.discountEndsAt||""));if(!pid||p?.discountTimerEnabled!==true||!productDiscountPercent(p)||!Number.isFinite(end))continue;active.add(pid);let d=s.discountState[pid];if(!d||Number(d.endAt)!==end)d={endAt:end,expiring:false,expired:false,updatedAt:new Date(now).toISOString()};if(end>now&&end-now<=OWNER_SMART_ALERT_EXPIRING_MS&&!d.expiring){const e={id:"discount:expiring:"+encodeURIComponent(pid)+":"+end,type:"discount_expiring",entityId:pid,endsAt:new Date(end).toISOString()};if(recordOwnerSmartAlert(s,e,now))created.push(e);d.expiring=true;d.updatedAt=new Date(now).toISOString();}if(end<=now&&!d.expired){const e={id:"discount:expired:"+encodeURIComponent(pid)+":"+end,type:"discount_expired",entityId:pid,endsAt:new Date(end).toISOString()};if(recordOwnerSmartAlert(s,e,now))created.push(e);d.expired=true;d.updatedAt=new Date(now).toISOString();}s.discountState[pid]=d;}for(const pid of Object.keys(s.discountState))if(!active.has(pid))delete s.discountState[pid];const saved=writeOwnerSmartAlertState(s);scheduleOwnerSmartAlertEvaluation(now);if(notify&&created.length&&typeof showToast==="function")showToast(ownerDashboardText(created.length===1?"A new store alert is ready.":created.length+" new store alerts are ready.",created.length===1?"ئاگادارییەکا نوو هەیە.":created.length+" ئاگاداریێن نوو هەن.","New store alert"));return {created,state:saved};}
-function renderOwnerSmartAlerts(box,runReconcile=true){if(!isOwner()){if(box)box.textContent=ownerDashboardText("Only the store owner can view alerts.","تەنێ خاوەن دەتوانیت ئاگاداریان ببینیت.","يمكن للمالك فقط عرض التنبيهات.");return;}if(!box)return;if(runReconcile)reconcileOwnerSmartAlerts({notify:false});const s=readOwnerSmartAlertState(),n=ownerSmartAlertUnreadCount(s);box.innerHTML='<section class="owner-smart-alert-panel"><header class="owner-smart-alert-section-head"><div><p class="owner-dashboard-kicker">SHIVAN SHOP · OWNER</p><h3>'+escapeHtml(ownerDashboardText("Smart Alerts","ئاگاداریێن زیرەک","التنبيهات الذكية"))+'</h3><p>'+escapeHtml(ownerDashboardText("New orders, stock at or below 5 units, out-of-stock variants, and timed discounts ending within 24 hours or already expired.","داخوازیێن نوو، کەمیا کۆگا (٥ دانە یان کەمتر)، بەرهەمێ نەماو و داشاندنێن کاتی.","الطلبات الجديدة، والمخزون عند 5 قطع أو أقل، والخيارات النافدة، والخصومات المحددة."))+'</p></div><span class="owner-smart-alert-count" aria-label="'+n+' unread alerts">'+n+'</span></header>'+(n?'<div class="owner-smart-alert-toolbar"><button type="button" onclick="markAllOwnerSmartAlertsRead()">'+escapeHtml(ownerDashboardText("Mark all read","هەمی وەک خواندی نیشان بدە","وضع علامة مقروء للكل"))+'</button></div>':'')+'<div class="owner-smart-alert-list" aria-live="polite">'+(s.alerts.length?s.alerts.map(ownerSmartAlertItemMarkup).join(""):'<p class="owner-smart-alert-empty">'+escapeHtml(ownerDashboardText("No alerts yet. New activity will appear here.","هێشتا ئاگاداری نینە.","لا توجد تنبيهات بعد."))+'</p>')+'</div></section>';updateOwnerSmartAlertBadges();}
+let ownerPushActionPending=false;
+let pendingOwnerPushTarget=null;
+let pendingCustomerPushTarget=null;
+function ownerPushIsSupported(){return Boolean(window.isSecureContext&&"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window);}
+async function sendOwnerPushTestNotification(){if(!isOwner()||ownerPushActionPending)return false;if(!ownerPushIsSupported()){showToast(ownerDashboardText("This browser does not support push notifications.","ڤێ وێبگەڕێ پشتەڤانا پۇش نینە.","هذا المتصفح لا يدعم الإشعارات الفورية."));return false;}if(Notification.permission!=="granted"){showToast(ownerDashboardText("Enable Owner notifications on this device first.","پێشتر ئاگاداریێن خاوەنی ل ڤێ ئامێرێ چالاک بکە.","فعّل إشعارات المالك على هذا الجهاز أولاً."));return false;}ownerPushActionPending=true;setOwnerPushControls(ownerDashboardText("Sending one test only to this device…","تەنێ ئاگەهدارییەکا تاقیکرنێ بۆ ڤێ ئامێرێ دێتە ناردن…","جارٍ إرسال اختبار واحد لهذا الجهاز فقط…"),{enable:false,disable:true});try{const registration=await navigator.serviceWorker.getRegistration("/");const subscription=await registration?.pushManager?.getSubscription();if(!subscription)throw new Error("Enable Owner notifications on this device first.");const status=await cloudRequest("/api/push/subscription/status",{method:"POST",body:JSON.stringify({endpoint:subscription.endpoint}),timeoutMs:10000});if(status.registered!==true)throw new Error("This device is not registered for Owner push notifications.");const requestId=crypto.randomUUID?crypto.randomUUID().replace(/-/g,""):"test_"+Date.now().toString(36)+Math.random().toString(36).slice(2);const result=await cloudRequest("/api/push/test",{method:"POST",body:JSON.stringify({endpoint:subscription.endpoint,requestId}),timeoutMs:15000});if(result.status!=="sent"&&!result.acceptedByPushService)throw new Error("The push service did not accept the test notification.");setOwnerPushControls(ownerDashboardText("The push service accepted one test for this device. Check your iPhone; delivery can take a moment.","خزمەتگوزاریا پۇش تەنێ ئاگەهدارییەکا تاقیکرنێ بۆ ڤێ ئامێرێ قەبیل کر؛ ل ئایفۆنێ خۆ بپشکنە.","قبلت خدمة الإشعارات اختباراً واحداً لهذا الجهاز. تحقق من iPhone؛ قد يستغرق الوصول لحظات."),{enable:false,disable:true});showToast(ownerDashboardText("One-device test accepted. Check this device.","ئاگەهداریا تاقیکرنێ قەبیل بوو؛ ڤێ ئامێرێ بپشکنە.","قُبل اختبار هذا الجهاز الواحد. تحقق من الجهاز."));return true;}catch(error){setOwnerPushControls(String(error?.message||"").includes("not registered")||String(error?.message||"").includes("Enable Owner")?ownerDashboardText("Enable and register Owner notifications on this device before testing.","پێش تاقیکرنێ ئاگاداریێن خاوەنی ل ڤێ ئامێرێ چالاک بکە و تۆمار بکە.","فعّل وسجّل إشعارات المالك على هذا الجهاز قبل الاختبار."):ownerDashboardText("The one-device test was not accepted. Check this device before trying again.","ئاگەهدارییا تاقیکرنێ نەهاتە قەبیلکرن؛ پێش دوبارەکرنێ ڤێ ئامێرێ بپشکنە.","لم يُقبل اختبار هذا الجهاز. تحقق من الجهاز قبل إعادة المحاولة."),{enable:false,disable:true});return false;}finally{ownerPushActionPending=false;await refreshOwnerPushControls();}}
+function ownerPushControlMarkup(){return '<section class="owner-push-controls" aria-labelledby="ownerPushHeading"><div class="owner-push-copy"><strong id="ownerPushHeading">'+escapeHtml(ownerDashboardText("Push notifications","ئاگاداریێن پۇش","إشعارات فورية"))+'</strong><p>'+escapeHtml(ownerDashboardText("Get Smart Alerts on this device while the shop is closed, where your browser supports push.","ئاگاداریێن زیرەک ل ڤێ ئامێرێ وەرە، ئەگەر وێبگەڕ پشتەڤان بیت.","استقبل التنبيهات على هذا الجهاز عندما يكون المتصفح مغلقاً، إذا كان المتصفح يدعم ذلك."))+'</p><span class="owner-push-status" id="ownerPushStatus" role="status" aria-live="polite">'+escapeHtml(ownerDashboardText("Checking this browser…","پشکنینا وێبگەڕی…","جارٍ فحص المتصفح…"))+'</span></div><div class="owner-push-actions"><button type="button" id="ownerPushEnable" onclick="enableOwnerPushNotifications()">'+escapeHtml(ownerDashboardText("Enable on this device","ل ڤێ ئامێرێ چالاک بکە","تفعيل على هذا الجهاز"))+'</button><button type="button" id="ownerPushDisable" class="secondary" onclick="disableOwnerPushNotifications()" hidden>'+escapeHtml(ownerDashboardText("Disable here","ل ڤێرێ نەچالاک بکە","إيقاف على هذا الجهاز"))+'</button><button type="button" id="ownerPushTest" class="secondary" onclick="sendOwnerPushTestNotification()">'+escapeHtml(ownerDashboardText("Send one test to this device","تەنێ ئاگەهدارییەکا تاقیکرنێ بۆ ڤێ ئامێرێ بنێرە","إرسال إشعار تجريبي واحد لهذا الجهاز"))+'</button></div></section>';}
+function setOwnerPushControls(message,options={}){const status=document.getElementById("ownerPushStatus"),enable=document.getElementById("ownerPushEnable"),disable=document.getElementById("ownerPushDisable"),test=document.getElementById("ownerPushTest");if(!status||!enable||!disable)return;status.textContent=message;enable.hidden=options.enable===false;disable.hidden=options.disable===false;enable.disabled=ownerPushActionPending||options.enableDisabled===true;disable.disabled=ownerPushActionPending||options.disableDisabled===true;if(test)test.disabled=ownerPushActionPending||!ownerPushIsSupported()||Notification.permission!=="granted";}
+async function refreshOwnerPushControls(){if(!isOwner())return;const status=document.getElementById("ownerPushStatus");if(!status)return;if(!ownerPushIsSupported()){setOwnerPushControls(ownerDashboardText("Push notifications are unavailable in this browser. In-app Smart Alerts still work.","ئاگاداریێن پۇش ل ڤێ وێبگەڕێ نینن؛ ئاگاداریێن ناڤ ڤێتێ دکارن.","الإشعارات الفورية غير متاحة في هذا المتصفح. ستظل التنبيهات داخل الموقع تعمل."),{enable:false,disable:false});return;}let registration=null,subscription=null;try{registration=await navigator.serviceWorker.getRegistration("/");subscription=await registration?.pushManager?.getSubscription();}catch{}let serverReady=false;try{await cloudRequest("/api/push/config",{timeoutMs:10000});serverReady=true;}catch(error){const msg=String(error?.message||"");setOwnerPushControls(msg.includes("not configured")||error?.status===503?ownerDashboardText("The server still needs its secure push keys. In-app Smart Alerts continue to work.","پێدڤیە کلیلێن پاراستی ل سێرڤەری بهێنە دانان.","يحتاج الخادم إلى مفاتيح الإشعارات الآمنة. ستظل التنبيهات داخل الموقع تعمل."):ownerDashboardText("Push service could not be reached. In-app Smart Alerts continue to work.","خزمەتگوزاریا پۇش نەگەهشت؛ ئاگاداریێن ناڤ ڤێتێ دکارن.","تعذر الوصول إلى خدمة الإشعارات. ستظل التنبيهات داخل الموقع تعمل."),{enable:false,disable:Boolean(subscription)});return;}if(!serverReady)return;let linked=false;if(subscription){try{const result=await cloudRequest("/api/push/subscription/status",{method:"POST",body:JSON.stringify({endpoint:subscription.endpoint}),timeoutMs:10000});linked=result.registered===true;}catch{}}if(Notification.permission==="denied"){setOwnerPushControls(ownerDashboardText("Notifications are blocked in browser settings. Change permission there, then try again.","ئاگاداری ل ڕێکخستنێن وێبگەڕی قەدەغەیە.","الإشعارات محظورة من إعدادات المتصفح. غيّر الإذن هناك ثم أعد المحاولة."),{enable:true,disable:Boolean(subscription)});return;}if(linked){setOwnerPushControls(ownerDashboardText("Push alerts are enabled on this device. Other devices are managed separately.","ئاگاداریێن پۇش ل ڤێ ئامێرێ چالاکن.","الإشعارات مفعلة على هذا الجهاز. تُدار الأجهزة الأخرى بشكل منفصل."),{enable:false,disable:true});return;}if(subscription){setOwnerPushControls(ownerDashboardText("This browser subscription is not linked to the Owner account. Enable again to reconnect it.","ڤێ ئامێرێ پەیوەندییا وێ یا چالاک نینە؛ جارەکا دی چالاک بکە.","اشتراك هذا المتصفح غير مرتبط بحساب المالك. أعد التفعيل لربطه."),{enable:true,disable:true});return;}setOwnerPushControls(ownerDashboardText("Off on this device. Enabling will ask for browser permission.","ل ڤێ ئامێرێ نەچالاکە.","متوقف على هذا الجهاز. سيطلب التفعيل إذن المتصفح."),{enable:true,disable:false});}
+function pushApplicationServerKey(value){const text=String(value||"").replace(/-/g,"+").replace(/_/g,"/");const binary=atob(text.padEnd(Math.ceil(text.length/4)*4,"="));return Uint8Array.from(binary,character=>character.charCodeAt(0));}
+async function postPushWorkerSetting(registration,type,preferences){const worker=registration?.active||registration?.waiting||registration?.installing;if(!worker)return false;return new Promise(resolve=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();resolve(false);},3000);channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data?.ok===true);};worker.postMessage({type,preferences},[channel.port2]);});}
+async function enableOwnerPushNotifications(){if(!isOwner()||ownerPushActionPending)return false;if(!ownerPushIsSupported()){showToast(ownerDashboardText("This browser does not support push notifications.","ڤێ وێبگەڕێ پشتەڤانا پۇش نینە.","هذا المتصفح لا يدعم الإشعارات الفورية."));return false;}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent||""),installed=window.matchMedia?.("(display-mode: standalone)").matches||navigator.standalone===true;if(ios&&!installed){setOwnerPushControls(ownerDashboardText("On iPhone or iPad, install Shivan Shop from Share → Add to Home Screen, then open that installed app. iOS/iPadOS 16.4 or later is required.","ل ئایفۆن/ئایپادێ، فرۆشگەیێ ل Home Screen زیاد بکە و ل وێ ڤەکە؛ iOS/iPadOS 16.4 پێدڤییە.","على iPhone أو iPad، أضف Shivan Shop إلى الشاشة الرئيسية وافتح التطبيق المثبت. يلزم iOS/iPadOS 16.4 أو أحدث."),{enable:true,disable:false});return false;}ownerPushActionPending=true;setOwnerPushControls(ownerDashboardText("Waiting for browser permission…","چاوەڕێیا ڕێپێدانێ…","بانتظار إذن المتصفح…"),{enable:true,disable:false});let createdSubscription=false,subscription=null;try{let permission=Notification.permission;if(permission==="default"){const permissionRequest=Notification.requestPermission();permission=await permissionRequest;}if(permission!=="granted"){setOwnerPushControls(ownerDashboardText("Permission was not granted. You can enable it later in browser settings.","ڕێپێدان نەهاتە دان؛ دکاریت د ڕێکخستنێن وێبگەڕی دا چالاک بکەی.","لم يتم منح الإذن. يمكنك تفعيله لاحقاً من إعدادات المتصفح."),{enable:true,disable:false});return false;}const config=await cloudRequest("/api/push/config",{timeoutMs:12000});const key=pushApplicationServerKey(config.publicKey);if(key.length!==65||key[0]!==4)throw new Error("The server push key is invalid.");const registration=await navigator.serviceWorker.register("/service-worker.js",{scope:"/"});await navigator.serviceWorker.ready;subscription=await registration.pushManager.getSubscription();if(!subscription){subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});createdSubscription=true;}await cloudRequest("/api/push/subscription",{method:"POST",body:JSON.stringify({subscription:subscription.toJSON()})});await postPushWorkerSetting(registration,"shivan-push-enable");showToast(ownerDashboardText("Push notifications are enabled on this device.","ئاگاداریێن پۇش ل ڤێ ئامێرێ چالاک بوون.","تم تفعيل الإشعارات على هذا الجهاز."));return true;}catch(error){if(createdSubscription&&subscription)await subscription.unsubscribe().catch(()=>{});setOwnerPushControls(String(error?.message||"").includes("not configured")?ownerDashboardText("The server still needs its secure push keys. No notification subscription was saved.","پێدڤیە کلیلێن پاراستی ل سێرڤەری بهێنە دانان.","يحتاج الخادم إلى مفاتيح آمنة. لم يتم حفظ الاشتراك."):ownerDashboardText("Could not enable push notifications. Your in-app alerts are still available; try again later.","ئاگاداریێن پۇش نەچالاک بوون؛ جارەکا دی بکە.","تعذر تفعيل الإشعارات. تظل التنبيهات داخل الموقع متاحة؛ حاول لاحقاً."),{enable:true,disable:Boolean(subscription)});return false;}finally{ownerPushActionPending=false;await refreshOwnerPushControls();}}
+async function disableOwnerPushNotifications(){if(!isOwner()||ownerPushActionPending)return false;if(!ownerPushIsSupported())return false;ownerPushActionPending=true;setOwnerPushControls(ownerDashboardText("Disabling notifications on this device…","ئاگاداریێن ڤێ ئامێرێ نەچالاک دکەم…","جارٍ إيقاف الإشعارات على هذا الجهاز…"),{enable:false,disable:true});try{const registration=await navigator.serviceWorker.getRegistration("/");const subscription=await registration?.pushManager?.getSubscription();if(subscription){await cloudRequest("/api/push/subscription",{method:"DELETE",body:JSON.stringify({endpoint:subscription.endpoint}),timeoutMs:12000});await postPushWorkerSetting(registration,"shivan-push-disable");const removed=await subscription.unsubscribe();if(!removed)throw new Error("The browser did not remove its push subscription.");}showToast(ownerDashboardText("Push notifications are off on this device. Browser permission can be changed in browser settings.","ئاگاداریێن پۇش ل ڤێ ئامێرێ نەچالاکن.","تم إيقاف الإشعارات على هذا الجهاز. يمكن تغيير إذن المتصفح من إعداداته."));return true;}catch(error){setOwnerPushControls(ownerDashboardText("Could not disable notifications on this device. Check the connection and try again.","نەشیا ئاگاداریێن پۇش نەچالاک بکەم؛ جارەکا دی بکە.","تعذر إيقاف الإشعارات على هذا الجهاز. تحقق من الاتصال ثم أعد المحاولة."),{enable:true,disable:true});return false;}finally{ownerPushActionPending=false;await refreshOwnerPushControls();}}
+function ownerPushPromptLogin(){const app=document.querySelector(".app"),auth=document.getElementById("authPage"),main=document.getElementById("mainApp");hideShopOnboarding();app?.classList.add("auth-mode");if(main)main.style.display="none";if(auth){auth.classList.remove("is-shop-auth-modal");auth.style.display="";showAuth("login");}const message=document.getElementById("loginMsg");if(message)message.textContent=ownerDashboardText("Sign in with the authorized Owner account to open this alert.","بۆ ڤەکرنا ڤێ ئاگاداریێ، ب هەژمارا خاوەنی بچۆ ژوور.","سجّل الدخول بحساب المالك المصرح به لفتح هذا التنبيه.");}
+function consumeOwnerPushNavigation(){if(!pendingOwnerPushTarget||!cloudInitializationComplete)return false;if(!isOwner()){if(currentUser||cloudAccount){pendingOwnerPushTarget=null;showToast(ownerDashboardText("Only the authorized Owner can open this notification.","تەنێ خاوەن دکاریت ڤێ ئاگاداریێ ڤەکەت.","يمكن للمالك المصرح له فقط فتح هذا الإشعار."));return false;}ownerPushPromptLogin();return false;}const target=pendingOwnerPushTarget;pendingOwnerPushTarget=null;const orderId=String(target.order||"");if(orderId){openOwnerOrderDetail(orderId);}else{renderOwnerPanel("alerts");const alertId=String(target.alert||target.eventId||"");if(alertId)markOwnerSmartAlertRead(alertId);}try{const clean=new URL(location.href);clean.searchParams.delete("ownerPush");clean.searchParams.delete("order");clean.searchParams.delete("alert");history.replaceState(history.state,"",clean.pathname+clean.search+clean.hash);}catch{}return true;}
+function receiveOwnerPushNavigation(target){try{const url=new URL(String(target?.url||""),location.href);if(url.origin!==location.origin)return false;const kind=url.searchParams.get("ownerPush");if(!kind)return false;pendingOwnerPushTarget={kind,order:url.searchParams.get("order")||"",alert:url.searchParams.get("alert")||"",eventId:String(target?.eventId||"")};if(cloudInitializationComplete)consumeOwnerPushNavigation();return true;}catch{return false;}}
+function consumeCustomerPushNavigation(){
+  if(!pendingCustomerPushTarget||!cloudInitializationComplete)return false;
+  const target=pendingCustomerPushTarget;pendingCustomerPushTarget=null;hideShopOnboarding();openView("home");
+  const productId=String(target.productId||"");
+  if(target.kind==="product"&&productId){const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===productId);if(product)openProduct(product.id);else showToast("This saved product is no longer available.");}
+  else if(target.kind==="offers"&&target.offerId)openCustomerPromotionOffer(target.offerId);
+  else if(target.kind==="offers")showToast("Explore the latest Shivan Shop promotions.");
+  try{const clean=new URL(location.href);clean.searchParams.delete("customerPush");clean.searchParams.delete("productId");clean.searchParams.delete("offerId");history.replaceState(history.state,"",clean.pathname+clean.search+clean.hash);}catch{}
+  return true;
+}
+function receiveCustomerPushNavigation(target){try{const url=new URL(String(target?.url||""),location.href);if(url.origin!==location.origin)return false;const kind=url.searchParams.get("customerPush");if(!kind)return false;pendingCustomerPushTarget={kind,productId:url.searchParams.get("productId")||target?.productId||"",offerId:url.searchParams.get("offerId")||"",eventId:String(target?.eventId||"")};if(cloudInitializationComplete)consumeCustomerPushNavigation();return true;}catch{return false;}}
+async function openCustomerPromotionOffer(eventId){
+  const id=String(eventId||"").slice(0,300);if(!id)return false;
+  try{
+    const result=await cloudRequest(`/api/customer-push/offer?eventId=${encodeURIComponent(id)}`,{timeoutMs:10000});const offer=result.offer;if(!offer)return false;
+    let modal=document.getElementById("customerOfferModal");
+    if(!modal){modal=document.createElement("div");modal.id="customerOfferModal";modal.className="modal";modal.setAttribute("role","dialog");modal.setAttribute("aria-modal","true");modal.setAttribute("aria-labelledby","customerOfferTitle");modal.innerHTML='<div class="modal-card"><button class="modal-close" type="button" onclick="closeModal(\'customerOfferModal\')" aria-label="Close offer">×</button><img id="customerOfferImage" alt="Shivan Shop offer" hidden style="width:100%;max-height:240px;object-fit:cover;border-radius:14px"><h2 id="customerOfferTitle"></h2><p id="customerOfferMessage"></p><button class="main-btn" type="button" onclick="closeModal(\'customerOfferModal\');openView(\'home\')">Explore Models</button></div>';document.body.appendChild(modal);}
+    const title=document.getElementById("customerOfferTitle"),message=document.getElementById("customerOfferMessage"),image=document.getElementById("customerOfferImage");if(title)title.textContent=String(offer.title||"Shivan Shop offer");if(message)message.textContent=String(offer.body||"");if(image){const src=String(offer.image||"");image.hidden=!/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(jpg|png|webp|gif)$/i.test(src);if(!image.hidden)image.src=src;else image.removeAttribute("src");}modal.classList.add("show");return true;
+  }catch(error){showToast(error.message||"This offer is temporarily unavailable.");return false;}
+}
+if("serviceWorker" in navigator)navigator.serviceWorker.addEventListener("message",event=>{if(event.data?.type==="shivan-owner-push-open")receiveOwnerPushNavigation(event.data.target);else if(event.data?.type==="shivan-customer-push-open")receiveCustomerPushNavigation(event.data.target);});
+function renderOwnerSmartAlerts(box,runReconcile=true){if(!isOwner()){if(box)box.textContent=ownerDashboardText("Only the store owner can view alerts.","تەنێ خاوەن دەتوانیت ئاگاداریان ببینیت.","يمكن للمالك فقط عرض التنبيهات.");return;}if(!box)return;if(runReconcile)reconcileOwnerSmartAlerts({notify:false});const s=readOwnerSmartAlertState(),n=ownerSmartAlertUnreadCount(s);box.innerHTML='<section class="owner-smart-alert-panel"><header class="owner-smart-alert-section-head"><div><p class="owner-dashboard-kicker">SHIVAN SHOP · OWNER</p><h3>'+escapeHtml(ownerDashboardText("Smart Alerts","ئاگاداریێن زیرەک","التنبيهات الذكية"))+'</h3><p>'+escapeHtml(ownerDashboardText("New orders, stock at or below 5 units, out-of-stock variants, and timed discounts ending within 24 hours or already expired.","داخوازیێن نوو، کەمیا کۆگا (٥ دانە یان کەمتر)، بەرهەمێ نەماو و داشاندنێن کاتی.","الطلبات الجديدة، والمخزون عند 5 قطع أو أقل، والخيارات النافدة، والخصومات المحددة."))+'</p></div><span class="owner-smart-alert-count" aria-label="'+n+' unread alerts">'+n+'</span></header>'+ownerPushControlMarkup()+(n?'<div class="owner-smart-alert-toolbar"><button type="button" onclick="markAllOwnerSmartAlertsRead()">'+escapeHtml(ownerDashboardText("Mark all read","هەمی وەک خواندی نیشان بدە","وضع علامة مقروء للكل"))+'</button></div>':'')+'<div class="owner-smart-alert-list" aria-live="polite">'+(s.alerts.length?s.alerts.map(ownerSmartAlertItemMarkup).join(""):'<p class="owner-smart-alert-empty">'+escapeHtml(ownerDashboardText("No alerts yet. New activity will appear here.","هێشتا ئاگاداری نینە.","لا توجد تنبيهات بعد."))+'</p>')+'</div></section>';updateOwnerSmartAlertBadges();refreshOwnerPushControls();}
+
+let ownerCustomerBroadcastPending=false;
+let ownerCustomerBroadcastRequestId="";
+let ownerCustomerBroadcastPreviewKey="";
+function renderOwnerCustomerNotifications(box){
+  if(!isOwner()){if(box)box.textContent="Only the authorized Owner can manage customer notifications.";return;}
+  if(!box)return;
+  const productOptions=(Array.isArray(products)?products:[]).map(product=>`<option value="${escapeHtml(String(product.id))}">${escapeHtml(getProductName(product))}</option>`).join("");
+  box.innerHTML=`<section class="owner-customer-notifications"><div><p class="owner-dashboard-kicker">SHIVAN SHOP · OWNER</p><h3>Customer Notifications</h3><p class="owner-customer-help">Preview optional promotional messages before sending. They go only to customers who subscribed to Special offers. Owner Smart Alerts stay separate.</p></div><div class="owner-customer-form"><label>Notification title<input id="ownerCustomerBroadcastTitle" maxlength="100" oninput="previewOwnerCustomerBroadcast()" placeholder="A special offer from Shivan Shop"></label><label>Message<textarea id="ownerCustomerBroadcastMessage" maxlength="220" oninput="previewOwnerCustomerBroadcast()" placeholder="Discover this week's offer"></textarea></label><label>Optional saved product<select id="ownerCustomerBroadcastProduct" onchange="previewOwnerCustomerBroadcast()"><option value="">General promotion</option>${productOptions}</select></label><p class="owner-customer-help">Audience: customers who opted into Special offers. Product images are included only when the selected product image is saved in shared shop storage.</p><div id="ownerCustomerBroadcastPreview" class="owner-customer-preview" hidden><img id="ownerCustomerBroadcastPreviewImage" alt="Promotional product preview" hidden><div><strong id="ownerCustomerBroadcastPreviewTitle"></strong><p id="ownerCustomerBroadcastPreviewMessage"></p><small>Special-offer subscribers</small></div></div><div class="owner-customer-actions"><button type="button" onclick="previewOwnerCustomerBroadcast()">Preview</button><button id="ownerCustomerBroadcastSend" type="button" onclick="sendOwnerCustomerBroadcast()">Send to subscribers</button></div><p id="ownerCustomerBroadcastStatus" class="customer-push-status" role="status" aria-live="polite">No notification has been sent.</p></div><div><h3>Recent customer notifications</h3><p class="owner-customer-help">Status and delivery totals only. Subscriber identities and device endpoints are never shown.</p><div id="ownerCustomerBroadcastHistory" class="owner-customer-history" aria-live="polite"><p class="owner-customer-help">Loading notification history…</p></div></div></section>`;
+  loadOwnerCustomerBroadcastHistory();
+}
+function previewOwnerCustomerBroadcast(){
+  if(!isOwner())return false;
+  const title=String(document.getElementById("ownerCustomerBroadcastTitle")?.value||"").trim().slice(0,100);
+  const message=String(document.getElementById("ownerCustomerBroadcastMessage")?.value||"").trim().slice(0,220);
+  const productId=String(document.getElementById("ownerCustomerBroadcastProduct")?.value||"");
+  ownerCustomerBroadcastPreviewKey=JSON.stringify([title,message,productId]);
+  const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===productId);
+  const preview=document.getElementById("ownerCustomerBroadcastPreview");if(!preview)return false;
+  preview.hidden=false;
+  const titleNode=document.getElementById("ownerCustomerBroadcastPreviewTitle"),messageNode=document.getElementById("ownerCustomerBroadcastPreviewMessage"),imageNode=document.getElementById("ownerCustomerBroadcastPreviewImage");
+  if(titleNode)titleNode.textContent=title||"Notification title preview";
+  if(messageNode)messageNode.textContent=message||"Notification message preview";
+  const candidate=product?(product.image||product.images?.[0]?.url||product.images?.[0]||""):"";
+  const image=typeof candidate==="string"&&/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(jpg|png|webp|gif)$/i.test(candidate)?candidate:"";
+  if(imageNode){imageNode.hidden=!image;if(image)imageNode.src=image;else imageNode.removeAttribute("src");}
+  return true;
+}
+function customerBroadcastStatusLabel(status){return ({queued:"Queued",sent:"Sent",partial:"Partially delivered",failed:"Delivery failed",no_subscribers:"No customers opted into this type",already_queued:"Already queued"})[status]||String(status||"Pending");}
+async function loadOwnerCustomerBroadcastHistory(){
+  if(!isOwner())return false;
+  const box=document.getElementById("ownerCustomerBroadcastHistory");if(!box)return false;
+  try{
+    const result=await cloudRequest("/api/push/customer-broadcasts",{timeoutMs:12000});
+    const rows=Array.isArray(result.broadcasts)?result.broadcasts:[];
+    box.innerHTML=rows.length?rows.map(item=>`<article class="owner-customer-history-row"><div><strong>${escapeHtml(item.title||"Customer notification")}</strong><p>${escapeHtml(item.body||"")}</p><small>${escapeHtml(item.type||"")} · ${escapeHtml(item.audience||"Subscribed customers")} · ${escapeHtml(Number(item.sentCount)||0)} delivered · ${escapeHtml(new Date(item.createdAt||Date.now()).toLocaleString())}</small></div><span>${escapeHtml(customerBroadcastStatusLabel(item.status))}</span></article>`).join(""):"<p class=\"owner-customer-help\">No customer notifications have been sent.</p>";
+    return true;
+  }catch(error){box.innerHTML=`<p class="owner-customer-help">${escapeHtml(error.message||"Notification history could not be loaded.")}</p>`;return false;}
+}
+async function sendOwnerCustomerBroadcast(){
+  if(!isOwner()||ownerCustomerBroadcastPending)return false;
+  const title=String(document.getElementById("ownerCustomerBroadcastTitle")?.value||"").trim().slice(0,100);
+  const message=String(document.getElementById("ownerCustomerBroadcastMessage")?.value||"").trim().slice(0,220);
+  const productId=String(document.getElementById("ownerCustomerBroadcastProduct")?.value||"");
+  const status=document.getElementById("ownerCustomerBroadcastStatus"),button=document.getElementById("ownerCustomerBroadcastSend");
+  if(!title||!message){if(status)status.textContent="Enter both a title and a message before sending.";return false;}
+  if(ownerCustomerBroadcastPreviewKey!==JSON.stringify([title,message,productId])){if(status)status.textContent="Preview the current title, message, and audience before sending.";return false;}
+  if(!window.confirm("Send this special offer to customers who subscribed to Special offers?"))return false;
+  if(!ownerCustomerBroadcastRequestId)ownerCustomerBroadcastRequestId=(crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`).replace(/[^A-Za-z0-9_-]/g,"");
+  ownerCustomerBroadcastPending=true;if(button)button.disabled=true;if(status)status.textContent="Checking saved data and queuing the message…";
+  try{
+    const result=await cloudRequest("/api/push/customer-broadcast",{method:"POST",body:JSON.stringify({title,message,productId,requestId:ownerCustomerBroadcastRequestId}),timeoutMs:15000});
+    if(status)status.textContent=result.duplicate?"This notification was already queued.":"Queued for customers who opted into Special offers.";
+    ownerCustomerBroadcastRequestId="";await loadOwnerCustomerBroadcastHistory();showToast("Customer notification queued for subscribed customers.");return true;
+  }catch(error){if(status)status.textContent=error.message||"The notification was not sent. Your draft remains available to retry.";return false;}
+  finally{ownerCustomerBroadcastPending=false;if(button)button.disabled=false;}
+}
 
 function renderOwnerDashboard(box){
   if(!isOwner()){if(box)box.textContent="Only the store owner can view this dashboard.";return;}
@@ -10983,9 +11112,80 @@ function saveSupportMessage(){
    PROFILE
 ========================================= */
 
+let customerPushActionPending=false;
+let customerPushPreferenceAccount="";
+let customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false};
+let customerPushPreferencesLoaded=false;
+let customerPushRefreshPromise=null;
+function readCustomerPushPreferences(){return {newArrivals:Boolean(document.getElementById("customerPushNewArrivals")?.checked),discounts:Boolean(document.getElementById("customerPushDiscounts")?.checked),specialOffers:Boolean(document.getElementById("customerPushSpecialOffers")?.checked)};}
+function setCustomerPushPreferences(value){customerPushPreferences={newArrivals:value?.newArrivals===true,discounts:value?.discounts===true,specialOffers:value?.specialOffers===true};for(const [key,id] of [["newArrivals","customerPushNewArrivals"],["discounts","customerPushDiscounts"],["specialOffers","customerPushSpecialOffers"]]){const input=document.getElementById(id);if(input)input.checked=customerPushPreferences[key];}}
+function setCustomerPushStatus(message,{enabled=false,registered=false}={}){const status=document.getElementById("customerPushStatus"),enable=document.getElementById("customerPushEnable"),save=document.getElementById("customerPushSave"),disable=document.getElementById("customerPushDisable");if(status)status.textContent=message;if(enable)enable.hidden=registered;if(save)save.hidden=false;if(disable)disable.hidden=!enabled;for(const button of [enable,save,disable])if(button)button.disabled=customerPushActionPending;}
+async function refreshCustomerPushControls(){
+  const section=document.getElementById("customerPushSettings"),account=cloudAccount||currentUser;
+  if(!section)return false;
+  const customer=Boolean(cloudMode&&account&&account.role==="customer"&&!isOwner());section.hidden=!customer;if(!customer)return false;
+  const accountId=String(account.id||account.identifier||"");
+  if(customerPushPreferenceAccount!==accountId){customerPushPreferenceAccount=accountId;customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false};customerPushPreferencesLoaded=false;}
+  if(!ownerPushIsSupported()){setCustomerPushStatus("This browser does not support push notifications. You can still use the shop normally.");const enable=document.getElementById("customerPushEnable");if(enable)enable.hidden=true;return false;}
+  if(customerPushRefreshPromise)return customerPushRefreshPromise;
+  customerPushRefreshPromise=(async()=>{
+    let registration=null,subscription=null,registered=false;
+    try{registration=await navigator.serviceWorker.getRegistration("/");subscription=await registration?.pushManager?.getSubscription();}catch{}
+    if(subscription&&Notification.permission==="denied"){
+      try{await cloudRequest("/api/customer-push/subscription",{method:"DELETE",body:JSON.stringify({endpoint:subscription.endpoint}),timeoutMs:8000});await subscription.unsubscribe();await postPushWorkerSetting(registration,"shivan-customer-push-disable");subscription=null;}catch{}
+    }
+    if(!customerPushPreferencesLoaded){try{const result=await cloudRequest("/api/customer-push/preferences",{method:"POST",body:JSON.stringify({preferences:{action:"get"}}),timeoutMs:10000});setCustomerPushPreferences(result.preferences);customerPushPreferencesLoaded=true;}catch{setCustomerPushPreferences(customerPushPreferences);}}
+    if(subscription){try{const result=await cloudRequest("/api/customer-push/subscription/status",{method:"POST",body:JSON.stringify({endpoint:subscription.endpoint}),timeoutMs:10000});registered=result.registered===true;if(registered&&result.preferences){setCustomerPushPreferences(result.preferences);customerPushPreferencesLoaded=true;}}catch{}}
+    if(!section.isConnected)return false;
+    const topicsEnabled=Object.values(customerPushPreferences).some(Boolean);
+    setCustomerPushStatus(registered?(topicsEnabled?"Customer notifications are enabled on this device. Your selections sync across your account.":"This device is subscribed, but all customer notification topics are paused."):subscription?"This device has a push subscription that is not linked to this customer account. Enable again to reconnect it.":"Off on this device. Choose topics and enable only if you want push notifications.",{enabled:Boolean(subscription),registered});
+    return registered;
+  })().finally(()=>{customerPushRefreshPromise=null;});
+  return customerPushRefreshPromise;
+}
+async function saveCustomerPushPreferences(){
+  const account=cloudAccount||currentUser;if(!account||account.role!=="customer"||isOwner()||customerPushActionPending)return false;
+  const preferences=readCustomerPushPreferences();let registration=null,subscription=null;try{registration=await navigator.serviceWorker?.getRegistration?.("/");subscription=await registration?.pushManager?.getSubscription?.();}catch{}
+  customerPushActionPending=true;setCustomerPushStatus("Saving your notification choices…",{enabled:Boolean(subscription),registered:Boolean(subscription)});
+  try{const result=await cloudRequest("/api/customer-push/preferences",{method:"POST",body:JSON.stringify({endpoint:subscription?.endpoint||"",preferences}),timeoutMs:12000});setCustomerPushPreferences(result.preferences||preferences);customerPushPreferencesLoaded=true;setCustomerPushStatus(Object.values(preferences).some(Boolean)?"Preferences saved for your customer account. Only subscribed devices can receive notifications.":"Customer notification topics are turned off for your account.",{enabled:Boolean(subscription),registered:Boolean(subscription)});showToast("Notification preferences saved.");return true;}
+  catch(error){setCustomerPushStatus(error.message||"Your preferences could not be saved. Try again.",{enabled:Boolean(subscription),registered:Boolean(subscription)});return false;}
+  finally{customerPushActionPending=false;await refreshCustomerPushControls();}
+}
+async function enableCustomerPushNotifications(){
+  const account=cloudAccount||currentUser;if(!account||account.role!=="customer"||isOwner()||customerPushActionPending)return false;
+  if(!ownerPushIsSupported()){showToast("This browser does not support push notifications.");return false;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent||""),installed=window.matchMedia?.("(display-mode: standalone)").matches||navigator.standalone===true;
+  if(ios&&!installed){setCustomerPushStatus("On iPhone or iPad, add Shivan Shop to the Home Screen and open the installed app. iOS/iPadOS 16.4 or later is required.");return false;}
+  const preferences=readCustomerPushPreferences();if(!Object.values(preferences).some(Boolean)){setCustomerPushStatus("Choose at least one notification topic before enabling.");return false;}
+  customerPushActionPending=true;setCustomerPushStatus("Waiting for your browser permission…");let createdSubscription=false,subscription=null;
+  try{
+    let permission=Notification.permission;if(permission==="default")permission=await Notification.requestPermission();
+    if(permission!=="granted"){setCustomerPushStatus("Permission was not granted. You can change it later in browser settings.");return false;}
+    const config=await cloudRequest("/api/customer-push/config",{timeoutMs:12000}),key=pushApplicationServerKey(config.publicKey);
+    if(key.length!==65||key[0]!==4)throw new Error("The server push key is invalid.");
+    const registration=await navigator.serviceWorker.register("/service-worker.js",{scope:"/"});await navigator.serviceWorker.ready;
+    subscription=await registration.pushManager.getSubscription();if(!subscription){subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});createdSubscription=true;}
+    await cloudRequest("/api/customer-push/subscription",{method:"POST",body:JSON.stringify({subscription:subscription.toJSON(),preferences}),timeoutMs:12000});
+    await postPushWorkerSetting(registration,"shivan-customer-push-enable",preferences);
+    setCustomerPushPreferences(preferences);customerPushPreferencesLoaded=true;setCustomerPushStatus("Customer notifications are enabled on this device.",{enabled:true,registered:true});showToast("Customer notifications enabled.");return true;
+  }catch(error){if(createdSubscription&&subscription)await subscription.unsubscribe().catch(()=>{});setCustomerPushStatus(error.message||"Notifications could not be enabled. Your choices are still available to retry.");return false;}
+  finally{customerPushActionPending=false;await refreshCustomerPushControls();}
+}
+async function disableCustomerPushNotifications(){
+  const account=cloudAccount||currentUser;if(!account||account.role!=="customer"||isOwner()||customerPushActionPending)return false;
+  customerPushActionPending=true;let registration=null,subscription=null;try{registration=await navigator.serviceWorker?.getRegistration?.("/");subscription=await registration?.pushManager?.getSubscription?.();}catch{}setCustomerPushStatus("Turning off customer notifications…",{enabled:Boolean(subscription),registered:Boolean(subscription)});
+  try{
+    const endpoint=subscription?.endpoint||"";
+    await cloudRequest("/api/customer-push/preferences",{method:"POST",body:JSON.stringify({endpoint,preferences:{newArrivals:false,discounts:false,specialOffers:false}}),timeoutMs:12000});
+    if(subscription){await cloudRequest("/api/customer-push/subscription",{method:"DELETE",body:JSON.stringify({endpoint}),timeoutMs:12000});await postPushWorkerSetting(registration,"shivan-customer-push-disable");const removed=await subscription.unsubscribe();if(!removed)throw new Error("The browser did not remove this device subscription.");}
+    setCustomerPushPreferences({newArrivals:false,discounts:false,specialOffers:false});customerPushPreferencesLoaded=true;setCustomerPushStatus("Customer notifications are off for your account.");showToast("Customer notifications turned off.");return true;
+  }catch(error){setCustomerPushStatus(error.message||"Notifications could not be turned off. Try again.",{enabled:Boolean(subscription),registered:Boolean(subscription)});return false;}
+  finally{customerPushActionPending=false;await refreshCustomerPushControls();}
+}
+
 function updateProfile(){
 
-  if(!currentUser) return;
+  if(!currentUser){refreshCustomerPushControls();return;}
 
   document.getElementById("profileName")
     .textContent=currentUser.name;
@@ -11001,6 +11201,8 @@ function updateProfile(){
   document.getElementById("ownerPanelButton")
     .classList.toggle("visible",isOwner());
   document.querySelector(".bottom-nav")?.classList.toggle("owner-mode",isOwner());
+
+  refreshCustomerPushControls();
 
 }
 
@@ -11185,6 +11387,9 @@ setInterval(()=>{
 
 document.addEventListener("DOMContentLoaded",()=>{
 
+  const pushUrl=new URL(location.href);
+  if(pushUrl.searchParams.get("ownerPush"))pendingOwnerPushTarget={kind:pushUrl.searchParams.get("ownerPush"),order:pushUrl.searchParams.get("order")||"",alert:pushUrl.searchParams.get("alert")||"",eventId:""};
+  if(pushUrl.searchParams.get("customerPush"))pendingCustomerPushTarget={kind:pushUrl.searchParams.get("customerPush"),productId:pushUrl.searchParams.get("productId")||"",offerId:pushUrl.searchParams.get("offerId")||"",eventId:""};
   loadOwnerAppearance();
   initLanguage();
   loadProducts();
@@ -11197,6 +11402,8 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   initializeCloud().catch(error=>console.warn("Shop startup failed; keeping saved shop content available.",ownerSaveDiagnosticCode(error))).then(async()=>{
     if(!cloudMode)await restoreSession();
+    consumeOwnerPushNavigation();
+    consumeCustomerPushNavigation();
   });
 
 });

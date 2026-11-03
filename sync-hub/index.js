@@ -1,8 +1,15 @@
 import { DurableObject } from "cloudflare:workers";
+import { PushCoordinator } from "./push.mjs";
 
 export class SyncHub extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.pushCoordinator = new PushCoordinator(ctx, env);
+  }
+
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/push/")) return this.pushCoordinator.handle(request);
     if (request.method === "POST" && url.pathname === "/broadcast") {
       let payload;
       try { payload = await request.json(); }
@@ -32,6 +39,10 @@ export class SyncHub extends DurableObject {
 
   async webSocketClose(socket, code, reason) {
     try { socket.close(code, reason); } catch {}
+  }
+
+  async alarm() {
+    await this.pushCoordinator.alarm();
   }
 }
 
