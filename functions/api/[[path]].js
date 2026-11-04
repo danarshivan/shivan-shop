@@ -507,7 +507,7 @@ async function handleCustomerPush(request, env, account, route, url) {
     try {
       const result = await pushHubRequest(env, "/push/customer-subscription", {
         customerId: String(account.id), subscription: body.subscription,
-        preferences: body.preferences, previousEndpoint: String(body.previousEndpoint || ""),
+        previousEndpoint: String(body.previousEndpoint || ""),
       });
       return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
     } catch { return error("This device could not be registered for customer notifications.", 503); }
@@ -525,14 +525,14 @@ async function handleCustomerPush(request, env, account, route, url) {
   }
   if (route === "customer-push/preferences" && request.method === "POST") {
     const raw = await request.text().catch(() => "");
-    if (new TextEncoder().encode(raw).byteLength > 2000) return error("Notification preferences are too large.", 413);
+    if (new TextEncoder().encode(raw).byteLength > 2000) return error("Notification status request is too large.", 413);
     const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
     const endpoint = String(body?.endpoint || "");
     if (endpoint.length > 4096) return error("The device push subscription is invalid.");
     try {
-      const result = await pushHubRequest(env, "/push/customer-preferences", { customerId: String(account.id), endpoint, preferences: body.preferences });
+      const result = await pushHubRequest(env, "/push/customer-notification-status", { customerId: String(account.id), endpoint });
       return json(result.payload, result.response.status, { "Cache-Control": "no-store" });
-    } catch { return error("Notification preferences could not be saved.", 503); }
+    } catch { return error("Notification status could not be checked.", 503); }
   }
   if (route === "customer-push/subscription" && request.method === "DELETE") {
     const raw = await request.text().catch(() => "");

@@ -51,7 +51,7 @@ self.addEventListener("message", event => {
   event.waitUntil((async () => {
     if (type.startsWith("shivan-customer-push-")) {
       const enabled = type === "shivan-customer-push-enable";
-      await writePushSettings({ customerDisabled: !enabled, audience: "customer", ...(event.data?.preferences ? { customerPreferences: event.data.preferences } : {}) });
+      await writePushSettings({ customerDisabled: !enabled, audience: "customer" });
     } else {
       await writePushSettings({ disabled: type === "shivan-push-disable", audience: "owner" });
     }
@@ -120,12 +120,10 @@ self.addEventListener("pushsubscriptionchange", event => {
     const binary = atob(key.padEnd(Math.ceil(key.length / 4) * 4, "="));
     const applicationServerKey = Uint8Array.from(binary, character => character.charCodeAt(0));
     const subscription = await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
-    const preferences = customer ? await readPushSetting("customerPreferences") || {} : undefined;
-    if (customer && !Object.values(preferences).some(value => value === true)) return;
     const save = await fetch(`${prefix}/subscription`, {
       method: "POST", credentials: "same-origin", cache: "no-store",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ subscription: subscription.toJSON(), previousEndpoint: event.oldSubscription?.endpoint || "", ...(customer ? { preferences } : {}) }),
+      body: JSON.stringify({ subscription: subscription.toJSON(), previousEndpoint: event.oldSubscription?.endpoint || "" }),
     });
     if (!save.ok) await subscription.unsubscribe();
   })());
