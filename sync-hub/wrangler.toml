@@ -8,6 +8,11 @@ workers_dev = false
 name = "SYNC_HUB"
 class_name = "SyncHub"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "shivan-shop-db"
+database_id = "bc9da050-3780-428f-aeee-b42bb82b95c0"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["SyncHub"]

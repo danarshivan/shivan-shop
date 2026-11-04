@@ -269,39 +269,129 @@ export class PushCoordinator {
     let p256dhBytes, authBytes;
     try { p256dhBytes = base64UrlToBytes(p256dh); authBytes = base64UrlToBytes(auth); } catch {}
     if (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096 || p256dhBytes?.length !== 65 || p256dhBytes[0] !== 4 || authBytes?.length !== 16) return json({ error: "This browser returned an unsupported push subscription." }, 400);
-    const key = SUBSCRIPTION_PREFIX + await digestKey(endpoint);
-    const oldKey = isAllowedPushEndpoint(previousEndpoint) && previousEndpoint !== endpoint
-      ? SUBSCRIPTION_PREFIX + await digestKey(previousEndpoint)
-      : "";
-    const result = await this.storage.transaction(async transaction => {
-      const current = await transaction.get(key);
-      const old = oldKey ? await transaction.get(oldKey) : null;
-      const prefix = await transaction.list({ prefix: SUBSCRIPTION_PREFIX });
-      const owned = [...prefix.entries()].filter(([storedKey, record]) => storedKey !== oldKey && record?.ownerId === ownerId);
-      if (current?.ownerId && current.ownerId !== ownerId) return { ownerConflict: true };
-      if (!current && owned.length >= 10) return { full: true };
-      if (old?.ownerId === ownerId) await transaction.delete(oldKey);
-      const record = {
-        ownerId,
-        subscription: { endpoint, expirationTime: subscription.expirationTime || null, keys: { p256dh, auth } },
-        createdAt: current?.createdAt || this.clock(),
-        updatedAt: this.clock(),
-        failures: 0,
-      };
-      await transaction.put(key, record);
-      return { renewed: Boolean(current) };
-    });
-    if (result.ownerConflict) return json({ error: "This browser subscription is already linked to another Owner account." }, 409);
-    if (result.full) return json({ error: "This Owner account already has the maximum of 10 enabled devices." }, 429);
+    if (!this.env.DB) return json({ error: "Owner push subscription storage is unavailable." }, 503);
+    const endpointHash = await digestKey(endpoint);
+    const previousHash = isAllowedPushEndpoint(previousEndpoint) && previousEndpoint !== endpoint ? await digestKey(previousEndpoint) : "";
+    let current;
+    let old;
+    let ownedRows;
+    try {
+      current = await this.env.DB.prepare("SELECT endpoint_hash, owner_id, created_at FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      old = previousHash ? await this.env.DB.prepare("SELECT endpoint_hash, owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(previousHash).first() : null;
+      const result = await this.env.DB.prepare("SELECT endpoint_hash FROM owner_push_subscriptions WHERE owner_id=?").bind(ownerId).all();
+      if (result?.success === false) throw new Error("D1 subscription query failed.");
+      ownedRows = result?.results || [];
+    } catch {
+      return json({ error: "Owner push subscription storage could not be checked." }, 503);
+    }
+    if (current?.owner_id && current.owner_id !== ownerId) return json({ error: "This browser subscription is already linked to another Owner account." }, 409);
+    const legacy = await this.storage.list({ prefix: SUBSCRIPTION_PREFIX });
+    const ownedHashes = new Set(ownedRows.map(row => String(row.endpoint_hash || "")));
+    for (const [key, record] of legacy) if (record?.ownerId === ownerId) ownedHashes.add(key.slice(SUBSCRIPTION_PREFIX.length));
+    if (previousHash && old?.owner_id === ownerId) ownedHashes.delete(previousHash);
+    if (!current && !ownedHashes.has(endpointHash) && ownedHashes.size >= 10) return json({ error: "This Owner account already has the maximum of 10 enabled devices." }, 429);
+    const timestamp = this.clock();
+    try {
+      const statements = [this.env.DB.prepare(`INSERT INTO owner_push_subscriptions
+        (endpoint_hash, owner_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at, failures)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ON CONFLICT(endpoint_hash) DO UPDATE SET endpoint=excluded.endpoint, p256dh=excluded.p256dh, auth_secret=excluded.auth_secret,
+          expiration_time=excluded.expiration_time, updated_at=excluded.updated_at, failures=0, last_failure_at=NULL, last_failure_status=NULL
+        WHERE owner_push_subscriptions.owner_id=excluded.owner_id`)
+        .bind(endpointHash, ownerId, endpoint, p256dh, auth, Number(subscription.expirationTime) || null, Number(current?.created_at) || timestamp, timestamp)];
+      if (previousHash && previousHash !== endpointHash) statements.push(this.env.DB.prepare(`DELETE FROM owner_push_subscriptions
+        WHERE endpoint_hash=? AND owner_id=? AND EXISTS (
+          SELECT 1 FROM owner_push_subscriptions WHERE endpoint_hash=? AND owner_id=?
+        )`).bind(previousHash, ownerId, endpointHash, ownerId));
+      const results = await this.env.DB.batch(statements);
+      if (!Array.isArray(results) || results.length !== statements.length || results.some(result => result?.success === false)) throw new Error("D1 subscription write failed.");
+      if (Number(results[0]?.meta?.changes) !== 1) {
+        const saved = await this.env.DB.prepare("SELECT owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+        if (saved?.owner_id && saved.owner_id !== ownerId) return json({ error: "This browser subscription is already linked to another Owner account." }, 409);
+        throw new Error("D1 did not confirm the subscription write.");
+      }
+      if (previousHash && previousHash !== endpointHash) {
+        const legacyOldKey = SUBSCRIPTION_PREFIX + previousHash;
+        const legacyOld = await this.storage.get(legacyOldKey);
+        if (legacyOld?.ownerId === ownerId) await this.storage.delete(legacyOldKey);
+      }
+      const legacyCurrentKey = SUBSCRIPTION_PREFIX + endpointHash;
+      const legacyCurrent = await this.storage.get(legacyCurrentKey);
+      if (legacyCurrent?.ownerId === ownerId) await this.storage.delete(legacyCurrentKey);
+    } catch {
+      return json({ error: "The device subscription could not be saved securely." }, 503);
+    }
     await this.armNext();
-    return json({ ok: true, registered: true, renewed: result.renewed });
+    return json({ ok: true, registered: true, renewed: Boolean(current) });
   }
 
   async subscriptionStatus(ownerId, endpointValue) {
     const endpoint = String(endpointValue || "");
     if (!validOwnerId(ownerId) || !isAllowedPushEndpoint(endpoint) || endpoint.length > 4096) return json({ error: "Invalid subscription status request." }, 400);
-    const record = await this.storage.get(SUBSCRIPTION_PREFIX + await digestKey(endpoint));
-    return json({ ok: true, registered: record?.ownerId === ownerId });
+    if (!this.env.DB) return json({ error: "Owner push subscription storage is unavailable." }, 503);
+    try {
+      const endpointHash = await digestKey(endpoint);
+      const row = await this.env.DB.prepare("SELECT owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      const legacy = await this.storage.get(SUBSCRIPTION_PREFIX + endpointHash);
+      return json({ ok: true, registered: row?.owner_id === ownerId || (!row && legacy?.ownerId === ownerId) });
+    } catch { return json({ error: "This device notification status could not be checked." }, 503); }
+  }
+
+  async findOwnerSubscription(ownerId, endpointHash) {
+    const row = await this.env.DB.prepare(`SELECT endpoint_hash, owner_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at, failures
+      FROM owner_push_subscriptions WHERE endpoint_hash=?`).bind(endpointHash).first();
+    if (row) return row.owner_id === ownerId ? {
+      ownerId: row.owner_id,
+      subscription: { endpoint: row.endpoint, expirationTime: row.expiration_time || null, keys: { p256dh: row.p256dh, auth: row.auth_secret } },
+      createdAt: Number(row.created_at) || 0, updatedAt: Number(row.updated_at) || 0, failures: Number(row.failures) || 0,
+      endpointHash, d1: true,
+    } : null;
+    const legacy = await this.storage.get(SUBSCRIPTION_PREFIX + endpointHash);
+    return legacy?.ownerId === ownerId ? { ...legacy, endpointHash, d1: false } : null;
+  }
+
+  async listOwnerSubscriptions() {
+    if (!this.env.DB) throw new Error("Owner push subscription storage is unavailable.");
+    const result = await this.env.DB.prepare(`SELECT endpoint_hash, owner_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at, failures
+      FROM owner_push_subscriptions`).all();
+    if (result?.success === false) throw new Error("D1 subscription read failed.");
+    const subscriptions = new Map();
+    for (const row of result?.results || []) {
+      const endpointHash = String(row.endpoint_hash || "");
+      if (!/^[a-f0-9]{64}$/i.test(endpointHash) || !validOwnerId(row.owner_id)) continue;
+      subscriptions.set(SUBSCRIPTION_PREFIX + endpointHash, {
+        ownerId: row.owner_id,
+        subscription: { endpoint: row.endpoint, expirationTime: row.expiration_time || null, keys: { p256dh: row.p256dh, auth: row.auth_secret } },
+        createdAt: Number(row.created_at) || 0, updatedAt: Number(row.updated_at) || 0, failures: Number(row.failures) || 0,
+        endpointHash, d1: true,
+      });
+    }
+    // Deliver to existing Durable Object subscriptions until those devices
+    // renew or unsubscribe. This avoids dropping already-enabled devices.
+    const legacy = await this.storage.list({ prefix: SUBSCRIPTION_PREFIX });
+    for (const [key, record] of legacy) if (!subscriptions.has(key) && record?.ownerId && record?.subscription) subscriptions.set(key, { ...record, endpointHash: key.slice(SUBSCRIPTION_PREFIX.length), d1: false });
+    return subscriptions;
+  }
+
+  async updateOwnerSubscription(key, stored, fields) {
+    if (!stored?.d1) return this.storage.put(key, { ...stored, ...fields });
+    const endpointHash = stored.endpointHash || key.slice(SUBSCRIPTION_PREFIX.length);
+    const ownerId = stored.ownerId;
+    const updated = { ...stored, ...fields };
+    const result = await this.env.DB.prepare(`UPDATE owner_push_subscriptions SET failures=?, last_success_at=?, last_failure_at=?, last_failure_status=?, updated_at=?
+      WHERE endpoint_hash=? AND owner_id=?`).bind(
+      Number(updated.failures) || 0, Number(updated.lastSuccessAt) || null, Number(updated.lastFailureAt) || null,
+      Number(updated.lastFailureStatus) || null, this.clock(), endpointHash, ownerId,
+    ).run();
+    if (result?.success === false) throw new Error("D1 subscription status update failed.");
+  }
+
+  async deleteOwnerSubscription(key, stored) {
+    if (!stored?.d1) return this.storage.delete(key);
+    const endpointHash = stored.endpointHash || key.slice(SUBSCRIPTION_PREFIX.length);
+    const result = await this.env.DB.prepare("DELETE FROM owner_push_subscriptions WHERE endpoint_hash=? AND owner_id=?").bind(endpointHash, stored.ownerId).run();
+    if (result?.success === false) throw new Error("D1 subscription removal failed.");
+    return Number(result?.meta?.changes) > 0;
   }
 
   async sendOwnerTest(ownerId, endpointValue, requestIdValue) {
@@ -312,17 +402,19 @@ export class PushCoordinator {
     }
     const endpointHash = await digestKey(endpoint);
     const testKey = OWNER_TEST_PREFIX + await digestKey(`${ownerId}\0${requestId}`);
+    let registered;
+    try { registered = await this.findOwnerSubscription(ownerId, endpointHash); }
+    catch { return json({ error: "This device notification status could not be checked." }, 503); }
+    if (!registered?.subscription) return json({ error: "Enable Owner notifications on this device before sending a test." }, 404);
     const reserved = await this.storage.transaction(async transaction => {
       const existing = await transaction.get(testKey);
       if (existing) {
         if (existing.ownerId !== ownerId || existing.endpointHash !== endpointHash) return { conflict: true };
         return { existing };
       }
-      const stored = await transaction.get(SUBSCRIPTION_PREFIX + endpointHash);
-      if (stored?.ownerId !== ownerId || !stored.subscription) return { notRegistered: true };
       const record = { ownerId, endpointHash, requestId, status: "sending", createdAt: this.clock() };
       await transaction.put(testKey, record);
-      return { record, subscription: stored.subscription };
+      return { record, subscription: registered.subscription };
     });
     if (reserved.conflict) return json({ error: "This test request was already used for a different device." }, 409);
     if (reserved.notRegistered) return json({ error: "Enable Owner notifications on this device before sending a test." }, 404);
@@ -352,12 +444,23 @@ export class PushCoordinator {
 
   async removeSubscription(ownerId, endpointValue) {
     const endpoint = String(endpointValue || "");
-    if (!isAllowedPushEndpoint(endpoint)) return json({ error: "Invalid push endpoint." }, 400);
-    const key = SUBSCRIPTION_PREFIX + await digestKey(endpoint);
-    const current = await this.storage.get(key);
-    if (current?.ownerId === ownerId) await this.storage.delete(key);
-    await this.armNext();
-    return json({ ok: true, removed: Boolean(current?.ownerId === ownerId) });
+    if (!validOwnerId(ownerId) || !isAllowedPushEndpoint(endpoint)) return json({ error: "Invalid push endpoint." }, 400);
+    if (!this.env.DB) return json({ error: "Owner push subscription storage is unavailable." }, 503);
+    const endpointHash = await digestKey(endpoint);
+    const key = SUBSCRIPTION_PREFIX + endpointHash;
+    try {
+      const row = await this.env.DB.prepare("SELECT owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      const legacy = await this.storage.get(key);
+      let removed = false;
+      if (row?.owner_id === ownerId) {
+        const result = await this.env.DB.prepare("DELETE FROM owner_push_subscriptions WHERE endpoint_hash=? AND owner_id=?").bind(endpointHash, ownerId).run();
+        if (result?.success === false) throw new Error("D1 subscription removal failed.");
+        removed = Number(result?.meta?.changes) > 0;
+      }
+      if (legacy?.ownerId === ownerId) removed = await this.storage.delete(key) || removed;
+      await this.armNext();
+      return json({ ok: true, removed });
+    } catch { return json({ error: "This device could not be removed from Owner notifications." }, 503); }
   }
 
   async enqueueEvent(ownerId, event) {
@@ -491,7 +594,7 @@ export class PushCoordinator {
       await this.enqueueEvent(item.ownerId, item.event);
     }
 
-    const subscriptions = await this.storage.list({ prefix: SUBSCRIPTION_PREFIX });
+    const subscriptions = await this.listOwnerSubscriptions();
     const events = await this.storage.list({ prefix: EVENT_PREFIX });
     for (const [key, event] of events) {
       if (Number(event?.createdAt) < now - RETENTION_MS && event?.status !== "pending") {
@@ -514,22 +617,22 @@ export class PushCoordinator {
         catch { result = { ok: false, status: 0 }; }
         if (result?.ok) {
           delivered.add(subscriptionKey);
-          await this.storage.put(subscriptionKey, { ...stored, failures: 0, lastSuccessAt: now });
+          try { await this.updateOwnerSubscription(subscriptionKey, stored, { failures: 0, lastSuccessAt: now }); } catch {}
           continue;
         }
         if (result?.remove) {
-          await this.storage.delete(subscriptionKey);
+          try { await this.deleteOwnerSubscription(subscriptionKey, stored); } catch {}
           permanentFailure = true;
           continue;
         }
         if (Number(result?.status) === 0 || Number(result?.status) === 429 || Number(result?.status) >= 500) {
           transientFailure = true;
-          await this.storage.put(subscriptionKey, { ...stored, failures: (Number(stored.failures) || 0) + 1, lastFailureAt: now });
+          try { await this.updateOwnerSubscription(subscriptionKey, stored, { failures: (Number(stored.failures) || 0) + 1, lastFailureAt: now }); } catch {}
           continue;
         }
         // Authentication or malformed responses are not retried forever.
         permanentFailure = true;
-        await this.storage.put(subscriptionKey, { ...stored, lastFailureAt: now, lastFailureStatus: Number(result?.status) || 0 });
+        try { await this.updateOwnerSubscription(subscriptionKey, stored, { lastFailureAt: now, lastFailureStatus: Number(result?.status) || 0 }); } catch {}
       }
       if (transientFailure && Number(event.attempts) + 1 < MAX_RETRIES) {
         const attempts = Number(event.attempts) + 1;

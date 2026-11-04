@@ -11,6 +11,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const b64 = bytes => bytesToBase64Url(bytes);
 const decode = value => base64UrlToBytes(value);
+const hexHash = async value => [...new Uint8Array(await webcrypto.subtle.digest("SHA-256", encoder.encode(String(value))))].map(byte => byte.toString(16).padStart(2, "0")).join("");
 
 class MemoryStorage {
   constructor() { this.values = new Map(); this.alarmAt = 0; this.lock = Promise.resolve(); }
@@ -40,12 +41,91 @@ class MemoryStorage {
   async deleteAlarm() { this.alarmAt = 0; }
 }
 
+class MemoryOwnerPushD1 {
+  rows = new Map();
+  failNextWrite = false;
+
+  prepare(sql) {
+    const statement = {
+      sql, values: [],
+      bind: (...values) => { statement.values = values; return statement; },
+      first: async () => this.first(statement.sql, statement.values),
+      all: async () => this.all(statement.sql, statement.values),
+      run: async () => this.run(statement.sql, statement.values),
+    };
+    return statement;
+  }
+
+  async first(sql, values) {
+    if (!sql.includes("owner_push_subscriptions")) return null;
+    if (sql.includes("WHERE endpoint_hash=?")) return this.rows.get(String(values[0])) || null;
+    return null;
+  }
+
+  async all(sql, values) {
+    if (!sql.includes("owner_push_subscriptions")) return { success: true, results: [] };
+    const rows = [...this.rows.values()].filter(row => !sql.includes("WHERE owner_id=?") || row.owner_id === String(values[0]));
+    return { success: true, results: structuredClone(rows) };
+  }
+
+  async run(sql, values) {
+    if (!sql.includes("owner_push_subscriptions")) return { success: true, meta: { changes: 0 } };
+    if (this.failNextWrite) { this.failNextWrite = false; throw new Error("Simulated D1 owner push write failure"); }
+    if (sql.startsWith("INSERT INTO owner_push_subscriptions")) {
+      const [endpoint_hash, owner_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at] = values;
+      const existing = this.rows.get(endpoint_hash);
+      if (existing && existing.owner_id !== owner_id) return { success: true, meta: { changes: 0 } };
+      this.rows.set(endpoint_hash, {
+        endpoint_hash, owner_id, endpoint, p256dh, auth_secret, expiration_time,
+        created_at: existing?.created_at || created_at, updated_at, failures: 0,
+        last_success_at: null, last_failure_at: null, last_failure_status: null,
+      });
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.startsWith("DELETE FROM owner_push_subscriptions")) {
+      const [endpoint_hash, owner_id] = values;
+      const row = this.rows.get(endpoint_hash);
+      if (!row || row.owner_id !== owner_id) return { success: true, meta: { changes: 0 } };
+      if (values.length === 4) {
+        const [,, replacementHash, replacementOwnerId] = values;
+        const replacement = this.rows.get(replacementHash);
+        if (!replacement || replacement.owner_id !== replacementOwnerId) return { success: true, meta: { changes: 0 } };
+      }
+      this.rows.delete(endpoint_hash);
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.startsWith("UPDATE owner_push_subscriptions")) {
+      const [failures, last_success_at, last_failure_at, last_failure_status, updated_at, endpoint_hash, owner_id] = values;
+      const row = this.rows.get(endpoint_hash);
+      if (!row || row.owner_id !== owner_id) return { success: true, meta: { changes: 0 } };
+      this.rows.set(endpoint_hash, { ...row, failures, last_success_at, last_failure_at, last_failure_status, updated_at });
+      return { success: true, meta: { changes: 1 } };
+    }
+    return { success: true, meta: { changes: 0 } };
+  }
+
+  async batch(statements) {
+    const snapshot = new Map([...this.rows].map(([key, row]) => [key, structuredClone(row)]));
+    try {
+      const results = [];
+      for (const statement of statements) results.push(await this.run(statement.sql, statement.values));
+      if (results.some(result => result?.success === false)) throw new Error("Simulated D1 batch failure");
+      return results;
+    } catch (error) {
+      this.rows = snapshot;
+      throw error;
+    }
+  }
+}
+
 function createHarness({ now = 1_800_000_000_000, send = async () => ({ ok: true, status: 201 }), env = {} } = {}) {
   const storage = new MemoryStorage();
   const ctx = { storage, getWebSockets: () => [] };
+  const db = env.DB || new MemoryOwnerPushD1();
+  const workerEnv = { ...env, DB: db };
   let clock = now;
-  const coordinator = new PushCoordinator(ctx, env, { clock: () => clock, send });
-  return { storage, ctx, coordinator, setNow: value => { clock = value; } };
+  const coordinator = new PushCoordinator(ctx, workerEnv, { clock: () => clock, send });
+  return { storage, ctx, db, coordinator, setNow: value => { clock = value; } };
 }
 
 function fakeSubscription(endpoint = "https://fcm.googleapis.com/fcm/send/test-endpoint") {
@@ -126,7 +206,17 @@ async function testSubscriptionsAndAuthorization() {
 
   const base = "https://fcm.googleapis.com/fcm/send/device-";
   const first = fakeSubscription(base + "1");
-  assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: first } })).status, 200);
+  const firstRegistration = await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: first } });
+  assert.equal(firstRegistration.status, 200);
+  assert.equal(h.db.rows.size, 1, "new Owner push subscriptions are persisted in the shared D1 table");
+  const savedSubscription = [...h.db.rows.values()][0];
+  assert.equal(savedSubscription.owner_id, "owner-A");
+  assert.equal(savedSubscription.endpoint, first.endpoint);
+  assert.equal(savedSubscription.p256dh, first.keys.p256dh);
+  assert.equal(savedSubscription.auth_secret, first.keys.auth);
+  assert.equal((await firstRegistration.clone().json()).registered, true);
+  assert.equal(JSON.stringify(await firstRegistration.json()).includes(first.endpoint), false, "subscription responses never disclose the saved endpoint");
+  assert.equal((await listPrefix(h.storage, "shivan-push:subscription:")).length, 0, "new Owner subscriptions are not duplicated into Durable Object storage");
   assert.equal((await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-B", subscription: first } })).status, 409, "a second owner cannot claim an existing browser endpoint");
   const status = async (ownerId, endpoint) => call(h.coordinator, "/push/subscription-status", { method: "POST", body: { ownerId, endpoint } });
   assert.equal((await (await status("owner-A", first.endpoint)).json()).registered, true);
@@ -146,6 +236,29 @@ async function testSubscriptionsAndAuthorization() {
   assert.equal((await wrongOwnerDelete.json()).removed, false, "one owner cannot delete another owner's subscription");
   const removed = await call(h.coordinator, "/push/unsubscribe", { method: "POST", body: { ownerId: "owner-A", endpoint: renewed.endpoint } });
   assert.equal((await removed.json()).removed, true);
+  assert.equal([...h.db.rows.values()].some(row => row.endpoint === renewed.endpoint), false, "unsubscribe removes the authenticated Owner device from D1");
+
+  const failedStorage = createHarness();
+  failedStorage.db.failNextWrite = true;
+  const storageFailure = await call(failedStorage.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: first } });
+  assert.equal(storageFailure.status, 503, "D1 write failures are reported instead of claiming registration succeeded");
+  assert.equal(failedStorage.db.rows.size, 0);
+}
+
+async function testLegacyOwnerSubscriptionsRemainDeliverable() {
+  const sent = [];
+  const h = createHarness({ send: async (subscription, payload) => { sent.push({ endpoint: subscription.endpoint, payload }); return { ok: true, status: 201 }; } });
+  const current = fakeSubscription("https://fcm.googleapis.com/fcm/send/current-device");
+  const oldDevice = fakeSubscription("https://fcm.googleapis.com/fcm/send/legacy-device");
+  await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: current } });
+  const currentHash = await hexHash(current.endpoint);
+  await h.storage.put(`shivan-push:subscription:${currentHash}`, { ownerId: "owner-A", subscription: fakeSubscription(current.endpoint), failures: 0 });
+  await h.storage.put(`shivan-push:subscription:${await hexHash(oldDevice.endpoint)}`, { ownerId: "owner-A", subscription: oldDevice, failures: 0 });
+  const event = { eventId: "order:legacy-migration", type: "new_order", title: "New order received", body: "Order is ready.", url: "/?ownerPush=orders" };
+  await call(h.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event } });
+  await h.coordinator.alarm();
+  assert.deepEqual(sent.map(item => item.endpoint).sort(), [current.endpoint, oldDevice.endpoint].sort(), "D1 and existing Durable Object subscriptions are both delivered without duplicate sends");
+  assert.equal((await listPrefix(h.storage, "shivan-push:event:"))[0].status, "sent");
 }
 
 async function testOwnerSingleDeviceTestNotification() {
@@ -297,7 +410,7 @@ async function testEventDeliveryAndFailures() {
   await call(gone.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } });
   await call(gone.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { ...event, eventId: "out:gone", type: "out_of_stock", url: "/?ownerPush=alerts" } } });
   await gone.coordinator.alarm();
-  assert.equal((await listPrefix(gone.storage, "shivan-push:subscription:")).length, 0, "410 endpoints are removed");
+  assert.equal(gone.db.rows.size, 0, "410 endpoints are removed from D1");
   assert.equal((await listPrefix(gone.storage, "shivan-push:event:"))[0].status, "failed");
 
   const noSubscribers = createHarness();
@@ -578,6 +691,12 @@ async function testServiceWorkerAndOwnerControls() {
   assert.equal(posted.at(-1).target.url, "https://shop.example.test/?ownerPush=alerts", "tapping the test returns to the Owner Smart Alerts section");
 
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const workerConfig = await readFile(new URL("../sync-hub/wrangler.toml", import.meta.url), "utf8");
+const ownerPushMigration = await readFile(new URL("../migrations/0003_owner_push_subscriptions.sql", import.meta.url), "utf8");
+assert.match(workerConfig, /binding\s*=\s*"DB"[\s\S]*database_name\s*=\s*"shivan-shop-db"[\s\S]*database_id\s*=\s*"bc9da050-3780-428f-aeee-b42bb82b95c0"/, "SyncHub is configured to use the existing shared D1 database");
+for (const column of ["endpoint_hash", "owner_id", "endpoint", "p256dh", "auth_secret", "expiration_time", "failures"]) assert.match(ownerPushMigration, new RegExp(`\\b${column}\\b`), `the additive Owner subscription table includes ${column}`);
+assert.match(ownerPushMigration, /REFERENCES accounts\(id\) ON DELETE CASCADE/, "Owner subscriptions follow the authorized account lifecycle");
+assert.doesNotMatch(ownerPushMigration, /DROP\s+TABLE|DELETE\s+FROM/i, "the push migration never removes existing data");
   assert.equal((html.match(/Notification\.requestPermission\(/g) || []).length, 2, "permission is requested only from explicit Owner and customer enable handlers");
   assert.match(html, /function enableOwnerPushNotifications\(\)/);
   assert.match(html, /if\(!isOwner\(\)\)return false/);
@@ -594,6 +713,7 @@ async function testServiceWorkerAndOwnerControls() {
 
 await testWebPushCrypto();
 await testSubscriptionsAndAuthorization();
+await testLegacyOwnerSubscriptionsRemainDeliverable();
 await testOwnerSingleDeviceTestNotification();
 await testEventDeliveryAndFailures();
 await testStockAndDiscountScheduling();
