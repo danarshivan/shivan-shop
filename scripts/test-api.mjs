@@ -226,9 +226,7 @@ class MemoryD1 {
   sessions = new Map();
   orders = new Map();
   failNextProductWrite = false;
-  failNextMediaWrite = false;
   failNextProductResult = false;
-  failNextMediaResult = false;
   failNextShopResult = false;
   failNextOrderWrite = false;
 
@@ -362,17 +360,9 @@ class MemoryD1 {
     }
     if (sql.includes("INSERT INTO shop_state")) {
       const [key, value] = values;
-      if (!key.startsWith("media:") && this.failNextShopResult) {
+      if (this.failNextShopResult) {
         this.failNextShopResult = false;
         return { success: false, error: "Simulated D1 shop result failure" };
-      }
-      if (key.startsWith("media:") && this.failNextMediaResult) {
-        this.failNextMediaResult = false;
-        return { success: false, error: "Simulated D1 media result failure" };
-      }
-      if (key.startsWith("media:") && this.failNextMediaWrite) {
-        this.failNextMediaWrite = false;
-        throw new Error("Simulated D1 media write failure");
       }
       if (key === "shivan_shop_products" && this.failNextProductResult) {
         this.failNextProductResult = false;
@@ -390,8 +380,39 @@ class MemoryD1 {
   }
 }
 
+class MemoryR2 {
+  objects = new Map();
+  failNextPut = false;
+  putCount = 0;
+
+  async put(key, bytes, options = {}) {
+    this.putCount++;
+    if (this.failNextPut) {
+      this.failNextPut = false;
+      throw new Error("Simulated R2 write failure");
+    }
+    const body = new Uint8Array(bytes);
+    const contentType = options.httpMetadata?.contentType || "application/octet-stream";
+    this.objects.set(key, { bytes: body, contentType, cacheControl: options.httpMetadata?.cacheControl || "" });
+    return { key, size: body.byteLength };
+  }
+
+  async get(key) {
+    const object = this.objects.get(key);
+    if (!object) return null;
+    return {
+      body: new Uint8Array(object.bytes),
+      writeHttpMetadata: headers => {
+        if (object.contentType) headers.set("Content-Type", object.contentType);
+        if (object.cacheControl) headers.set("Cache-Control", object.cacheControl);
+      },
+    };
+  }
+}
+
 const DB = new MemoryD1();
-const env = { DB, OWNER_SETUP_TOKEN: "test-only-owner-code" };
+const MEDIA = new MemoryR2();
+const env = { DB, MEDIA, OWNER_SETUP_TOKEN: "test-only-owner-code" };
 const context = async request => onRequest({ request, env });
 const ownerSaveLogLines = [];
 const originalConsoleInfo = console.info;
@@ -453,41 +474,51 @@ const ownerBadPassword = await context(new Request("https://shop.test/api/auth/l
 }));
 assert.equal(ownerBadPassword.status, 401, "an incorrect owner password must not create a session");
 
-const uploadRequest = () => new Request("https://shop.test/api/media/upload", {
+const uploadRequest = (bytes = imageBytes, requestId = "upload-regression-test-001") => new Request("https://shop.test/api/media/upload", {
   method: "POST",
-  headers: { Origin: "https://shop.test", "Content-Type": "image/webp", Cookie: cookie, "X-Client-Request-ID": "upload-regression-test-001" },
-  body: imageBytes,
+  headers: { Origin: "https://shop.test", "Content-Type": "image/webp", Cookie: cookie, "X-Client-Request-ID": requestId },
+  body: bytes,
 });
 const upload = await context(uploadRequest());
-assert.equal(upload.status, 201, "an authenticated owner should upload without an R2 binding");
+assert.equal(upload.status, 201, "an authenticated owner upload should be acknowledged after R2 confirms it");
 const uploadData = await upload.json();
 const { url: imageUrl } = uploadData;
-assert.equal(uploadData.persisted, true, "the image API must explicitly acknowledge its D1 write");
+assert.equal(uploadData.persisted, true, "the image API must explicitly acknowledge its R2 write");
 assert.equal(uploadData.requestId, "upload-regression-test-001");
 assert.match(imageUrl, /^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.webp$/);
+const uploadedKey = imageUrl.replace(/^\/api\/media\//, "");
+assert.equal(MEDIA.objects.has(uploadedKey), true, "the uploaded image bytes must exist in the shared R2 bucket");
+assert.deepEqual(MEDIA.objects.get(uploadedKey).bytes, imageBytes, "R2 must receive the original validated image bytes");
+assert.equal(MEDIA.objects.get(uploadedKey).contentType, "image/webp", "R2 metadata must preserve the image content type");
+assert.equal(DB.shop.has(`media:${uploadedKey}`), false, "new image bytes must not be stored in D1");
 
-DB.failNextMediaWrite = true;
 const originalConsoleError = console.error;
+const failedUploadBytes = Uint8Array.from([...imageBytes, 2]);
+MEDIA.failNextPut = true;
 let failedImageUpload;
 try {
   console.error = () => {};
-  failedImageUpload = await context(uploadRequest());
+  failedImageUpload = await context(uploadRequest(failedUploadBytes, "upload-r2-failure-test"));
 } finally {
   console.error = originalConsoleError;
 }
-assert.equal(failedImageUpload.status, 503, "D1 image-write failures should be reported as shared-storage errors");
+assert.equal(failedImageUpload.status, 503, "R2 image-write failures should be reported as shared-storage errors");
 assert.match((await failedImageUpload.json()).error, /could not be saved to shared cloud storage/i);
 
-DB.failNextMediaResult = true;
+const unconfirmedUploadBytes = Uint8Array.from([...imageBytes, 3]);
+MEDIA.failNextPut = true;
 let unconfirmedImageUpload;
 try {
   console.error = () => {};
-  unconfirmedImageUpload = await context(uploadRequest());
+  unconfirmedImageUpload = await context(uploadRequest(unconfirmedUploadBytes, "upload-r2-unconfirmed-test"));
 } finally {
   console.error = originalConsoleError;
 }
-assert.equal(unconfirmedImageUpload.status, 503, "D1 success:false must not return an image URL as if the upload succeeded");
+assert.equal(unconfirmedImageUpload.status, 503, "a failed R2 put must not return an image URL as if the upload succeeded");
 assert.match((await unconfirmedImageUpload.json()).error, /could not be saved to shared cloud storage/i);
+const unboundMediaUpload = await onRequest({ request: uploadRequest(Uint8Array.from([...imageBytes, 6]), "upload-r2-binding-missing-test"), env: { DB, OWNER_SETUP_TOKEN: env.OWNER_SETUP_TOKEN } });
+assert.equal(unboundMediaUpload.status, 503, "a missing MEDIA binding must fail clearly instead of acknowledging a D1-only image save");
+assert.equal((await unboundMediaUpload.json()).code, "MEDIA_UNAVAILABLE");
 
 const imageResponse = await context(new Request(`https://shop.test${imageUrl}`));
 assert.equal(imageResponse.status, 200, "a shared shop image should be readable without an account");
@@ -503,7 +534,7 @@ const save = await context(new Request("https://shop.test/api/sync", {
     id: productId, name: "Test product", names: { en: "Test product", ar: "منتج اختبار", ku: "بەرهەمی تاقیکردنەوە" },
     price: 12000, category: "Jackets", sizes: ["M", "L"], colors: ["#ff0000"], colorNames: ["Red"],
     variants: [{ color: "#ff0000", size: "M", stock: 3 }, { color: "#ff0000", size: "L", stock: 0 }],
-    stock: 3, description: "Product details", image: imageUrl, images: [{ src: imageUrl, color: "#ff0000" }],
+    stock: 3, description: "Product details", image: inlineImage, images: [{ src: inlineImage, color: "#ff0000" }],
   }]) }),
 }));
 assert.equal(save.status, 200, "owner product data referencing an uploaded crop should save into D1");
@@ -525,6 +556,8 @@ assert.equal(storedProducts[0].category, "Jackets", "the shared product save mus
 assert.equal(storedProducts[0].description, "Product details", "the shared product save must preserve product details");
 assert.match(storedProducts[0].image, /^\/api\/media\/shop\//);
 assert.equal(storedProducts[0].images[0].src, imageUrl, "the saved product must keep the uploaded cropped-image URL");
+assert.equal(storedProducts[0].image, imageUrl, "inline product images should be converted to their shared R2 URL before D1 persistence");
+assert.doesNotMatch(DB.shop.get("shivan_shop_products"), /data:image\//, "D1 should persist product data and image URLs, not image bytes");
 
 const discountBaseProduct = JSON.parse(DB.shop.get("shivan_shop_products"))[0];
 for (const percent of [1,10,20,30,50,99]) {
@@ -590,10 +623,12 @@ const categorySave = await context(new Request("https://shop.test/api/sync", {
 assert.equal(categorySave.status, 200, "owner categories should save to shared D1");
 assert.equal((await categorySave.json()).persisted, true, "category save should include D1 acknowledgement");
 assert.equal(DB.shop.get(categoryKey), categoryValue, "category names should persist in D1");
+const bannerImageBytes = Uint8Array.from([...imageBytes, 4]);
+const inlineBannerImage = `data:image/webp;base64,${Buffer.from(bannerImageBytes).toString("base64")}`;
 const bannerSave = await context(new Request("https://shop.test/api/sync", {
   method: "PUT",
   headers: { "Content-Type": "application/json", Cookie: cookie },
-  body: JSON.stringify({ key: "shivan_shop_ads", value: JSON.stringify([{ id: "banner-1", title: "Test banner", image: inlineImage }]) }),
+  body: JSON.stringify({ key: "shivan_shop_ads", value: JSON.stringify([{ id: "banner-1", title: "Test banner", image: inlineBannerImage }]) }),
 }));
 assert.equal(bannerSave.status, 200, "owner banner data and inline photos should save into D1");
 assert.deepEqual(await bannerSave.json(), { ok: true, key: "shivan_shop_ads", persisted: true, requestId: bannerSave.headers.get("X-Request-ID") });
@@ -601,10 +636,25 @@ assert.equal(JSON.parse(DB.shop.get("shivan_shop_ads"))[0].title, "Test banner",
 const categorySecondDevice = await context(new Request("https://shop.test/api/sync"));
 assert.equal(JSON.parse((await categorySecondDevice.json()).shop[categoryKey])[1], "Tops", "category data should load for another device");
 const bannerStored = JSON.parse(DB.shop.get("shivan_shop_ads"));
-assert.match(bannerStored[0].image, /^\/api\/media\/shop\//, "banner records should reference their shared D1 image");
+assert.match(bannerStored[0].image, /^\/api\/media\/shop\//, "banner records should reference their shared R2 image");
+assert.doesNotMatch(DB.shop.get("shivan_shop_ads"), /data:image\//, "D1 should persist banner text and image URL, not the image bytes");
 const bannerImageResponse = await context(new Request(`https://shop.test${bannerStored[0].image}`));
-assert.equal(bannerImageResponse.status, 200, "a saved banner image should load from D1");
-assert.deepEqual(new Uint8Array(await bannerImageResponse.arrayBuffer()), imageBytes);
+assert.equal(bannerImageResponse.status, 200, "a saved banner image should load from R2");
+assert.deepEqual(new Uint8Array(await bannerImageResponse.arrayBuffer()), bannerImageBytes);
+const bannerR2Key = bannerStored[0].image.replace(/^\/api\/media\//, "");
+assert.equal(MEDIA.objects.has(bannerR2Key), true, "the banner image bytes must be stored in R2");
+const savedBannerForSecondDevice = JSON.parse((await (await context(new Request("https://shop.test/api/sync"))).json()).shop.shivan_shop_ads)[0];
+assert.equal(savedBannerForSecondDevice.image, bannerStored[0].image, "another device should receive the persisted banner image URL from D1");
+const priorBannerValue = DB.shop.get("shivan_shop_ads");
+const failedBannerImageBytes = Uint8Array.from([...imageBytes, 5]);
+MEDIA.failNextPut = true;
+const failedBannerSave = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+  body: JSON.stringify({ key: "shivan_shop_ads", value: JSON.stringify([{ id: "banner-2", title: "Unstored banner", image: `data:image/webp;base64,${Buffer.from(failedBannerImageBytes).toString("base64")}` }]) }),
+}));
+assert.equal(failedBannerSave.status, 503, "failed R2 image storage must reject a banner update");
+assert.equal((await failedBannerSave.json()).code, "R2_WRITE_FAILED");
+assert.equal(DB.shop.get("shivan_shop_ads"), priorBannerValue, "a failed banner image write must leave the previous banner data unchanged");
 
 DB.failNextShopResult = true;
 const failedOwnerSettingWrite = await context(new Request("https://shop.test/api/sync", {
@@ -638,12 +688,11 @@ assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].id, productId, "
 
 const otherBytes = Uint8Array.from([...imageBytes, 1]);
 const otherInlineImage = `data:image/webp;base64,${Buffer.from(otherBytes).toString("base64")}`;
-const mediaRowsBeforeBatchFailure = [...DB.shop.keys()].filter(key => key.startsWith("media:")).length;
-DB.failNextMediaResult = true;
-let unconfirmedCroppedImageReference;
+MEDIA.failNextPut = true;
+let failedCroppedImageReference;
 try {
   console.error = () => {};
-  unconfirmedCroppedImageReference = await context(new Request("https://shop.test/api/sync", {
+  failedCroppedImageReference = await context(new Request("https://shop.test/api/sync", {
     method: "PUT",
     headers: { "Content-Type": "application/json", Cookie: cookie },
     body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([{ ...JSON.parse(DB.shop.get("shivan_shop_products"))[0], id: productId + 2, name: "Product with unconfirmed crop", image: otherInlineImage, images: [{ src: otherInlineImage, color: "#ff0000" }] }]) }),
@@ -651,32 +700,25 @@ try {
 } finally {
   console.error = originalConsoleError;
 }
-assert.equal(unconfirmedCroppedImageReference.status, 503, "a failed D1 media batch must block product persistence and return an error");
-assert.match((await unconfirmedCroppedImageReference.json()).error, /shared database could not confirm/i);
-assert.equal([...DB.shop.keys()].filter(key => key.startsWith("media:")).length, mediaRowsBeforeBatchFailure, "a failed D1 media batch must not leave a media row behind in the test database");
+assert.equal(failedCroppedImageReference.status, 503, "a failed R2 image write must block product persistence and return an error");
+const failedCropData = await failedCroppedImageReference.json();
+assert.equal(failedCropData.code, "R2_WRITE_FAILED");
+assert.match(failedCropData.error, /image could not be saved to shared cloud storage/i);
 assert.equal(JSON.parse(DB.shop.get("shivan_shop_products"))[0].id, productId, "product data must not update when a referenced image write failed");
 
-// Existing catalog URLs are kept intact. Simulate a legacy R2 object to ensure
-// the read fallback remains available without using R2 for new uploads.
+// Existing D1- and R2-backed image URLs remain readable without migrating them.
+const legacyD1Key = `shop/${"A".repeat(43)}.png`;
+DB.shop.set(`media:${legacyD1Key}`, JSON.stringify({ mime: "image/png", data: Buffer.from(imageBytes).toString("base64") }));
+const legacyD1ImageResponse = await context(new Request(`https://shop.test/api/media/${legacyD1Key}`));
+assert.equal(legacyD1ImageResponse.status, 200, "existing D1-backed images remain readable");
+assert.equal(legacyD1ImageResponse.headers.get("Content-Type"), "image/png");
+assert.deepEqual(new Uint8Array(await legacyD1ImageResponse.arrayBuffer()), imageBytes);
 const legacyMediaKey = `shop/${"B".repeat(43)}.png`;
-let legacyMediaReads = 0;
-let legacyMediaWrites = 0;
-env.MEDIA = {
-  get: async key => {
-    if (key !== legacyMediaKey) return null;
-    legacyMediaReads++;
-    return {
-      body: imageBytes,
-      writeHttpMetadata: headers => headers.set("Content-Type", "image/png"),
-    };
-  },
-  put: async () => { legacyMediaWrites++; throw new Error("New media must not be written to R2"); },
-};
+MEDIA.objects.set(legacyMediaKey, { bytes: new Uint8Array(imageBytes), contentType: "", cacheControl: "" });
 const legacyImageResponse = await context(new Request(`https://shop.test/api/media/${legacyMediaKey}`));
 assert.equal(legacyImageResponse.status, 200, "existing R2-backed image URLs should remain readable when MEDIA is configured");
 assert.equal(legacyImageResponse.headers.get("Content-Type"), "image/png");
-assert.equal(legacyMediaReads, 1);
-assert.equal(legacyMediaWrites, 0, "new media uploads must not write to R2");
+assert.deepEqual(new Uint8Array(await legacyImageResponse.arrayBuffer()), imageBytes);
 
 DB.failNextProductWrite = true;
 let failedSave;
@@ -706,7 +748,7 @@ const tooLarge = await context(new Request("https://shop.test/api/media/upload",
   headers: { Origin: "https://shop.test", "Content-Type": "image/webp", Cookie: cookie },
   body: oversized,
 }));
-assert.equal(tooLarge.status, 413, "uploads above the D1-safe image limit should be rejected");
+assert.equal(tooLarge.status, 413, "uploads above the shared image-size limit should be rejected");
 
 const unauthenticated = await context(new Request("https://shop.test/api/media/upload", {
   method: "POST",
@@ -946,7 +988,7 @@ assert.match(failedPrepareToast, /Photo processing failed safely/);
 // isolated in-memory D1. The first product write fails, then the same draft is
 // retried successfully without adding a duplicate product.
 const uiDB = new MemoryD1();
-const uiEnv = { DB: uiDB, OWNER_SETUP_TOKEN: "test-only-ui-owner-code" };
+const uiEnv = { DB: uiDB, MEDIA: new MemoryR2(), OWNER_SETUP_TOKEN: "test-only-ui-owner-code" };
 const uiContext = request => onRequest({ request, env: uiEnv });
 const uiOwnerSetup = await uiContext(new Request("https://shop.test/api/auth/setup-owner", {
   method: "POST",
@@ -1329,10 +1371,10 @@ assert.equal(productApiResults.length, apiWriteCountBeforeLimit, "an over-limit 
 assert.match(productToasts.at(-1), /at most 120 color and size combinations/, "an over-limit product should show a clear correction message");
 
 console.info = originalConsoleInfo;
-assert.ok(ownerSaveLogLines.some(line => line.includes("image.upload.d1_write_confirmed")), "server diagnostics should confirm successful image persistence");
+assert.ok(ownerSaveLogLines.some(line => line.includes("image.upload.r2_write_confirmed")), "server diagnostics should confirm successful R2 image persistence");
 assert.ok(ownerSaveLogLines.some(line => line.includes("product.sync.d1_write_failed") && line.includes("D1_WRITE_FAILED")), "server diagnostics should identify failed D1 product writes by safe code");
 assert.ok(ownerSaveLogLines.some(line => line.includes("product.sync.d1_write_confirmed")), "server diagnostics should confirm successful product persistence");
 assert.equal(ownerSaveLogLines.join("\n").includes("long-test-password"), false, "server diagnostics must not log passwords");
 assert.equal(ownerSaveLogLines.join("\n").includes("07502342153"), false, "server diagnostics must not log owner identifiers");
 
-console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer signup/login/password-change/logout and permissions, product create/edit/delete fields, optional discount validation/preview/removal, 1/10/20/30/50/99% price calculations, discount cart snapshots and no-double-discount behavior, server-verified FIB and order totals, original-price order history and refresh, shared product/discount persistence, bounded numeric stock matrix and 120-variant limit, reduced crop compression attempts, delegated mobile crop actions, cancel-during-processing abort without attaching an image, bounded canvas-encoding timeout with a clear recoverable error, category/banner/image shared storage, explicit D1 acknowledgments and traced failures, outbox fallback, bounded portrait/landscape mobile crop and resource cleanup, failed-preparation recovery, crop and product-save recovery without duplicate IDs, refresh and second-device reads, safe request-correlated diagnostics, legacy R2 read compatibility with no new R2 writes, public catalog-image access, sync payload filtering, and D1-safe image-size limits.`);
+console.log(`Checks passed: ${inlineScripts.length} storefront script block(s), owner/customer signup/login/password-change/logout and permissions, product create/edit/delete fields, optional discount validation/preview/removal, 1/10/20/30/50/99% price calculations, discount cart snapshots and no-double-discount behavior, server-verified FIB and order totals, original-price order history and refresh, shared product/discount persistence, bounded numeric stock matrix and 120-variant limit, reduced crop compression attempts, delegated mobile crop actions, cancel-during-processing abort without attaching an image, bounded canvas-encoding timeout with a clear recoverable error, category/banner/image shared D1 and R2 persistence, successful R2 upload/retrieval, failure-safe product/banner saves, explicit D1 acknowledgments and traced failures, outbox fallback, bounded portrait/landscape mobile crop and resource cleanup, failed-preparation recovery, crop and product-save recovery without duplicate IDs, refresh and second-device reads, safe request-correlated diagnostics, legacy D1 and R2 image read compatibility, public catalog-image access, sync payload filtering, and shared image-size limits.`);

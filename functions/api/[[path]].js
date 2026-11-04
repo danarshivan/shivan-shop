@@ -28,7 +28,7 @@ const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.strin
 const error = (message, status = 400) => json({ error: message }, status);
 
 const OWNER_SAVE_LOG_FIELDS = new Set([
-  "method", "mime", "bytes", "payloadBytes", "productCount", "imageCount", "status", "code", "elapsedMs", "d1Success",
+  "method", "mime", "bytes", "payloadBytes", "productCount", "imageCount", "status", "code", "elapsedMs", "d1Success", "storage", "r2Success",
 ]);
 
 function ownerSaveRequestId(request) {
@@ -608,8 +608,8 @@ async function ownerExists(env) {
 }
 
 async function getShopState(env, includeOwnerPrivate = false) {
-  // Media is stored as separate D1 rows. Never include those large values in
-  // bootstrap or realtime sync responses; shop records contain only URLs.
+  // Legacy D1 media rows stay out of bootstrap/realtime responses; current
+  // catalog records reference R2-backed URLs instead of embedding image bytes.
   const result = await env.DB.prepare("SELECT key, value FROM shop_state WHERE key < 'media:' OR key >= 'media;'").all();
   return Object.fromEntries((result.results || []).filter(row => includeOwnerPrivate || row.key !== "shivan_shop_owner_alerts").map(row => [row.key, row.value]));
 }
@@ -655,6 +655,30 @@ function imageMatchesMime(bytes, mime) {
   return false;
 }
 
+function mediaStorageError(message, code = "R2_WRITE_FAILED") {
+  const exception = new Error(message);
+  exception.code = code;
+  return exception;
+}
+
+async function putShopImage(env, key, mime, bytes) {
+  if (!env.MEDIA || typeof env.MEDIA.put !== "function") {
+    throw mediaStorageError("The shared R2 image bucket is not connected.", "MEDIA_UNAVAILABLE");
+  }
+  try {
+    const object = await env.MEDIA.put(key, bytes, {
+      httpMetadata: {
+        contentType: mime,
+        cacheControl: "public, max-age=31536000, immutable",
+      },
+    });
+    if (!object) throw new Error("R2 did not confirm the image write.");
+    return object;
+  } catch {
+    throw mediaStorageError("R2 did not confirm the image write.");
+  }
+}
+
 async function handleMediaUpload(request, env, account, url) {
   const requestId = ownerSaveRequestId(request);
   const startedAt = Date.now();
@@ -677,6 +701,10 @@ async function handleMediaUpload(request, env, account, url) {
   if (!Object.hasOwn({ "image/jpeg": true, "image/png": true, "image/webp": true, "image/gif": true }, mime)) {
     return tracedError("Upload a JPEG, PNG, WebP, or GIF image.", 415, requestId, "UNSUPPORTED_IMAGE_TYPE", "image.upload.validate");
   }
+  if (!env.MEDIA || typeof env.MEDIA.put !== "function") {
+    logOwnerSave("image.upload.r2_unavailable", requestId, { status: 503, code: "MEDIA_UNAVAILABLE" });
+    return tracedError("Shared image storage is not connected. The image was not saved.", 503, requestId, "MEDIA_UNAVAILABLE", "image.upload.r2_write");
+  }
   let bytes;
   try { bytes = await readImageUpload(request); }
   catch (exception) {
@@ -693,20 +721,17 @@ async function handleMediaUpload(request, env, account, url) {
   }
   const key = `shop/${await digestBytes(bytes)}.${mediaExtension(mime)}`;
   try {
-    const value = JSON.stringify({ mime, data: toBase64(bytes) });
-    logOwnerSave("image.upload.d1_write_started", requestId, { mime, bytes: bytes.byteLength });
-    const result = await env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
-      .bind(`media:${key}`, value, now()).run();
-    requireD1WriteSuccess(result, "Image storage");
+    logOwnerSave("image.upload.r2_write_started", requestId, { mime, bytes: bytes.byteLength, storage: "R2" });
+    await putShopImage(env, key, mime, bytes);
   } catch (exception) {
-    const code = d1FailureCode(exception);
-    logOwnerSave("image.upload.d1_write_failed", requestId, {
-      mime, bytes: bytes.byteLength, status: 503, code, elapsedMs: Date.now() - startedAt, d1Success: false,
+    const code = exception?.code || "R2_WRITE_FAILED";
+    logOwnerSave("image.upload.r2_write_failed", requestId, {
+      mime, bytes: bytes.byteLength, status: 503, code, elapsedMs: Date.now() - startedAt, storage: "R2", r2Success: false,
     });
-    return tracedError("The image could not be saved to shared cloud storage.", 503, requestId, code, "image.upload.d1_write");
+    return tracedError("The image could not be saved to shared cloud storage.", 503, requestId, code, "image.upload.r2_write");
   }
-  logOwnerSave("image.upload.d1_write_confirmed", requestId, {
-    mime, bytes: bytes.byteLength, status: 201, elapsedMs: Date.now() - startedAt, d1Success: true,
+  logOwnerSave("image.upload.r2_write_confirmed", requestId, {
+    mime, bytes: bytes.byteLength, status: 201, elapsedMs: Date.now() - startedAt, storage: "R2", r2Success: true,
   });
   return json({ url: `/api/media/${key}`, persisted: true, requestId }, 201, { "X-Request-ID": requestId });
 }
@@ -730,8 +755,8 @@ async function persistImages(value, env, mediaWrites = new Map()) {
     if (bytes.byteLength > MAX_SHOP_IMAGE_BYTES) throw new RangeError("An image is larger than the 1.3 MB compressed-image limit.");
     const hash = await digestBytes(bytes);
     const key = `shop/${hash}.${mediaExtension(mime)}`;
-    mediaWrites.set(key, env.DB.prepare("INSERT INTO shop_state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO NOTHING")
-      .bind(`media:${key}`, JSON.stringify({ mime, data: toBase64(bytes) }), now()));
+    if (!imageMatchesMime(bytes, mime)) throw new Error("An image has invalid file data.");
+    mediaWrites.set(key, { key, mime, bytes });
     return `/api/media/${key}`;
   }
   if (Array.isArray(value)) return Promise.all(value.map(item => persistImages(item, env, mediaWrites)));
@@ -740,6 +765,26 @@ async function persistImages(value, env, mediaWrites = new Map()) {
     return Object.fromEntries(entries);
   }
   return value;
+}
+
+async function persistShopImages(env, images, requestId = "") {
+  const entries = [...images.values()];
+  if (!entries.length) return;
+  if (!env.MEDIA || typeof env.MEDIA.put !== "function") {
+    throw mediaStorageError("The shared R2 image bucket is not connected.", "MEDIA_UNAVAILABLE");
+  }
+  for (let index = 0; index < entries.length; index += 20) {
+    const batch = entries.slice(index, index + 20);
+    logOwnerSave("shop.images.r2_batch_started", requestId, { imageCount: batch.length, storage: "R2" });
+    const outcomes = await Promise.allSettled(batch.map(image => putShopImage(env, image.key, image.mime, image.bytes)));
+    const failed = outcomes.find(outcome => outcome.status === "rejected");
+    if (failed) {
+      const exception = failed.reason;
+      logOwnerSave("shop.images.r2_batch_failed", requestId, { imageCount: batch.length, status: 503, code: exception?.code || "R2_WRITE_FAILED", storage: "R2", r2Success: false });
+      throw exception?.code ? exception : mediaStorageError("R2 did not confirm one or more image writes.");
+    }
+    logOwnerSave("shop.images.r2_batch_confirmed", requestId, { imageCount: batch.length, storage: "R2", r2Success: true });
+  }
 }
 
 async function persistReceiptImage(value, env) {
@@ -931,15 +976,9 @@ async function saveShopValue(env, key, rawValue, requestId = "") {
     const normalized = asJson(value, parsed);
     const mediaWrites = new Map();
     value = JSON.stringify(await persistImages(normalized, env, mediaWrites));
-    const statements = [...mediaWrites.values()];
-    // Keep batches small for predictable free-tier resource use. Each chunk is
-    // atomic, and the shop record is written only after all referenced media.
-    for (let index = 0; index < statements.length; index += 20) {
-      logOwnerSave("shop.images.d1_batch_started", requestId, { imageCount: Math.min(20, statements.length - index) });
-      const results = await env.DB.batch(statements.slice(index, index + 20));
-      requireD1WriteSuccess(results, "Shop image storage");
-      logOwnerSave("shop.images.d1_batch_confirmed", requestId, { imageCount: Math.min(20, statements.length - index), d1Success: true });
-    }
+    // Write image bytes to shared R2 before saving URLs into D1. If any object
+    // write fails, the product/banner record is left untouched.
+    await persistShopImages(env, mediaWrites, requestId);
   }
   logOwnerSave("shop.data.d1_write_started", requestId, {
     payloadBytes: new TextEncoder().encode(value).byteLength,
@@ -1289,15 +1328,19 @@ async function handleSync(request, env, account) {
         return tracedError("Limited-time discounts need a valid 1% to 99% discount and an exact ISO end date and time.", 400, requestId, exception.code, "shop.sync.validate");
       }
       const tooLarge = exception instanceof RangeError;
-      const code = tooLarge ? "IMAGE_LIMIT_EXCEEDED" : d1FailureCode(exception);
-      logOwnerSave(isProductSave ? "product.sync.d1_write_failed" : "shop.sync.d1_write_failed", requestId, {
+      const mediaFailure = exception?.code === "MEDIA_UNAVAILABLE" || exception?.code === "R2_WRITE_FAILED";
+      const code = tooLarge ? "IMAGE_LIMIT_EXCEEDED" : mediaFailure ? exception.code : d1FailureCode(exception);
+      const failureStage = mediaFailure ? "r2_write_failed" : "d1_write_failed";
+      logOwnerSave(isProductSave ? `product.sync.${failureStage}` : `shop.sync.${failureStage}`, requestId, {
         payloadBytes: new TextEncoder().encode(value).byteLength,
         productCount: Array.isArray(productList) ? productList.length : 0,
         status: tooLarge ? 413 : 503,
         code,
+        ...(mediaFailure ? { storage: "R2", r2Success: false } : {}),
         d1Success: false,
       });
       if (tooLarge) return tracedError(exception.message || "Shop images exceed the shared storage limit.", 413, requestId, code, isProductSave ? "product.sync.validate" : "shop.sync.validate");
+      if (mediaFailure) return tracedError("The image could not be saved to shared cloud storage. The product or banner was not changed.", 503, requestId, code, isProductSave ? "product.sync.r2_write" : "shop.sync.r2_write");
       return tracedError(isProductSave
         ? "The shared database could not confirm this product save. Your device will keep it queued for retry."
         : "The shared database could not confirm this shop update. Your device will keep it queued for retry.", 503, requestId, code, isProductSave ? "product.sync.d1_write" : "shop.sync.d1_write");
@@ -1611,13 +1654,17 @@ export async function onRequest({ request, env }) {
       });
       return new Response(bytes, { headers });
     }
-    // Preserve legacy R2 URLs for existing products and receipts, but never
-    // write new images to R2. A missing binding simply means legacy media 404s.
+    // Keep D1-first reads for images saved by older deployments, then serve
+    // current and legacy R2 objects through the same stable media URL.
     if (env.MEDIA) {
       const object = await env.MEDIA.get(key);
       if (object) {
         const headers = new Headers();
-        object.writeHttpMetadata(headers);
+        if (typeof object.writeHttpMetadata === "function") object.writeHttpMetadata(headers);
+        if (!headers.has("Content-Type")) {
+          const mimeByExtension = { jpg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" };
+          headers.set("Content-Type", mimeByExtension[mediaMatch[3].toLowerCase()]);
+        }
         headers.set("X-Content-Type-Options", "nosniff");
         headers.set("Cache-Control", privateReceipt ? "private, no-store" : "public, max-age=31536000, immutable");
         return new Response(object.body, { headers });

@@ -563,6 +563,18 @@ class OfflineD1 {
 }
 
 const DB = new OfflineD1();
+const MEDIA = {
+  objects: new Map(),
+  async put(key, bytes, options = {}) {
+    this.objects.set(key, { bytes: new Uint8Array(bytes), contentType: options.httpMetadata?.contentType || "" });
+    return { key, size: bytes.byteLength };
+  },
+  async get(key) {
+    const object = this.objects.get(key);
+    if (!object) return null;
+    return { body: new Uint8Array(object.bytes), writeHttpMetadata(headers) { if (object.contentType) headers.set("Content-Type", object.contentType); } };
+  },
+};
 const ownerToken = "offline-onboarding-owner-session";
 const customerToken = "offline-onboarding-customer-session";
 const tokenHash = async token => Buffer.from(await webcrypto.subtle.digest("SHA-256", new TextEncoder().encode(token))).toString("base64url");
@@ -571,7 +583,7 @@ DB.accounts.set("offline-owner", { id: "offline-owner", identifier: "owner@examp
 DB.accounts.set("offline-customer", { id: "offline-customer", identifier: "customer@example.test", name: "Offline Customer", role: "customer" });
 DB.sessions.set(await tokenHash(ownerToken), { accountId: "offline-owner", expiresAt });
 DB.sessions.set(await tokenHash(customerToken), { accountId: "offline-customer", expiresAt });
-const env = { DB };
+const env = { DB, MEDIA };
 const api = request => onRequest({ request, env });
 const ownerCookie = `shivan_session=${ownerToken}`;
 const customerCookie = `shivan_session=${customerToken}`;
@@ -584,9 +596,11 @@ for (let index = 0; index < 3; index++) {
     headers: { Origin: "https://shop.test", "Content-Type": "image/webp", Cookie: ownerCookie },
     body: imageBytes,
   }));
-  assert.equal(response.status, 201, `Owner slide image ${index + 1} should be uploaded into offline D1`);
+  assert.equal(response.status, 201, `Owner slide image ${index + 1} should be uploaded into offline R2`);
   const image = await response.json();
-  assert.equal(image.persisted, true, "the API should confirm D1 persistence for every slide image");
+  assert.equal(image.persisted, true, "the API should confirm R2 persistence for every slide image");
+  const objectKey = image.url.replace(/^\/api\/media\//, "");
+  assert.equal(MEDIA.objects.has(objectKey), true, "each promotional image's bytes should be stored in shared R2");
   uploadedUrls.push(image.url);
 }
 storage.setItem(sharedImageKey, JSON.stringify(uploadedUrls));
@@ -609,6 +623,8 @@ assert.equal((await visitorRead.json()).shop[sharedImageKey], savedImages, "a se
 for (const imageUrl of uploadedUrls) {
   const imageRead = await api(new Request(`https://shop.test${imageUrl}`));
   assert.equal(imageRead.status, 200, "uploaded slide images should remain readable after refresh from another device");
+  assert.equal(imageRead.headers.get("Content-Type"), "image/webp");
+  assert.ok((await imageRead.arrayBuffer()).byteLength > 0, "the shared image URL should return the original R2 object bytes");
 }
 
 const customerWrite = await write({ cookie: customerCookie });
@@ -619,4 +635,4 @@ const invalidWrite = await write({ cookie: ownerCookie, value: JSON.stringify([u
 assert.equal(invalidWrite.status, 400, "the API should reject insecure or malformed slide image URLs");
 assert.equal(DB.shop.get(sharedImageKey), savedImages, "rejected writes must not alter the previously saved slides");
 
-console.log("Offline website onboarding checks passed: three shared image slides, Next and final account/shop choices, directional swipes and transitions, launch and foreground replay, no persistent completion state, signed-in account/cart preservation, shared image URLs, offline D1 persistence, cross-device reads, and server-enforced Owner-only writes.");
+console.log("Offline website onboarding checks passed: three shared image slides, Next and final account/shop choices, directional swipes and transitions, launch and foreground replay, no persistent completion state, signed-in account/cart preservation, R2-backed slide images with D1 URL persistence, cross-device reads, and server-enforced Owner-only writes.");
