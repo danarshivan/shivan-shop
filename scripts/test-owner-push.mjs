@@ -43,6 +43,9 @@ class MemoryStorage {
 
 class MemoryOwnerPushD1 {
   rows = new Map();
+  customerRows = new Map();
+  customerPreferences = new Map();
+  shopState = new Map();
   failNextWrite = false;
 
   prepare(sql) {
@@ -57,18 +60,56 @@ class MemoryOwnerPushD1 {
   }
 
   async first(sql, values) {
+    if (sql.includes("FROM shop_state WHERE key=?")) return this.shopState.has(String(values[0])) ? { key: String(values[0]), value: this.shopState.get(String(values[0])) } : null;
+    if (sql.includes("FROM customer_push_subscriptions s LEFT JOIN")) {
+      const row = this.customerRows.get(String(values[0]));
+      return row ? { ...row, ...(this.customerPreferences.get(row.customer_id) || {}) } : null;
+    }
+    if (sql.includes("FROM customer_push_subscriptions")) return this.customerRows.get(String(values[0])) || null;
+    if (sql.includes("FROM customer_push_preferences")) return this.customerPreferences.get(String(values[0])) || null;
     if (!sql.includes("owner_push_subscriptions")) return null;
     if (sql.includes("WHERE endpoint_hash=?")) return this.rows.get(String(values[0])) || null;
     return null;
   }
 
   async all(sql, values) {
+    if (sql.includes("FROM customer_push_subscriptions s LEFT JOIN")) return { success: true, results: [...this.customerRows.values()].map(row => ({ ...row, ...(this.customerPreferences.get(row.customer_id) || {}) })) };
+    if (sql.includes("FROM customer_push_subscriptions")) return { success: true, results: [...this.customerRows.values()].filter(row => !sql.includes("WHERE customer_id=?") || row.customer_id === String(values[0])).map(row => structuredClone(row)) };
     if (!sql.includes("owner_push_subscriptions")) return { success: true, results: [] };
     const rows = [...this.rows.values()].filter(row => !sql.includes("WHERE owner_id=?") || row.owner_id === String(values[0]));
     return { success: true, results: structuredClone(rows) };
   }
 
   async run(sql, values) {
+    if (sql.startsWith("INSERT INTO customer_push_preferences")) {
+      if (this.failNextWrite) { this.failNextWrite = false; throw new Error("Simulated D1 customer preference write failure"); }
+      const [customer_id, new_arrivals, discounts, special_offers, announcements, updated_at] = values;
+      this.customerPreferences.set(customer_id, { customer_id, new_arrivals, discounts, special_offers, announcements, updated_at });
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.startsWith("INSERT INTO customer_push_subscriptions")) {
+      if (this.failNextWrite) { this.failNextWrite = false; throw new Error("Simulated D1 customer subscription write failure"); }
+      const [endpoint_hash, customer_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at] = values;
+      const existing = this.customerRows.get(endpoint_hash);
+      if (existing && existing.customer_id !== customer_id) return { success: true, meta: { changes: 0 } };
+      this.customerRows.set(endpoint_hash, { endpoint_hash, customer_id, endpoint, p256dh, auth_secret, expiration_time, created_at: existing?.created_at || created_at, updated_at, failures: 0, last_success_at: null, last_failure_at: null, last_failure_status: null });
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.startsWith("DELETE FROM customer_push_subscriptions")) {
+      const [endpoint_hash, customer_id, replacementHash, replacementCustomerId] = values;
+      const row = this.customerRows.get(endpoint_hash);
+      if (!row || row.customer_id !== customer_id) return { success: true, meta: { changes: 0 } };
+      if (values.length === 4) { const replacement = this.customerRows.get(replacementHash); if (!replacement || replacement.customer_id !== replacementCustomerId) return { success: true, meta: { changes: 0 } }; }
+      this.customerRows.delete(endpoint_hash);
+      return { success: true, meta: { changes: 1 } };
+    }
+    if (sql.startsWith("UPDATE customer_push_subscriptions")) {
+      const [failures, last_success_at, last_failure_at, last_failure_status, updated_at, endpoint_hash, customer_id] = values;
+      const row = this.customerRows.get(endpoint_hash);
+      if (!row || row.customer_id !== customer_id) return { success: true, meta: { changes: 0 } };
+      this.customerRows.set(endpoint_hash, { ...row, failures, last_success_at, last_failure_at, last_failure_status, updated_at });
+      return { success: true, meta: { changes: 1 } };
+    }
     if (!sql.includes("owner_push_subscriptions")) return { success: true, meta: { changes: 0 } };
     if (this.failNextWrite) { this.failNextWrite = false; throw new Error("Simulated D1 owner push write failure"); }
     if (sql.startsWith("INSERT INTO owner_push_subscriptions")) {
@@ -106,6 +147,8 @@ class MemoryOwnerPushD1 {
 
   async batch(statements) {
     const snapshot = new Map([...this.rows].map(([key, row]) => [key, structuredClone(row)]));
+    const customerSnapshot = new Map([...this.customerRows].map(([key, row]) => [key, structuredClone(row)]));
+    const preferenceSnapshot = new Map([...this.customerPreferences].map(([key, row]) => [key, structuredClone(row)]));
     try {
       const results = [];
       for (const statement of statements) results.push(await this.run(statement.sql, statement.values));
@@ -113,6 +156,8 @@ class MemoryOwnerPushD1 {
       return results;
     } catch (error) {
       this.rows = snapshot;
+      this.customerRows = customerSnapshot;
+      this.customerPreferences = preferenceSnapshot;
       throw error;
     }
   }
@@ -243,6 +288,61 @@ async function testSubscriptionsAndAuthorization() {
   const storageFailure = await call(failedStorage.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: first } });
   assert.equal(storageFailure.status, 503, "D1 write failures are reported instead of claiming registration succeeded");
   assert.equal(failedStorage.db.rows.size, 0);
+
+  const failedCustomerStorage = createHarness();
+  failedCustomerStorage.db.failNextWrite = true;
+  const customerStorageFailure = await call(failedCustomerStorage.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: first, preferences: { newArrivals: true } } });
+  assert.equal(customerStorageFailure.status, 503, "customer D1 failures are reported without claiming registration succeeded");
+  assert.equal(failedCustomerStorage.db.customerRows.size, 0);
+  assert.equal(failedCustomerStorage.db.customerPreferences.size, 0, "failed batched customer preference writes roll back");
+}
+
+async function testCrossAudienceEndpointExclusivity() {
+  const endpoint = "https://fcm.googleapis.com/fcm/send/shared-audience-endpoint";
+  const ownerSubscription = fakeSubscription(endpoint);
+  const customerSubscription = fakeSubscription(endpoint);
+  const customerPreferences = { newArrivals: true, discounts: false, specialOffers: false, announcements: false };
+  const ownerFirst = createHarness();
+  assert.equal((await call(ownerFirst.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerSubscription } })).status, 200);
+  const customerAfterOwner = await call(ownerFirst.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences } });
+  assert.equal(customerAfterOwner.status, 409, "a customer cannot claim a D1 endpoint already registered to the Owner");
+  assert.equal(ownerFirst.db.rows.size, 1, "rejecting a cross-audience claim preserves the Owner subscription");
+  assert.equal(ownerFirst.db.customerRows.size, 0, "a rejected cross-audience claim creates no customer row");
+
+  const customerFirst = createHarness();
+  assert.equal((await call(customerFirst.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences } })).status, 200);
+  const ownerAfterCustomer = await call(customerFirst.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerSubscription } });
+  assert.equal(ownerAfterCustomer.status, 409, "the Owner cannot claim a D1 endpoint already registered to a customer");
+  assert.equal(customerFirst.db.customerRows.size, 1, "rejecting the Owner claim preserves the customer subscription");
+  assert.equal(customerFirst.db.rows.size, 0, "a rejected Owner claim creates no Owner row");
+
+  const endpointHash = await hexHash(endpoint);
+  const legacyOwner = createHarness();
+  await legacyOwner.storage.put(`shivan-push:subscription:${endpointHash}`, { ownerId: "owner-A", subscription: ownerSubscription });
+  assert.equal((await call(legacyOwner.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences } })).status, 409, "legacy Owner Durable Object subscriptions also block customer registration");
+  assert.equal((await legacyOwner.storage.get(`shivan-push:subscription:${endpointHash}`)).ownerId, "owner-A", "legacy Owner records are preserved on conflict");
+
+  const legacyCustomer = createHarness();
+  await legacyCustomer.storage.put(`shivan-push:customer-subscription:${endpointHash}`, { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences });
+  assert.equal((await call(legacyCustomer.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerSubscription } })).status, 409, "legacy customer Durable Object subscriptions also block Owner registration");
+  assert.equal((await legacyCustomer.storage.get(`shivan-push:customer-subscription:${endpointHash}`)).customerId, "customer-A", "legacy customer records are preserved on conflict");
+
+  const preexistingConflict = createHarness();
+  preexistingConflict.db.rows.set(endpointHash, { endpoint_hash: endpointHash, owner_id: "owner-A", endpoint, created_at: 1 });
+  preexistingConflict.db.customerRows.set(endpointHash, { endpoint_hash: endpointHash, customer_id: "customer-A", endpoint, created_at: 1 });
+  assert.equal((await call(preexistingConflict.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerSubscription } })).status, 409, "a pre-existing cross-audience D1 collision is detected without overwriting either row");
+  assert.equal((await call(preexistingConflict.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences } })).status, 409);
+  assert.equal(preexistingConflict.db.rows.size, 1, "a pre-existing Owner row is preserved");
+  assert.equal(preexistingConflict.db.customerRows.size, 1, "a pre-existing customer row is preserved");
+
+  const raced = createHarness();
+  const [ownerRace, customerRace] = await Promise.all([
+    call(raced.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: ownerSubscription } }),
+    call(raced.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: customerSubscription, preferences: customerPreferences } }),
+  ]);
+  assert.deepEqual([ownerRace.status, customerRace.status].sort(), [200, 409], "concurrent Owner/customer registration of one endpoint has exactly one winner");
+  assert.equal(raced.db.rows.size + raced.db.customerRows.size, 1, "the endpoint lock prevents a cross-audience race from writing both tables");
+  assert.equal(raced.db.rows.has(endpointHash) && raced.db.customerRows.has(endpointHash), false, "one endpoint hash never exists in both D1 audience tables");
 }
 
 async function testLegacyOwnerSubscriptionsRemainDeliverable() {
@@ -313,15 +413,23 @@ async function testOwnerSingleDeviceTestNotification() {
 async function testCustomerSubscriptionsPreferencesAndBroadcasts() {
   const sent = [];
   const h = createHarness({ send: async (subscription, payload) => { sent.push({ endpoint: subscription.endpoint, payload }); return { ok: true, status: 201 }; } });
+  h.db.shopState.set("shivan_shop_products", JSON.stringify([
+    { id: "dress-7", name: "Dress 7", published: true },
+    { id: "dress-8", name: "Dress 8", discount: 25, published: true },
+  ]));
   const arrivalSub = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-arrival");
   const discountSub = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-discount");
   const discountSubSecondDevice = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-discount-second");
-  const arrivalPrefs = { newArrivals: true, discounts: false, specialOffers: false };
-  const discountPrefs = { newArrivals: false, discounts: true, specialOffers: true };
+  const announcementSub = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-announcement");
+  const arrivalPrefs = { newArrivals: true, discounts: false, specialOffers: false, announcements: false };
+  const discountPrefs = { newArrivals: false, discounts: true, specialOffers: true, announcements: false };
   assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: arrivalSub, preferences: arrivalPrefs } })).status, 200);
   assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-B", subscription: discountSub, preferences: discountPrefs } })).status, 200);
   assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-B", subscription: discountSubSecondDevice, preferences: discountPrefs } })).status, 200);
-  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-C", subscription: fakeSubscription("https://fcm.googleapis.com/fcm/send/no-opt-in"), preferences: { newArrivals: false, discounts: false, specialOffers: false } } })).status, 400, "a customer cannot subscribe without selecting an event type");
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-D", subscription: announcementSub, preferences: { newArrivals: false, discounts: false, specialOffers: false, announcements: true } } })).status, 200);
+  assert.equal(h.db.customerRows.size, 4, "customer subscriptions are stored in their own D1 table, separate from Owner devices");
+  assert.equal(h.db.rows.size, 0, "customer device registrations never enter the Owner subscription table");
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-C", subscription: fakeSubscription("https://fcm.googleapis.com/fcm/send/no-opt-in"), preferences: { newArrivals: false, discounts: false, specialOffers: false, announcements: false } } })).status, 400, "a customer cannot subscribe without selecting an event type");
   assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-C", subscription: arrivalSub, preferences: arrivalPrefs } })).status, 409, "one customer cannot claim another customer's endpoint");
   const saved = await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-A", preferences: { action: "get" } } });
   assert.deepEqual((await saved.json()).preferences, arrivalPrefs, "notification preferences are saved by customer account");
@@ -331,34 +439,41 @@ async function testCustomerSubscriptionsPreferencesAndBroadcasts() {
   const arrival = { eventId: "new-arrival:dress-7", type: "new_arrival", title: "New arrival: Dress 7", body: "A new fashion model is here.", url: "/?customerPush=product&productId=dress-7", productId: "dress-7", image: "/api/media/shop/" + "a".repeat(43) + ".webp" };
   const discount = { eventId: "discount:dress-8:25:ongoing", type: "discount", title: "25% off: Dress 8", body: "A new 25% offer is available.", url: "/?customerPush=product&productId=dress-8", productId: "dress-8" };
   const offer = { eventId: "special-offer:campaign-12345", type: "special_offer", title: "Weekend offer", body: "A special offer is ready.", url: "/?customerPush=offers&offerId=special-offer%3Acampaign-12345" };
+  const announcement = { eventId: "announcement:store-update-12345", type: "announcement", title: "Store update", body: "New opening hours start Monday.", url: "/?customerPush=offers&offerId=announcement%3Astore-update-12345" };
   const duplicates = await Promise.all(Array.from({ length: 6 }, () => call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: arrival } })));
   assert.equal(duplicates.filter(response => response.status === 202).length, 1, "concurrent duplicate arrival events queue once");
   assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: discount } })).status, 202);
   assert.equal((await call(h.coordinator, "/push/customer-broadcast", { method: "POST", body: { ownerId: "owner-A", event: offer } })).status, 202);
+  assert.equal((await call(h.coordinator, "/push/customer-broadcast", { method: "POST", body: { ownerId: "owner-A", event: announcement } })).status, 202);
+  assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...arrival, eventId: "new-arrival:deleted", productId: "not-in-catalog" } } })).status, 409, "unpublished or deleted products cannot be queued for customers");
+  assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...discount, eventId: "discount:no-longer-active", productId: "dress-7" } } })).status, 409, "a discount event is rejected when the saved product has no active discount");
   assert.equal((await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...offer, eventId: "bad-image-offer", image: "data:image/png;base64,private" } } })).status, 400, "only saved shop image URLs can accompany notifications");
   await h.coordinator.alarm();
-  assert.equal(sent.length, 5, "only subscribed matching customer topics receive events on each opted-in device");
+  assert.equal(sent.length, 6, "only subscribed matching customer topics receive events on each opted-in device");
   assert.deepEqual(sent.map(row => [row.endpoint, row.payload.data.type]).sort(), [
     [arrivalSub.endpoint, "new_arrival"],
     [discountSub.endpoint, "discount"],
     [discountSubSecondDevice.endpoint, "discount"],
     [discountSub.endpoint, "special_offer"],
     [discountSubSecondDevice.endpoint, "special_offer"],
+    [announcementSub.endpoint, "announcement"],
   ].sort());
   assert.equal(sent.find(row => row.payload.data.type === "new_arrival").payload.image, arrival.image, "supported product image path is included");
   assert.equal(sent.find(row => row.payload.data.type === "new_arrival").payload.data.url, arrival.url, "new-arrival click target identifies the exact product");
   const history = await call(h.coordinator, "/push/customer-broadcasts");
   const rows = (await history.json()).broadcasts;
-  assert.equal(rows.length, 3, "Owner history includes customer notifications and automatic product events");
+  assert.equal(rows.length, 4, "Owner history includes customer notifications, announcements, and automatic product events");
   assert.equal(JSON.stringify(rows).includes(arrivalSub.endpoint), false, "Owner history never exposes subscription endpoints");
   assert.equal(JSON.stringify(rows).includes("customer-A"), false, "Owner history never exposes customer account IDs");
   const publicOffer = await call(h.coordinator, "/push/customer-offer", { search: `?eventId=${encodeURIComponent(offer.eventId)}` });
   assert.equal((await publicOffer.json()).offer.title, offer.title, "promotion click can retrieve the public offer content without subscription details");
+  const publicAnnouncement = await call(h.coordinator, "/push/customer-offer", { search: `?eventId=${encodeURIComponent(announcement.eventId)}` });
+  assert.equal((await publicAnnouncement.json()).offer.type, "announcement", "important announcement click opens only its sanitized public message");
 
-  const updatePreferences = await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", endpoint: discountSub.endpoint, preferences: { newArrivals: false, discounts: false, specialOffers: false } } });
+  const updatePreferences = await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", endpoint: discountSub.endpoint, preferences: { newArrivals: false, discounts: false, specialOffers: false, announcements: false } } });
   assert.equal((await updatePreferences.json()).notificationsEnabled, false);
-  assert.deepEqual((await (await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", preferences: { action: "get" } } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false }, "preference changes sync at the account level");
-  assert.deepEqual((await (await call(h.coordinator, "/push/customer-subscription-status", { method: "POST", body: { customerId: "customer-B", endpoint: discountSubSecondDevice.endpoint } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false }, "preference changes propagate to every device for the account");
+  assert.deepEqual((await (await call(h.coordinator, "/push/customer-preferences", { method: "POST", body: { customerId: "customer-B", preferences: { action: "get" } } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false, announcements: false }, "preference changes sync at the account level");
+  assert.deepEqual((await (await call(h.coordinator, "/push/customer-subscription-status", { method: "POST", body: { customerId: "customer-B", endpoint: discountSubSecondDevice.endpoint } })).json()).preferences, { newArrivals: false, discounts: false, specialOffers: false, announcements: false }, "preference changes propagate to every device for the account");
   await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: { ...offer, eventId: "special-offer:no-preference" } } });
   await h.coordinator.alarm();
   assert.equal((await listPrefix(h.storage, "shivan-push:customer-event:")).find(item => item.eventId === "special-offer:no-preference").status, "no_subscribers", "turned-off preferences suppress customer delivery");
@@ -375,14 +490,43 @@ async function testCustomerSubscriptionsPreferencesAndBroadcasts() {
   fail = false;retry.setNow((await listPrefix(retry.storage, "shivan-push:customer-event:"))[0].nextAttemptAt + 1);await retry.coordinator.alarm();
   assert.equal((await listPrefix(retry.storage, "shivan-push:customer-event:"))[0].status, "sent");
   const gone = createHarness({ send: async () => ({ ok: false, status: 410, remove: true }) });
+  gone.db.shopState.set("shivan_shop_products", JSON.stringify([{ id: "dress-7", published: true }]));
   await call(gone.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: arrivalSub, preferences: arrivalPrefs } });
   await call(gone.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: arrival } });await gone.coordinator.alarm();
   assert.equal((await listPrefix(gone.storage, "shivan-push:customer-subscription:")).length, 0, "expired customer endpoints are pruned");
+  assert.equal(gone.db.customerRows.size, 0, "expired customer endpoints are pruned from D1");
+}
+
+async function testLegacyCustomerSubscriptionCompatibilityAndDeletedProductGuard() {
+  const sent = [];
+  const h = createHarness({ send: async (subscription, payload) => { sent.push({ endpoint: subscription.endpoint, payload }); return { ok: true, status: 201 }; } });
+  h.db.shopState.set("shivan_shop_products", JSON.stringify([{ id: "dress-9", name: "Dress 9", published: true }]));
+  const current = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-current");
+  const legacy = fakeSubscription("https://fcm.googleapis.com/fcm/send/customer-legacy");
+  assert.equal((await call(h.coordinator, "/push/customer-subscription", { method: "POST", body: { customerId: "customer-A", subscription: current, preferences: { newArrivals: true } } })).status, 200);
+  const currentHash = await hexHash(current.endpoint);
+  await h.storage.put(`shivan-push:customer-subscription:${currentHash}`, { customerId: "customer-A", subscription: current, preferences: { newArrivals: false }, failures: 0 });
+  const legacyHash = await hexHash(legacy.endpoint);
+  await h.storage.put(`shivan-push:customer-subscription:${legacyHash}`, { customerId: "customer-B", subscription: legacy, preferences: { newArrivals: true }, failures: 0 });
+  const event = { eventId: "new-arrival:migration-compat", type: "new_arrival", title: "New arrival: Dress 9", body: "Available now.", url: "/?customerPush=product&productId=dress-9", productId: "dress-9" };
+  await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event } });
+  await h.coordinator.alarm();
+  assert.deepEqual(sent.map(row => row.endpoint).sort(), [current.endpoint, legacy.endpoint].sort(), "existing customer subscriptions continue receiving notifications while D1 subscriptions are added");
+  assert.equal(sent.filter(row => row.endpoint === current.endpoint).length, 1, "a D1 device and its legacy duplicate receive only one event");
+
+  const pending = { ...event, eventId: "new-arrival:removed-before-delivery" };
+  await call(h.coordinator, "/push/customer-event", { method: "POST", body: { ownerId: "owner-A", event: pending } });
+  h.db.shopState.set("shivan_shop_products", JSON.stringify([]));
+  await h.coordinator.alarm();
+  const cancelled = (await listPrefix(h.storage, "shivan-push:customer-event:")).find(item => item.eventId === pending.eventId);
+  assert.equal(cancelled.status, "cancelled_unpublished_product", "a product deleted before dispatch is not pushed to customers");
+  assert.equal(sent.length, 2, "deleted product events do not cause any customer delivery");
 }
 
 async function testEventDeliveryAndFailures() {
   let calls = 0;
-  const h = createHarness({ send: async () => { calls++; return { ok: true, status: 201 }; } });
+  const deliveredPayloads = [];
+  const h = createHarness({ send: async (_subscription, payload) => { calls++; deliveredPayloads.push(payload); return { ok: true, status: 201 }; } });
   const subscription = fakeSubscription();
   await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription } });
   const event = { eventId: "order:local-42", type: "new_order", title: "New order received", body: "Order #local-42 is ready.", url: "/?ownerPush=orders&order=local-42" };
@@ -391,6 +535,7 @@ async function testEventDeliveryAndFailures() {
   assert.equal(duplicateResults.filter(result => result.status === 200).length, 7);
   await h.coordinator.alarm();
   assert.equal(calls, 1, "an alert is delivered once to a subscription");
+  assert.equal(deliveredPayloads[0].data.audience, "owner", "private Smart Alerts are explicitly labeled for the Owner service-worker audience");
   assert.equal((await listPrefix(h.storage, "shivan-push:event:"))[0].status, "sent");
 
   let fail = true;
@@ -504,6 +649,9 @@ async function testPagesOwnerAuthorization() {
   const broadcastRequest = new Request("https://shop.example.test/api/push/customer-broadcast", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ title: "Special offer", message: "A saved shop offer.", requestId: "campaign-request-123" }) });
   assert.equal((await onRequest({ request: broadcastRequest, env })).status, 200, "Owner may send an optional special-offer campaign");
   assert.equal(internalCalls.some(item => item.path === "/push/customer-broadcast" && item.body?.ownerId === "owner-account-1" && item.body?.event?.type === "special_offer"), true, "manual campaign uses the separate customer broadcast event route");
+  const announcementRequest = new Request("https://shop.example.test/api/push/customer-broadcast", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ type: "announcement", title: "Store update", message: "New opening hours.", requestId: "announcement-123" }) });
+  assert.equal((await onRequest({ request: announcementRequest, env })).status, 200, "Owner can queue a separate important-announcement campaign");
+  assert.equal(internalCalls.some(item => item.path === "/push/customer-broadcast" && item.body?.ownerId === "owner-account-1" && item.body?.event?.type === "announcement"), true, "announcement delivery uses its own customer preference audience");
   const unsavedProductBroadcast = new Request("https://shop.example.test/api/push/customer-broadcast", { method: "POST", headers: { cookie: `shivan_session=${encodeURIComponent(token)}`, origin: "https://shop.example.test", "content-type": "application/json" }, body: JSON.stringify({ title: "Unsaved", message: "Not yet saved.", productId: "missing-product", requestId: "campaign-request-234" }) });
   assert.equal((await onRequest({ request: unsavedProductBroadcast, env })).status, 409, "Owner cannot send a product offer for an item absent from the saved catalog");
   assert.equal((await onRequest({ request: new Request("https://shop.example.test/api/customer-push/offer?eventId=special-offer%3Atest-campaign") , env })).status, 200, "public campaign details do not expose subscriber information");
@@ -595,6 +743,7 @@ async function testServiceWorkerAndOwnerControls() {
   const source = await readFile(new URL("../service-worker.js", import.meta.url), "utf8");
   const listeners = new Map();
   const savedSettings = new Map();
+  savedSettings.set("audience", "owner");
   const notifications = [];
   const opened = [];
   const posted = [];
@@ -631,9 +780,9 @@ async function testServiceWorkerAndOwnerControls() {
     for (const callback of listeners.get(type) || []) callback(event);
     await event.waitPromise;
   };
-  const pushEvent = { data: { json: () => ({ title: "New order received", body: "Order #x is ready.", tag: "order:x", data: { eventId: "order:x", type: "new_order", url: "/?ownerPush=orders&order=x" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
+  const pushEvent = { data: { json: () => ({ title: "New order received", body: "Order #x is ready.", tag: "order:x", data: { audience: "owner", eventId: "order:x", type: "new_order", url: "/?ownerPush=orders&order=x" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
   await dispatch("push", pushEvent);
-  assert.equal(notifications[0].title, "New order received");
+  assert.equal(notifications[0].title, "SHIVAN SHOP · New order received");
   assert.equal(notifications[0].options.tag, "order:x");
   let clickPromise;
   await dispatch("notificationclick", { notification: { data: notifications[0].options.data, close() {} }, waitUntil(promise) { clickPromise = promise; } });
@@ -641,14 +790,28 @@ async function testServiceWorkerAndOwnerControls() {
   assert.equal(focused, true);
   assert.equal(posted[0].target.url, "https://shop.example.test/?ownerPush=orders&order=x");
 
+  savedSettings.set("audience", "customer");
+  const visibleBeforeOwnerMismatch = notifications.length;
+  await dispatch("push", pushEvent);
+  assert.equal(notifications.length, visibleBeforeOwnerMismatch, "an Owner payload is suppressed while this service worker is in customer audience mode");
+
   const customerImage = "/api/media/shop/" + "b".repeat(43) + ".webp";
   const customerPush = { data: { json: () => ({ title: "New arrival: Dress", body: "A new fashion model is available.", tag: "new-arrival:dress-1", image: customerImage, data: { audience: "customer", eventId: "new-arrival:dress-1", type: "new_arrival", productId: "dress-1", url: "/?customerPush=product&productId=dress-1" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
   await dispatch("push", customerPush);
+  assert.equal(notifications[1].title, "SHIVAN SHOP · New arrival: Dress", "customer notifications show Shivan Shop branding");
   assert.equal(notifications[1].options.image, customerImage, "customer push displays a saved product image where supported");
   await dispatch("notificationclick", { notification: { data: notifications[1].options.data, close() {} }, waitUntil(promise) { clickPromise = promise; } });
   await clickPromise;
   assert.equal(posted[1].type, "shivan-customer-push-open");
   assert.equal(posted[1].target.url, "https://shop.example.test/?customerPush=product&productId=dress-1", "customer notification opens its exact product route");
+
+  savedSettings.set("audience", "owner");
+  const visibleBeforeCustomerMismatch = notifications.length;
+  await dispatch("push", customerPush);
+  assert.equal(notifications.length, visibleBeforeCustomerMismatch, "a customer payload is suppressed while this service worker is in Owner audience mode");
+  const untypedPush = { data: { json: () => ({ title: "Unexpected alert", body: "No audience label.", data: { type: "new_order", url: "/?ownerPush=alerts" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
+  await dispatch("push", untypedPush);
+  assert.equal(notifications.length, visibleBeforeCustomerMismatch, "push payloads without an explicit audience fail closed");
 
   await dispatch("message", { data: { type: "shivan-push-disable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
   assert.equal(savedSettings.get("disabled"), true);
@@ -664,6 +827,7 @@ async function testServiceWorkerAndOwnerControls() {
   const customerPreferences = { newArrivals: true, discounts: false, specialOffers: true };
   await dispatch("message", { data: { type: "shivan-customer-push-enable", preferences: customerPreferences }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
   assert.equal(savedSettings.get("customerDisabled"), false);
+  assert.equal(savedSettings.get("audience"), "customer", "customer opt-in selects the customer notification audience");
   assert.deepEqual(savedSettings.get("customerPreferences"), customerPreferences);
   assert.equal(savedSettings.get("disabled"), false, "customer push settings do not alter Owner push state");
   await dispatch("message", { data: { type: "shivan-customer-push-disable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
@@ -681,6 +845,7 @@ async function testServiceWorkerAndOwnerControls() {
   assert.equal(fetchCalls.includes("/api/customer-push/config"), true);
   assert.deepEqual(apiPostBody.preferences, customerPreferences, "renewal retains customer-selected notification topics");
 
+  await dispatch("message", { data: { type: "shivan-push-enable" }, ports: [{ postMessage: message => { assert.equal(message.ok, true); } }], waitUntil(promise) { this.waitPromise = promise; } });
   const ownerTestPush = { data: { json: () => ({ title: "Shivan Shop push test", body: "Push notifications are working on this device.", tag: "owner-push-test:local-only", data: { audience: "owner", eventId: "local-only", type: "test", url: "/?ownerPush=alerts" } }) }, waitUntil(promise) { this.waitPromise = promise; } };
   await dispatch("push", ownerTestPush);
   assert.equal(notifications.at(-1).title, "Shivan Shop push test", "the service worker displays the one-device Owner test");
@@ -693,14 +858,21 @@ async function testServiceWorkerAndOwnerControls() {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const workerConfig = await readFile(new URL("../sync-hub/wrangler.toml", import.meta.url), "utf8");
 const ownerPushMigration = await readFile(new URL("../migrations/0003_owner_push_subscriptions.sql", import.meta.url), "utf8");
+const customerPushMigration = await readFile(new URL("../migrations/0004_customer_push_subscriptions.sql", import.meta.url), "utf8");
 assert.match(workerConfig, /binding\s*=\s*"DB"[\s\S]*database_name\s*=\s*"shivan-shop-db"[\s\S]*database_id\s*=\s*"bc9da050-3780-428f-aeee-b42bb82b95c0"/, "SyncHub is configured to use the existing shared D1 database");
 for (const column of ["endpoint_hash", "owner_id", "endpoint", "p256dh", "auth_secret", "expiration_time", "failures"]) assert.match(ownerPushMigration, new RegExp(`\\b${column}\\b`), `the additive Owner subscription table includes ${column}`);
 assert.match(ownerPushMigration, /REFERENCES accounts\(id\) ON DELETE CASCADE/, "Owner subscriptions follow the authorized account lifecycle");
 assert.doesNotMatch(ownerPushMigration, /DROP\s+TABLE|DELETE\s+FROM/i, "the push migration never removes existing data");
+for (const table of ["customer_push_subscriptions", "customer_push_preferences"]) assert.match(customerPushMigration, new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`), `customer subscriptions use a separate D1 table: ${table}`);
+for (const column of ["endpoint_hash", "customer_id", "endpoint", "p256dh", "auth_secret", "new_arrivals", "discounts", "special_offers", "announcements"]) assert.match(customerPushMigration, new RegExp(`\\b${column}\\b`), `customer push storage includes ${column}`);
+assert.match(customerPushMigration, /REFERENCES accounts\(id\) ON DELETE CASCADE/);
+assert.doesNotMatch(customerPushMigration, /DROP\s+TABLE|DELETE\s+FROM/i, "customer push migration is additive and preserves current rows");
   assert.equal((html.match(/Notification\.requestPermission\(/g) || []).length, 2, "permission is requested only from explicit Owner and customer enable handlers");
   assert.match(html, /function enableOwnerPushNotifications\(\)/);
   assert.match(html, /if\(!isOwner\(\)\)return false/);
   assert.match(html, /function enableCustomerPushNotifications\(\)/);
+  assert.match(html, /id="customerPushAnnouncements"/);
+  assert.match(html, /id="ownerCustomerBroadcastType"/);
   assert.match(html, /customer-push\/subscription/);
   assert.match(html, /id="ownerPushTest"[^>]*onclick="sendOwnerPushTestNotification\(\)"/);
   assert.match(html, /function sendOwnerPushTestNotification\(\)/);
@@ -713,12 +885,14 @@ assert.doesNotMatch(ownerPushMigration, /DROP\s+TABLE|DELETE\s+FROM/i, "the push
 
 await testWebPushCrypto();
 await testSubscriptionsAndAuthorization();
+await testCrossAudienceEndpointExclusivity();
 await testLegacyOwnerSubscriptionsRemainDeliverable();
 await testOwnerSingleDeviceTestNotification();
 await testEventDeliveryAndFailures();
 await testStockAndDiscountScheduling();
 await testCustomerSubscriptionsPreferencesAndBroadcasts();
+await testLegacyCustomerSubscriptionCompatibilityAndDeletedProductGuard();
 await testPagesOwnerAuthorization();
 await testProductSaveBroadcastOrdering();
 await testServiceWorkerAndOwnerControls();
-console.log("Push regression tests passed (Owner one-device test authorization and deduplication, Owner Smart Alerts, customer opt-in/preferences, event filtering, broadcasts, saved-product ordering, retries, failure pruning, notification clicks, and renewal).");
+console.log("Push regression tests passed (cross-audience endpoint exclusion and races, Owner one-device test authorization and deduplication, Owner Smart Alerts, customer opt-in/preferences, event filtering, broadcasts, saved-product ordering, retries, failure pruning, notification clicks, and renewal).");

@@ -63,8 +63,11 @@ self.addEventListener("push", event => {
   event.waitUntil((async () => {
     let data = {};
     try { data = event.data?.json() || {}; } catch { data = { title: "Shivan Shop", body: event.data?.text() || "A new store alert is ready." }; }
-    const title = String(data.title || "Shivan Shop alert").slice(0, 100);
-    const audience = data.data?.audience === "customer" ? "customer" : "owner";
+    const rawTitle = String(data.title || "shop alert").slice(0, 100);
+    const title = (/shivan\s+shop/i.test(rawTitle) ? rawTitle : `SHIVAN SHOP · ${rawTitle}`).slice(0, 100);
+    const audience = data.data?.audience;
+    if (audience !== "customer" && audience !== "owner") return;
+    if (await readPushSetting("audience") !== audience) return;
     if (Notification.permission !== "granted" || await readPushSetting(audience === "customer" ? "customerDisabled" : "disabled") === true) return;
     const body = String(data.body || (audience === "customer" ? "A new Shivan Shop update is ready." : "Open Owner Smart Alerts to review.")).slice(0, 220);
     const eventId = String(data.tag || data.data?.eventId || "shivan-shop-alert").slice(0, 400);

@@ -8,9 +8,10 @@ const OWNER_TEST_PREFIX = "shivan-push:owner-test:";
 const CUSTOMER_SUBSCRIPTION_PREFIX = "shivan-push:customer-subscription:";
 const CUSTOMER_EVENT_PREFIX = "shivan-push:customer-event:";
 const CUSTOMER_PREFERENCE_PREFIX = "shivan-push:customer-preferences:";
+const PRODUCTS_KEY = "shivan_shop_products";
 const EVENT_TYPES = new Set(["new_order", "low_stock", "out_of_stock", "discount_expiring", "discount_expired"]);
-const CUSTOMER_EVENT_TYPES = new Set(["new_arrival", "discount", "special_offer"]);
-const CUSTOMER_PREFERENCE_KEYS = ["newArrivals", "discounts", "specialOffers"];
+const CUSTOMER_EVENT_TYPES = new Set(["new_arrival", "discount", "special_offer", "announcement"]);
+const CUSTOMER_PREFERENCE_KEYS = ["newArrivals", "discounts", "specialOffers", "announcements"];
 const MAX_RETRIES = 8;
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const DELIVERY_BATCH_SIZE = 100;
@@ -30,6 +31,19 @@ function validOwnerId(value) {
 function validCustomerPreferences(value) {
   const preferences = Object.fromEntries(CUSTOMER_PREFERENCE_KEYS.map(key => [key, value?.[key] === true]));
   return { preferences, enabled: Object.values(preferences).some(Boolean) };
+}
+
+function customerPreferencesFromRow(row) {
+  return {
+    newArrivals: Number(row?.new_arrivals) === 1,
+    discounts: Number(row?.discounts) === 1,
+    specialOffers: Number(row?.special_offers) === 1,
+    announcements: Number(row?.announcements) === 1,
+  };
+}
+
+function customerPreferencesBindings(customerId, preferences, updatedAt) {
+  return [customerId, Number(preferences.newArrivals), Number(preferences.discounts), Number(preferences.specialOffers), Number(preferences.announcements), updatedAt];
 }
 
 function validCustomerImage(value) {
@@ -77,11 +91,25 @@ export class PushCoordinator {
     this.storage = ctx.storage;
     this.env = env;
     this.clock = options.clock || (() => Date.now());
+    this.endpointRegistrationLocks = new Map();
     this.send = options.send || ((subscription, payload) => sendWebPush(subscription, payload, {
       publicKey: env.VAPID_PUBLIC_KEY,
       privateKey: env.VAPID_PRIVATE_KEY,
       subject: env.VAPID_SUBJECT,
     }));
+  }
+
+  withEndpointRegistrationLock(endpointHash, callback) {
+    const locks = this.endpointRegistrationLocks;
+    const previous = locks.get(endpointHash) || Promise.resolve();
+    let release;
+    const hold = new Promise(resolve => { release = resolve; });
+    const queued = previous.then(() => hold);
+    locks.set(endpointHash, queued);
+    return previous.catch(() => {}).then(callback).finally(() => {
+      release();
+      if (locks.get(endpointHash) === queued) locks.delete(endpointHash);
+    });
   }
 
   async handle(request) {
@@ -146,60 +174,128 @@ export class PushCoordinator {
     try { p256dhBytes = base64UrlToBytes(p256dh); authBytes = base64UrlToBytes(auth); } catch {}
     if (!enabled) return json({ error: "Choose at least one customer notification preference." }, 400);
     if (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096 || p256dhBytes?.length !== 65 || p256dhBytes[0] !== 4 || authBytes?.length !== 16) return json({ error: "This browser returned an unsupported push subscription." }, 400);
-    const key = CUSTOMER_SUBSCRIPTION_PREFIX + await digestKey(endpoint);
+    if (!this.env.DB) return json({ error: "Customer push subscription storage is unavailable." }, 503);
+    const endpointHash = await digestKey(endpoint);
+    return this.withEndpointRegistrationLock(endpointHash, () => this.saveCustomerSubscriptionLocked(
+      customerId, subscription, preferences, endpoint, p256dh, auth, endpointHash, previousEndpoint,
+    ));
+  }
+
+  async saveCustomerSubscriptionLocked(customerId, subscription, preferences, endpoint, p256dh, auth, endpointHash, previousEndpoint) {
+    const { enabled } = validCustomerPreferences(preferences);
+    if (!enabled) return json({ error: "Choose at least one customer notification preference." }, 400);
+    const previousHash = isAllowedPushEndpoint(previousEndpoint) && previousEndpoint !== endpoint ? await digestKey(previousEndpoint) : "";
+    const currentKey = CUSTOMER_SUBSCRIPTION_PREFIX + endpointHash;
+    let current, old, ownedRows, legacy, ownerCurrent, ownerLegacy;
+    try {
+      current = await this.env.DB.prepare("SELECT endpoint_hash, customer_id, created_at FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      old = previousHash ? await this.env.DB.prepare("SELECT endpoint_hash, customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(previousHash).first() : null;
+      ownerCurrent = await this.env.DB.prepare("SELECT owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      const result = await this.env.DB.prepare("SELECT endpoint_hash FROM customer_push_subscriptions WHERE customer_id=?").bind(customerId).all();
+      if (result?.success === false) throw new Error("D1 customer subscription query failed.");
+      ownedRows = result?.results || [];
+      legacy = await this.storage.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
+      ownerLegacy = await this.storage.get(SUBSCRIPTION_PREFIX + endpointHash);
+    } catch { return json({ error: "Customer notification storage could not be checked." }, 503); }
+    const currentLegacy = await this.storage.get(currentKey);
+    if (ownerCurrent || ownerLegacy) return json({ error: "This device is already registered for Owner notifications. Turn those off on this device before enabling customer notifications." }, 409);
+    if ((current?.customer_id && current.customer_id !== customerId) || (currentLegacy?.customerId && currentLegacy.customerId !== customerId)) return json({ error: "This browser subscription is already linked to another customer account." }, 409);
+    const ownedHashes = new Set(ownedRows.map(row => String(row.endpoint_hash || "")));
+    for (const [key, record] of legacy) if (record?.customerId === customerId) ownedHashes.add(key.slice(CUSTOMER_SUBSCRIPTION_PREFIX.length));
+    if (previousHash && old?.customer_id === customerId) ownedHashes.delete(previousHash);
+    const oldLegacyKey = previousHash ? CUSTOMER_SUBSCRIPTION_PREFIX + previousHash : "";
+    const oldLegacy = oldLegacyKey ? await this.storage.get(oldLegacyKey) : null;
+    if (previousHash && oldLegacy?.customerId === customerId) ownedHashes.delete(previousHash);
+    if (!ownedHashes.has(endpointHash) && ownedHashes.size >= 10) return json({ error: "This customer account already has the maximum of 10 enabled devices." }, 429);
+
+    const timestamp = this.clock();
+    const preferenceWrite = this.env.DB.prepare(`INSERT INTO customer_push_preferences
+      (customer_id, new_arrivals, discounts, special_offers, announcements, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(customer_id) DO UPDATE SET new_arrivals=excluded.new_arrivals, discounts=excluded.discounts,
+        special_offers=excluded.special_offers, announcements=excluded.announcements, updated_at=excluded.updated_at`)
+      .bind(...customerPreferencesBindings(customerId, preferences, timestamp));
+    const subscriptionWrite = this.env.DB.prepare(`INSERT INTO customer_push_subscriptions
+      (endpoint_hash, customer_id, endpoint, p256dh, auth_secret, expiration_time, created_at, updated_at, failures)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+      ON CONFLICT(endpoint_hash) DO UPDATE SET endpoint=excluded.endpoint, p256dh=excluded.p256dh, auth_secret=excluded.auth_secret,
+        expiration_time=excluded.expiration_time, updated_at=excluded.updated_at, failures=0, last_failure_at=NULL, last_failure_status=NULL
+      WHERE customer_push_subscriptions.customer_id=excluded.customer_id`)
+      .bind(endpointHash, customerId, endpoint, p256dh, auth, Number(subscription.expirationTime) || null, Number(current?.created_at || currentLegacy?.createdAt) || timestamp, timestamp);
+    try {
+      const results = await this.env.DB.batch([preferenceWrite, subscriptionWrite, ...(previousHash ? [
+        this.env.DB.prepare(`DELETE FROM customer_push_subscriptions WHERE endpoint_hash=? AND customer_id=? AND EXISTS (
+          SELECT 1 FROM customer_push_subscriptions WHERE endpoint_hash=? AND customer_id=?
+        )`).bind(previousHash, customerId, endpointHash, customerId),
+      ] : [])]);
+      if (!Array.isArray(results) || results.length < 2 || results.some(result => result?.success === false)) throw new Error("D1 customer subscription batch failed.");
+      if (Number(results[1]?.meta?.changes) !== 1) {
+        const saved = await this.env.DB.prepare("SELECT customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+        if (saved?.customer_id && saved.customer_id !== customerId) return json({ error: "This browser subscription is already linked to another customer account." }, 409);
+        throw new Error("D1 did not confirm the customer subscription write.");
+      }
+    } catch { return json({ error: "The customer device subscription could not be saved securely." }, 503); }
+
+    if (oldLegacy?.customerId === customerId && oldLegacyKey) await this.storage.delete(oldLegacyKey);
+    if (currentLegacy?.customerId === customerId) await this.storage.delete(currentKey);
     const preferenceKey = CUSTOMER_PREFERENCE_PREFIX + await digestKey(customerId);
-    const oldKey = isAllowedPushEndpoint(previousEndpoint) && previousEndpoint !== endpoint ? CUSTOMER_SUBSCRIPTION_PREFIX + await digestKey(previousEndpoint) : "";
-    const result = await this.storage.transaction(async transaction => {
-      const current = await transaction.get(key);
-      const old = oldKey ? await transaction.get(oldKey) : null;
-      const prefix = await transaction.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
-      const owned = [...prefix.entries()].filter(([storedKey, record]) => storedKey !== oldKey && record?.customerId === customerId);
-      if (current?.customerId && current.customerId !== customerId) return { conflict: true };
-      if (!current && owned.length >= 10) return { full: true };
-      if (old?.customerId === customerId) await transaction.delete(oldKey);
-      for (const [storedKey, record] of prefix) if (record?.customerId === customerId) await transaction.put(storedKey, { ...record, preferences, updatedAt: this.clock() });
-      await transaction.put(preferenceKey, { customerId, preferences, updatedAt: this.clock() });
-      await transaction.put(key, {
-        customerId,
-        subscription: { endpoint, expirationTime: subscription.expirationTime || null, keys: { p256dh, auth } },
-        preferences,
-        createdAt: current?.createdAt || this.clock(),
-        updatedAt: this.clock(),
-        failures: 0,
+    try {
+      await this.storage.transaction(async transaction => {
+        await transaction.put(preferenceKey, { customerId, preferences, updatedAt: timestamp });
+        for (const [key, record] of legacy) if (record?.customerId === customerId && key !== oldLegacyKey && key !== currentKey) await transaction.put(key, { ...record, preferences, updatedAt: timestamp });
       });
-      return { renewed: Boolean(current) };
-    });
-    if (result.conflict) return json({ error: "This browser subscription is already linked to another customer account." }, 409);
-    if (result.full) return json({ error: "This customer account already has the maximum of 10 enabled devices." }, 429);
+    } catch { /* D1 is authoritative; legacy records are updated when read or next changed. */ }
     await this.armNext();
-    return json({ ok: true, registered: true, renewed: result.renewed });
+    return json({ ok: true, registered: true, renewed: Boolean(current || currentLegacy) });
   }
 
   async customerSubscriptionStatus(customerId, endpointValue) {
     const endpoint = String(endpointValue || "");
     if (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096) return json({ error: "Invalid subscription status request." }, 400);
-    const record = await this.storage.get(CUSTOMER_SUBSCRIPTION_PREFIX + await digestKey(endpoint));
-    const savedPreferences = await this.storage.get(CUSTOMER_PREFERENCE_PREFIX + await digestKey(customerId));
-    return json({ ok: true, registered: record?.customerId === customerId, preferences: savedPreferences?.preferences || (record?.customerId === customerId ? record.preferences : { newArrivals: false, discounts: false, specialOffers: false }) });
+    if (!this.env.DB) return json({ error: "Customer push subscription storage is unavailable." }, 503);
+    try {
+      const endpointHash = await digestKey(endpoint);
+      const row = await this.env.DB.prepare("SELECT customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      const legacy = await this.storage.get(CUSTOMER_SUBSCRIPTION_PREFIX + endpointHash);
+      const preferences = await this.getCustomerPreferences(customerId);
+      return json({ ok: true, registered: row?.customer_id === customerId || (!row && legacy?.customerId === customerId), preferences });
+    } catch { return json({ error: "This device notification status could not be checked." }, 503); }
   }
 
   async updateCustomerPreferences(customerId, endpointValue, rawPreferences) {
     if (rawPreferences?.action === "get") {
-      const saved = await this.storage.get(CUSTOMER_PREFERENCE_PREFIX + await digestKey(customerId));
-      return json({ ok: true, preferences: saved?.preferences || { newArrivals: false, discounts: false, specialOffers: false } });
+      try { return json({ ok: true, preferences: await this.getCustomerPreferences(customerId) }); }
+      catch { return json({ error: "Customer notification preferences could not be loaded." }, 503); }
     }
     const endpoint = String(endpointValue || "");
     if (endpoint && (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096)) return json({ error: "Invalid push endpoint." }, 400);
     const { preferences, enabled } = validCustomerPreferences(rawPreferences);
+    if (!this.env.DB) return json({ error: "Customer notification preference storage is unavailable." }, 503);
     const preferenceKey = CUSTOMER_PREFERENCE_PREFIX + await digestKey(customerId);
     const all = await this.storage.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
-    const key = endpoint ? CUSTOMER_SUBSCRIPTION_PREFIX + await digestKey(endpoint) : "";
-    const record = endpoint ? await this.storage.get(key) : null;
-    if (endpoint && record?.customerId !== customerId) return json({ error: "This device is not linked to this customer account." }, 404);
-    await this.storage.transaction(async transaction => {
-      await transaction.put(preferenceKey, { customerId, preferences, updatedAt: this.clock() });
-      for (const [storedKey, stored] of all) if (stored?.customerId === customerId) await transaction.put(storedKey, { ...stored, preferences, updatedAt: this.clock() });
-    });
+    const endpointHash = endpoint ? await digestKey(endpoint) : "";
+    const key = endpointHash ? CUSTOMER_SUBSCRIPTION_PREFIX + endpointHash : "";
+    let row = null, record = null;
+    try {
+      row = endpointHash ? await this.env.DB.prepare("SELECT customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first() : null;
+      record = endpointHash ? await this.storage.get(key) : null;
+    } catch { return json({ error: "This device preference could not be checked." }, 503); }
+    if (endpointHash && row?.customer_id !== customerId && record?.customerId !== customerId) return json({ error: "This device is not linked to this customer account." }, 404);
+    const timestamp = this.clock();
+    try {
+      const write = this.env.DB.prepare(`INSERT INTO customer_push_preferences
+        (customer_id, new_arrivals, discounts, special_offers, announcements, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(customer_id) DO UPDATE SET new_arrivals=excluded.new_arrivals, discounts=excluded.discounts,
+          special_offers=excluded.special_offers, announcements=excluded.announcements, updated_at=excluded.updated_at`)
+        .bind(...customerPreferencesBindings(customerId, preferences, timestamp));
+      const results = await this.env.DB.batch([write]);
+      if (!Array.isArray(results) || results[0]?.success === false) throw new Error("D1 preference write failed.");
+      await this.storage.transaction(async transaction => {
+        await transaction.put(preferenceKey, { customerId, preferences, updatedAt: timestamp });
+        for (const [storedKey, stored] of all) if (stored?.customerId === customerId) await transaction.put(storedKey, { ...stored, preferences, updatedAt: timestamp });
+      });
+    } catch { return json({ error: "Customer notification preferences could not be saved." }, 503); }
     if (!enabled) await this.armNext();
     return json({ ok: true, preferences, notificationsEnabled: enabled });
   }
@@ -207,11 +303,111 @@ export class PushCoordinator {
   async removeCustomerSubscription(customerId, endpointValue) {
     const endpoint = String(endpointValue || "");
     if (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096) return json({ error: "Invalid push endpoint." }, 400);
-    const key = CUSTOMER_SUBSCRIPTION_PREFIX + await digestKey(endpoint);
-    const record = await this.storage.get(key);
-    if (record?.customerId === customerId) await this.storage.delete(key);
-    await this.armNext();
-    return json({ ok: true, removed: record?.customerId === customerId });
+    if (!this.env.DB) return json({ error: "Customer push subscription storage is unavailable." }, 503);
+    const endpointHash = await digestKey(endpoint);
+    const key = CUSTOMER_SUBSCRIPTION_PREFIX + endpointHash;
+    try {
+      const row = await this.env.DB.prepare("SELECT customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
+      const legacy = await this.storage.get(key);
+      let removed = false;
+      if (row?.customer_id === customerId) {
+        const result = await this.env.DB.prepare("DELETE FROM customer_push_subscriptions WHERE endpoint_hash=? AND customer_id=?").bind(endpointHash, customerId).run();
+        if (result?.success === false) throw new Error("D1 customer subscription removal failed.");
+        removed = Number(result?.meta?.changes) > 0;
+      }
+      if (legacy?.customerId === customerId) removed = await this.storage.delete(key) || removed;
+      await this.armNext();
+      return json({ ok: true, removed });
+    } catch { return json({ error: "This device could not be removed from customer notifications." }, 503); }
+  }
+
+  async customerProductIsPublished(productId, { requireActiveDiscount = false } = {}) {
+    const id = cleanText(productId, 100);
+    if (!id || !this.env.DB) return false;
+    const row = await this.env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+    let products;
+    try { products = JSON.parse(String(row?.value || "[]")); } catch { return false; }
+    if (!Array.isArray(products)) return false;
+    const product = products.find(item => String(item?.id ?? "") === id);
+    if (!product || product.published === false || product.isPublished === false || product.deleted === true || product.isDeleted === true || ["draft", "unpublished", "deleted"].includes(String(product.status || "").toLowerCase())) return false;
+    if (requireActiveDiscount) {
+      const discount = Number(product.discount ?? product.discountPercent ?? product.discount_percent ?? 0);
+      if (!Number.isInteger(discount) || discount < 1 || discount > 99) return false;
+      if (product.discountTimerEnabled === true) {
+        const endAt = Date.parse(String(product.discountEndsAt || ""));
+        if (!Number.isFinite(endAt) || endAt <= this.clock()) return false;
+      }
+    }
+    return true;
+  }
+
+  async getCustomerPreferences(customerId) {
+    if (this.env.DB) {
+      const row = await this.env.DB.prepare(`SELECT new_arrivals, discounts, special_offers, announcements
+        FROM customer_push_preferences WHERE customer_id=?`).bind(customerId).first();
+      if (row) return customerPreferencesFromRow(row);
+    }
+    const saved = await this.storage.get(CUSTOMER_PREFERENCE_PREFIX + await digestKey(customerId));
+    if (saved?.preferences) return validCustomerPreferences(saved.preferences).preferences;
+    const legacy = await this.storage.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
+    const previous = [...legacy.values()].find(record => record?.customerId === customerId && record?.preferences);
+    return validCustomerPreferences(previous?.preferences).preferences;
+  }
+
+  async listCustomerSubscriptions() {
+    if (!this.env.DB) throw new Error("Customer push subscription storage is unavailable.");
+    const result = await this.env.DB.prepare(`SELECT s.endpoint_hash, s.customer_id, s.endpoint, s.p256dh, s.auth_secret, s.expiration_time,
+        s.created_at, s.updated_at, s.failures, p.new_arrivals, p.discounts, p.special_offers, p.announcements
+      FROM customer_push_subscriptions s LEFT JOIN customer_push_preferences p ON p.customer_id=s.customer_id`).all();
+    if (result?.success === false) throw new Error("D1 customer subscription read failed.");
+    const subscriptions = new Map();
+    for (const row of result?.results || []) {
+      const hash = String(row.endpoint_hash || "");
+      if (!/^[a-f0-9]{64}$/i.test(hash) || !validOwnerId(row.customer_id)) continue;
+      subscriptions.set(CUSTOMER_SUBSCRIPTION_PREFIX + hash, {
+        customerId: row.customer_id,
+        subscription: { endpoint: row.endpoint, expirationTime: row.expiration_time || null, keys: { p256dh: row.p256dh, auth: row.auth_secret } },
+        preferences: customerPreferencesFromRow(row), createdAt: Number(row.created_at) || 0, updatedAt: Number(row.updated_at) || 0,
+        failures: Number(row.failures) || 0, endpointHash: hash, d1: true,
+      });
+    }
+    const legacy = await this.storage.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
+    for (const [key, stored] of legacy) if (!subscriptions.has(key) && stored?.customerId && stored?.subscription) {
+      const preferences = await this.getCustomerPreferences(stored.customerId);
+      subscriptions.set(key, { ...stored, preferences, endpointHash: key.slice(CUSTOMER_SUBSCRIPTION_PREFIX.length), d1: false });
+    }
+    return subscriptions;
+  }
+
+  async getCustomerSubscription(key, customerId) {
+    const endpointHash = key.slice(CUSTOMER_SUBSCRIPTION_PREFIX.length);
+    const row = await this.env.DB.prepare(`SELECT s.endpoint_hash, s.customer_id, s.endpoint, s.p256dh, s.auth_secret, s.expiration_time,
+        s.created_at, s.updated_at, s.failures, p.new_arrivals, p.discounts, p.special_offers, p.announcements
+      FROM customer_push_subscriptions s LEFT JOIN customer_push_preferences p ON p.customer_id=s.customer_id WHERE s.endpoint_hash=?`).bind(endpointHash).first();
+    if (row) return row.customer_id === customerId ? {
+      customerId: row.customer_id, subscription: { endpoint: row.endpoint, expirationTime: row.expiration_time || null, keys: { p256dh: row.p256dh, auth: row.auth_secret } },
+      preferences: customerPreferencesFromRow(row), createdAt: Number(row.created_at) || 0, updatedAt: Number(row.updated_at) || 0,
+      failures: Number(row.failures) || 0, endpointHash, d1: true,
+    } : null;
+    const legacy = await this.storage.get(key);
+    if (legacy?.customerId !== customerId) return null;
+    return { ...legacy, preferences: await this.getCustomerPreferences(customerId), endpointHash, d1: false };
+  }
+
+  async updateCustomerSubscription(key, stored, fields) {
+    if (!stored?.d1) return this.storage.put(key, { ...stored, ...fields });
+    const updated = { ...stored, ...fields };
+    const result = await this.env.DB.prepare(`UPDATE customer_push_subscriptions SET failures=?, last_success_at=?, last_failure_at=?, last_failure_status=?, updated_at=?
+      WHERE endpoint_hash=? AND customer_id=?`).bind(Number(updated.failures) || 0, Number(updated.lastSuccessAt) || null,
+      Number(updated.lastFailureAt) || null, Number(updated.lastFailureStatus) || null, this.clock(), stored.endpointHash, stored.customerId).run();
+    if (result?.success === false) throw new Error("D1 customer delivery status update failed.");
+  }
+
+  async deleteCustomerSubscription(key, stored) {
+    if (!stored?.d1) return this.storage.delete(key);
+    const result = await this.env.DB.prepare("DELETE FROM customer_push_subscriptions WHERE endpoint_hash=? AND customer_id=?").bind(stored.endpointHash, stored.customerId).run();
+    if (result?.success === false) throw new Error("D1 customer subscription removal failed.");
+    return Number(result?.meta?.changes) > 0;
   }
 
   async enqueueCustomerEvent(ownerId, rawEvent, { manual = false } = {}) {
@@ -220,15 +416,22 @@ export class PushCoordinator {
     const title = cleanText(rawEvent?.title, 100);
     const body = cleanText(rawEvent?.body, 220);
     const url = String(rawEvent?.url || "");
-    const preference = type === "new_arrival" ? "newArrivals" : type === "discount" ? "discounts" : type === "special_offer" ? "specialOffers" : "";
+    const productId = cleanText(rawEvent?.productId, 100);
+    const preference = type === "new_arrival" ? "newArrivals" : type === "discount" ? "discounts" : type === "special_offer" ? "specialOffers" : type === "announcement" ? "announcements" : "";
     if (!CUSTOMER_EVENT_TYPES.has(type) || !preference || !eventId || !title || !validLocalTarget(url)) return json({ error: "Invalid customer notification." }, 400);
-    if (manual && type !== "special_offer") return json({ error: "Owner broadcasts must be special offers." }, 400);
+    if (manual && !["special_offer", "announcement"].includes(type)) return json({ error: "Owner broadcasts must be offers or important announcements." }, 400);
     if (rawEvent?.image && !validCustomerImage(rawEvent.image)) return json({ error: "The promotional image must use saved public shop media." }, 400);
+    if ((type === "new_arrival" || type === "discount") && !productId) return json({ error: "Product notifications need a saved product reference." }, 400);
+    if (productId) {
+      try {
+        if (!await this.customerProductIsPublished(productId, { requireActiveDiscount: type === "discount" })) return json({ error: "This product is no longer published or eligible for this notification." }, 409);
+      } catch { return json({ error: "Saved product status could not be verified; no notification was queued." }, 503); }
+    }
     const key = CUSTOMER_EVENT_PREFIX + await digestKey(eventId);
     const record = {
       eventId, type, preference, title, body, url,
       image: validCustomerImage(rawEvent?.image) ? rawEvent.image : "",
-      productId: cleanText(rawEvent?.productId, 100),
+      productId,
       audience: "Subscribed customers · " + preference,
       ownerId,
       createdAt: this.clock(), nextAttemptAt: this.clock(), attempts: 0,
@@ -258,7 +461,7 @@ export class PushCoordinator {
     const eventId = cleanText(eventIdValue, 300);
     if (!eventId) return json({ error: "Offer not found." }, 404);
     const record = await this.storage.get(CUSTOMER_EVENT_PREFIX + await digestKey(eventId));
-    if (!record || record.type !== "special_offer") return json({ error: "Offer not found." }, 404);
+    if (!record || !["special_offer", "announcement"].includes(record.type)) return json({ error: "Offer not found." }, 404);
     return json({ ok: true, offer: { eventId: record.eventId, type: record.type, title: record.title, body: record.body, image: record.image || "", createdAt: record.createdAt } });
   }
 
@@ -271,19 +474,30 @@ export class PushCoordinator {
     if (!isAllowedPushEndpoint(endpoint) || endpoint.length > 4096 || p256dhBytes?.length !== 65 || p256dhBytes[0] !== 4 || authBytes?.length !== 16) return json({ error: "This browser returned an unsupported push subscription." }, 400);
     if (!this.env.DB) return json({ error: "Owner push subscription storage is unavailable." }, 503);
     const endpointHash = await digestKey(endpoint);
+    return this.withEndpointRegistrationLock(endpointHash, () => this.saveOwnerSubscriptionLocked(
+      ownerId, subscription, endpoint, p256dh, auth, endpointHash, previousEndpoint,
+    ));
+  }
+
+  async saveOwnerSubscriptionLocked(ownerId, subscription, endpoint, p256dh, auth, endpointHash, previousEndpoint) {
     const previousHash = isAllowedPushEndpoint(previousEndpoint) && previousEndpoint !== endpoint ? await digestKey(previousEndpoint) : "";
     let current;
     let old;
     let ownedRows;
+    let customerCurrent;
+    let customerLegacy;
     try {
       current = await this.env.DB.prepare("SELECT endpoint_hash, owner_id, created_at FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
       old = previousHash ? await this.env.DB.prepare("SELECT endpoint_hash, owner_id FROM owner_push_subscriptions WHERE endpoint_hash=?").bind(previousHash).first() : null;
+      customerCurrent = await this.env.DB.prepare("SELECT customer_id FROM customer_push_subscriptions WHERE endpoint_hash=?").bind(endpointHash).first();
       const result = await this.env.DB.prepare("SELECT endpoint_hash FROM owner_push_subscriptions WHERE owner_id=?").bind(ownerId).all();
       if (result?.success === false) throw new Error("D1 subscription query failed.");
       ownedRows = result?.results || [];
+      customerLegacy = await this.storage.get(CUSTOMER_SUBSCRIPTION_PREFIX + endpointHash);
     } catch {
       return json({ error: "Owner push subscription storage could not be checked." }, 503);
     }
+    if (customerCurrent || customerLegacy) return json({ error: "This device is already registered for customer notifications. Turn those off on this device before enabling Owner notifications." }, 409);
     if (current?.owner_id && current.owner_id !== ownerId) return json({ error: "This browser subscription is already linked to another Owner account." }, 409);
     const legacy = await this.storage.list({ prefix: SUBSCRIPTION_PREFIX });
     const ownedHashes = new Set(ownedRows.map(row => String(row.endpoint_hash || "")));
@@ -613,7 +827,7 @@ export class PushCoordinator {
       for (const [subscriptionKey, stored] of targets) {
         if (delivered.has(subscriptionKey)) continue;
         let result;
-        try { result = await this.send(stored.subscription, { title: event.title, body: event.body, tag: event.eventId, data: { eventId: event.eventId, type: event.type, url: event.url } }); }
+        try { result = await this.send(stored.subscription, { title: event.title, body: event.body, tag: event.eventId, data: { audience: "owner", eventId: event.eventId, type: event.type, url: event.url } }); }
         catch { result = { ok: false, status: 0 }; }
         if (result?.ok) {
           delivered.add(subscriptionKey);
@@ -647,7 +861,7 @@ export class PushCoordinator {
   }
 
   async deliverCustomerEvents(now) {
-    const subscriptions = await this.storage.list({ prefix: CUSTOMER_SUBSCRIPTION_PREFIX });
+    const subscriptions = await this.listCustomerSubscriptions();
     const events = await this.storage.list({ prefix: CUSTOMER_EVENT_PREFIX });
     for (const [key, event] of events) {
       if (Number(event?.createdAt) < now - RETENTION_MS && event?.status !== "pending") {
@@ -655,6 +869,10 @@ export class PushCoordinator {
         continue;
       }
       if (event?.status !== "pending" || Number(event.nextAttemptAt) > now) continue;
+      if (event.productId && !await this.customerProductIsPublished(event.productId, { requireActiveDiscount: event.type === "discount" })) {
+        await this.storage.put(key, { ...event, status: "cancelled_unpublished_product", completedAt: now });
+        continue;
+      }
       const targets = [...subscriptions.entries()].filter(([, stored]) => stored?.preferences?.[event.preference] === true);
       if (!targets.length) {
         await this.storage.put(key, { ...event, status: "no_subscribers", completedAt: now });
@@ -674,7 +892,9 @@ export class PushCoordinator {
       let permanentFailure = false;
       let skippedAfterOptOut = Boolean(event.skippedAfterOptOut);
       for (const [subscriptionKey, stored] of batch) {
-        const latest = await this.storage.get(subscriptionKey);
+        let latest;
+        try { latest = await this.getCustomerSubscription(subscriptionKey, stored.customerId); }
+        catch { throw new Error("Customer subscription status could not be refreshed safely."); }
         if (!latest || latest.customerId !== stored.customerId || latest.preferences?.[event.preference] !== true) {
           skippedAfterOptOut = true;
           continue;
@@ -687,23 +907,23 @@ export class PushCoordinator {
         catch { result = { ok: false, status: 0 }; }
         if (result?.ok) {
           delivered.add(subscriptionKey);
-          await this.storage.put(subscriptionKey, { ...stored, failures: 0, lastSuccessAt: now });
+          try { await this.updateCustomerSubscription(subscriptionKey, latest, { failures: 0, lastSuccessAt: now }); } catch {}
           continue;
         }
         if (result?.remove) {
-          await this.storage.delete(subscriptionKey);
+          try { await this.deleteCustomerSubscription(subscriptionKey, latest); } catch {}
           permanentFailure = true;
           failed.add(subscriptionKey);
           continue;
         }
         if (Number(result?.status) === 0 || Number(result?.status) === 429 || Number(result?.status) >= 500) {
           transientFailure = true;
-          await this.storage.put(subscriptionKey, { ...stored, failures: (Number(stored.failures) || 0) + 1, lastFailureAt: now });
+          try { await this.updateCustomerSubscription(subscriptionKey, latest, { failures: (Number(stored.failures) || 0) + 1, lastFailureAt: now }); } catch {}
           continue;
         }
         permanentFailure = true;
         failed.add(subscriptionKey);
-        await this.storage.put(subscriptionKey, { ...stored, lastFailureAt: now, lastFailureStatus: Number(result?.status) || 0 });
+        try { await this.updateCustomerSubscription(subscriptionKey, latest, { lastFailureAt: now, lastFailureStatus: Number(result?.status) || 0 }); } catch {}
       }
 
       if (transientFailure && Number(event.attempts) + 1 < MAX_RETRIES) {

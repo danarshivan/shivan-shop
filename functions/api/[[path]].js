@@ -265,6 +265,11 @@ function customerPushImage(product) {
   return "";
 }
 
+function isCustomerProductPublished(product) {
+  if (!product || product.published === false || product.isPublished === false || product.deleted === true || product.isDeleted === true) return false;
+  return !["draft", "unpublished", "deleted"].includes(String(product.status || "").toLowerCase());
+}
+
 function customerProductDiscount(product) {
   const value = Number(product?.discount ?? product?.discountPercent ?? product?.discount_percent ?? 0);
   if (!Number.isInteger(value) || value < 1 || value > 99) return 0;
@@ -279,6 +284,7 @@ async function queueCustomerProductEvents(env, ownerId, previousProducts, nextPr
   if (!env.SYNC_HUB || !Array.isArray(previousProducts) || !Array.isArray(nextProducts)) return;
   const previousById = new Map(previousProducts.map(product => [String(product?.id ?? ""), product]).filter(([id]) => id));
   for (const product of nextProducts) {
+    if (!isCustomerProductPublished(product)) continue;
     const id = String(product?.id ?? "").slice(0, 100);
     if (!id) continue;
     const name = String(product?.name || product?.names?.en || "New fashion model").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 100) || "New fashion model";
@@ -385,10 +391,12 @@ async function handleOwnerPush(request, env, account, route, url) {
     const raw = await request.text().catch(() => "");
     if (new TextEncoder().encode(raw).byteLength > 5000) return error("The customer notification is too large.", 413);
     const body = (() => { try { return JSON.parse(raw); } catch { return null; } })();
+    const type = String(body?.type || "special_offer");
     const title = String(body?.title || "").trim().slice(0, 100);
     const message = String(body?.message || "").trim().slice(0, 220);
     const requestId = String(body?.requestId || "");
-    if (!title || !message || !/^[A-Za-z0-9_-]{8,100}$/.test(requestId)) return error("Add a title and message before sending the customer offer.");
+    if (!["special_offer", "announcement"].includes(type)) return error("Choose a supported customer notification type.");
+    if (!title || !message || !/^[A-Za-z0-9_-]{8,100}$/.test(requestId)) return error("Add a title and message before sending the customer notification.");
     const productId = String(body?.productId || "").trim().slice(0, 100);
     let product = null;
     if (productId) {
@@ -398,12 +406,12 @@ async function handleOwnerPush(request, env, account, route, url) {
         if (!Array.isArray(products)) return error("Saved product data could not be checked. The notification was not sent.", 503);
         product = products.find(item => String(item?.id ?? "") === productId) || null;
       } catch { return error("Saved product data could not be checked. The notification was not sent.", 503); }
-      if (!product) return error("That product is not saved in the shared catalog. Save and publish it before sending an offer.", 409);
+      if (!isCustomerProductPublished(product)) return error("That product is not published in the shared catalog. Publish it before sending a notification.", 409);
     }
-    const eventId = `special-offer:${requestId}`;
+    const eventId = `${type === "announcement" ? "announcement" : "special-offer"}:${requestId}`;
     const path = product ? `/?customerPush=product&productId=${encodeURIComponent(productId)}` : `/?customerPush=offers&offerId=${encodeURIComponent(eventId)}`;
     const event = {
-      eventId, type: "special_offer", title, body: message,
+      eventId, type, title, body: message,
       url: path, productId, image: product ? customerPushImage(product) : "",
     };
     try {
@@ -1678,7 +1686,7 @@ export async function onRequest({ request, env }) {
   }
   if (route === "customer-push/offer" && request.method === "GET") {
     const eventId = String(url.searchParams.get("eventId") || "").slice(0, 300);
-    if (!eventId) return error("Offer not found.", 404);
+    if (!eventId) return error("Notification not found.", 404);
     try {
       const result = await pushHubRequest(env, `/push/customer-offer?eventId=${encodeURIComponent(eventId)}`);
       return json(result.payload, result.response.status, { "Cache-Control": "public, max-age=60" });

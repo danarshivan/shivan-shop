@@ -3230,6 +3230,7 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
           <label><input id="customerPushNewArrivals" type="checkbox"> New arrivals</label>
           <label><input id="customerPushDiscounts" type="checkbox"> Discounts</label>
           <label><input id="customerPushSpecialOffers" type="checkbox"> Special offers</label>
+          <label><input id="customerPushAnnouncements" type="checkbox"> Important shop announcements</label>
         </div>
         <p id="customerPushStatus" class="customer-push-status" role="status" aria-live="polite"></p>
         <div class="customer-push-actions">
@@ -9361,21 +9362,26 @@ function renderOwnerCustomerNotifications(box){
   if(!isOwner()){if(box)box.textContent="Only the authorized Owner can manage customer notifications.";return;}
   if(!box)return;
   const productOptions=(Array.isArray(products)?products:[]).map(product=>`<option value="${escapeHtml(String(product.id))}">${escapeHtml(getProductName(product))}</option>`).join("");
-  box.innerHTML=`<section class="owner-customer-notifications"><div><p class="owner-dashboard-kicker">SHIVAN SHOP · OWNER</p><h3>Customer Notifications</h3><p class="owner-customer-help">Preview optional promotional messages before sending. They go only to customers who subscribed to Special offers. Owner Smart Alerts stay separate.</p></div><div class="owner-customer-form"><label>Notification title<input id="ownerCustomerBroadcastTitle" maxlength="100" oninput="previewOwnerCustomerBroadcast()" placeholder="A special offer from Shivan Shop"></label><label>Message<textarea id="ownerCustomerBroadcastMessage" maxlength="220" oninput="previewOwnerCustomerBroadcast()" placeholder="Discover this week's offer"></textarea></label><label>Optional saved product<select id="ownerCustomerBroadcastProduct" onchange="previewOwnerCustomerBroadcast()"><option value="">General promotion</option>${productOptions}</select></label><p class="owner-customer-help">Audience: customers who opted into Special offers. Product images are included only when the selected product image is saved in shared shop storage.</p><div id="ownerCustomerBroadcastPreview" class="owner-customer-preview" hidden><img id="ownerCustomerBroadcastPreviewImage" alt="Promotional product preview" hidden><div><strong id="ownerCustomerBroadcastPreviewTitle"></strong><p id="ownerCustomerBroadcastPreviewMessage"></p><small>Special-offer subscribers</small></div></div><div class="owner-customer-actions"><button type="button" onclick="previewOwnerCustomerBroadcast()">Preview</button><button id="ownerCustomerBroadcastSend" type="button" onclick="sendOwnerCustomerBroadcast()">Send to subscribers</button></div><p id="ownerCustomerBroadcastStatus" class="customer-push-status" role="status" aria-live="polite">No notification has been sent.</p></div><div><h3>Recent customer notifications</h3><p class="owner-customer-help">Status and delivery totals only. Subscriber identities and device endpoints are never shown.</p><div id="ownerCustomerBroadcastHistory" class="owner-customer-history" aria-live="polite"><p class="owner-customer-help">Loading notification history…</p></div></div></section>`;
+  box.innerHTML=`<section class="owner-customer-notifications"><div><p class="owner-dashboard-kicker">SHIVAN SHOP · OWNER</p><h3>Customer Notifications</h3><p class="owner-customer-help">Preview a message before sending. It reaches only customers who opted into the selected notification type. Owner Smart Alerts remain private and separate.</p></div><div class="owner-customer-form"><label>Notification type<select id="ownerCustomerBroadcastType" onchange="previewOwnerCustomerBroadcast()"><option value="special_offer">Special offer</option><option value="announcement">Important shop announcement</option></select></label><label>Notification title<input id="ownerCustomerBroadcastTitle" maxlength="100" oninput="previewOwnerCustomerBroadcast()" placeholder="A special offer from Shivan Shop"></label><label>Message<textarea id="ownerCustomerBroadcastMessage" maxlength="220" oninput="previewOwnerCustomerBroadcast()" placeholder="Discover this week's offer"></textarea></label><label>Optional saved product<select id="ownerCustomerBroadcastProduct" onchange="previewOwnerCustomerBroadcast()"><option value="">General promotion</option>${productOptions}</select></label><p id="ownerCustomerBroadcastAudience" class="owner-customer-help">Audience: customers who opted into Special offers. Product images are included only when the selected product image is saved in shared shop storage.</p><div id="ownerCustomerBroadcastPreview" class="owner-customer-preview" hidden><img id="ownerCustomerBroadcastPreviewImage" alt="Shivan Shop notification preview" hidden><div><strong id="ownerCustomerBroadcastPreviewTitle"></strong><p id="ownerCustomerBroadcastPreviewMessage"></p><small id="ownerCustomerBroadcastPreviewAudience">Special-offer subscribers</small></div></div><div class="owner-customer-actions"><button type="button" onclick="previewOwnerCustomerBroadcast()">Preview</button><button id="ownerCustomerBroadcastSend" type="button" onclick="sendOwnerCustomerBroadcast()">Send to subscribers</button></div><p id="ownerCustomerBroadcastStatus" class="customer-push-status" role="status" aria-live="polite">No notification has been sent.</p></div><div><h3>Recent customer notifications</h3><p class="owner-customer-help">Status and delivery totals only. Subscriber identities and device endpoints are never shown.</p><div id="ownerCustomerBroadcastHistory" class="owner-customer-history" aria-live="polite"><p class="owner-customer-help">Loading notification history…</p></div></div></section>`;
   loadOwnerCustomerBroadcastHistory();
 }
 function previewOwnerCustomerBroadcast(){
   if(!isOwner())return false;
+  const type=String(document.getElementById("ownerCustomerBroadcastType")?.value||"special_offer");
   const title=String(document.getElementById("ownerCustomerBroadcastTitle")?.value||"").trim().slice(0,100);
   const message=String(document.getElementById("ownerCustomerBroadcastMessage")?.value||"").trim().slice(0,220);
   const productId=String(document.getElementById("ownerCustomerBroadcastProduct")?.value||"");
-  ownerCustomerBroadcastPreviewKey=JSON.stringify([title,message,productId]);
+  ownerCustomerBroadcastPreviewKey=JSON.stringify([type,title,message,productId]);
   const product=(Array.isArray(products)?products:[]).find(item=>String(item.id)===productId);
   const preview=document.getElementById("ownerCustomerBroadcastPreview");if(!preview)return false;
   preview.hidden=false;
   const titleNode=document.getElementById("ownerCustomerBroadcastPreviewTitle"),messageNode=document.getElementById("ownerCustomerBroadcastPreviewMessage"),imageNode=document.getElementById("ownerCustomerBroadcastPreviewImage");
-  if(titleNode)titleNode.textContent=title||"Notification title preview";
+  const audience=type==="announcement"?"Important-announcement subscribers":"Special-offer subscribers";
+  if(titleNode)titleNode.textContent=title||"SHIVAN SHOP · Notification preview";
   if(messageNode)messageNode.textContent=message||"Notification message preview";
+  const audienceNode=document.getElementById("ownerCustomerBroadcastPreviewAudience"),audienceHelp=document.getElementById("ownerCustomerBroadcastAudience");
+  if(audienceNode)audienceNode.textContent=audience;
+  if(audienceHelp)audienceHelp.firstChild.textContent=`Audience: customers who opted into ${type==="announcement"?"Important shop announcements":"Special offers"}. Product images are included only when the selected product image is saved in shared shop storage.`;
   const candidate=product?(product.image||product.images?.[0]?.url||product.images?.[0]||""):"";
   const image=typeof candidate==="string"&&/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(jpg|png|webp|gif)$/i.test(candidate)?candidate:"";
   if(imageNode){imageNode.hidden=!image;if(image)imageNode.src=image;else imageNode.removeAttribute("src");}
@@ -9394,18 +9400,20 @@ async function loadOwnerCustomerBroadcastHistory(){
 }
 async function sendOwnerCustomerBroadcast(){
   if(!isOwner()||ownerCustomerBroadcastPending)return false;
+  const type=String(document.getElementById("ownerCustomerBroadcastType")?.value||"special_offer");
   const title=String(document.getElementById("ownerCustomerBroadcastTitle")?.value||"").trim().slice(0,100);
   const message=String(document.getElementById("ownerCustomerBroadcastMessage")?.value||"").trim().slice(0,220);
   const productId=String(document.getElementById("ownerCustomerBroadcastProduct")?.value||"");
   const status=document.getElementById("ownerCustomerBroadcastStatus"),button=document.getElementById("ownerCustomerBroadcastSend");
   if(!title||!message){if(status)status.textContent="Enter both a title and a message before sending.";return false;}
-  if(ownerCustomerBroadcastPreviewKey!==JSON.stringify([title,message,productId])){if(status)status.textContent="Preview the current title, message, and audience before sending.";return false;}
-  if(!window.confirm("Send this special offer to customers who subscribed to Special offers?"))return false;
+  if(ownerCustomerBroadcastPreviewKey!==JSON.stringify([type,title,message,productId])){if(status)status.textContent="Preview the current title, message, and audience before sending.";return false;}
+  const audience=type==="announcement"?"Important shop announcements":"Special offers";
+  if(!window.confirm(`Send this ${type==="announcement"?"important announcement":"special offer"} to customers who subscribed to ${audience}?`))return false;
   if(!ownerCustomerBroadcastRequestId)ownerCustomerBroadcastRequestId=(crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`).replace(/[^A-Za-z0-9_-]/g,"");
   ownerCustomerBroadcastPending=true;if(button)button.disabled=true;if(status)status.textContent="Checking saved data and queuing the message…";
   try{
-    const result=await cloudRequest("/api/push/customer-broadcast",{method:"POST",body:JSON.stringify({title,message,productId,requestId:ownerCustomerBroadcastRequestId}),timeoutMs:15000});
-    if(status)status.textContent=result.duplicate?"This notification was already queued.":"Queued for customers who opted into Special offers.";
+    const result=await cloudRequest("/api/push/customer-broadcast",{method:"POST",body:JSON.stringify({type,title,message,productId,requestId:ownerCustomerBroadcastRequestId}),timeoutMs:15000});
+    if(status)status.textContent=result.duplicate?"This notification was already queued.":`Queued for customers who opted into ${audience}.`;
     ownerCustomerBroadcastRequestId="";await loadOwnerCustomerBroadcastHistory();showToast("Customer notification queued for subscribed customers.");return true;
   }catch(error){if(status)status.textContent=error.message||"The notification was not sent. Your draft remains available to retry.";return false;}
   finally{ownerCustomerBroadcastPending=false;if(button)button.disabled=false;}
@@ -11114,18 +11122,18 @@ function saveSupportMessage(){
 
 let customerPushActionPending=false;
 let customerPushPreferenceAccount="";
-let customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false};
+let customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false,announcements:false};
 let customerPushPreferencesLoaded=false;
 let customerPushRefreshPromise=null;
-function readCustomerPushPreferences(){return {newArrivals:Boolean(document.getElementById("customerPushNewArrivals")?.checked),discounts:Boolean(document.getElementById("customerPushDiscounts")?.checked),specialOffers:Boolean(document.getElementById("customerPushSpecialOffers")?.checked)};}
-function setCustomerPushPreferences(value){customerPushPreferences={newArrivals:value?.newArrivals===true,discounts:value?.discounts===true,specialOffers:value?.specialOffers===true};for(const [key,id] of [["newArrivals","customerPushNewArrivals"],["discounts","customerPushDiscounts"],["specialOffers","customerPushSpecialOffers"]]){const input=document.getElementById(id);if(input)input.checked=customerPushPreferences[key];}}
+function readCustomerPushPreferences(){return {newArrivals:Boolean(document.getElementById("customerPushNewArrivals")?.checked),discounts:Boolean(document.getElementById("customerPushDiscounts")?.checked),specialOffers:Boolean(document.getElementById("customerPushSpecialOffers")?.checked),announcements:Boolean(document.getElementById("customerPushAnnouncements")?.checked)};}
+function setCustomerPushPreferences(value){customerPushPreferences={newArrivals:value?.newArrivals===true,discounts:value?.discounts===true,specialOffers:value?.specialOffers===true,announcements:value?.announcements===true};for(const [key,id] of [["newArrivals","customerPushNewArrivals"],["discounts","customerPushDiscounts"],["specialOffers","customerPushSpecialOffers"],["announcements","customerPushAnnouncements"]]){const input=document.getElementById(id);if(input)input.checked=customerPushPreferences[key];}}
 function setCustomerPushStatus(message,{enabled=false,registered=false}={}){const status=document.getElementById("customerPushStatus"),enable=document.getElementById("customerPushEnable"),save=document.getElementById("customerPushSave"),disable=document.getElementById("customerPushDisable");if(status)status.textContent=message;if(enable)enable.hidden=registered;if(save)save.hidden=false;if(disable)disable.hidden=!enabled;for(const button of [enable,save,disable])if(button)button.disabled=customerPushActionPending;}
 async function refreshCustomerPushControls(){
   const section=document.getElementById("customerPushSettings"),account=cloudAccount||currentUser;
   if(!section)return false;
   const customer=Boolean(cloudMode&&account&&account.role==="customer"&&!isOwner());section.hidden=!customer;if(!customer)return false;
   const accountId=String(account.id||account.identifier||"");
-  if(customerPushPreferenceAccount!==accountId){customerPushPreferenceAccount=accountId;customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false};customerPushPreferencesLoaded=false;}
+  if(customerPushPreferenceAccount!==accountId){customerPushPreferenceAccount=accountId;customerPushPreferences={newArrivals:false,discounts:false,specialOffers:false,announcements:false};customerPushPreferencesLoaded=false;}
   if(!ownerPushIsSupported()){setCustomerPushStatus("This browser does not support push notifications. You can still use the shop normally.");const enable=document.getElementById("customerPushEnable");if(enable)enable.hidden=true;return false;}
   if(customerPushRefreshPromise)return customerPushRefreshPromise;
   customerPushRefreshPromise=(async()=>{
@@ -11176,9 +11184,9 @@ async function disableCustomerPushNotifications(){
   customerPushActionPending=true;let registration=null,subscription=null;try{registration=await navigator.serviceWorker?.getRegistration?.("/");subscription=await registration?.pushManager?.getSubscription?.();}catch{}setCustomerPushStatus("Turning off customer notifications…",{enabled:Boolean(subscription),registered:Boolean(subscription)});
   try{
     const endpoint=subscription?.endpoint||"";
-    await cloudRequest("/api/customer-push/preferences",{method:"POST",body:JSON.stringify({endpoint,preferences:{newArrivals:false,discounts:false,specialOffers:false}}),timeoutMs:12000});
+    await cloudRequest("/api/customer-push/preferences",{method:"POST",body:JSON.stringify({endpoint,preferences:{newArrivals:false,discounts:false,specialOffers:false,announcements:false}}),timeoutMs:12000});
     if(subscription){await cloudRequest("/api/customer-push/subscription",{method:"DELETE",body:JSON.stringify({endpoint}),timeoutMs:12000});await postPushWorkerSetting(registration,"shivan-customer-push-disable");const removed=await subscription.unsubscribe();if(!removed)throw new Error("The browser did not remove this device subscription.");}
-    setCustomerPushPreferences({newArrivals:false,discounts:false,specialOffers:false});customerPushPreferencesLoaded=true;setCustomerPushStatus("Customer notifications are off for your account.");showToast("Customer notifications turned off.");return true;
+    setCustomerPushPreferences({newArrivals:false,discounts:false,specialOffers:false,announcements:false});customerPushPreferencesLoaded=true;setCustomerPushStatus("Customer notifications are off for your account.");showToast("Customer notifications turned off.");return true;
   }catch(error){setCustomerPushStatus(error.message||"Notifications could not be turned off. Try again.",{enabled:Boolean(subscription),registered:Boolean(subscription)});return false;}
   finally{customerPushActionPending=false;await refreshCustomerPushControls();}
 }
