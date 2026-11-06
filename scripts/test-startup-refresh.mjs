@@ -113,6 +113,7 @@ const startupSandbox = {
   cloudMode: false,
   cloudAccount: null,
   currentUser: null,
+  isStaffSession: () => false,
   cloudOwnerSetupRequired: false,
   cloudInitializationComplete: false,
   cloudRequest: path => {

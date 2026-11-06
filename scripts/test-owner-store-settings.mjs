@@ -94,7 +94,7 @@ const context = {
 };
 const runtime = runInNewContext(`const OWNER_APPEARANCE_KEY="shivan_shop_owner_appearance";const OWNER_NOTIFICATION_PREFERENCES_KEY="shivan_shop_owner_notification_preferences";const OWNER_NOTIFICATION_EVENT_TYPES=["new_order","low_stock","out_of_stock","discount_expiring","discount_expired"];let ownerDeliveryZonesDraft=[];const MAX_CLOUD_IMAGE_BYTES=1300000;const MAX_OWNER_IMAGE_INPUT_BYTES=15*1024*1024;\n${constants}\n${functions}\n({${required.join(",")},getAppearance:()=>ownerAppearance,setAppearance:value=>ownerAppearance=value,isAppearanceSaved:()=>ownerAppearanceSaved,setDeliveryZones:value=>ownerDeliveryZonesDraft=value,getDeliveryZones:()=>ownerDeliveryZonesDraft})`, context);
 
-const routeNames = ["settings-appearance", "settings-information", "settings-notifications", "settings-delivery", "settings-security", "settings-backup"];
+const routeNames = ["settings-appearance", "settings-information", "settings-notifications", "settings-delivery", "settings-security", "settings-backup", "settings-staff-accounts"];
 for (const [route, panel] of [["store-settings", "settings"], ...routeNames.map(route => [route, route === "settings-appearance" ? "appearance" : route.replace("settings-", "settings-")])]) {
   assert.equal(runtime.ownerPanelRoute(route).panel, panel, `${route} routes to its dedicated settings panel`);
 }
@@ -110,8 +110,8 @@ for (const route of routeNames) {
 assert.match(functionSource("renderOwnerPanel"), /ownerNavigationHeaderMarkup\(\)/, "Owner subsections render the shared Back header");
 const hub = makeElement();
 runtime.renderOwnerSettingsHub(hub);
-assert.equal((hub.innerHTML.match(/class="owner-settings-card"/g) || []).length, 6, "the settings hub displays exactly six cards");
-for (const name of ["Appearance", "Store Information", "Notifications", "Delivery &amp; Orders", "Security", "Backup &amp; Sync"]) assert.ok(hub.innerHTML.includes(name), `the hub includes ${name}`);
+assert.equal((hub.innerHTML.match(/class="owner-settings-card"/g) || []).length, 7, "the settings hub displays seven cards including Staff Accounts");
+for (const name of ["Appearance", "Store Information", "Notifications", "Delivery &amp; Orders", "Security", "Backup &amp; Sync", "Staff Accounts"]) assert.ok(hub.innerHTML.includes(name), `the hub includes ${name}`);
 for (const route of routeNames) assert.ok(hub.innerHTML.includes(`renderOwnerPanel('${route}')`), `${route} has its own navigation target`);
 
 context.authorized = false;
@@ -296,4 +296,4 @@ assert.ok(html.includes("@media(max-width:620px){.owner-settings-grid{grid-templ
 assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{\.owner-settings-card/, "settings card transitions respect reduced motion");
 assert.match(html, /id="checkoutStoreInfo"/, "customer-facing delivery details have a checkout mount point");
 
-console.log("Store Settings checks passed: six Owner-only routes/cards, shared Store Information and Delivery persistence, validated logo/contact input, escaped checkout details, existing notification and backup links, and server-only Owner password handling.");
+console.log("Store Settings checks passed: seven Owner-only routes/cards including Staff Accounts, shared Store Information and Delivery persistence, validated logo/contact input, escaped checkout details, existing notification and backup links, and server-only Owner password handling.");

@@ -153,6 +153,7 @@ const context = {
   closeDetailImageFullscreen() {},
   hideShopOnboarding() {},
   isOwner: () => false,
+  isStaffSession: () => false,
   renderOwnerPanel() {},
   renderProducts() {},
   updateCartBadge() {},

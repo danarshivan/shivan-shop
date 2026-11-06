@@ -579,7 +579,7 @@ const ownerToken = "offline-onboarding-owner-session";
 const customerToken = "offline-onboarding-customer-session";
 const tokenHash = async token => Buffer.from(await webcrypto.subtle.digest("SHA-256", new TextEncoder().encode(token))).toString("base64url");
 const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-DB.accounts.set("offline-owner", { id: "offline-owner", identifier: "owner@example.test", name: "Offline Owner", role: "owner" });
+DB.accounts.set("offline-owner", { id: "offline-owner", identifier: "07502342153", name: "Offline Owner", role: "owner" });
 DB.accounts.set("offline-customer", { id: "offline-customer", identifier: "customer@example.test", name: "Offline Customer", role: "customer" });
 DB.sessions.set(await tokenHash(ownerToken), { accountId: "offline-owner", expiresAt });
 DB.sessions.set(await tokenHash(customerToken), { accountId: "offline-customer", expiresAt });

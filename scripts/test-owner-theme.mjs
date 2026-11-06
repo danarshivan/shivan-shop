@@ -261,6 +261,7 @@ assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), beforeUnautho
 assert.match(html, /CLOUD_OWNER_KEYS\s*=\s*new Set\(\[[^\]]*OWNER_APPEARANCE_KEY/);
 assert.match(api, /"shivan_shop_owner_appearance"/, "the existing production API allows this shared setting key");
 assert.match(api, /if \(account\.role !== "owner"\)/, "shared appearance changes remain protected by server-side Owner authorization");
-assert.match(functionSource("confirmCloudShopWrites"), /cloudAccount\.role!=="owner"/);
+assert.match(functionSource("confirmCloudShopWrites"), /!isOwner\(\)&&!isStaffSession\(\)/, "shared shop writes require an Owner or staff session before checking individual key permissions");
+assert.match(functionSource("cloudCanWriteShopKey"), /if\(isOwner\(\)\)return true;[\s\S]*?return false;/, "staff access is restricted to explicitly permitted shop keys");
 
-console.log("Owner theme regression checks passed: global page coverage, five presets, seven validated HEX color controls, font selection, contrast-safe colors, live preview, shared save/hydration, reset confirmation, and Owner-only authorization.");
+console.log("Owner theme regression checks passed: global page coverage, five presets, seven validated HEX color controls, font selection, contrast-safe colors, live preview, shared save/hydration, reset confirmation, and scoped staff authorization.");

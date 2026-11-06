@@ -2,8 +2,12 @@ const OWNER_IDENTIFIER = "07502342153";
 const COOKIE_NAME = "shivan_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 30;
 const OWNER_APPEARANCE_KEY = "shivan_shop_owner_appearance";
+const OWNER_SMART_ALERTS_KEY = "shivan_shop_owner_alerts";
 const OWNER_NOTIFICATION_PREFERENCES_KEY = "shivan_shop_owner_notification_preferences";
 const OWNER_NOTIFICATION_EVENT_TYPES = ["new_order","low_stock","out_of_stock","discount_expiring","discount_expired"];
+const STAFF_PERMISSION_KEYS = Object.freeze(["orders","products","inventory","prices","reports","customer_information","notifications"]);
+const PRODUCT_PRICE_FIELDS = Object.freeze(["price","discount","discountPercent","discountTimerEnabled","discountEndsAt"]);
+const PRODUCT_INVENTORY_FIELDS = Object.freeze(["stock","variants","sizes","colors","colorNames"]);
 const MAX_DELIVERY_ZONE_FEE_IQD = 10000000;
 const SHOP_KEYS = new Set([
   "shivan_shop_products",
@@ -404,7 +408,7 @@ async function syncCurrentOwnerPushProducts(env, ownerId, { strict = false } = {
 }
 
 async function handleOwnerPush(request, env, account, route, url) {
-  const denied = requireOwner(account);
+  const denied = requireOwnerRole(account);
   if (denied) return denied;
   if (request.headers.get("Origin") && request.headers.get("Origin") !== url.origin) return error("Cross-origin push settings are not allowed.", 403);
   if (route === "push/customer-broadcasts" && request.method === "GET") {
@@ -603,6 +607,67 @@ async function passwordHash(password, salt) {
   return base64url(new Uint8Array(bits));
 }
 
+function isMainOwnerAccount(account) {
+  return account?.role === "owner" && String(account.identifier || "").trim().toLowerCase() === OWNER_IDENTIFIER;
+}
+
+function staffHasPermission(account, permission) {
+  return account?.role === "owner" || account?.role === "staff" && Array.isArray(account.permissions) && account.permissions.includes(permission);
+}
+
+function requireStaffPermission(account, permission, action = "continue") {
+  if (!account) return error("Sign in to continue.", 401);
+  if (!staffHasPermission(account, permission)) return error(`You do not have permission to ${action}.`, 403);
+  return null;
+}
+
+function normalizeStaffPermissions(value) {
+  if (!Array.isArray(value) || value.some(permission => typeof permission !== "string" || !STAFF_PERMISSION_KEYS.includes(permission))) return null;
+  return [...new Set(value)];
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  return JSON.stringify(value);
+}
+
+function sameProductFields(left, right, fields) {
+  return fields.every(field => stableJson(left?.[field]) === stableJson(right?.[field]) && Object.hasOwn(left || {}, field) === Object.hasOwn(right || {}, field));
+}
+
+function productBaseFields(product) {
+  const output = { ...(product || {}) };
+  for (const field of [...PRODUCT_PRICE_FIELDS, ...PRODUCT_INVENTORY_FIELDS]) delete output[field];
+  return output;
+}
+
+function applyProductFieldGroup(target, source, fields) {
+  for (const field of fields) {
+    if (Object.hasOwn(source || {}, field)) target[field] = source[field];
+    else delete target[field];
+  }
+}
+
+function productGroupHasConfiguredValues(product, fields) {
+  if (fields === PRODUCT_PRICE_FIELDS) {
+    return PRODUCT_PRICE_FIELDS.some(field => {
+      if (!Object.hasOwn(product || {}, field)) return false;
+      const value = product[field];
+      return field === "price" ? Number(value) !== 0 : field === "discount" || field === "discountPercent" ? Number(value) !== 0 : field === "discountTimerEnabled" ? value === true : Boolean(value);
+    });
+  }
+  return Number(product?.stock) > 0 || (Array.isArray(product?.variants) && product.variants.some(variant => Number(variant?.stock) > 0)) || ["variants","sizes","colors","colorNames"].some(field => Array.isArray(product?.[field]) && product[field].length > 0);
+}
+
+function staffOrderView(order, includeCustomerInformation = false) {
+  const safe = { ...(order && typeof order === "object" && !Array.isArray(order) ? order : {}) };
+  if (!includeCustomerInformation) {
+    for (const field of ["name","email","customerName","customerEmail","phone","customerPhone","city","area","address","deliveryAddress","customerAddress","recipientName","recipientPhone","userId","receiptImage","fibPaymentId"]) delete safe[field];
+  }
+  return safe;
+}
+
 function cookieValue(request, name) {
   const header = request.headers.get("Cookie") || "";
   const entry = header.split(";").map(value => value.trim()).find(value => value.startsWith(`${name}=`));
@@ -622,13 +687,33 @@ async function createSession(env, accountId, secure) {
   return sessionCookie(token, secure);
 }
 
+async function createStaffSession(env, staffId, secure) {
+  const token = base64url(crypto.getRandomValues(new Uint8Array(32)));
+  const tokenHash = await digest(token);
+  const result = await env.DB.prepare("INSERT INTO staff_sessions (token_hash, staff_id, expires_at) VALUES (?, ?, ?)")
+    .bind(tokenHash, staffId, Math.floor(Date.now() / 1000) + SESSION_SECONDS).run();
+  requireD1WriteSuccess(result, "Staff session storage");
+  return sessionCookie(token, secure);
+}
+
+async function staffPermissionsFor(env, staffId) {
+  const result = await env.DB.prepare("SELECT permission FROM staff_account_permissions WHERE staff_id=? ORDER BY permission").bind(staffId).all();
+  return (result.results || []).map(row => String(row.permission)).filter(permission => STAFF_PERMISSION_KEYS.includes(permission));
+}
+
 async function currentAccount(request, env) {
   const token = cookieValue(request, COOKIE_NAME);
   if (!token) return null;
+  const tokenHash = await digest(token), timestamp = Math.floor(Date.now() / 1000);
   const row = await env.DB.prepare(
     "SELECT a.id, a.identifier, a.name, a.role FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token_hash=? AND s.expires_at>?"
-  ).bind(await digest(token), Math.floor(Date.now() / 1000)).first();
-  return row ? { id: row.id, identifier: row.identifier, name: row.name, role: row.role } : null;
+  ).bind(tokenHash, timestamp).first();
+  if (row) return { id: row.id, identifier: row.identifier, name: row.name, role: row.role };
+  const staff = await env.DB.prepare(
+    "SELECT a.id, a.identifier, a.name FROM staff_sessions s JOIN staff_accounts a ON a.id=s.staff_id WHERE s.token_hash=? AND s.expires_at>? AND a.disabled=0"
+  ).bind(tokenHash, timestamp).first();
+  if (!staff) return null;
+  return { id: staff.id, identifier: staff.identifier, name: staff.name, role: "staff", permissions: await staffPermissionsFor(env, staff.id) };
 }
 
 async function ensureSession(request, env) {
@@ -728,9 +813,9 @@ async function handleMediaUpload(request, env, account, url) {
     logOwnerSave("image.upload.auth_rejected", requestId, { status: 401, code: "AUTH_REQUIRED" });
     return tracedError("Sign in to continue.", 401, requestId, "AUTH_REQUIRED", "image.upload.auth");
   }
-  if (account.role !== "owner") {
+  if (!staffHasPermission(account, "products")) {
     logOwnerSave("image.upload.auth_rejected", requestId, { status: 403, code: "OWNER_REQUIRED" });
-    return tracedError("Only the store owner can upload shop images.", 403, requestId, "OWNER_REQUIRED", "image.upload.auth");
+    return tracedError("Only staff with product permission or the Main Owner can upload shop images.", 403, requestId, "OWNER_REQUIRED", "image.upload.auth");
   }
   if (!Object.hasOwn({ "image/jpeg": true, "image/png": true, "image/webp": true, "image/gif": true }, mime)) {
     return tracedError("Upload a JPEG, PNG, WebP, or GIF image.", 415, requestId, "UNSUPPORTED_IMAGE_TYPE", "image.upload.validate");
@@ -897,6 +982,7 @@ function isFibAppLink(value) {
 async function handleCreateFibPayment(request, env, account) {
   if (request.method !== "POST") return error("Method not allowed.", 405);
   if (!account) return error("Sign in to continue.", 401);
+  if (account.role === "staff") return error("Staff accounts cannot create customer payments.", 403);
   const body = await request.json().catch(() => null);
   const orderId = String(body?.orderId || "").slice(0, 100);
   const items = Array.isArray(body?.items) ? body.items.slice(0, 50) : [];
@@ -971,6 +1057,7 @@ async function handleCreateFibPayment(request, env, account) {
 async function handleFibPaymentStatus(request, env, account) {
   if (request.method !== "POST") return error("Method not allowed.", 405);
   if (!account) return error("Sign in to continue.", 401);
+  if (account.role === "staff") return error("Staff accounts cannot access customer payment status.", 403);
   const body = await request.json().catch(() => null);
   const paymentId = String(body?.paymentId || "").slice(0, 100);
   if (!paymentId) return error("Payment reference is missing.");
@@ -1077,9 +1164,15 @@ async function saveShopValue(env, key, rawValue, requestId = "") {
   return value;
 }
 
+function requireOwnerRole(account) {
+  if (!account) return error("Sign in with the store owner account to continue.", 401);
+  if (account.role !== "owner") return error("Only the store owner can manage Owner and customer notification settings.", 403);
+  return null;
+}
+
 function requireOwner(account) {
   if (!account) return error("Sign in with the store owner account to manage inventory.", 401);
-  if (account.role !== "owner") return error("Only the store owner can manage inventory.", 403);
+  if (!staffHasPermission(account, "inventory")) return error("Inventory permission is required to manage stock.", 403);
   return null;
 }
 
@@ -1136,7 +1229,9 @@ async function handleInventory(request, env, account, route) {
   if (route === "inventory/operation" && request.method === "GET") {
     const operationId = String(url.searchParams.get("operationId") || "").toLowerCase();
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(operationId)) return error("The inventory operation reference is invalid.");
-    const row = await env.DB.prepare("SELECT value FROM user_state WHERE account_id=? AND key=?").bind(account.id, `${INVENTORY_OPERATION_PREFIX}${operationId}`).first();
+    const row = account.role === "staff"
+      ? await env.DB.prepare("SELECT value FROM staff_state WHERE staff_id=? AND key=?").bind(account.id, `${INVENTORY_OPERATION_PREFIX}${operationId}`).first()
+      : await env.DB.prepare("SELECT value FROM user_state WHERE account_id=? AND key=?").bind(account.id, `${INVENTORY_OPERATION_PREFIX}${operationId}`).first();
     if (!row) return json({ ok: true, found: false });
     const operation = asJson(row.value, {});
     if (operation.state !== "complete") return json({ ok: true, found: true, pending: true }, 202);
@@ -1152,7 +1247,9 @@ async function handleInventory(request, env, account, route) {
     if (!qrId || !["sale", "restock"].includes(action) || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 999999) return error("Choose a valid variant, action, and whole quantity.");
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(operationId)) return error("The inventory operation reference is invalid.");
     const operationKey = `${INVENTORY_OPERATION_PREFIX}${operationId}`;
-    const previousOperation = await env.DB.prepare("SELECT value FROM user_state WHERE account_id=? AND key=?").bind(account.id, operationKey).first();
+    const operationTable = account.role === "staff" ? "staff_state" : "user_state";
+    const operationOwnerColumn = account.role === "staff" ? "staff_id" : "account_id";
+    const previousOperation = await env.DB.prepare(`SELECT value FROM ${operationTable} WHERE ${operationOwnerColumn}=? AND key=?`).bind(account.id, operationKey).first();
     if (previousOperation) {
       const saved = asJson(previousOperation.value, {});
       if (saved.state === "complete") return json({ ok: true, duplicate: true, variant: saved.variant, action: saved.action, quantity: saved.quantity });
@@ -1175,13 +1272,13 @@ async function handleInventory(request, env, account, route) {
     const resultVariant = { ...inventoryVariantView(match), stock: nextStock };
     const completedValue = JSON.stringify({ state: "complete", action, quantity, variant: resultVariant, completedAt: now() });
     const statements = [
-      env.DB.prepare("INSERT INTO user_state (account_id, key, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(account_id, key) DO NOTHING")
+      env.DB.prepare(`INSERT INTO ${operationTable} (${operationOwnerColumn}, key, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(${operationOwnerColumn}, key) DO NOTHING`)
         .bind(account.id, operationKey, pendingToken, now()),
-      env.DB.prepare("UPDATE shop_state SET value=?, updated_at=? WHERE key=? AND value=? AND EXISTS (SELECT 1 FROM user_state WHERE account_id=? AND key=? AND value=?)")
+      env.DB.prepare(`UPDATE shop_state SET value=?, updated_at=? WHERE key=? AND value=? AND EXISTS (SELECT 1 FROM ${operationTable} WHERE ${operationOwnerColumn}=? AND key=? AND value=?)`)
         .bind(nextProductsValue, now(), PRODUCTS_KEY, productRow.value, account.id, operationKey, pendingToken),
-      env.DB.prepare("UPDATE user_state SET value=?, updated_at=? WHERE account_id=? AND key=? AND value=? AND EXISTS (SELECT 1 FROM shop_state WHERE key=? AND value=?)")
+      env.DB.prepare(`UPDATE ${operationTable} SET value=?, updated_at=? WHERE ${operationOwnerColumn}=? AND key=? AND value=? AND EXISTS (SELECT 1 FROM shop_state WHERE key=? AND value=?)`)
         .bind(completedValue, now(), account.id, operationKey, pendingToken, PRODUCTS_KEY, nextProductsValue),
-      env.DB.prepare("DELETE FROM user_state WHERE account_id=? AND key=? AND value=?")
+      env.DB.prepare(`DELETE FROM ${operationTable} WHERE ${operationOwnerColumn}=? AND key=? AND value=?`)
         .bind(account.id, operationKey, pendingToken),
     ];
     let results;
@@ -1192,7 +1289,7 @@ async function handleInventory(request, env, account, route) {
       return error("The shared database could not confirm this stock change. Check the current stock before trying again.", 503);
     }
     if (Number(results?.[0]?.meta?.changes) !== 1) {
-      const racedOperation = await env.DB.prepare("SELECT value FROM user_state WHERE account_id=? AND key=?").bind(account.id, operationKey).first();
+      const racedOperation = await env.DB.prepare(`SELECT value FROM ${operationTable} WHERE ${operationOwnerColumn}=? AND key=?`).bind(account.id, operationKey).first();
       const saved = asJson(racedOperation?.value, {});
       if (saved.state === "complete") return json({ ok: true, duplicate: true, variant: saved.variant, action: saved.action, quantity: saved.quantity });
       return error("Inventory changed on another device. Refresh the variant and try again.", 409);
@@ -1216,6 +1313,116 @@ function validPromotionalImageUrl(value) {
 
 function accountView(row) {
   return { id: row.id, name: row.name, identifier: row.identifier, role: row.role, createdAt: row.created_at };
+}
+
+async function staffAccountList(env) {
+  const result = await env.DB.prepare("SELECT a.id, a.identifier, a.name, a.disabled, a.created_at, a.updated_at, p.permission FROM staff_accounts a LEFT JOIN staff_account_permissions p ON p.staff_id=a.id ORDER BY a.created_at DESC, a.id").all();
+  const accounts = new Map();
+  for (const row of result.results || []) {
+    let account = accounts.get(row.id);
+    if (!account) {
+      account = { id: row.id, identifier: row.identifier, name: row.name, disabled: Number(row.disabled) === 1, createdAt: row.created_at, updatedAt: row.updated_at, permissions: [] };
+      accounts.set(row.id, account);
+    }
+    if (STAFF_PERMISSION_KEYS.includes(row.permission) && !account.permissions.includes(row.permission)) account.permissions.push(row.permission);
+  }
+  return [...accounts.values()];
+}
+
+async function staffAccountById(env, id) {
+  const row = await env.DB.prepare("SELECT id, identifier, name, disabled, created_at, updated_at FROM staff_accounts WHERE id=?").bind(id).first();
+  if (!row) return null;
+  return { id: row.id, identifier: row.identifier, name: row.name, disabled: Number(row.disabled) === 1, createdAt: row.created_at, updatedAt: row.updated_at, permissions: await staffPermissionsFor(env, id) };
+}
+
+async function handleStaffAccounts(request, env, account, route, secure) {
+  if (!account) return error("Sign in with the Main Owner account to manage staff accounts.", 401);
+  if (!isMainOwnerAccount(account)) return error("Only the Main Owner can manage staff accounts and permissions.", 403);
+
+  if (route === "staff-accounts" && request.method === "GET") return json({ accounts: await staffAccountList(env) });
+
+  if (route === "staff-accounts" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) return error("Staff account details are invalid.");
+    if (Object.keys(body).some(key => !["name","identifier","password","permissions"].includes(key))) return error("Only staff account details and permissions can be changed.", 400);
+    const name = String(body.name || "").trim().slice(0, 80);
+    const identifier = String(body.identifier || "").trim().toLowerCase().slice(0, 160);
+    const password = String(body.password || "");
+    const permissions = normalizeStaffPermissions(body.permissions);
+    if (!name || !identifier || identifier.length < 3 || /\s/.test(identifier)) return error("Enter a staff name and a valid email or phone number.");
+    if (identifier === OWNER_IDENTIFIER) return error("The Main Owner phone number is reserved.", 403);
+    if (password.length < 12 || password.length > 128) return error("Choose a staff password with 12 to 128 characters.");
+    if (!permissions) return error("Choose valid staff permissions.");
+    const existingAccount = await env.DB.prepare("SELECT id FROM accounts WHERE identifier=? COLLATE NOCASE").bind(identifier).first();
+    const existingStaff = await env.DB.prepare("SELECT id FROM staff_accounts WHERE identifier=? COLLATE NOCASE").bind(identifier).first();
+    if (existingAccount || existingStaff) return error("An account already uses that email or phone number.", 409);
+    const id = crypto.randomUUID(), salt = base64url(crypto.getRandomValues(new Uint8Array(16))), hash = await passwordHash(password, salt), timestamp = now();
+    const statements = [env.DB.prepare("INSERT INTO staff_accounts (id, identifier, name, password_salt, password_hash, disabled, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)")
+      .bind(id, identifier, name, salt, hash, account.id, timestamp, timestamp)];
+    for (const permission of permissions) statements.push(env.DB.prepare("INSERT INTO staff_account_permissions (staff_id, permission, granted_by, updated_at) VALUES (?, ?, ?, ?)").bind(id, permission, account.id, timestamp));
+    try { requireD1WriteSuccess(await env.DB.batch(statements), "Staff account storage"); }
+    catch (exception) { return isD1Conflict(exception) ? error("An account already uses that email or phone number.", 409) : error("The staff account could not be saved to the shared database.", 503); }
+    return json({ account: await staffAccountById(env, id) }, 201);
+  }
+
+  const match = route.match(/^staff-accounts\/([^/]+)(?:\/(password))?$/);
+  if (!match) return error("Staff account route not found.", 404);
+  let id;
+  try { id = decodeURIComponent(match[1]); } catch { return error("Staff account ID is invalid."); }
+  if (!/^[A-Za-z0-9-]{8,80}$/.test(id)) return error("Staff account ID is invalid.");
+  const existing = await staffAccountById(env, id);
+  if (!existing) return error("Staff account was not found.", 404);
+
+  if (match[2] === "password" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body.password !== "string" || Object.keys(body).some(key => key !== "password")) return error("Enter a new staff password.");
+    if (body.password.length < 12 || body.password.length > 128) return error("Choose a staff password with 12 to 128 characters.");
+    const salt = base64url(crypto.getRandomValues(new Uint8Array(16))), hash = await passwordHash(body.password, salt), timestamp = now();
+    try {
+      const result = await env.DB.batch([
+        env.DB.prepare("UPDATE staff_accounts SET password_salt=?, password_hash=?, updated_at=? WHERE id=?").bind(salt, hash, timestamp, id),
+        env.DB.prepare("DELETE FROM staff_sessions WHERE staff_id=?").bind(id),
+      ]);
+      requireD1WriteSuccess(result, "Staff password reset");
+    } catch { return error("The staff password could not be reset.", 503); }
+    return json({ ok: true, revokedSessions: true });
+  }
+
+  if (!match[2] && request.method === "PATCH") {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) return error("Staff account changes are invalid.");
+    if (Object.keys(body).some(key => !["name","identifier","permissions","disabled","password"].includes(key))) return error("Staff roles and account credentials cannot be changed here.", 400);
+    if (!Object.keys(body).length) return error("Choose a staff account change.");
+    const name = body.name === undefined ? existing.name : String(body.name || "").trim().slice(0, 80);
+    const identifier = body.identifier === undefined ? existing.identifier : String(body.identifier || "").trim().toLowerCase().slice(0, 160);
+    const disabled = body.disabled === undefined ? existing.disabled : body.disabled;
+    const permissions = body.permissions === undefined ? existing.permissions : normalizeStaffPermissions(body.permissions);
+    const password = body.password === undefined ? "" : String(body.password);
+    if (!name || !identifier || identifier.length < 3 || /\s/.test(identifier)) return error("Enter a staff name and a valid email or phone number.");
+    if (identifier === OWNER_IDENTIFIER) return error("The Main Owner phone number is reserved.", 403);
+    if (typeof disabled !== "boolean") return error("Choose whether this staff account is enabled or disabled.");
+    if (!permissions) return error("Choose valid staff permissions.");
+    if (password && (password.length < 12 || password.length > 128)) return error("Choose a staff password with 12 to 128 characters.");
+    const duplicateAccount = await env.DB.prepare("SELECT id FROM accounts WHERE identifier=? COLLATE NOCASE").bind(identifier).first();
+    const duplicateStaff = await env.DB.prepare("SELECT id FROM staff_accounts WHERE identifier=? COLLATE NOCASE AND id<>?").bind(identifier, id).first();
+    if (duplicateAccount || duplicateStaff) return error("An account already uses that email or phone number.", 409);
+    const timestamp = now();
+    const statements = [env.DB.prepare("UPDATE staff_accounts SET name=?, identifier=?, disabled=?, updated_at=? WHERE id=?").bind(name, identifier, disabled ? 1 : 0, timestamp, id)];
+    if (password) {
+      const salt = base64url(crypto.getRandomValues(new Uint8Array(16))), hash = await passwordHash(password, salt);
+      statements.push(env.DB.prepare("UPDATE staff_accounts SET password_salt=?, password_hash=?, updated_at=? WHERE id=?").bind(salt, hash, timestamp, id));
+      statements.push(env.DB.prepare("DELETE FROM staff_sessions WHERE staff_id=?").bind(id));
+    }
+    if (body.permissions !== undefined) {
+      statements.push(env.DB.prepare("DELETE FROM staff_account_permissions WHERE staff_id=?").bind(id));
+      for (const permission of permissions) statements.push(env.DB.prepare("INSERT INTO staff_account_permissions (staff_id, permission, granted_by, updated_at) VALUES (?, ?, ?, ?)").bind(id, permission, account.id, timestamp));
+    }
+    if (disabled) statements.push(env.DB.prepare("DELETE FROM staff_sessions WHERE staff_id=?").bind(id));
+    try { requireD1WriteSuccess(await env.DB.batch(statements), "Staff account update"); }
+    catch (exception) { return isD1Conflict(exception) ? error("An account already uses that email or phone number.", 409) : error("The staff account could not be updated.", 503); }
+    return json({ account: await staffAccountById(env, id) });
+  }
+  return error("Method not allowed.", 405);
 }
 
 async function handleAuth(request, env, route, secure) {
@@ -1274,11 +1481,19 @@ async function handleAuth(request, env, route, secure) {
     const password = String(body?.password || "");
     if (!identifier || !password) return error("Enter your email or phone and password.");
     const row = await env.DB.prepare("SELECT * FROM accounts WHERE identifier=? COLLATE NOCASE").bind(identifier).first();
-    if (!row || await passwordHash(password, row.password_salt) !== row.password_hash) return error("The email/phone number or password is incorrect.", 401);
+    if (row) {
+      if (await passwordHash(password, row.password_salt) !== row.password_hash) return error("The email/phone number or password is incorrect.", 401);
+      let setCookie;
+      try { setCookie = await createSession(env, row.id, secure); }
+      catch { return error("Sign-in could not be completed. Please try again.", 503); }
+      return json({ account: accountView(row) }, 200, { "Set-Cookie": setCookie });
+    }
+    const staff = await env.DB.prepare("SELECT * FROM staff_accounts WHERE identifier=? COLLATE NOCASE AND disabled=0").bind(identifier).first();
+    if (!staff || await passwordHash(password, staff.password_salt) !== staff.password_hash) return error("The email/phone number or password is incorrect.", 401);
     let setCookie;
-    try { setCookie = await createSession(env, row.id, secure); }
+    try { setCookie = await createStaffSession(env, staff.id, secure); }
     catch { return error("Sign-in could not be completed. Please try again.", 503); }
-    return json({ account: accountView(row) }, 200, { "Set-Cookie": setCookie });
+    return json({ account: { id: staff.id, identifier: staff.identifier, name: staff.name, role: "staff", permissions: await staffPermissionsFor(env, staff.id) } }, 200, { "Set-Cookie": setCookie });
   }
 
   if (route === "auth/me" && request.method === "GET") {
@@ -1289,7 +1504,11 @@ async function handleAuth(request, env, route, secure) {
     const token = cookieValue(request, COOKIE_NAME);
     if (token) {
       try {
-        const result = await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await digest(token)).run();
+        const tokenHash = await digest(token);
+        const result = await env.DB.batch([
+          env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(tokenHash),
+          env.DB.prepare("DELETE FROM staff_sessions WHERE token_hash=?").bind(tokenHash),
+        ]);
         requireD1WriteSuccess(result, "Session removal");
       } catch {
         return json({ error: "The session could not be revoked from the shared database." }, 503, { "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? "; Secure" : ""}` });
@@ -1304,22 +1523,37 @@ async function handleAuth(request, env, route, secure) {
     const body = await request.json().catch(() => null);
     const oldPassword = String(body?.oldPassword || "");
     const newPassword = String(body?.newPassword || "");
-    const row = await env.DB.prepare("SELECT password_salt, password_hash FROM accounts WHERE id=?").bind(account.id).first();
+    const staffAccount = account.role === "staff";
+    const row = await env.DB.prepare(staffAccount
+      ? "SELECT password_salt, password_hash FROM staff_accounts WHERE id=? AND disabled=0"
+      : "SELECT password_salt, password_hash FROM accounts WHERE id=?").bind(account.id).first();
     if (!row || await passwordHash(oldPassword, row.password_salt) !== row.password_hash) return error("Current password is incorrect.", 401);
-    if (newPassword.length < 10) return error("Choose a password with at least 10 characters.");
+    if (newPassword.length < (staffAccount ? 12 : 10) || newPassword.length > 128) return error(staffAccount ? "Choose a password with 12 to 128 characters." : "Choose a password with at least 10 characters.");
     const salt = base64url(crypto.getRandomValues(new Uint8Array(16)));
     const hash = await passwordHash(newPassword, salt);
     try {
-      const result = await env.DB.prepare("UPDATE accounts SET password_salt=?, password_hash=? WHERE id=?").bind(salt, hash, account.id).run();
-      requireD1WriteSuccess(result, "Password storage");
+      if (staffAccount) {
+        const results = await env.DB.batch([
+          env.DB.prepare("UPDATE staff_accounts SET password_salt=?, password_hash=?, updated_at=? WHERE id=? AND disabled=0").bind(salt, hash, now(), account.id),
+          env.DB.prepare("DELETE FROM staff_sessions WHERE staff_id=?").bind(account.id),
+        ]);
+        requireD1WriteSuccess(results, "Staff password storage");
+      } else {
+        const result = await env.DB.prepare("UPDATE accounts SET password_salt=?, password_hash=? WHERE id=?").bind(salt, hash, account.id).run();
+        requireD1WriteSuccess(result, "Password storage");
+      }
     } catch { return error("The password change could not be saved to the shared database.", 503); }
+    if (staffAccount) {
+      try { return json({ ok: true }, 200, { "Set-Cookie": await createStaffSession(env, account.id, secure) }); }
+      catch { return error("The password was changed, but sign-in could not be refreshed. Please sign in again.", 503); }
+    }
     return json({ ok: true });
   }
 
   if (route === "auth/owner-password" && request.method === "POST") {
     const { account, response } = await ensureSession(request, env);
     if (response) return response;
-    if (account.role !== "owner") return error("Only the store owner can change Owner access settings.", 403);
+    if (!isMainOwnerAccount(account)) return error("Only the Main Owner can change Owner access settings.", 403);
     const body = await request.json().catch(() => null);
     const oldPassword = String(body?.oldPassword || "");
     const newPassword = String(body?.newPassword || "");
@@ -1338,18 +1572,80 @@ async function handleAuth(request, env, route, secure) {
   return error("Not found.", 404);
 }
 
+async function prepareStaffProductWrite(env, rawValue, account) {
+  const incoming = asJson(rawValue, null);
+  if (!Array.isArray(incoming)) return { response: error("Shop data must be a list.") };
+  const previousRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+  const previous = asJson(previousRow?.value, []);
+  if (!Array.isArray(previous)) return { response: error("Saved product data is invalid.", 409) };
+  const normalizedIncoming = normalizeProductQrIds(incoming, previous);
+  const previousById = new Map(previous.map(product => [String(product?.id ?? ""), product]));
+  const seen = new Set(), merged = [];
+  for (const product of normalizedIncoming) {
+    const id = String(product?.id ?? "");
+    if (!product || typeof product !== "object" || Array.isArray(product) || !id || seen.has(id)) return { response: error("Product data is invalid.") };
+    seen.add(id);
+    const oldProduct = previousById.get(id);
+    if (!oldProduct) {
+      if (!staffHasPermission(account, "products")) return { response: error("Product permission is required to add products.", 403) };
+      if (productGroupHasConfiguredValues(product, PRODUCT_PRICE_FIELDS) && !staffHasPermission(account, "prices")) return { response: error("Price permission is required to set a new product price or discount.", 403) };
+      if (productGroupHasConfiguredValues(product, PRODUCT_INVENTORY_FIELDS) && !staffHasPermission(account, "inventory")) return { response: error("Inventory permission is required to configure product variants or stock.", 403) };
+      const next = { ...product };
+      if (!staffHasPermission(account, "prices")) { next.price = 0; for (const field of PRODUCT_PRICE_FIELDS.slice(1)) delete next[field]; }
+      if (!staffHasPermission(account, "inventory")) { next.stock = 0; for (const field of PRODUCT_INVENTORY_FIELDS.slice(1)) delete next[field]; }
+      merged.push(next);
+      continue;
+    }
+    if (!staffHasPermission(account, "products") && stableJson(productBaseFields(product)) !== stableJson(productBaseFields(oldProduct))) return { response: error("Product permission is required to edit product details.", 403) };
+    if (!staffHasPermission(account, "prices") && !sameProductFields(product, oldProduct, PRODUCT_PRICE_FIELDS)) return { response: error("Price permission is required to change prices or discounts.", 403) };
+    if (!staffHasPermission(account, "inventory") && !sameProductFields(product, oldProduct, PRODUCT_INVENTORY_FIELDS)) return { response: error("Inventory permission is required to change variants or stock.", 403) };
+    const next = { ...oldProduct };
+    if (staffHasPermission(account, "products")) {
+      for (const field of Object.keys(next)) if (![...PRODUCT_PRICE_FIELDS, ...PRODUCT_INVENTORY_FIELDS].includes(field) && !Object.hasOwn(product, field)) delete next[field];
+      for (const [field, value] of Object.entries(product)) if (![...PRODUCT_PRICE_FIELDS, ...PRODUCT_INVENTORY_FIELDS].includes(field)) next[field] = value;
+    }
+    if (staffHasPermission(account, "prices")) applyProductFieldGroup(next, product, PRODUCT_PRICE_FIELDS);
+    if (staffHasPermission(account, "inventory")) applyProductFieldGroup(next, product, PRODUCT_INVENTORY_FIELDS);
+    merged.push(next);
+  }
+  const removed = previous.filter(product => !seen.has(String(product?.id ?? "")));
+  if (removed.length && (!staffHasPermission(account, "products") || !staffHasPermission(account, "inventory"))) return { response: error("Product and inventory permissions are required to remove products.", 403) };
+  return { value: JSON.stringify(merged) };
+}
+
+function staffPermissionForShopKey(key) {
+  if (key === OWNER_SMART_ALERTS_KEY) return "notifications";
+  if ([PRODUCTS_KEY,"shivan_shop_categories","shivan_shop_category_meta","shivan_shop_category_renames","shivan_shop_deleted_categories"].includes(key)) return "products";
+  return "";
+}
+
 async function handleSync(request, env, account) {
   if (request.method === "GET") {
     const shop = await getShopState(env, account?.role === "owner");
+    if (account?.role === "staff" && staffHasPermission(account, "notifications")) {
+      const alerts = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(OWNER_SMART_ALERTS_KEY).first();
+      if (typeof alerts?.value === "string") shop[OWNER_SMART_ALERTS_KEY] = alerts.value;
+    }
     if (!account) return json({ shop, user: null, account: null });
     const result = await env.DB.prepare("SELECT key, value FROM user_state WHERE account_id=? AND key NOT LIKE 'inventory-op:%'").bind(account.id).all();
     const user = Object.fromEntries((result.results || []).map(row => [row.key, row.value]));
-    const orderRows = account.role === "owner"
-      ? await env.DB.prepare("SELECT payload FROM orders ORDER BY created_at DESC").all()
-      : await env.DB.prepare("SELECT payload FROM orders WHERE account_id=? ORDER BY created_at DESC").bind(account.id).all();
-    const orders = (orderRows.results || []).map(row => row.payload);
-    user.shivan_shop_orders = JSON.stringify(orders.map(value => asJson(value, {})));
+    const staffCanSeeOrders = account.role === "staff" && (staffHasPermission(account, "orders") || staffHasPermission(account, "reports"));
+    if (account.role === "owner" || staffCanSeeOrders) {
+      const orderRows = account.role === "owner"
+        ? await env.DB.prepare("SELECT payload FROM orders ORDER BY created_at DESC").all()
+        : await env.DB.prepare("SELECT payload FROM orders ORDER BY created_at DESC").all();
+      const orders = (orderRows.results || []).map(row => asJson(row.payload, {}));
+      user.shivan_shop_orders = JSON.stringify(account.role === "staff" ? orders.map(order => staffOrderView(order, staffHasPermission(account, "customer_information"))) : orders);
+    } else if (account.role !== "staff") {
+      const orderRows = await env.DB.prepare("SELECT payload FROM orders WHERE account_id=? ORDER BY created_at DESC").bind(account.id).all();
+      user.shivan_shop_orders = JSON.stringify((orderRows.results || []).map(row => asJson(row.payload, {})));
+    }
     if (account.role === "owner") {
+      const supportRows = await env.DB.prepare("SELECT value FROM user_state WHERE key='support'").all();
+      user.shivan_shop_support = JSON.stringify((supportRows.results || []).flatMap(row => asJson(row.value, [])));
+      const accounts = await env.DB.prepare("SELECT id, identifier, name, role, created_at FROM accounts WHERE role='customer' ORDER BY created_at DESC").all();
+      user.accounts = JSON.stringify((accounts.results || []).map(accountView));
+    } else if (account.role === "staff" && staffHasPermission(account, "customer_information")) {
       const supportRows = await env.DB.prepare("SELECT value FROM user_state WHERE key='support'").all();
       user.shivan_shop_support = JSON.stringify((supportRows.results || []).flatMap(row => asJson(row.value, [])));
       const accounts = await env.DB.prepare("SELECT id, identifier, name, role, created_at FROM accounts WHERE role='customer' ORDER BY created_at DESC").all();
@@ -1399,11 +1695,22 @@ async function handleSync(request, env, account) {
   const value = String(body?.value ?? "");
   if (SHOP_KEYS.has(key)) {
     const isProductSave = key === "shivan_shop_products";
-    if (account.role !== "owner") {
+    let valueToSave = value;
+    if (account.role === "staff") {
+      if (key === OWNER_APPEARANCE_KEY || key === OWNER_NOTIFICATION_PREFERENCES_KEY) return tracedError("Only the Main Owner can change protected store settings.", 403, requestId, "MAIN_OWNER_REQUIRED", "shop.sync.auth");
+      if (isProductSave) {
+        const prepared = await prepareStaffProductWrite(env, value, account);
+        if (prepared.response) return tracedError((await prepared.response.clone().json()).error, prepared.response.status, requestId, "STAFF_PERMISSION_REQUIRED", "product.sync.auth");
+        valueToSave = prepared.value;
+      } else {
+        const permission = staffPermissionForShopKey(key);
+        if (!permission || !staffHasPermission(account, permission)) return tracedError("You do not have permission to change this shop data.", 403, requestId, "STAFF_PERMISSION_REQUIRED", "shop.sync.auth");
+      }
+    } else if (account.role !== "owner") {
       logOwnerSave(isProductSave ? "product.sync.auth_rejected" : "shop.sync.auth_rejected", requestId, { status: 403, code: "OWNER_REQUIRED" });
       return tracedError("Only the store owner can change shop settings.", 403, requestId, "OWNER_REQUIRED", isProductSave ? "product.sync.auth" : "shop.sync.auth");
     }
-    const productList = isProductSave ? asJson(value, []) : [];
+    const productList = isProductSave ? asJson(valueToSave, []) : [];
     let previousProductList = null;
     if (isProductSave) {
       try {
@@ -1420,8 +1727,8 @@ async function handleSync(request, env, account) {
       productCount: Array.isArray(productList) ? productList.length : 0,
       imageCount: Array.isArray(productList) ? productList.reduce((sum, product) => sum + (Array.isArray(product?.images) ? product.images.length : product?.image ? 1 : 0), 0) : 0,
     });
-    let persistedValue = value;
-    try { persistedValue = await saveShopValue(env, key, value, requestId); }
+    let persistedValue = valueToSave;
+    try { persistedValue = await saveShopValue(env, key, valueToSave, requestId); }
     catch (exception) {
       if (exception?.code === "INVALID_PROMOTIONAL_IMAGES") {
         return tracedError(exception.message, 400, requestId, exception.code, "shop.sync.validate");
@@ -1459,8 +1766,10 @@ async function handleSync(request, env, account) {
     }
     await broadcastSync(env);
     if (isProductSave) {
-      if (previousProductList) await queueCustomerProductEvents(env, String(account.id), previousProductList, asJson(persistedValue, []), requestId);
-      await syncCurrentOwnerPushProducts(env, String(account.id));
+      if (account.role === "owner") {
+        if (previousProductList) await queueCustomerProductEvents(env, String(account.id), previousProductList, asJson(persistedValue, []), requestId);
+        await syncCurrentOwnerPushProducts(env, String(account.id));
+      }
       logOwnerSave("product.sync.d1_write_confirmed", requestId, {
         payloadBytes: new TextEncoder().encode(value).byteLength,
         productCount: Array.isArray(productList) ? productList.length : 0,
@@ -1474,6 +1783,7 @@ async function handleSync(request, env, account) {
   }
 
   if (key === "shivan_shop_orders") {
+    if (account.role === "staff") return error("Staff cannot create or replace customer order records.", 403);
     const list = asJson(value);
     if (!Array.isArray(list)) return error("Order data is invalid.");
     const updates = [];
@@ -1619,6 +1929,7 @@ async function handleSync(request, env, account) {
   else if (key === "shivan_shop_settings") userKey = "settings";
   else if (key.startsWith("shivan_shop_cart_")) userKey = "cart";
   else if (key.startsWith("shivan_shop_favorites_")) userKey = "favorites";
+  if (account.role === "staff") return error("Staff accounts cannot change customer data.", 403);
   if (!USER_KEYS.has(userKey)) return error("Unsupported sync key.");
   const parsed = asJson(value);
   if (parsed === null) return error("Saved data is invalid.");
@@ -1641,17 +1952,19 @@ async function handleProfile(request, env, account) {
   if (account.role === "owner" && identifier !== OWNER_IDENTIFIER) return error("The store owner phone number cannot be changed.", 403);
   if (account.role !== "owner" && identifier === OWNER_IDENTIFIER) return error("That phone number is reserved for the store owner.", 403);
   try {
-    const result = await env.DB.prepare("UPDATE accounts SET name=?, identifier=? WHERE id=?").bind(name, identifier, account.id).run();
+    const result = account.role === "staff"
+      ? await env.DB.prepare("UPDATE staff_accounts SET name=?, identifier=?, updated_at=? WHERE id=? AND disabled=0").bind(name, identifier, now(), account.id).run()
+      : await env.DB.prepare("UPDATE accounts SET name=?, identifier=? WHERE id=?").bind(name, identifier, account.id).run();
     requireD1WriteSuccess(result, "Profile storage");
   } catch (exception) {
     return isD1Conflict(exception) ? error("That email or phone number is already in use.", 409) : error("The shared database could not confirm this profile change.", 503);
   }
   await broadcastSync(env);
-  return json({ account: { ...account, name, identifier } });
+  return json({ account: { ...account, name, identifier, ...(account.role === "staff" ? { permissions: await staffPermissionsFor(env, account.id) } : {}) } });
 }
 
 async function handleMigration(request, env, account) {
-  if (!account || account.role !== "owner") return error("Only the store owner can import the saved shop.", 403);
+  if (!isMainOwnerAccount(account)) return error("Only the Main Owner can import the saved shop.", 403);
   const body = await request.json().catch(() => null);
   if (body?.format !== "shivan-shop-cloud-v1") return error("This backup file is not supported.");
   const shop = body.shop && typeof body.shop === "object" ? body.shop : {};
@@ -1709,7 +2022,7 @@ function nextOwnerOrderWorkflowStatus(status) {
 async function handleNextOwnerOrderStatus(request, env, account, route) {
   if (request.method !== "PATCH") return error("Method not allowed.", 405);
   if (!account) return error("Sign in to continue.", 401);
-  if (account.role !== "owner") return error("Only the store owner can update orders.", 403);
+  if (!staffHasPermission(account, "orders")) return error("Order permission is required to update order status.", 403);
 
   let orderId;
   try { orderId = decodeURIComponent(route.slice("orders/".length, -"/next-status".length)); }
@@ -1757,7 +2070,7 @@ export async function onRequest({ request, env }) {
     if (!mediaMatch || (privateReceipt !== (mediaMatch[1] === "receipts"))) return new Response("Not found", { status: 404 });
     if (privateReceipt) {
       const mediaAccount = await currentAccount(request, env);
-      if (mediaAccount?.role !== "owner") return error("Only the store owner can view payment receipts.", 403);
+      if (!mediaAccount || !staffHasPermission(mediaAccount, "orders") || !staffHasPermission(mediaAccount, "customer_information")) return error("Order and customer information permission is required to view payment receipts.", 403);
     }
     const mediaRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(`media:${key}`).first();
     if (mediaRow) {
@@ -1803,6 +2116,7 @@ export async function onRequest({ request, env }) {
   }
   if (route.startsWith("auth/")) return handleAuth(request, env, route, secure);
   const account = await currentAccount(request, env);
+  if (route === "staff-accounts" || route.startsWith("staff-accounts/")) return handleStaffAccounts(request, env, account, route, secure);
   if (route.startsWith("push/")) return handleOwnerPush(request, env, account, route, url);
   if (route.startsWith("customer-push/")) return handleCustomerPush(request, env, account, route, url);
   if (route.startsWith("inventory/")) return handleInventory(request, env, account, route);

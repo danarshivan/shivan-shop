@@ -33,7 +33,7 @@ assert.match(html, /requireAuthentication\(\{type:"product"/, "product purchase 
 assert.match(html, /id="profileGuestAccess"[\s\S]*?beginProfileAuthentication\('login'\)[\s\S]*?beginProfileAuthentication\('signup'\)/, "guest Profile navigation should offer Login and Sign Up before opening either form");
 assert.match(html, /resumeAuthenticationIntent\(\);/, "successful authentication should resume the stored guest intent");
 assert.match(html, /if\(!currentUser&&!cloudAccount\)\{[\s\S]*?Sign in before placing an order/, "placing an order must require authentication");
-assert.ok(apiSource.includes('if (account.role !== "owner") return error("Only the store owner can manage inventory.", 403);'), "the server must deny customer QR inventory access");
+assert.match(apiSource, /if \(!staffHasPermission\(account, "inventory"\)\) return error\("Inventory permission is required to manage stock\.", 403\);/, "the server must require inventory permission before allowing QR stock access");
 assert.match(apiSource, /UPDATE shop_state SET value=\?, updated_at=\? WHERE key=\? AND value=\? AND EXISTS/, "stock adjustments must compare the D1 inventory value before saving");
 assert.match(apiSource, /INVENTORY_OPERATION_PREFIX/, "inventory operations must use a shared idempotency record");
 assert.doesNotMatch(apiSource, /CREATE TABLE|DROP TABLE|ALTER TABLE/, "QR inventory must use the existing database schema");

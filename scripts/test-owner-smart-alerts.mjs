@@ -49,6 +49,7 @@ const context = {
   getOrders: () => orders,
   productDiscountPercent: product => Number(product?.discount) >= 1 && Number(product?.discount) <= 99 ? Number(product.discount) : 0,
   isOwner: () => isOwner,
+  staffHasPermission: () => isOwner,
   ownerDashboardText: english => english,
   ownerPanel: "alerts",
   escapeHtml: value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
@@ -127,7 +128,7 @@ assert.equal(runtime.ownerSmartAlertUnreadCount(), 0, "mark-all-read clears the 
 isOwner = false;
 const guestBox = { textContent: "", innerHTML: "" };
 runtime.renderOwnerSmartAlerts(guestBox);
-assert.match(guestBox.textContent, /Only the store owner/, "non-Owners cannot render the alert list");
+assert.match(guestBox.textContent, /permission is required/, "non-Owners without notifications permission cannot render the alert list");
 assert.equal(runtime.reconcileOwnerSmartAlerts({ now: now + 5000 }).created.length, 0, "non-Owners cannot generate or mutate shared alerts");
 isOwner = true;
 

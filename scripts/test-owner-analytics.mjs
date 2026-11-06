@@ -113,13 +113,14 @@ assert.equal(JSON.stringify(data), baseline, "analytics and reports do not mutat
 
 const protectedRuntime = runInNewContext(`${functionSource("renderOwnerAnalytics")}\n${functionSource("renderOwnerReports")}\n({renderOwnerAnalytics,renderOwnerReports})`, {
   isOwner: () => false,
+  staffHasPermission: () => false,
   ownerAnalyticsSelection: { period: "daily", date: "", month: "", year: "" },
   ownerReportSelection: { preset: "month", start: "", end: "" },
 });
 for (const render of Object.values(protectedRuntime)) {
   const protectedBox = { textContent: "" };
   render(protectedBox);
-  assert.match(protectedBox.textContent, /Only the store owner/);
+  assert.match(protectedBox.textContent, /Reports permission is required/);
 }
 
 console.log("Owner analytics/report checks passed: daily/monthly/yearly ranges, date presets/custom validation, sales status accounting, saved-record totals, units, top products, customer counts, responsive chart markup, read-only behavior, and Owner gating.");

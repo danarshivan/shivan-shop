@@ -171,6 +171,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   context.blockUnavailableHostedAccounts = () => false;
   context.hideShopOnboarding = () => {};
   context.isOwner = () => false;
+  context.isStaffSession = () => false;
   context.renderProducts = () => {};
   context.renderOrders = () => {};
   context.updateProfile = () => {};

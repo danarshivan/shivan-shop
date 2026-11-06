@@ -177,7 +177,7 @@ function createOwnerNavigationRuntime(){
     ownerNavigationLedger: null, ownerNavigationPopHandler: null, ownerNavigationRestoring: false,
     ownerPanelRefreshPending: false, ownerProductWorkflowId: "", ownerAdWorkflowId: "", ownerInventoryDraft: new Map(),
     pendingImageCrop: false, ownerProductImageQueue: false,
-    isOwner: () => true, ownerPanelHasPendingWork: () => false,
+    isOwner: () => true, isStaffSession: () => false, ownerPanelHasPendingWork: () => false,
     readShopViewPosition: () => ({ windowY: position.windowY, viewTop: ownerView.scrollTop, authTop: 0 }),
     showToast: () => {}, createOwnerSaveRequestId: () => "test-save-id",
     ensureOwnerDashboardShell: () => {}, stopOwnerQrScanner: () => {}, renderOwnerDashboard: box => { box.innerHTML = "dashboard"; },

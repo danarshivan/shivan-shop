@@ -43,6 +43,7 @@ const context = {
   ownerReportSelection: { preset: "month", start: "", end: "" },
   OWNER_IDENTIFIER: "owner@example.test",
   isOwner: () => true,
+  isStaffSession: () => false,
   ownerSmartAlertUnreadCount: () => 0,
   reconcileOwnerSmartAlerts: () => ({ created: [], state: {} }),
   ownerSmartAlertDashboardSummaryMarkup: () => '<section class="owner-smart-alert-summary">Smart Alerts</section>',
@@ -106,18 +107,20 @@ assert.ok(ownerViewMarkup, "the Owner view markup is present");
 assert.doesNotMatch(ownerViewMarkup, /owner-view-head|Store management|openView\('profile'\)/, "the visible Store management heading and Back button are removed");
 assert.doesNotMatch(functionSource("renderOwnerPanel"), /mobileToolbar|ownerMobileNavigation|ownerMobileToolbar/, "Owner route rendering no longer creates or toggles the mobile section dropdown");
 assert.doesNotMatch(html, /owner-mobile-toolbar|ownerMobileNavigation|ownerMobileToolbar/, "no dropdown wrapper, styling, or renderer reference remains");
-assert.match(functionSource("renderOwnerPanel"), /if\(!isOwner\(\)\)/, "dashboard sections remain Owner-only");
+assert.ok(functionSource("renderOwnerPanel").includes("!canAccessOwnerRoute(section)"), "dashboard sections are permission-gated");
 assert.match(functionSource("renderOwnerPanel"), /renderOwnerProducts\(sectionBox\)[\s\S]*?renderOwnerAds\(sectionBox\)[\s\S]*?renderOwnerOrders\(sectionBox\)[\s\S]*?renderOwnerInventory\(sectionBox\)[\s\S]*?renderOwnerAppearance\(sectionBox\)/, "existing product, ad, order, QR, and appearance editors remain connected");
 assert.match(html, /id="ownerBackupSync"/, "Backup & Sync points to the existing backup controls");
 assert.equal(JSON.stringify(sourceData), baseline, "dashboard rendering and statistics do not mutate store records");
 
 const protectedRuntime = runInNewContext(`${functionSource("renderOwnerDashboard")}\n${functionSource("renderOwnerCustomers")}\n({renderOwnerDashboard,renderOwnerCustomers})`, {
   isOwner: () => false,
+  isStaffSession: () => false,
+  staffHasPermission: () => false,
 });
 for (const render of Object.values(protectedRuntime)) {
   const protectedBox = { textContent: "" };
   render(protectedBox);
-  assert.match(protectedBox.textContent, /Only the store owner/);
+  assert.match(protectedBox.textContent, /Only the store owner|permission is required/);
 }
 
 console.log("Owner dashboard regression checks passed: real statistics, active offers, customer filtering, Owner section routes, no mobile section dropdown, reduced motion, and read-only rendering.");
