@@ -7,6 +7,7 @@ const DISCOUNT_PREFIX = "shivan-push:discount:";
 const OWNER_TEST_PREFIX = "shivan-push:owner-test:";
 const CUSTOMER_SUBSCRIPTION_PREFIX = "shivan-push:customer-subscription:";
 const CUSTOMER_EVENT_PREFIX = "shivan-push:customer-event:";
+const OWNER_PREFERENCES_PREFIX = "shivan-push:owner-preferences:";
 const PRODUCTS_KEY = "shivan_shop_products";
 const EVENT_TYPES = new Set(["new_order", "low_stock", "out_of_stock", "discount_expiring", "discount_expired"]);
 const CUSTOMER_EVENT_TYPES = new Set(["new_arrival", "discount", "special_offer", "announcement"]);
@@ -16,6 +17,18 @@ const DELIVERY_BATCH_SIZE = 100;
 
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+}
+
+function normalizeOwnerNotificationPreferences(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))return null;
+  const result={version:1};
+  for(const type of EVENT_TYPES){
+    const row=value[type]===undefined?{}:value[type];
+    if(!row||typeof row!=="object"||Array.isArray(row))return null;
+    for(const channel of ["inApp","push"])if(row[channel]!==undefined&&typeof row[channel]!=="boolean")return null;
+    result[type]={inApp:row.inApp!==false,push:row.push!==false};
+  }
+  return result;
 }
 
 function cleanText(value, max) {
@@ -139,6 +152,7 @@ export class PushCoordinator {
     if (url.pathname === "/push/subscription-status") return this.subscriptionStatus(body.ownerId, body.endpoint);
     if (url.pathname === "/push/test") return this.sendOwnerTest(body.ownerId, body.endpoint, body.requestId);
     if (url.pathname === "/push/unsubscribe") return this.removeSubscription(body.ownerId, body.endpoint);
+    if (url.pathname === "/push/preferences") return this.saveOwnerPreferences(body.ownerId, body.preferences);
     if (url.pathname === "/push/event") return this.enqueueEvent(body.ownerId, body.event);
     if (url.pathname === "/push/stock-snapshot") return this.updateStockSnapshot(body.ownerId, body.products);
     if (url.pathname === "/push/discounts") return this.syncDiscounts(body.ownerId, body.products);
@@ -612,6 +626,24 @@ export class PushCoordinator {
     } catch { return json({ error: "This device could not be removed from Owner notifications." }, 503); }
   }
 
+  async saveOwnerPreferences(ownerId, rawPreferences) {
+    if (!validOwnerId(ownerId)) return json({ error: "Invalid Owner account." }, 400);
+    const preferences = normalizeOwnerNotificationPreferences(rawPreferences);
+    if (!preferences) return json({ error: "Invalid Owner notification preferences." }, 400);
+    await this.storage.put(OWNER_PREFERENCES_PREFIX + ownerId, preferences);
+    const events = await this.storage.list({ prefix: EVENT_PREFIX });
+    for (const [key, event] of events) {
+      if (event?.ownerId !== ownerId || event?.status !== "pending" || preferences[event.type]?.push !== false) continue;
+      await this.storage.put(key, { ...event, status: "suppressed", completedAt: this.clock() });
+    }
+    const schedules = await this.storage.list({ prefix: DISCOUNT_PREFIX });
+    for (const [key, item] of schedules) if (item?.ownerId === ownerId && preferences[item.event?.type]?.push === false) await this.storage.delete(key);
+    await this.armNext();
+    return json({ ok: true, preferences });
+  }
+
+
+
   async enqueueEvent(ownerId, event) {
     const eventId = cleanText(event?.eventId, 1200);
     const type = String(event?.type || "");
@@ -620,7 +652,9 @@ export class PushCoordinator {
     const url = String(event?.url || "");
     if (!EVENT_TYPES.has(type) || !eventId || !title || !validLocalTarget(url)) return json({ error: "Invalid Smart Alert event." }, 400);
     const key = EVENT_PREFIX + await digestKey(eventId);
-    const eventRecord = { ownerId, eventId, type, title, body, url, createdAt: this.clock(), nextAttemptAt: this.clock(), attempts: 0, delivered: [], status: "pending" };
+    const preferences = await this.storage.get(OWNER_PREFERENCES_PREFIX + ownerId);
+    const suppressed = preferences?.[type]?.push === false;
+    const eventRecord = { ownerId, eventId, type, title, body, url, createdAt: this.clock(), nextAttemptAt: this.clock(), attempts: 0, delivered: [], status: suppressed ? "suppressed" : "pending", ...(suppressed ? { completedAt: this.clock() } : {}) };
     const queued = await this.storage.transaction(async transaction => {
       if (await transaction.get(key)) return false;
       await transaction.put(key, eventRecord);
@@ -628,6 +662,7 @@ export class PushCoordinator {
     });
     await this.armNext();
     if (!queued) return json({ ok: true, duplicate: true });
+    if (suppressed) return json({ ok: true, duplicate: false, suppressed: true }, 202);
     return json({ ok: true, duplicate: false, queued: true }, 202);
   }
 
@@ -677,6 +712,7 @@ export class PushCoordinator {
   async syncDiscounts(ownerId, products) {
     if (!Array.isArray(products) || products.length > 10000) return json({ error: "Invalid discount snapshot." }, 400);
     const active = new Map();
+    const preferences = await this.storage.get(OWNER_PREFERENCES_PREFIX + ownerId) || {};
     const now = this.clock();
     for (const product of products) {
       const id = String(product?.id || "").slice(0, 100);
@@ -685,12 +721,14 @@ export class PushCoordinator {
       const discountId = `discount:${encodeURIComponent(id)}:${endAt}`;
       const name = cleanText(product.name || product.names?.en || `Product ${id}`, 100) || `Product ${id}`;
       const schedules = [];
-      if (endAt > now) {
+      if (endAt > now && preferences.discount_expiring?.push !== false) {
         const warning = discountEvent(product, "discount_expiring", endAt);
         schedules.push({ id: warning.eventId, dueAt: Math.max(now + 1000, endAt - 24 * 60 * 60 * 1000), event: warning });
       }
-      const expired = discountEvent(product, "discount_expired", endAt);
-      schedules.push({ id: expired.eventId, dueAt: Math.max(now + 1000, endAt), event: expired });
+      if (preferences.discount_expired?.push !== false) {
+        const expired = discountEvent(product, "discount_expired", endAt);
+        schedules.push({ id: expired.eventId, dueAt: Math.max(now + 1000, endAt), event: expired });
+      }
       active.set(discountId, schedules);
     }
 
@@ -751,6 +789,11 @@ export class PushCoordinator {
         continue;
       }
       if (event?.status !== "pending" || Number(event.nextAttemptAt) > now) continue;
+      const preferences = await this.storage.get(OWNER_PREFERENCES_PREFIX + event.ownerId);
+      if (preferences?.[event.type]?.push === false) {
+        await this.storage.put(key, { ...event, status: "suppressed", completedAt: now });
+        continue;
+      }
       const targets = [...subscriptions.entries()].filter(([, sub]) => sub?.ownerId === event.ownerId);
       if (!targets.length) {
         await this.storage.put(key, { ...event, status: "no_subscribers", completedAt: now });

@@ -13,7 +13,7 @@ const names = [
   "recordOwnerSmartAlert", "writeOwnerSmartAlertState", "ownerSmartAlertDetails", "ownerSmartAlertItemMarkup",
   "ownerSmartAlertDashboardSummaryMarkup", "updateOwnerSmartAlertBadges", "refreshOwnerSmartAlertView",
   "markOwnerSmartAlertRead", "clearOwnerSmartAlert", "markAllOwnerSmartAlertsRead", "reconcileOwnerSmartAlerts",
-  "renderOwnerSmartAlerts",
+  "renderOwnerSmartAlerts", "normalizeOwnerNotificationPreferences", "readOwnerNotificationPreferences", "ownerNotificationPreferenceEnabled",
 ];
 function functionSource(name) {
   const start = html.indexOf(`function ${name}(`);
@@ -33,6 +33,8 @@ const now = Date.parse("2026-11-03T12:00:00.000Z");
 const elements = [];
 const context = {
   OWNER_SMART_ALERTS_KEY: "shivan_shop_owner_alerts",
+  OWNER_NOTIFICATION_PREFERENCES_KEY: "shivan_shop_owner_notification_preferences",
+  OWNER_NOTIFICATION_EVENT_TYPES: ["new_order", "low_stock", "out_of_stock", "discount_expiring", "discount_expired"],
   OWNER_SMART_ALERT_LOW_STOCK: 5,
   OWNER_SMART_ALERT_EXPIRING_MS: 24 * 60 * 60 * 1000,
   localStorage: {
@@ -130,9 +132,9 @@ assert.equal(runtime.reconcileOwnerSmartAlerts({ now: now + 5000 }).created.leng
 isOwner = true;
 
 assert.match(apiSource, /"shivan_shop_owner_alerts"/, "the existing shared shop-state API recognizes the alert key");
-assert.match(apiSource, /includeOwnerPrivate \|\| row\.key !== "shivan_shop_owner_alerts"/, "guest/customer sync responses exclude Owner alert records");
+assert.match(apiSource, /includeOwnerPrivate \|\| !\["shivan_shop_owner_alerts", OWNER_NOTIFICATION_PREFERENCES_KEY\]\.includes\(row\.key\)/, "guest/customer sync responses exclude Owner alerts and private preferences");
 
-const shared = new Map([["shivan_shop_owner_alerts", JSON.stringify({ alerts: [{ id: "private-alert", type: "new_order", entityId: "order-secret", createdAt: new Date(now).toISOString() }] })]]);
+const shared = new Map([["shivan_shop_owner_alerts", JSON.stringify({ alerts: [{ id: "private-alert", type: "new_order", entityId: "order-secret", createdAt: new Date(now).toISOString() }] })], ["shivan_shop_owner_notification_preferences", JSON.stringify({ version: 1, new_order: { inApp: false, push: true } })]]);
 let accountRole = "";
 const db = {
   prepare(sql) {
@@ -168,10 +170,21 @@ let response = await callApi("");
 let payload = await response.json();
 assert.equal(response.status, 200);
 assert.equal(payload.shop.shivan_shop_owner_alerts, undefined, "guest bootstrap sync never reveals Owner alerts");
+assert.equal(payload.shop.shivan_shop_owner_notification_preferences, undefined, "guest bootstrap never reveals Owner preferences");
 response = await callApi("customer");
 payload = await response.json();
 assert.equal(response.status, 200);
 assert.equal(payload.shop.shivan_shop_owner_alerts, undefined, "customer sync never reveals Owner alerts");
+assert.equal(payload.shop.shivan_shop_owner_notification_preferences, undefined, "customer sync never reveals Owner preferences");
+response = await callApi("customer", "PUT", { key: "shivan_shop_owner_notification_preferences", value: "{}" });
+assert.equal(response.status, 403, "customer accounts cannot save Owner notification preferences");
+response = await callApi("owner", "PUT", { key: "shivan_shop_owner_notification_preferences", value: JSON.stringify({ new_order: { inApp: false, push: true } }) });
+assert.equal(response.status, 200, "Owner can save notification preferences through the authenticated shared settings API");
+const normalizedPreferences = JSON.parse(shared.get("shivan_shop_owner_notification_preferences"));
+assert.equal(normalizedPreferences.new_order.inApp, false);
+assert.equal(normalizedPreferences.low_stock.push, true, "unspecified Owner notification choices default on");
+response = await callApi("owner", "PUT", { key: "shivan_shop_owner_notification_preferences", value: JSON.stringify({ new_order: { inApp: "false" } }) });
+assert.equal(response.status, 400, "invalid notification preference values are rejected");
 response = await callApi("customer", "PUT", { key: "shivan_shop_owner_alerts", value: "{}" });
 assert.equal(response.status, 403, "customer accounts cannot save Owner alerts");
 response = await callApi("owner", "PUT", { key: "shivan_shop_owner_alerts", value: JSON.stringify({ version: 1, alerts: [] }) });
@@ -181,5 +194,23 @@ assert.equal(payload.persisted, true);
 response = await callApi("owner");
 payload = await response.json();
 assert.equal(payload.shop.shivan_shop_owner_alerts, JSON.stringify({ version: 1, alerts: [] }), "Owner sync retrieves the persisted alerts for another session/device");
+assert.equal(JSON.parse(payload.shop.shivan_shop_owner_notification_preferences).new_order.inApp, false, "Owner sync can retrieve private notification preferences");
 
-console.log("Owner Smart Alerts checks passed: new-order detection, stock thresholds, timed-discount warning/expiration, event deduplication, read/clear persistence, cross-device merge, Owner-only UI, and mocked D1/API authorization and persistence.");
+const preferenceStorage = new Map([["shivan_shop_owner_notification_preferences", JSON.stringify({ new_order: { inApp: false }, low_stock: { inApp: false }, out_of_stock: { inApp: false }, discount_expiring: { inApp: false }, discount_expired: { inApp: false } })]]);
+const preferenceProducts = [{ id: "pref-product", variants: [{ color: "#000", size: "S", stock: 10 }] }, { id: "pref-discount", discount: 20, discountTimerEnabled: true, discountEndsAt: new Date(now + 12 * 60 * 60 * 1000).toISOString() }];
+let preferenceOrders = [{ id: "pref-existing" }];
+const preferenceContext = { ...context, products: preferenceProducts, getOrders: () => preferenceOrders, localStorage: { getItem(key) { return preferenceStorage.has(key) ? preferenceStorage.get(key) : null; }, setItem(key, value) { preferenceStorage.set(key, String(value)); } } };
+const preferenceRuntime = runInNewContext(`${sources}\n({reconcileOwnerSmartAlerts,ownerSmartAlertUnreadCount})`, preferenceContext);
+preferenceRuntime.reconcileOwnerSmartAlerts({ now, notify: false });
+preferenceOrders = [...preferenceOrders, { id: "pref-new" }];
+assert.equal(preferenceRuntime.reconcileOwnerSmartAlerts({ now: now + 1000, notify: false }).created.length, 0, "disabled in-app new-order alerts are suppressed");
+preferenceProducts[0].variants[0].stock = 4;
+assert.equal(preferenceRuntime.reconcileOwnerSmartAlerts({ now: now + 2000, notify: false }).created.length, 0, "disabled in-app low-stock alerts are suppressed");
+preferenceProducts[0].variants[0].stock = 0;
+assert.equal(preferenceRuntime.reconcileOwnerSmartAlerts({ now: now + 3000, notify: false }).created.length, 0, "disabled in-app out-of-stock alerts are suppressed");
+const preferenceExpiry = Date.parse(preferenceProducts[1].discountEndsAt);
+assert.equal(preferenceRuntime.reconcileOwnerSmartAlerts({ now: preferenceExpiry - 6 * 60 * 60 * 1000, notify: false }).created.length, 0, "disabled in-app discount warning alerts are suppressed");
+assert.equal(preferenceRuntime.reconcileOwnerSmartAlerts({ now: preferenceExpiry + 1000, notify: false }).created.length, 0, "disabled in-app discount expiration alerts are suppressed");
+assert.equal(preferenceRuntime.ownerSmartAlertUnreadCount(), 0, "disabled alert types do not leave hidden in-app records");
+
+console.log("Owner Smart Alerts checks passed: event detection and deduplication, all five in-app preference gates, read/clear persistence, Owner-only UI, private preference sync, and mocked D1/API authorization.");

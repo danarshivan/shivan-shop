@@ -183,7 +183,11 @@ function createOwnerNavigationRuntime(){
     ensureOwnerDashboardShell: () => {}, stopOwnerQrScanner: () => {}, renderOwnerDashboard: box => { box.innerHTML = "dashboard"; },
     renderOwnerProducts: box => { box.innerHTML = "products"; }, renderOwnerAds: box => { box.innerHTML = "ads"; },
     renderOwnerOrders: box => { box.innerHTML = "orders"; }, renderOwnerInventory: box => { box.innerHTML = "inventory"; },
-    renderOwnerAppearance: box => { box.innerHTML = "appearance"; }, renderShopOnboardingOwnerEditor: box => { box.innerHTML = "onboarding"; },
+    renderOwnerAppearance: box => { box.innerHTML = "appearance"; },
+    renderOwnerSettingsHub: box => { box.innerHTML = "settings"; }, renderOwnerStoreInformation: box => { box.innerHTML = "settings-information"; },
+    renderOwnerNotificationSettings: box => { box.innerHTML = "settings-notifications"; }, renderOwnerDeliverySettings: box => { box.innerHTML = "settings-delivery"; },
+    renderOwnerSecuritySettings: box => { box.innerHTML = "settings-security"; }, renderOwnerBackupSync: box => { box.innerHTML = "settings-backup"; },
+    renderShopOnboardingOwnerEditor: box => { box.innerHTML = "onboarding"; },
     renderOwnerCustomers: box => { box.innerHTML = "customers"; }, renderOwnerAnalytics: box => { box.innerHTML = "analytics"; },
     renderOwnerReports: box => { box.innerHTML = "reports"; }, renderOwnerDashboardNavigation: () => {},
     scrollOwnerTo: () => {}, escapeHtml: value => String(value), requestAnimationFrame: callback => { callback(); return 1; },
@@ -217,7 +221,7 @@ for (const viewport of [{name:"iPhone-sized", width:390, height:844, baseY:517},
   const ui = createOwnerNavigationRuntime();
   ui.renderOwnerPanel("dashboard");
   assert.match(ui.historyEntries.at(-1)?.__shivanOwnerNavigationId || "", /^owner-/, `${viewport.name}: Owner dashboard is registered in browser history`);
-  const sectionRoutes = ["products", "categories", "ads", "orders", "customers", "inventory", "analytics", "discounts", "colors", "store-settings", "backup", "reports", "onboarding"];
+  const sectionRoutes = ["products", "categories", "ads", "orders", "customers", "inventory", "analytics", "discounts", "colors", "store-settings", "settings-appearance", "settings-information", "settings-notifications", "settings-delivery", "settings-security", "settings-backup", "reports", "onboarding"];
   const saved = [{ id: ui.current.id, route: { panel: "dashboard", nav: "dashboard" }, position: { windowY: viewport.baseY, viewTop: 7 } }];
   for (let index = 0; index < sectionRoutes.length; index += 1) {
     const before = ui.current;

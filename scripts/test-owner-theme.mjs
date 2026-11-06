@@ -15,10 +15,10 @@ const functionSource = name => {
   return match[0];
 };
 const required = [
-  "safeAppearanceColor", "isValidAppearanceHex", "normalizeOwnerAppearance", "ownerAppearanceLuminance",
+  "safeAppearanceColor", "isValidAppearanceHex", "safeStoreLogoUrl", "normalizeOwnerAppearance", "normalizeOwnerDeliveryZones", "ownerAppearanceLuminance",
   "ownerAppearanceContrastRatio", "ownerAppearanceContrastText", "ownerAppearanceReadableText",
   "ownerAppearanceContrastIssues", "ownerAppearanceGlobalCss",
-  "ownerAppearanceThemePreset", "ownerAppearanceHexInput", "ownerAppearancePresetMarkup", "ownerAppearancePreviewMarkup",
+  "ownerAppearanceThemePreset", "ownerAppearanceFieldLabel", "ownerAppearanceLocalizedContrastWarning", "ownerAppearanceHexInput", "ownerAppearancePresetMarkup", "ownerAppearancePreviewMarkup",
   "readOwnerAppearanceForm", "setOwnerAppearanceStatus", "renderOwnerAppearancePreview", "renderOwnerAppearance",
   "selectOwnerTheme", "syncOwnerAppearanceColor", "previewOwnerAppearance", "saveOwnerAppearance", "resetOwnerAppearance",
 ];
@@ -59,6 +59,8 @@ const localStorage = {
 const context = {
   document,
   localStorage,
+  activeLanguage: "en",
+  ownerDashboardText: (en, ku = en, ar = en) => context.activeLanguage === "ar" ? ar : context.activeLanguage === "ku" ? ku : en,
   window: { confirm: () => true },
   isOwner: () => true,
   cloudMode: true,
@@ -149,8 +151,17 @@ assert.match(rendered.innerHTML, /Evening dress/);
 assert.match(rendered.innerHTML, /25%/);
 assert.match(rendered.innerHTML, /Save Changes/);
 assert.match(rendered.innerHTML, /Reset to Default/);
+context.activeLanguage = "ku"; runtime.renderOwnerAppearance(rendered);
+assert.match(rendered.innerHTML, /ڕەنگ و فۆنت/, "the Appearance section has Kurdish translations");
+assert.match(rendered.innerHTML, /پاشەکەفت بکە/, "Kurdish theme controls are translated");
+assert.match(rendered.innerHTML, /ڕەنگا سەرەکی/, "Kurdish color field labels are translated");
+context.activeLanguage = "ar"; runtime.renderOwnerAppearance(rendered);
+assert.match(rendered.innerHTML, /الألوان والخط/, "the Appearance section has Arabic translations");
+assert.match(rendered.innerHTML, /احفظ التغييرات/, "Arabic theme controls are translated");
+assert.match(rendered.innerHTML, /لون التمييز الأساسي/, "Arabic color field labels are translated");
+context.activeLanguage = "en"; runtime.renderOwnerAppearance(rendered);
 assert.match(rendered.innerHTML, /owner-theme-button-text:#ffffff/, "the live preview uses a contrast-aware button label");
-assert.match(rendered.innerHTML, /ownerBackupSync/, "the existing backup controls remain available");
+assert.doesNotMatch(rendered.innerHTML, /ownerBackupSync/, "backup controls have their own Store Settings section rather than being mixed into Appearance");
 const contrastPreview = runtime.ownerAppearancePreviewMarkup({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444" });
 assert.match(contrastPreview, /owner-theme-contrast-note/, "the live preview explains low-contrast custom selections");
 assert.match(contrastPreview, /owner-theme-readable-text:#ffffff/, "the live preview matches the storefront text fallback");
@@ -180,7 +191,8 @@ assert.match(elements.get("ownerThemePreviewMount").innerHTML, /--owner-theme-pr
 assert.equal(runtime.getAppearance().theme, "purple", "unsaved preview changes do not alter the published global theme");
 
 elements.get("ownerThemeSecondaryHex").value = "#12GG56";
-assert.throws(() => runtime.readOwnerAppearanceForm(), /Secondary accent color.*HEX/, "invalid custom HEX values block saving");
+assert.throws(() => runtime.readOwnerAppearanceForm(), /six-digit HEX color/, "invalid custom HEX values block saving");
+assert.equal(elements.get("ownerThemeSecondaryHex").attributes["aria-invalid"], "true", "the invalid secondary accent input is marked");
 elements.get("ownerThemeSecondaryHex").value = "#FFADD0";
 elements.get("ownerThemeSecondaryPicker").value = "#ffadd0";
 elements.get("ownerThemeButtonHex").value = "#D83E8A";
@@ -219,6 +231,19 @@ await runtime.resetOwnerAppearance();
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.getAppearance())), JSON.parse(JSON.stringify(oldTheme)), "cancelled reset leaves every appearance setting unchanged");
 assert.ok(localStorage.getItem("shivan_shop_owner_appearance"), "cancelled reset does not delete the saved shared-setting copy");
 context.window.confirm = () => true;
+const savedStoreInformation = { ...oldTheme, storeName: "Shivan Shop Test", contactEmail: "shop@example.test", deliveryAreas: "Owner-entered coverage", deliveryZones: [{ id: "zone-test-001", name: "Test only zone", fee: 1200 }], deliveryChargingEnabled: true };
+runtime.setAppearance(savedStoreInformation);
+localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(savedStoreInformation));
+await runtime.resetOwnerAppearance();
+assert.equal(runtime.getAppearance().theme, "purple", "reset restores the default theme");
+assert.equal(runtime.getAppearance().storeName, "Shivan Shop Test", "reset preserves the store name");
+assert.equal(runtime.getAppearance().contactEmail, "shop@example.test", "reset preserves store contact details");
+assert.equal(runtime.getAppearance().deliveryAreas, "Owner-entered coverage", "reset preserves delivery information");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.getAppearance().deliveryZones)), [{ id: "zone-test-001", name: "Test only zone", fee: 1200 }], "reset preserves owner-configured delivery zones and fees");
+assert.equal(runtime.getAppearance().deliveryChargingEnabled, true, "reset preserves the delivery charging choice");
+assert.ok(localStorage.getItem("shivan_shop_owner_appearance"), "the shared settings value remains when store information is still saved");
+runtime.setAppearance(oldTheme);
+localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(oldTheme));
 await runtime.resetOwnerAppearance();
 assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), null, "confirmed reset removes only the existing Owner appearance key");
 assert.equal(runtime.getAppearance().theme, "purple");

@@ -1,12 +1,17 @@
 const OWNER_IDENTIFIER = "07502342153";
 const COOKIE_NAME = "shivan_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 30;
+const OWNER_APPEARANCE_KEY = "shivan_shop_owner_appearance";
+const OWNER_NOTIFICATION_PREFERENCES_KEY = "shivan_shop_owner_notification_preferences";
+const OWNER_NOTIFICATION_EVENT_TYPES = ["new_order","low_stock","out_of_stock","discount_expiring","discount_expired"];
+const MAX_DELIVERY_ZONE_FEE_IQD = 10000000;
 const SHOP_KEYS = new Set([
   "shivan_shop_products",
   "shivan_shop_ads",
   "shivan_shop_ios_onboarding_images",
   "shivan_shop_owner_appearance",
   "shivan_shop_owner_alerts",
+  "shivan_shop_owner_notification_preferences",
   "shivan_shop_categories",
   "shivan_shop_category_meta",
   "shivan_shop_category_renames",
@@ -320,6 +325,8 @@ async function queueNewOrderPush(env, orderId) {
     if (!owner?.id) return false;
     const id = String(orderId || "").slice(0, 100);
     if (!id) return false;
+    const preferencesRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(OWNER_NOTIFICATION_PREFERENCES_KEY).first();
+    if (!normalizeOwnerNotificationPreferences(asJson(preferencesRow?.value, {})).new_order.push) return false;
     return queueOwnerPushEvent(env, String(owner.id), {
       eventId: `order:${encodeURIComponent(id)}`,
       type: "new_order",
@@ -352,8 +359,27 @@ function compactPushProducts(products) {
   }));
 }
 
+async function syncOwnerPushPreferences(env,ownerId,preferences,{refreshDiscounts=false}={}){
+  if(!env.SYNC_HUB||!ownerId)return false;
+  const normalized=normalizeOwnerNotificationPreferences(preferences);
+  const result=await pushHubRequest(env,"/push/preferences",{ownerId:String(ownerId),preferences:normalized});
+  if(!result.response.ok)throw new Error("Owner push preferences could not be synchronized.");
+  if(refreshDiscounts){
+    const productRow=await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first(),products=asJson(productRow?.value,[]);
+    if(Array.isArray(products)){const discounts=await pushHubRequest(env,"/push/discounts",{ownerId:String(ownerId),products:compactPushProducts(products)});if(!discounts.response.ok)throw new Error("Owner timed discount notifications could not be synchronized.");}
+  }
+  return true;
+}
+
 async function syncOwnerPushProductEvents(env, ownerId, products) {
   if (!env.SYNC_HUB || !ownerId) return;
+  try {
+    const row = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(OWNER_NOTIFICATION_PREFERENCES_KEY).first();
+    await syncOwnerPushPreferences(env, ownerId, asJson(row?.value, {}));
+  } catch (exception) {
+    console.warn("Owner push preferences could not be synchronized; alert snapshot was skipped.", { code: String(exception?.name || "PUSH_PREF_SYNC_FAILED") });
+    return;
+  }
   const compact = compactPushProducts(products);
   for (const [path, key] of [["/push/stock-snapshot", "products"], ["/push/discounts", "products"]]) {
     try {
@@ -619,7 +645,7 @@ async function getShopState(env, includeOwnerPrivate = false) {
   // Legacy D1 media rows stay out of bootstrap/realtime responses; current
   // catalog records reference R2-backed URLs instead of embedding image bytes.
   const result = await env.DB.prepare("SELECT key, value FROM shop_state WHERE key < 'media:' OR key >= 'media;'").all();
-  return Object.fromEntries((result.results || []).filter(row => includeOwnerPrivate || row.key !== "shivan_shop_owner_alerts").map(row => [row.key, row.value]));
+  return Object.fromEntries((result.results || []).filter(row => includeOwnerPrivate || !["shivan_shop_owner_alerts", OWNER_NOTIFICATION_PREFERENCES_KEY].includes(row.key)).map(row => [row.key, row.value]));
 }
 
 function mediaExtension(type) {
@@ -897,6 +923,10 @@ async function handleCreateFibPayment(request, env, account) {
     amount += pricing.finalPrice * quantity;
     if (!Number.isSafeInteger(amount)) return error("The payment total is invalid.", 409);
   }
+  const delivery = await readDeliverySelection(env, body?.deliveryZoneId);
+  if (!delivery.ok) return error(delivery.message, 409);
+  amount += delivery.fee;
+  if (!Number.isSafeInteger(amount)) return error("The payment total is invalid.", 409);
   if (amount <= 250) return error("FIB requires a payment amount greater than 250 IQD.");
 
   const existing = await env.DB.prepare("SELECT payment_id, amount, app_link, status, valid_until FROM fib_payments WHERE account_id=? AND order_id=? ORDER BY created_at DESC LIMIT 1")
@@ -960,9 +990,57 @@ async function handleFibPaymentStatus(request, env, account) {
   return json({ paymentId, orderId: payment.order_id, amount: Number(payment.amount), status });
 }
 
+function shopValidationError(code,message){const exception=new Error(message);exception.code=code;return exception;}
+function normalizeOwnerNotificationPreferences(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))throw shopValidationError("INVALID_NOTIFICATION_PREFERENCES","Owner notification preferences must be an object.");
+  const result={version:1};
+  for(const type of OWNER_NOTIFICATION_EVENT_TYPES){
+    const row=value[type]===undefined?{}:value[type];
+    if(!row||typeof row!=="object"||Array.isArray(row))throw shopValidationError("INVALID_NOTIFICATION_PREFERENCES","Each Owner notification preference must be an object.");
+    for(const channel of ["inApp","push"])if(row[channel]!==undefined&&typeof row[channel]!=="boolean")throw shopValidationError("INVALID_NOTIFICATION_PREFERENCES","Owner notification preferences must use true or false values.");
+    result[type]={inApp:row.inApp!==false,push:row.push!==false};
+  }
+  return result;
+}
+function normalizeOwnerDeliveryConfiguration(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))throw shopValidationError("INVALID_DELIVERY_SETTINGS","Store delivery settings must be an object.");
+  if(value.deliveryChargingEnabled!==undefined&&typeof value.deliveryChargingEnabled!=="boolean")throw shopValidationError("INVALID_DELIVERY_SETTINGS","Delivery charging must be enabled or disabled.");
+  const zones=Array.isArray(value.deliveryZones)?value.deliveryZones:[];
+  if(!Array.isArray(value.deliveryZones)&&value.deliveryZones!==undefined)throw shopValidationError("INVALID_DELIVERY_SETTINGS","Delivery zones must be a list.");
+  if(zones.length>100)throw shopValidationError("INVALID_DELIVERY_SETTINGS","No more than 100 delivery zones can be saved.");
+  const ids=new Set(),names=new Set(),normalized=[];
+  for(const zone of zones){
+    const id=String(zone?.id||"").trim(),name=String(zone?.name||"").trim(),fee=zone?.fee,normalizedName=name.toLocaleLowerCase();
+    if(!/^[A-Za-z0-9_-]{8,80}$/.test(id)||name.length<2||name.length>80||!Number.isSafeInteger(fee)||fee<0||fee>MAX_DELIVERY_ZONE_FEE_IQD)throw shopValidationError("INVALID_DELIVERY_SETTINGS","Each delivery zone needs an ID, name, and whole nonnegative IQD fee.");
+    if(ids.has(id)||names.has(normalizedName))throw shopValidationError("INVALID_DELIVERY_SETTINGS","Delivery zone IDs and names must be unique.");
+    ids.add(id);names.add(normalizedName);normalized.push({id,name,fee});
+  }
+  const enabled=value.deliveryChargingEnabled===true;
+  if(enabled&&!normalized.length)throw shopValidationError("INVALID_DELIVERY_SETTINGS","Add at least one delivery zone before enabling delivery charges.");
+  return{deliveryZones:normalized,deliveryChargingEnabled:enabled};
+}
+function resolveDeliverySelection(appearance,requestedZoneId){
+  let config;try{config=normalizeOwnerDeliveryConfiguration(appearance||{});}catch(exception){return{ok:false,message:"The store delivery settings are invalid. Contact the store owner."};}
+  const id=String(requestedZoneId||"");
+  if(!config.deliveryChargingEnabled)return id?{ok:false,message:"Delivery charging is inactive. Refresh checkout and try again."}:{ok:true,zoneId:"",zoneName:"",fee:0};
+  const zone=config.deliveryZones.find(item=>item.id===id);
+  if(!zone)return{ok:false,message:"Choose a valid delivery zone before payment or order submission."};
+  return{ok:true,zoneId:zone.id,zoneName:zone.name,fee:zone.fee};
+}
+async function readDeliverySelection(env,requestedZoneId){
+  try{const row=await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(OWNER_APPEARANCE_KEY).first();return resolveDeliverySelection(asJson(row?.value,{}),requestedZoneId);}
+  catch{return{ok:false,message:"The store delivery settings could not be verified. Try again."};}
+}
+
 async function saveShopValue(env, key, rawValue, requestId = "") {
   if (!SHOP_KEYS.has(key)) throw new Error("Unsupported shop data key.");
   let value = String(rawValue ?? "");
+  if (key === OWNER_NOTIFICATION_PREFERENCES_KEY) value = JSON.stringify(normalizeOwnerNotificationPreferences(asJson(value, null)));
+  if (key === OWNER_APPEARANCE_KEY) {
+    const parsed = asJson(value, null);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw shopValidationError("INVALID_DELIVERY_SETTINGS", "Store settings must be an object.");
+    value = JSON.stringify({ ...parsed, ...normalizeOwnerDeliveryConfiguration(parsed) });
+  }
   if (key === "shivan_shop_ios_onboarding_images") {
     const images = asJson(value, null);
     if (!Array.isArray(images) || images.length !== 3 || !images.every(validPromotionalImageUrl)) {
@@ -1238,6 +1316,25 @@ async function handleAuth(request, env, route, secure) {
     return json({ ok: true });
   }
 
+  if (route === "auth/owner-password" && request.method === "POST") {
+    const { account, response } = await ensureSession(request, env);
+    if (response) return response;
+    if (account.role !== "owner") return error("Only the store owner can change Owner access settings.", 403);
+    const body = await request.json().catch(() => null);
+    const oldPassword = String(body?.oldPassword || "");
+    const newPassword = String(body?.newPassword || "");
+    const row = await env.DB.prepare("SELECT password_salt, password_hash FROM accounts WHERE id=?").bind(account.id).first();
+    if (!row || await passwordHash(oldPassword, row.password_salt) !== row.password_hash) return error("Current password is incorrect.", 401);
+    if (newPassword.length < 10) return error("Choose a password with at least 10 characters.");
+    const salt = base64url(crypto.getRandomValues(new Uint8Array(16)));
+    const hash = await passwordHash(newPassword, salt);
+    try {
+      const result = await env.DB.prepare("UPDATE accounts SET password_salt=?, password_hash=? WHERE id=?").bind(salt, hash, account.id).run();
+      requireD1WriteSuccess(result, "Owner password storage");
+    } catch { return error("The Owner password could not be saved to the shared database.", 503); }
+    return json({ ok: true });
+  }
+
   return error("Not found.", 404);
 }
 
@@ -1332,6 +1429,9 @@ async function handleSync(request, env, account) {
       if (exception?.code === "INVALID_PRODUCT_PRICING") {
         return tracedError("Product price or discount is invalid. Use a whole nonnegative IQD price and a discount from 1% to 99%.", 400, requestId, exception.code, "shop.sync.validate");
       }
+      if (exception?.code === "INVALID_NOTIFICATION_PREFERENCES" || exception?.code === "INVALID_DELIVERY_SETTINGS") {
+        return tracedError(exception.message, 400, requestId, exception.code, "shop.sync.validate");
+      }
       if (exception?.code === "INVALID_PRODUCT_DISCOUNT_TIMER") {
         return tracedError("Limited-time discounts need a valid 1% to 99% discount and an exact ISO end date and time.", 400, requestId, exception.code, "shop.sync.validate");
       }
@@ -1352,6 +1452,10 @@ async function handleSync(request, env, account) {
       return tracedError(isProductSave
         ? "The shared database could not confirm this product save. Your device will keep it queued for retry."
         : "The shared database could not confirm this shop update. Your device will keep it queued for retry.", 503, requestId, code, isProductSave ? "product.sync.d1_write" : "shop.sync.d1_write");
+    }
+    if (key === OWNER_NOTIFICATION_PREFERENCES_KEY) {
+      try { await syncOwnerPushPreferences(env, String(account.id), asJson(persistedValue, {}), { refreshDiscounts: true }); }
+      catch (exception) { return tracedError("Owner preferences were saved, but push delivery could not be synchronized. The device will retry.", 503, requestId, "PUSH_PREF_SYNC_FAILED", "shop.sync.push_preferences"); }
     }
     await broadcastSync(env);
     if (isProductSave) {
@@ -1429,6 +1533,11 @@ async function handleSync(request, env, account) {
           product.stock = (product.variants || []).reduce((sum, item) => sum + Math.max(0, Math.floor(Number(item.stock) || 0)), 0);
           inventoryChanged = true;
         }
+        const delivery = await readDeliverySelection(env, order.deliveryZoneId);
+        if (!delivery.ok) return error(delivery.message, 409);
+        const subtotal = trustedTotal;
+        trustedTotal += delivery.fee;
+        if (!Number.isSafeInteger(trustedTotal)) return error("The order total is invalid.", 409);
         let paymentStatus="";
         if (paymentMethod === "fib") {
           if (!fibPaymentId) return error("Create a FIB gateway payment before placing this order.", 409);
@@ -1447,7 +1556,7 @@ async function handleSync(request, env, account) {
           if (status !== "PAID") return error("FIB has not confirmed the payment yet.", 409);
           paymentStatus="PAID";
         }
-        trustedOrder = { ...order, items: trustedItems, total: trustedTotal, paymentMethod, fibPaymentId, paymentStatus, userId: account.id };
+        trustedOrder = { ...order, items: trustedItems, subtotal, deliveryZoneId: delivery.zoneId, deliveryZoneName: delivery.zoneName, deliveryFee: delivery.fee, total: trustedTotal, paymentMethod, fibPaymentId, paymentStatus, userId: account.id };
       }
       try { trustedOrder = { ...trustedOrder, receiptImage: await persistReceiptImage(trustedOrder.receiptImage, env) }; }
       catch (exception) {

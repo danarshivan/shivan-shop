@@ -433,6 +433,49 @@ assert.equal(ownerLogin.status, 200, "the authorized owner should be able to sig
 const ownerLoginCookie = ownerLogin.headers.get("Set-Cookie").split(";")[0];
 const ownerMe = await context(new Request("https://shop.test/api/auth/me", { headers: { Cookie: ownerLoginCookie } }));
 assert.equal((await ownerMe.json()).account.role, "owner", "the session API should preserve the owner role");
+const unauthenticatedOwnerPassword = await context(new Request("https://shop.test/api/auth/owner-password", {
+  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ oldPassword: "", newPassword: "new-owner-password" }),
+}));
+assert.equal(unauthenticatedOwnerPassword.status, 401, "Owner password changes require an authenticated session");
+const ownerSettingsValue = JSON.stringify({ storeName: "Shivan Shop Test", contactEmail: "shop@example.test", deliveryAreas: "Erbil", deliveryZones: [], deliveryChargingEnabled: false, deliveryEstimate: "2 days" });
+const ownerSettingsWrite = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie },
+  body: JSON.stringify({ key: "shivan_shop_owner_appearance", value: ownerSettingsValue }),
+}));
+assert.equal(ownerSettingsWrite.status, 200, "Owner store settings should save through the existing shared settings API");
+assert.equal((await ownerSettingsWrite.json()).persisted, true, "the shared settings API should confirm persistence");
+assert.equal(DB.shop.get("shivan_shop_owner_appearance"), ownerSettingsValue, "the existing D1 shop-state key stores the new information without a migration");
+const ownerSettingsReload = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: ownerLoginCookie } }));
+assert.equal((await ownerSettingsReload.json()).shop.shivan_shop_owner_appearance, ownerSettingsValue, "shared settings are returned after reload for cross-device hydration");
+const publicSettingsBootstrap = await context(new Request("https://shop.test/api/bootstrap"));
+assert.equal((await publicSettingsBootstrap.json()).shop.shivan_shop_owner_appearance, ownerSettingsValue, "only the intentionally public business settings are included in public shop bootstrap");
+const invalidActiveDelivery = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie }, body: JSON.stringify({ key: "shivan_shop_owner_appearance", value: JSON.stringify({ deliveryChargingEnabled: true, deliveryZones: [] }) }) }));
+assert.equal(invalidActiveDelivery.status, 400, "delivery charges cannot be enabled without an owner-configured zone");
+assert.equal(DB.shop.get("shivan_shop_owner_appearance"), ownerSettingsValue, "invalid delivery configuration leaves saved business settings unchanged");
+for (const fee of [-1, 12.5, 10000001]) {
+  const invalidFeeWrite = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie }, body: JSON.stringify({ key: "shivan_shop_owner_appearance", value: JSON.stringify({ deliveryChargingEnabled: false, deliveryZones: [{ id: "zone-test-001", name: "Test only zone", fee }] }) }) }));
+  assert.equal(invalidFeeWrite.status, 400, `the API rejects invalid IQD fee ${fee}`);
+}
+const invalidOwnerPassword = await context(new Request("https://shop.test/api/auth/owner-password", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie },
+  body: JSON.stringify({ oldPassword: "wrong-password", newPassword: "new-owner-password" }),
+}));
+assert.equal(invalidOwnerPassword.status, 401, "the Owner password endpoint verifies the current password");
+const shortOwnerPassword = await context(new Request("https://shop.test/api/auth/owner-password", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie },
+  body: JSON.stringify({ oldPassword: "long-test-password", newPassword: "short" }),
+}));
+assert.equal(shortOwnerPassword.status, 400, "the Owner password endpoint enforces the existing ten-character minimum");
+const ownerPasswordChange = await context(new Request("https://shop.test/api/auth/owner-password", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie },
+  body: JSON.stringify({ oldPassword: "long-test-password", newPassword: "new-owner-password" }),
+}));
+assert.equal(ownerPasswordChange.status, 200, "an authenticated Owner can update the password through the Owner-only endpoint");
+const ownerPasswordLogin = await context(new Request("https://shop.test/api/auth/login", {
+  method: "POST", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ identifier: "07502342153", password: "new-owner-password" }),
+}));
+assert.equal(ownerPasswordLogin.status, 200, "the Owner password change is stored as a hash and works after a fresh sign-in");
 const nextOrderId = "order-status-next-test";
 const nextOrderBefore = { id: nextOrderId, userId: "customer-order-owner-test", name: "Order Customer", phone: "+9647500000999", address: "Erbil", status: "لە چاوەڕوانی", total: 7400, items: [{ productId: 71, qty: 2, size: "M", color: "#000000" }], paymentMethod: "cash", customerNote: "keep this order data" };
 const nextOrderUntouched = { id: "order-status-untouched-test", userId: "customer-order-owner-test", status: "لە چاوەڕوانی", total: 1200, items: [{ productId: 72, qty: 1 }] };
@@ -795,18 +838,24 @@ try {
     }), { status: 201 });
     throw new Error("Unexpected external request in offline discount test.");
   };
+  const activeDelivery = JSON.stringify({ ...JSON.parse(ownerSettingsValue), deliveryChargingEnabled: true, deliveryZones: [{ id: "zone-test-001", name: "Test only zone", fee: 1200 }] });
+  const activeDeliverySave = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie }, body: JSON.stringify({ key: "shivan_shop_owner_appearance", value: activeDelivery }) }));
+  assert.equal(activeDeliverySave.status, 200, "a valid owner-configured delivery zone is accepted");
   const fibPayment = await context(new Request("https://shop.test/api/fib/create-payment", {
     method: "POST", headers: { "Content-Type": "application/json", Cookie: customerCookie },
-    body: JSON.stringify({ orderId: "Sdiscount-payment-regression-001", items: [{ productId, size: "M", color: "#ff0000", qty: 2 }] }),
+    body: JSON.stringify({ orderId: "Sdiscount-payment-regression-001", deliveryZoneId: "zone-test-001", items: [{ productId, size: "M", color: "#ff0000", qty: 2 }] }),
   }));
   const fibPaymentData = await fibPayment.json();
   assert.equal(fibPayment.status, 200, `the simulated FIB payment request should use the saved discounted product price (${JSON.stringify(fibPaymentData)})`);
-  assert.equal(fibPaymentData.amount, 18900, "FIB payment amount should use 30% off 13,500 IQD for two units");
-  assert.equal(JSON.parse(fibRequests[1].options.body).monetaryValue.amount, "18900", "the provider payload should contain the server-calculated discounted amount");
+  assert.equal(fibPaymentData.amount, 20100, "FIB payment should add the validated owner-configured 1,200 IQD fee to the 18,900 IQD discounted subtotal");
+  assert.equal(JSON.parse(fibRequests[1].options.body).monetaryValue.amount, "20100", "the provider payload should contain the server-calculated subtotal plus delivery fee");
+  const invalidZonePayment = await context(new Request("https://shop.test/api/fib/create-payment", { method: "POST", headers: { "Content-Type": "application/json", Cookie: customerCookie }, body: JSON.stringify({ orderId: "Sdiscount-payment-invalid-zone", deliveryZoneId: "unknown-zone", items: [{ productId, size: "M", color: "#ff0000", qty: 1 }] }) }));
+  assert.equal(invalidZonePayment.status, 409, "FIB checkout rejects a zone the Owner did not configure");
 } finally {
   globalThis.fetch = originalFetch;
   delete env.FIB_CLIENT_ID;
   delete env.FIB_CLIENT_SECRET;
+  DB.shop.set("shivan_shop_owner_appearance", ownerSettingsValue);
 }
 
 const discountedOrderId = "Sdiscount-order-regression-001";
@@ -822,6 +871,8 @@ const discountedOrderResponse = await context(new Request("https://shop.test/api
 const discountedOrderResponseData = await discountedOrderResponse.json();
 assert.equal(discountedOrderResponse.status, 200, `the customer order should save with a server-confirmed discount total (${JSON.stringify(discountedOrderResponseData)})`);
 const trustedOrder = JSON.parse(DB.orders.get(discountedOrderId).payload);
+assert.equal(trustedOrder.subtotal, 9450, "the server should calculate and snapshot the discounted order subtotal");
+assert.equal(trustedOrder.deliveryFee, 0, "inactive delivery charging leaves new orders uncharged");
 assert.equal(trustedOrder.total, 9450, "the server should calculate the 30% discounted order total from shared D1 product data");
 assert.equal(trustedOrder.items[0].price, 9450, "the saved order item should use the final discounted unit price");
 assert.equal(trustedOrder.items[0].originalPrice, 13500, "the saved order should retain the original unit price for reference");
@@ -830,6 +881,15 @@ const orderReload = await context(new Request("https://shop.test/api/sync", { he
 assert.equal(orderReload.status, 200);
 const reloadedOrders = JSON.parse((await orderReload.json()).user.shivan_shop_orders);
 assert.equal(reloadedOrders.find(order => order.id === discountedOrderId).total, 9450, "the discounted order total should survive refresh from shared D1");
+const activeOrderId = "Sdelivery-order-regression-001";
+const activeOrder = { ...spoofedOrder, id: activeOrderId, deliveryZoneId: "zone-test-001", total: 1 };
+const activeOrderAppearance = JSON.stringify({ ...JSON.parse(ownerSettingsValue), deliveryChargingEnabled: true, deliveryZones: [{ id: "zone-test-001", name: "Test only zone", fee: 1200 }] });
+DB.shop.set("shivan_shop_owner_appearance", activeOrderAppearance);
+const activeOrderResponse = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: customerCookie }, body: JSON.stringify({ key: "shivan_shop_orders", value: JSON.stringify([activeOrder]) }) }));
+assert.equal(activeOrderResponse.status, 200, "a new order can be saved with a valid selected delivery zone");
+const chargedOrder = JSON.parse(DB.orders.get(activeOrderId).payload);
+assert.deepEqual({ subtotal: chargedOrder.subtotal, deliveryZoneId: chargedOrder.deliveryZoneId, deliveryZoneName: chargedOrder.deliveryZoneName, deliveryFee: chargedOrder.deliveryFee, total: chargedOrder.total }, { subtotal: 9450, deliveryZoneId: "zone-test-001", deliveryZoneName: "Test only zone", deliveryFee: 1200, total: 10650 }, "the server snapshots the verified fee and recalculates only the new order total");
+DB.shop.set("shivan_shop_owner_appearance", ownerSettingsValue);
 
 const customerLogin = await context(new Request("https://shop.test/api/auth/login", {
   method: "POST", headers: { "Content-Type": "application/json" },
@@ -837,6 +897,17 @@ const customerLogin = await context(new Request("https://shop.test/api/auth/logi
 }));
 assert.equal(customerLogin.status, 200, "a newly created customer account should be able to sign in");
 const customerLoginCookie = customerLogin.headers.get("Set-Cookie").split(";")[0];
+const customerOwnerPasswordAttempt = await context(new Request("https://shop.test/api/auth/owner-password", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: customerLoginCookie },
+  body: JSON.stringify({ oldPassword: "customer-password", newPassword: "new-owner-password" }),
+}));
+assert.equal(customerOwnerPasswordAttempt.status, 403, "a customer cannot use the Owner password-management endpoint");
+const customerStoreSettingsWrite = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: customerLoginCookie },
+  body: JSON.stringify({ key: "shivan_shop_owner_appearance", value: JSON.stringify({ storeName: "Unauthorized edit" }) }),
+}));
+assert.equal(customerStoreSettingsWrite.status, 403, "a customer cannot change shared Store Settings");
+assert.equal(DB.shop.get("shivan_shop_owner_appearance"), ownerSettingsValue, "a denied Store Settings write leaves the shared record unchanged");
 const passwordChange = await context(new Request("https://shop.test/api/auth/password", {
   method: "POST", headers: { "Content-Type": "application/json", Cookie: customerLoginCookie },
   body: JSON.stringify({ oldPassword: "customer-password", newPassword: "updated-customer-password" }),

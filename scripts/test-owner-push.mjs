@@ -579,6 +579,29 @@ async function testEventDeliveryAndFailures() {
   assert.equal((await call(noSubscribers.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { ...event, url: "https://phishing.test" } } })).status, 400, "external notification navigation URLs are rejected");
 }
 
+async function testOwnerNotificationPreferences() {
+  const sent = [];
+  const h = createHarness({ send: async (_subscription, payload) => { sent.push(payload); return { ok: true, status: 201 }; } });
+  await call(h.coordinator, "/push/subscription", { method: "POST", body: { ownerId: "owner-A", subscription: fakeSubscription() } });
+  const savePreferences = preferences => call(h.coordinator, "/push/preferences", { method: "POST", body: { ownerId: "owner-A", preferences } });
+  const preferences = { new_order: { inApp: true, push: false }, low_stock: { inApp: true, push: true }, out_of_stock: { inApp: true, push: true }, discount_expiring: { inApp: true, push: false }, discount_expired: { inApp: true, push: false } };
+  assert.equal((await savePreferences(preferences)).status, 200, "the coordinator stores validated Owner push choices");
+  const suppressed = await call(h.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { eventId: "order:disabled", type: "new_order", title: "New order", body: "Order ready", url: "/?ownerPush=orders" } } });
+  assert.equal((await suppressed.json()).suppressed, true, "disabled Owner push events are suppressed when queued");
+  await call(h.coordinator, "/push/event", { method: "POST", body: { ownerId: "owner-A", event: { eventId: "stock:pending", type: "low_stock", title: "Low stock", body: "Stock low", url: "/?ownerPush=alerts" } } });
+  preferences.low_stock.push = false;
+  assert.equal((await savePreferences(preferences)).status, 200);
+  assert.equal((await listPrefix(h.storage, "shivan-push:event:")).find(event => event.eventId === "stock:pending").status, "suppressed", "turning off push cancels matching pending Owner alerts");
+  const timed = { id: "preference-discount", name: "Test discount", discount: 20, discountTimerEnabled: true, discountEndsAt: new Date(h.coordinator.clock() + 30 * 60 * 60 * 1000).toISOString() };
+  await call(h.coordinator, "/push/discounts", { method: "POST", body: { ownerId: "owner-A", products: [timed] } });
+  assert.equal((await listPrefix(h.storage, "shivan-push:discount:")).length, 0, "disabled timed-discount push notices are not scheduled");
+  const customerBroadcast = await call(h.coordinator, "/push/customer-broadcast", { method: "POST", body: { ownerId: "owner-A", event: { eventId: "special-offer:owner-prefs-test", type: "special_offer", title: "New offer", body: "Offer details", url: "/?customerPush=offers&offerId=special-offer%3Aowner-prefs-test" } } });
+  assert.equal(customerBroadcast.status, 202, "Owner alert preferences do not prevent customer offer broadcasts");
+  assert.equal((await listPrefix(h.storage, "shivan-push:customer-event:")).length, 1, "customer notifications retain their independent queue");
+  await h.coordinator.alarm();
+  assert.equal(sent.length, 0, "disabled Owner events do not reach subscribed devices");
+}
+
 async function testStockAndDiscountScheduling() {
   const sent = [];
   const h = createHarness({ send: async (_sub, payload) => { sent.push(payload); return { ok: true, status: 201 }; } });
@@ -623,7 +646,7 @@ async function testPagesOwnerAuthorization() {
   const env = {
     DB: { prepare(sql) { return { bind(...args) { return { first: async () => {
       if (sql.includes("FROM sessions s JOIN accounts a")) return args[0] === tokenHash ? { ...accountByRole("owner"), expires_at: Math.floor(Date.now() / 1000) + 3600 } : args[0] === await hashToken(customerToken) ? { ...accountByRole("customer"), expires_at: Math.floor(Date.now() / 1000) + 3600 } : null;
-      if (sql.includes("FROM shop_state")) return { value: "[]" };
+      if (sql.includes("FROM shop_state")) return { value: args[0] === "shivan_shop_owner_notification_preferences" ? "{}" : "[]" };
       return null;
     } }; } }; } },
     SYNC_HUB: { idFromName: name => name, get: () => ({ fetch: async (input, options = {}) => {
@@ -916,6 +939,7 @@ await testCrossAudienceEndpointExclusivity();
 await testLegacyOwnerSubscriptionsRemainDeliverable();
 await testOwnerSingleDeviceTestNotification();
 await testEventDeliveryAndFailures();
+await testOwnerNotificationPreferences();
 await testStockAndDiscountScheduling();
 await testCustomerSubscriptionsGlobalBroadcasts();
 await testLegacyCustomerSubscriptionCompatibilityAndDeletedProductGuard();

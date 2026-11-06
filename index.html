@@ -1362,6 +1362,47 @@ button{
 .owner-management-card:hover{transform:translateY(-1px);border-color:#684aa1;background:#15111e}
 .owner-management-card .owner-dashboard-nav-icon{flex-basis:32px;width:32px;height:32px;font-size:16px}
 .owner-management-card span:last-child{min-width:0;overflow-wrap:anywhere;font-size:12px;font-weight:700}
+.owner-settings-hub{display:grid;gap:18px}
+.owner-settings-intro{margin:0;color:var(--shop-secondary-text,#aaa5b8);font-size:12px;line-height:1.6}
+.owner-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.owner-settings-card{display:grid;grid-template-columns:48px minmax(0,1fr) 24px;align-items:center;gap:12px;min-height:94px;padding:15px;border:1px solid color-mix(in srgb,var(--shop-primary,#8966ff) 30%,#302743);border-radius:17px;background:radial-gradient(ellipse at 0 0,color-mix(in srgb,var(--shop-primary,#8966ff) 13%,transparent),transparent 58%),var(--shop-card-background,#0b0e18);color:var(--shop-text,#fff);text-align:start;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.owner-settings-card:hover{transform:translateY(-2px);border-color:var(--shop-secondary,#b49aff);box-shadow:0 10px 26px #0003,0 0 18px color-mix(in srgb,var(--shop-primary,#8966ff) 14%,transparent)}
+.owner-settings-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid color-mix(in srgb,var(--shop-primary,#8966ff) 50%,#302743);border-radius:14px;background:color-mix(in srgb,var(--shop-primary,#8966ff) 18%,#11101a);color:var(--shop-readable-primary,#cdbbff);font-size:20px}
+.owner-settings-copy{display:grid;gap:5px;min-width:0}.owner-settings-copy strong{font-size:14px}.owner-settings-copy small{color:var(--shop-secondary-text,#aaa5b8);font-size:11px;line-height:1.45}.owner-settings-arrow{color:var(--shop-secondary,#b49aff);font-size:24px}
+.owner-settings-shortcuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}
+.owner-settings-shortcuts button,.owner-settings-form button{min-height:44px}
+.owner-settings-status{min-height:20px;margin:0;font-size:12px;color:var(--shop-secondary-text,#aaa5b8)}.owner-settings-status[data-state="success"]{color:#74dca2}.owner-settings-status[data-state="error"]{color:#ff9aa7}
+.owner-settings-preview{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #302743;border-radius:14px;background:#080b14}.owner-settings-preview img,.owner-settings-preview-mark{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;border:1px solid var(--shop-primary,#8966ff);border-radius:14px;object-fit:cover;color:var(--shop-readable-primary,#cdbbff);font-weight:900}.owner-settings-preview-copy{display:grid;gap:4px;min-width:0}.owner-settings-preview-copy strong,.owner-settings-preview-copy small{overflow-wrap:anywhere}.owner-settings-preview-copy small{color:var(--shop-secondary-text,#aaa5b8)}
+.checkout-store-info{margin:8px 0 14px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--shop-primary,#8966ff) 35%,#302743);border-radius:12px;background:color-mix(in srgb,var(--shop-card-background,#0b0e18) 86%,var(--shop-primary,#8966ff) 14%);color:var(--shop-readable-card-text,#fff);font-size:12px;line-height:1.55}
+.checkout-store-info p{margin:3px 0}.checkout-store-info a{color:var(--shop-readable-card-primary,#cdbbff);overflow-wrap:anywhere}
+.logo-small img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.owner-store-information-preview{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:start;gap:12px}
+.owner-settings-preview-details{grid-column:1/-1;display:grid;gap:6px;min-width:0;padding-top:8px;border-top:1px solid #302743}
+.owner-settings-preview-details p{display:grid;grid-template-columns:minmax(92px,auto) minmax(0,1fr);gap:8px;margin:0;font-size:12px;line-height:1.45}
+.owner-settings-preview-details strong{color:var(--shop-secondary-text,#aaa5b8);font-weight:600}
+.owner-settings-preview-details span{min-width:0;overflow-wrap:anywhere}
+.owner-notification-preferences{display:grid;gap:4px;overflow-x:auto}
+.owner-notification-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(76px,auto) minmax(76px,auto);align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #302743}
+.owner-notification-heading{color:var(--shop-secondary-text,#aaa5b8);font-size:11px}
+.owner-notification-row label{display:flex;align-items:center;justify-content:flex-start;gap:6px;min-height:36px;font-size:12px}
+.owner-notification-row input,.owner-settings-toggle input{accent-color:var(--shop-primary,#8966ff);width:18px;height:18px}
+.owner-delivery-zones{display:grid;gap:10px;padding:13px;border:1px solid #302743;border-radius:14px;background:#080b14}
+.owner-settings-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.owner-settings-section-head h4,.owner-settings-section-head p{margin:0}
+.owner-settings-section-head p{color:var(--shop-secondary-text,#aaa5b8);font-size:11px;line-height:1.5}
+.owner-delivery-zone-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,150px) auto;align-items:end;gap:9px;padding:10px 0;border-bottom:1px solid #302743}
+.owner-delivery-zone-row label{display:grid;gap:5px;font-size:11px}
+.owner-delivery-zone-row input{min-width:0}
+.owner-settings-toggle{display:flex;align-items:center;gap:9px;min-height:44px;padding-top:4px}
+.owner-settings-empty{margin:0;color:var(--shop-secondary-text,#aaa5b8);font-size:12px;line-height:1.55}
+.checkout-price-summary{display:grid;gap:4px;margin:10px 0 14px;padding:12px;border:1px solid #302743;border-radius:13px;background:#080b14}
+.checkout-price-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.checkout-price-row strong{direction:ltr;text-align:end}
+.checkout-price-total{margin-top:4px;padding-top:8px;border-top:1px solid #302743;font-size:15px;font-weight:800}
+@media(max-width:620px){.owner-delivery-zone-row{grid-template-columns:minmax(0,1fr) minmax(95px,130px)}.owner-delivery-zone-row>button{grid-column:1/-1}.owner-settings-section-head{align-items:stretch}.owner-settings-section-head>button{width:100%}.owner-notification-row{grid-template-columns:minmax(140px,1fr) 82px 72px;gap:6px;padding-inline:6px}.owner-notification-row label{font-size:11px}.owner-store-information-preview{grid-template-columns:42px minmax(0,1fr)}}
+
+@media(max-width:620px){.owner-settings-grid{grid-template-columns:minmax(0,1fr);gap:9px}.owner-settings-card{min-height:80px;padding:12px}.owner-settings-copy strong{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.owner-settings-card{transition:none}.owner-settings-card:hover{transform:none}}
 .owner-offer-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid #744550;border-radius:17px;background:radial-gradient(ellipse at 90% 10%,#bf416b23,transparent 46%),linear-gradient(110deg,#24101a,#120d14);}
 .owner-offer-copy{display:flex;align-items:center;gap:12px;min-width:0}
 .owner-offer-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #a8455e;border-radius:13px;background:#3b1725;color:#ff8fa7;font-size:20px}
@@ -3439,6 +3480,10 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
       <input id="checkoutArea" class="checkout-input" placeholder="ناڤێ گەڕەکێ یان ناڤچە بنڤیسە" required>
     </div>
 
+    <div id="checkoutDeliveryZoneField" class="field" hidden></div>
+    <div id="checkoutPriceSummary" class="checkout-price-summary" aria-live="polite"></div>
+    <aside id="checkoutStoreInfo" class="checkout-store-info" hidden aria-live="polite"></aside>
+
     <fieldset class="payment-methods">
       <legend>شێوازی پارەدان</legend>
       <div class="payment-method-list">
@@ -3964,6 +4009,8 @@ const SETTINGS_KEY = "shivan_shop_settings";
 const SUPPORT_KEY = "shivan_shop_support";
 const OWNER_APPEARANCE_KEY = "shivan_shop_owner_appearance";
 const OWNER_SMART_ALERTS_KEY = "shivan_shop_owner_alerts";
+const OWNER_NOTIFICATION_PREFERENCES_KEY = "shivan_shop_owner_notification_preferences";
+const OWNER_NOTIFICATION_EVENT_TYPES = Object.freeze(["new_order","low_stock","out_of_stock","discount_expiring","discount_expired"]);
 const OWNER_SMART_ALERT_LOW_STOCK = 5;
 const OWNER_SMART_ALERT_EXPIRING_MS = 24 * 60 * 60 * 1000;
 let ownerSmartAlertTimer = 0;
@@ -3972,7 +4019,7 @@ const OWNER_CATEGORY_META_KEY = "shivan_shop_category_meta";
 const OWNER_CATEGORY_RENAMES_KEY = "shivan_shop_category_renames";
 const OWNER_CATEGORY_DELETED_KEY = "shivan_shop_deleted_categories";
 const CLOUD_OUTBOX_KEY = "shivan_shop_cloud_outbox";
-const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,SHOP_ONBOARDING_IMAGES_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY,OWNER_SMART_ALERTS_KEY]);
+const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,SHOP_ONBOARDING_IMAGES_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY,OWNER_SMART_ALERTS_KEY,OWNER_NOTIFICATION_PREFERENCES_KEY]);
 const MAX_CLOUD_IMAGE_BYTES = 1300000;
 const MAX_OWNER_IMAGE_INPUT_BYTES = 15*1024*1024;
 const MAX_CROP_SOURCE_EDGE = 2048;
@@ -4048,6 +4095,7 @@ let ownerAdWorkflowId="";
 let checkoutSubmitting=false;
 let checkoutOrderId="";
 let checkoutCartSignature="";
+let ownerDeliveryZonesDraft=[];
 let checkoutFibPayment=null;
 let checkoutFibPaymentPending=false;
 let checkoutFibPaymentError="";
@@ -4614,7 +4662,7 @@ async function exportLegacyBackup(){
     if(support!==null){const list=JSON.parse(support||"[]");entries.support=JSON.stringify(Array.isArray(list)?list.filter(message=>String(message.userId)===id):[]);}
     userState[id]=entries;
   }
-  const globalKeys=[PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_SMART_ALERTS_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY];
+  const globalKeys=[PRODUCTS_KEY,ADS_KEY,OWNER_APPEARANCE_KEY,OWNER_SMART_ALERTS_KEY,OWNER_NOTIFICATION_PREFERENCES_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY];
   const shop={};for(const key of globalKeys){const value=localStorage.getItem(key);if(value!==null)shop[key]=value;}
   const orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]");
   const backup={format:"shivan-shop-cloud-v1",shop,accounts:hashedAccounts,userState,orders:Array.isArray(orders)?orders:[]};
@@ -4630,7 +4678,7 @@ const OWNER_THEME_PRESETS=Object.freeze({
   gold:Object.freeze({primary:"#e8bd5a",secondary:"#f4dda0",background:"#100d06",card:"#1b160a",text:"#fffaf0",secondaryText:"#c6b993",button:"#ac7c20"})
 });
 const OWNER_THEME_LABELS=Object.freeze({purple:"Purple",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
-const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"purple",primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",accent:"#8966ff",surface:"#0b0e18"});
+const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"purple",primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",storeDescription:"",storeLogoUrl:"",contactPhone:"",contactEmail:"",storeAddress:"",deliveryAreas:"",deliveryZones:[],deliveryChargingEnabled:false,deliveryEstimate:"",checkoutNotice:"",orderInstructions:"",accent:"#8966ff",surface:"#0b0e18"});
 const OWNER_FONT_OPTIONS = Object.freeze({
   poppins:'"Poppins",Tahoma,Arial,sans-serif',
   roboto:'"Roboto",Tahoma,Arial,sans-serif',
@@ -4897,8 +4945,18 @@ function normalizeOwnerAppearance(value={}){
   return {
     ...OWNER_APPEARANCE_DEFAULT,...saved,...colors,theme,font,
     accent:colors.primary,surface:colors.card,
-    storeName:String(saved.storeName||""),tagline:String(saved.tagline||""),heroTitle:String(saved.heroTitle||""),heroMessage:String(saved.heroMessage||"")
+    storeName:String(saved.storeName||""),tagline:String(saved.tagline||""),heroTitle:String(saved.heroTitle||""),heroMessage:String(saved.heroMessage||""),
+    storeDescription:String(saved.storeDescription||""),storeLogoUrl:safeStoreLogoUrl(saved.storeLogoUrl),
+    contactPhone:String(saved.contactPhone||""),contactEmail:String(saved.contactEmail||""),storeAddress:String(saved.storeAddress||""),
+    deliveryAreas:String(saved.deliveryAreas||""),deliveryZones:normalizeOwnerDeliveryZones(saved.deliveryZones),deliveryChargingEnabled:saved.deliveryChargingEnabled===true&&normalizeOwnerDeliveryZones(saved.deliveryZones).length>0,deliveryEstimate:String(saved.deliveryEstimate||""),checkoutNotice:String(saved.checkoutNotice||""),orderInstructions:String(saved.orderInstructions||"")
   };
+}
+
+function safeStoreLogoUrl(value){
+  const raw=String(value||"").trim();
+  if(!raw||raw.length>2048)return "";
+  if(/^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(?:jpg|png|webp|gif)$/i.test(raw))return raw;
+  try{const url=new URL(raw,globalThis.location?.origin||"https://shivan.invalid");if(url.username||url.password||!(url.protocol==="https:"||url.origin===(globalThis.location?.origin||"")))return "";return url.href;}catch(error){return "";}
 }
 
 function ownerAppearanceLuminance(value){
@@ -5004,28 +5062,75 @@ function ownerAppearanceGlobalCss(appearance={}){
     ".owner-tabs .owner-tab{font-family:"+font+"!important}"
   ].join("\n");
 }
-function applyOwnerAppearance(force=false){
-  if(!document.head) return;
-  let style=document.getElementById("ownerAppearanceOverrides");
-  if(!ownerAppearanceSaved&&!force){
-    style?.remove();
-    const brand=document.getElementById("shopBrandName");
-    const tagline=document.getElementById("shopTagline");
-    if(brand)brand.textContent="Shivan Shop";
-    if(tagline)tagline.textContent=translateText("جولبەرگ و شتێن جوان");
-    return;
+function applyOwnerStoreBranding(){
+  const brand=document.getElementById("shopBrandName"),tagline=document.getElementById("shopTagline"),title=document.getElementById("heroMainTitle"),message=document.getElementById("heroMainMessage");
+  const info=normalizeOwnerAppearance(ownerAppearance),name=info.storeName||"Shivan Shop",logo=document.querySelector?.("#mainApp .logo-small");
+  if(brand)brand.textContent=name;
+  if(tagline)tagline.textContent=info.tagline||translateText("جولبەرگ و شتێن جوان");
+  if(title){if(info.heroTitle)title.textContent=info.heroTitle;else title.innerHTML='کۆمەڵا نوێ<br><span style="color:#7447ff">جولبەرگ بۆ کچان</span>';}
+  if(message)message.textContent=info.storeDescription||info.heroMessage||"ستایلی جوان، راحت و کوالێتی باش بۆ هەموو کاتەکان.";
+  if(logo){
+    if(info.storeLogoUrl)logo.innerHTML=`<img src="${escapeHtml(info.storeLogoUrl)}" alt="${escapeHtml(name)} logo">`;
+    else if(logo.querySelector?.("img"))logo.innerHTML='<svg viewBox="0 0 48 54"><path d="M14 17v-5a10 10 0 0 1 20 0v5M8 18h32l4 31H4z"/><text x="24" y="40" text-anchor="middle">S</text></svg>';
   }
-  if(!style){style=document.createElement("style");style.id="ownerAppearanceOverrides";document.head.appendChild(style)}
-  style.textContent=ownerAppearanceGlobalCss(ownerAppearance);
-  const brand=document.getElementById("shopBrandName");
-  const tagline=document.getElementById("shopTagline");
-  const title=document.getElementById("heroMainTitle");
-  const message=document.getElementById("heroMainMessage");
-  if(brand) brand.textContent=ownerAppearance.storeName||"Shivan Shop";
-  if(tagline) tagline.textContent=ownerAppearance.tagline||translateText("جولبەرگ و شتێن جوان");
-  if(title&&ownerAppearance.heroTitle) title.textContent=ownerAppearance.heroTitle;
-  if(message&&ownerAppearance.heroMessage) message.textContent=ownerAppearance.heroMessage;
+  renderCheckoutStoreInfo();
 }
+
+function applyOwnerAppearance(force=false){
+  if(!document.head)return;
+  let style=document.getElementById("ownerAppearanceOverrides");
+  if(!ownerAppearanceSaved&&!force)style?.remove();
+  else{
+    if(!style){style=document.createElement("style");style.id="ownerAppearanceOverrides";document.head.appendChild(style);}
+    style.textContent=ownerAppearanceGlobalCss(ownerAppearance);
+  }
+  applyOwnerStoreBranding();
+}
+
+function renderCheckoutStoreInfo(){
+  const box=document.getElementById("checkoutStoreInfo");if(!box)return false;
+  const info=normalizeOwnerAppearance(ownerAppearance),items=[];
+  if(info.storeDescription)items.push("<p>"+escapeHtml(info.storeDescription)+"</p>");
+  if(info.deliveryAreas)items.push("<p><strong>"+ownerSettingsTranslation("Delivery areas:","ناڤچەێن گەهاندنێ:","مناطق التوصيل:")+"</strong> "+escapeHtml(info.deliveryAreas)+"</p>");
+  if(info.deliveryChargingEnabled&&info.deliveryZones.length)items.push("<p><strong>"+ownerSettingsTranslation("Available delivery zones:","ناڤچەێن گەهاندنێ یێن بەردەست:","مناطق التوصيل المتاحة:")+"</strong> "+info.deliveryZones.map(zone=>escapeHtml(zone.name)).join("، ")+"</p>");
+  if(info.deliveryEstimate)items.push("<p><strong>"+ownerSettingsTranslation("Estimated delivery:","دەمێ پێشبینی یا گەهاندنێ:","التوصيل المتوقع:")+"</strong> "+escapeHtml(info.deliveryEstimate)+"</p>");
+  if(info.checkoutNotice)items.push("<p>"+escapeHtml(info.checkoutNotice)+"</p>");
+  if(info.orderInstructions)items.push("<p>"+escapeHtml(info.orderInstructions)+"</p>");
+  if(info.storeAddress)items.push("<p><strong>"+ownerSettingsTranslation("Store address:","ناڤنیشانا فرۆشگە:","عنوان المتجر:")+"</strong> "+escapeHtml(info.storeAddress)+"</p>");
+  const contacts=[];if(info.contactPhone)contacts.push('<a href="tel:'+encodeURIComponent(info.contactPhone)+'">'+escapeHtml(info.contactPhone)+'</a>');if(info.contactEmail)contacts.push('<a href="mailto:'+encodeURIComponent(info.contactEmail)+'">'+escapeHtml(info.contactEmail)+'</a>');
+  if(contacts.length)items.push("<p><strong>"+ownerSettingsTranslation("Contact:","پەیوەندی:","الاتصال:")+"</strong> "+contacts.join(" · ")+"</p>");
+  box.innerHTML=items.join("");box.hidden=!items.length;renderCheckoutDeliveryOptions();return Boolean(items.length);
+}
+function getCheckoutDeliverySelection(){
+  const info=normalizeOwnerAppearance(ownerAppearance);
+  if(!info.deliveryChargingEnabled||!info.deliveryZones.length)return{id:"",name:"",fee:0};
+  const select=document.getElementById("checkoutDeliveryZone"),id=String(select?.value||""),zone=info.deliveryZones.find(item=>item.id===id);
+  return zone?{id:zone.id,name:zone.name,fee:zone.fee}:null;
+}
+function selectedCheckoutDeliveryZoneId(){return getCheckoutDeliverySelection()?.id||"";}
+function renderCheckoutDeliveryOptions(){
+  const field=document.getElementById("checkoutDeliveryZoneField"),info=normalizeOwnerAppearance(ownerAppearance);if(!field)return false;
+  const active=info.deliveryChargingEnabled&&info.deliveryZones.length>0;field.hidden=!active;
+  if(!active){field.innerHTML="";updateCheckoutPriceSummary();return false;}
+  const selected=String(document.getElementById("checkoutDeliveryZone")?.value||"");
+  const options=info.deliveryZones.map(zone=>'<option value="'+escapeHtml(zone.id)+'">'+escapeHtml(zone.name)+" — "+escapeHtml(formatPrice(zone.fee))+"</option>").join("");
+  field.innerHTML='<label for="checkoutDeliveryZone">'+ownerSettingsTranslation("Delivery zone","ناڤچەیا گەهاندنێ","منطقة التوصيل")+'</label><select id="checkoutDeliveryZone" class="checkout-input" required onchange="handleCheckoutDeliveryZoneChange()"><option value="">'+ownerSettingsTranslation("Choose a delivery zone","ناڤچەیەکێ هەلبژێرە","اختر منطقة التوصيل")+'</option>'+options+'</select>';
+  const select=document.getElementById("checkoutDeliveryZone");if(select&&info.deliveryZones.some(zone=>zone.id===selected))select.value=selected;
+  updateCheckoutPriceSummary();return true;
+}
+function updateCheckoutPriceSummary(){
+  const box=document.getElementById("checkoutPriceSummary");if(!box)return false;
+  const cart=getCart(),subtotal=cart.reduce((sum,item)=>sum+(cartItemPricing(item).finalPrice*(Number(item.qty)||1)),0),info=normalizeOwnerAppearance(ownerAppearance),selection=getCheckoutDeliverySelection(),active=info.deliveryChargingEnabled&&info.deliveryZones.length>0,fee=active?(selection?.fee||0):0,total=subtotal+fee;
+  const rows=['<div class="checkout-price-row"><span>'+ownerSettingsTranslation("Items subtotal","کۆیا بەرهەمان","مجموع المنتجات")+'</span><strong>'+escapeHtml(formatPrice(subtotal))+'</strong></div>'];
+  if(active)rows.push('<div class="checkout-price-row"><span>'+ownerSettingsTranslation("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل")+(selection?" · "+escapeHtml(selection.name):"")+'</span><strong>'+escapeHtml(selection?formatPrice(fee):"—")+'</strong></div>');
+  rows.push('<div class="checkout-price-row checkout-price-total"><span>'+ownerSettingsTranslation("Total","کۆ","الإجمالي")+'</span><strong>'+escapeHtml(active&&!selection?"—":formatPrice(total))+'</strong></div>');
+  if(active&&!selection)rows.push('<p class="owner-settings-status">'+ownerSettingsTranslation("Choose a configured zone to see the final total.","بۆ دیتنا کۆیا دوماهی ناڤچەیەکا ڕێکخستی هەلبژێرە.","اختر منطقة محددة لعرض الإجمالي النهائي.")+'</p>');
+  box.innerHTML=rows.join("");return true;
+}
+function handleCheckoutDeliveryZoneChange(){
+  const next=currentCheckoutCartSignature();if(checkoutCartSignature&&checkoutCartSignature!==next)resetCheckoutFibSession();updateCheckoutPriceSummary();updateCheckoutFibPaymentUi();
+}
+function validateCheckoutDeliverySelection(){return getCheckoutDeliverySelection();}
 
 function escapeHtml(value){
   return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -8509,7 +8614,8 @@ function changeCartQty(id,delta){
 ========================================= */
 
 function currentCheckoutCartSignature(){
-  return JSON.stringify(getCart().map(item=>[Number(item.productId),String(item.size||""),normalizeHexColor(item.color),Number(item.qty)||1]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
+  const items=getCart().map(item=>[Number(item.productId),String(item.size||""),normalizeHexColor(item.color),Number(item.qty)||1]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  return JSON.stringify({items,deliveryZoneId:selectedCheckoutDeliveryZoneId()});
 }
 
 function checkoutFibSessionKey(){
@@ -8583,6 +8689,7 @@ function openCheckout(){
     currentUser?.identifier || "";
 
   document.querySelectorAll('input[name="checkoutPaymentMethod"]').forEach(input=>input.checked=false);
+  renderCheckoutStoreInfo();
   checkoutFibPaymentError="";
   restoreCheckoutFibSession();
   toggleFibPaymentDetails();
@@ -8609,15 +8716,12 @@ function handleCheckoutPaymentChange(){
 
 
 function validateFibCheckoutDetails(){
-  const name=document.getElementById("checkoutName").value.trim();
-  const phone=document.getElementById("checkoutPhone").value.trim();
-  const city=document.getElementById("checkoutCity").value.trim();
-  const area=document.getElementById("checkoutArea").value.trim();
-  if(!name||!phone){showToast("تکایە هەموو زانیارییەکان پڕ بکە.");return false;}
-  if(!city||!area){showToast("تکایە شار و ناڤچە بنڤیسە.");return false;}
+  const name=document.getElementById("checkoutName").value.trim(),phone=document.getElementById("checkoutPhone").value.trim(),city=document.getElementById("checkoutCity").value.trim(),area=document.getElementById("checkoutArea").value.trim();
+  if(!name||!phone){showToast(translateText("تکایە هەموو زانیارییەکان پڕ بکە."));return false;}
+  if(!city||!area){showToast(translateText("تکایە شار و ناڤچە بنڤیسە."));return false;}
+  if(!validateCheckoutDeliverySelection()){showToast(translateText(ownerDashboardText("Choose a valid delivery zone before continuing.","پێش بەردەوامبوون ناڤچەیەکا دروستا گەهاندنێ هەلبژێرە.","اختر منطقة توصيل صحيحة قبل المتابعة.")));return false;}
   return true;
 }
-
 
 async function startFibPayment(){
   if(!currentUser&&!cloudAccount){requireAuthentication({type:"checkout",cart:snapshotCartForAuthentication()});return;}
@@ -8639,6 +8743,7 @@ async function startFibPayment(){
   try{
     const payment=await cloudRequest("/api/fib/create-payment",{method:"POST",body:JSON.stringify({
       orderId:checkoutOrderId,
+      deliveryZoneId:selectedCheckoutDeliveryZoneId(),
       items:cart.map(item=>({productId:item.productId,size:item.size,color:normalizeHexColor(item.color),qty:item.qty}))
     })});
     checkoutFibPayment={paymentId:payment.paymentId,personalAppLink:payment.personalAppLink,amount:Number(payment.amount),status:String(payment.status||"UNPAID").toUpperCase(),validUntil:payment.validUntil||""};
@@ -8703,139 +8808,32 @@ function paymentMethodLabel(method,order=null){
 
 
 async function placeOrder(autoFib=false){
-
-  if(!currentUser&&!cloudAccount){
-    const guestCart=snapshotCartForAuthentication();
-    if(guestCart.length)requireAuthentication({type:"checkout",cart:guestCart});
-    else showToast("Sign in before placing an order.");
-    return;
-  }
-
-  if(checkoutSubmitting)return;
-  if(checkoutFibPaymentPending&&!autoFib){
-    showToast(translateText("FIB پارەدان ئامادە دەکرێت..."));
-    return;
-  }
-
-  const name=document.getElementById("checkoutName").value.trim();
-  const phone=document.getElementById("checkoutPhone").value.trim();
-  const city=document.getElementById("checkoutCity").value.trim();
-  const area=document.getElementById("checkoutArea").value.trim();
-  const paymentMethod=document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value||"";
-  const address=city&&area?`${city}, ${area}`:"";
-
-  if(!name || !phone){
-    showToast("تکایە هەموو زانیارییەکان پڕ بکە.");
-    return;
-  }
-  if(!city||!area){
-    showToast("تکایە شار و ناڤچە بنڤیسە.");
-    return;
-  }
-  if(!["fib","visa","cash"].includes(paymentMethod)){
-    showToast(translateText("تکایە شێوازی پارەدان هەلبژێرە."));
-    return;
-  }
-  const cart=getCart();
-
-  const requested=new Map();
-  cart.forEach(item=>{
-    const key=JSON.stringify([item.productId,item.size,normalizeHexColor(item.color)]);
-    const entry=requested.get(key)||{productId:item.productId,size:item.size,color:normalizeHexColor(item.color),quantity:0};
-    entry.quantity+=Number(item.qty)||0;
-    requested.set(key,entry);
-  });
-  for(const entry of requested.values()){
-    const product=products.find(item=>item.id===entry.productId);
-    if(!product||entry.quantity>variantStock(product,entry.color,entry.size)){
-      showToast("ژمارا لە بەردەست کێمترە؛ سەبەت نوێ بکە.");
-      return;
-    }
-  }
-
-  const total=cart.reduce(
-    (sum,item)=>sum+(cartItemPricing(item).finalPrice*(Number(item.qty)||1)),
-    0
-  );
-
-  if(paymentMethod==="fib"&&checkoutFibPayment?.status!=="PAID"){
-    showToast(translateText("تکایە پێش داخوازی، دوگمەیا پارەدانا FIB لێبدە."));
-    return;
-  }
-  const orders=getOrders();
-  const orderId=paymentMethod==="fib"&&checkoutOrderId?checkoutOrderId:`S${Date.now()}${Math.random().toString(36).slice(2,8)}`;
-
-  const order={
-    id:orderId,
-    userId:currentUser.id,
-    date:new Date().toLocaleString("ku-IQ"),
-    createdAt:new Date().toISOString(),
-    items:cart.map(cartItemCheckoutSnapshot),
-    total,
-    name,
-    phone,
-    city,
-    area,
-    address,
-    paymentMethod,
-    receiptImage:"",
-    fibPaymentId:paymentMethod==="fib"?(checkoutFibPayment?.paymentId||""):"",
-    paymentStatus:paymentMethod==="fib"?"PAID":"",
-    status:"لە چاوەڕوانی"
-  };
+  if(!currentUser&&!cloudAccount){const guestCart=snapshotCartForAuthentication();if(guestCart.length)requireAuthentication({type:"checkout",cart:guestCart});else showToast(ownerDashboardText("Sign in before placing an order.","پێش ناردنا داخوازیێ گرێدابە.","سجل الدخول قبل إرسال الطلب."));return;}
+  if(checkoutSubmitting)return;if(checkoutFibPaymentPending&&!autoFib){showToast(translateText("FIB پارەدان ئامادە دەکرێت..."));return;}
+  const name=document.getElementById("checkoutName").value.trim(),phone=document.getElementById("checkoutPhone").value.trim(),city=document.getElementById("checkoutCity").value.trim(),area=document.getElementById("checkoutArea").value.trim(),paymentMethod=document.querySelector('input[name="checkoutPaymentMethod"]:checked')?.value||"",address=city&&area?city+", "+area:"";
+  if(!name||!phone){showToast("تکایە هەموو زانیارییەکان پڕ بکە.");return;}if(!city||!area){showToast("تکایە شار و ناڤچە بنڤیسە.");return;}
+  if(!["fib","visa","cash"].includes(paymentMethod)){showToast(translateText("تکایە شێوازی پارەدان هەلبژێرە."));return;}
+  const delivery=validateCheckoutDeliverySelection();if(!delivery){showToast(translateText(ownerDashboardText("Choose a valid delivery zone before placing the order.","پێش ناردنا داخوازیێ ناڤچەیەکا دروستا گەهاندنێ هەلبژێرە.","اختر منطقة توصيل صحيحة قبل إرسال الطلب.")));return;}
+  const cart=getCart(),requested=new Map();
+  cart.forEach(item=>{const key=JSON.stringify([item.productId,item.size,normalizeHexColor(item.color)]),entry=requested.get(key)||{productId:item.productId,size:item.size,color:normalizeHexColor(item.color),quantity:0};entry.quantity+=Number(item.qty)||0;requested.set(key,entry);});
+  for(const entry of requested.values()){const product=products.find(item=>item.id===entry.productId);if(!product||entry.quantity>variantStock(product,entry.color,entry.size)){showToast("ژمارا لە بەردەست کێمترە؛ سەبەت نوێ بکە.");return;}}
+  const subtotal=cart.reduce((sum,item)=>sum+(cartItemPricing(item).finalPrice*(Number(item.qty)||1)),0),deliveryFee=delivery.fee,total=subtotal+deliveryFee;
+  if(!Number.isSafeInteger(total)){showToast(ownerDashboardText("The order total is invalid.","کۆیا داخوازی نەدروستە.","إجمالي الطلب غير صالح."));return;}
+  if(paymentMethod==="fib"&&checkoutFibPayment?.status!=="PAID"){showToast(translateText("تکایە پێش داخوازی، دوگمەیا پارەدانا FIB لێبدە."));return;}
+  const orders=getOrders(),orderId=paymentMethod==="fib"&&checkoutOrderId?checkoutOrderId:"S"+Date.now()+Math.random().toString(36).slice(2,8);
+  const order={id:orderId,userId:currentUser.id,date:new Date().toLocaleString("ku-IQ"),createdAt:new Date().toISOString(),items:cart.map(cartItemCheckoutSnapshot),subtotal,deliveryZoneId:delivery.id,deliveryZoneName:delivery.name,deliveryFee,total,name,phone,city,area,address,paymentMethod,receiptImage:"",fibPaymentId:paymentMethod==="fib"?(checkoutFibPayment?.paymentId||""):"",paymentStatus:paymentMethod==="fib"?"PAID":"",status:"لە چاوەڕوانی"};
   orders.unshift(order);
-
   if(cloudMode){
-    checkoutSubmitting=true;
-    const submitButton=document.querySelector("#checkoutModal .main-btn");
-    if(submitButton)submitButton.disabled=true;
-    try{
-      const result=await cloudRequest("/api/sync",{method:"PUT",body:JSON.stringify({key:ORDERS_KEY,value:JSON.stringify(orders)})});
-      const savedOrder=result.savedOrders?.find(entry=>entry.id===order.id);
-      if(savedOrder?.receiptImage)order.receiptImage=savedOrder.receiptImage;
-      if(savedOrder?.paymentStatus)order.paymentStatus=savedOrder.paymentStatus;
-      if(savedOrder?.fibPaymentId)order.fibPaymentId=savedOrder.fibPaymentId;
-    }catch(error){
-      showToast(error.message||translateText("پسوول و داخوازی نەگەهشتن؛ دووبارە هەوڵ بدە."));
-      return;
-    }finally{
-      checkoutSubmitting=false;
-      if(submitButton)submitButton.disabled=false;
-    }
+    checkoutSubmitting=true;const submitButton=document.querySelector("#checkoutModal .main-btn");if(submitButton)submitButton.disabled=true;
+    try{const result=await cloudRequest("/api/sync",{method:"PUT",body:JSON.stringify({key:ORDERS_KEY,value:JSON.stringify(orders)})});const savedOrder=result.savedOrders?.find(entry=>entry.id===order.id);if(savedOrder?.receiptImage)order.receiptImage=savedOrder.receiptImage;if(savedOrder?.paymentStatus)order.paymentStatus=savedOrder.paymentStatus;if(savedOrder?.fibPaymentId)order.fibPaymentId=savedOrder.fibPaymentId;}
+    catch(error){showToast(error.message||translateText("پسوول و داخوازی نەگەهشتن؛ دووبارە هەوڵ بدە."));return;}
+    finally{checkoutSubmitting=false;if(submitButton)submitButton.disabled=false;}
   }
-
-  for(const entry of requested.values()){
-    const product=products.find(item=>item.id===entry.productId);
-    const variant=product.variants.find(item=>item.color===entry.color&&item.size===entry.size);
-    if(variant)variant.stock=Math.max(0,Number(variant.stock)-entry.quantity);
-    refreshProductTotalStock(product);
-  }
-  saveProducts();
-
-  localStorage.setItem(
-    ORDERS_KEY,
-    JSON.stringify(orders)
-  );
-
-  saveCart([]);
+  for(const entry of requested.values()){const product=products.find(item=>item.id===entry.productId),variant=product.variants.find(item=>item.color===entry.color&&item.size===entry.size);if(variant)variant.stock=Math.max(0,Number(variant.stock)-entry.quantity);refreshProductTotalStock(product);}
+  saveProducts();localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));saveCart([]);
   try{sessionStorage.removeItem(checkoutFibSessionKey());}catch(error){}
-  checkoutFibPayment=null;
-
-  closeModal("checkoutModal");
-
-  renderOrders();
-  renderProducts(products);
-
-  openView("cart");
-
-  showToast("داخوازی بە سەرکەفتی نێردرا ❤️");
-
+  checkoutFibPayment=null;closeModal("checkoutModal");renderOrders();renderProducts(products);openView("cart");showToast("داخوازی بە سەرکەفتی نێردرا ❤️");
 }
-
-
-/* =========================================
-   ORDERS
-========================================= */
 
 function renderOrders(){
 
@@ -9052,6 +9050,9 @@ function ownerNavigationHeaderMarkup(){
     else if(ownerProductMode==="categories")title=ownerDashboardText("Categories","جۆرەکان","الفئات");
     else if(ownerDashboardNavKey==="discounts")title=ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض");
     else title=ownerDashboardText("Products","بەرهەمەکان","المنتجات");
+  }else if(ownerDashboardNavKey.startsWith("settings-")){
+    const settingsTitles={"settings-appearance":ownerDashboardText("Appearance","دەرکەفتن","المظهر"),"settings-information":ownerDashboardText("Store Information","زانیاریێن فرۆشگە","معلومات المتجر"),"settings-notifications":ownerDashboardText("Notifications","ئاگاداری","الإشعارات"),"settings-delivery":ownerDashboardText("Delivery & Orders","گەهاندن و داخوازی","التوصيل والطلبات"),"settings-security":ownerDashboardText("Security","پاراستن","الأمان"),"settings-backup":ownerDashboardText("Backup & Sync","پاشەکەفتن و هاوکاتکرن","النسخ الاحتياطي والمزامنة")};
+    title=settingsTitles[ownerDashboardNavKey]||ownerDashboardText("Store Settings");
   }else{
     const route=ownerDashboardNavItems().find(([key])=>key===ownerDashboardNavKey);
     title=route?.[2]||ownerDashboardText("Owner","خاوەن","المالك");
@@ -9161,6 +9162,12 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   else if(route.panel==="customer-notifications")renderOwnerCustomerNotifications(sectionBox);
   else if(route.panel==="inventory")renderOwnerInventory(sectionBox);
   else if(route.panel==="appearance")renderOwnerAppearance(sectionBox);
+  else if(route.panel==="settings")renderOwnerSettingsHub(sectionBox);
+  else if(route.panel==="settings-information")renderOwnerStoreInformation(sectionBox);
+  else if(route.panel==="settings-notifications")renderOwnerNotificationSettings(sectionBox);
+  else if(route.panel==="settings-delivery")renderOwnerDeliverySettings(sectionBox);
+  else if(route.panel==="settings-security")renderOwnerSecuritySettings(sectionBox);
+  else if(route.panel==="settings-backup")renderOwnerBackupSync(sectionBox);
   else if(route.panel==="onboarding")renderShopOnboardingOwnerEditor(sectionBox);
   else if(route.panel==="customers")renderOwnerCustomers(sectionBox);
   else if(route.panel==="analytics")renderOwnerAnalytics(sectionBox);
@@ -9176,6 +9183,41 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   ownerPanelRefreshPending=false;
   return true;
 }
+
+function normalizeOwnerDeliveryZones(value){
+  if(!Array.isArray(value))return [];
+  const seenIds=new Set(),seenNames=new Set(),zones=[];
+  for(const raw of value.slice(0,100)){
+    const id=String(raw?.id||"").trim(),name=String(raw?.name||"").trim(),fee=Number(raw?.fee),normalizedName=name.toLocaleLowerCase();
+    if(!/^[A-Za-z0-9_-]{8,80}$/.test(id)||name.length<2||name.length>80||!Number.isSafeInteger(fee)||fee<0||fee>10000000||seenIds.has(id)||seenNames.has(normalizedName))continue;
+    seenIds.add(id);seenNames.add(normalizedName);zones.push({id,name,fee});
+  }
+  return zones;
+}
+function validateOwnerDeliveryZones(value){
+  if(!Array.isArray(value)||value.length>100)throw new Error(ownerDashboardText("Add no more than 100 delivery zones.","زیاتر ل ١٠٠ ناڤچەیان زێدە مەکە.","أضف 100 منطقة توصيل كحد أقصى."));
+  const ids=new Set(),names=new Set();
+  return value.map(raw=>{
+    const id=String(raw?.id||"").trim(),name=String(raw?.name||"").trim(),feeText=String(raw?.fee??"").trim(),fee=Number(feeText),normalizedName=name.toLocaleLowerCase();
+    if(!/^[A-Za-z0-9_-]{8,80}$/.test(id)||name.length<2||name.length>80||!/^\d+$/.test(feeText)||!Number.isSafeInteger(fee)||fee<0||fee>10000000)throw new Error(ownerDashboardText("Each delivery zone needs a name and a whole IQD fee from 0 to 10,000,000.","هەر ناڤچەیەک پێدڤی ب ناڤ و خەرجیەکا IQD یا تەمامە ل نێڤ ٠ و ١٠،٠٠٠،٠٠٠.","تحتاج كل منطقة إلى اسم ورسم صحيح بالدينار العراقي من 0 إلى 10,000,000."));
+    if(ids.has(id)||names.has(normalizedName))throw new Error(ownerDashboardText("Delivery zone IDs and names must be unique.","ناسنامە و ناڤێن ناڤچەیان پێدڤیە جیاواز بن.","يجب أن تكون معرفات وأسماء مناطق التوصيل فريدة."));
+    ids.add(id);names.add(normalizedName);return{id,name,fee};
+  });
+}
+function normalizeOwnerNotificationPreferences(value={}){
+  const saved=value&&typeof value==="object"&&!Array.isArray(value)?value:{},result={version:1};
+  for(const type of OWNER_NOTIFICATION_EVENT_TYPES){const row=saved[type]&&typeof saved[type]==="object"&&!Array.isArray(saved[type])?saved[type]:{};result[type]={inApp:row.inApp!==false,push:row.push!==false};}
+  return result;
+}
+function readOwnerNotificationPreferences(){
+  try{return normalizeOwnerNotificationPreferences(JSON.parse(localStorage.getItem(OWNER_NOTIFICATION_PREFERENCES_KEY)||"{}"));}
+  catch(error){return normalizeOwnerNotificationPreferences({});}
+}
+function ownerNotificationPreferenceEnabled(type,channel){
+  if(!OWNER_NOTIFICATION_EVENT_TYPES.includes(type)||!["inApp","push"].includes(channel))return false;
+  return readOwnerNotificationPreferences()[type][channel]!==false;
+}
+function ownerSettingsTranslation(en,ku,ar){return escapeHtml(ownerDashboardText(en,ku,ar));}
 
 function ownerDashboardText(en,ku=en,ar=en){
   return activeLanguage==="ar"?ar:activeLanguage==="ku"?ku:en;
@@ -9194,14 +9236,214 @@ function ownerPanelRoute(section){
     inventory:{panel:"inventory",nav:"inventory"},
     analytics:{panel:"analytics",nav:"analytics"},
     discounts:{panel:"products",nav:"discounts"},
-    appearance:{panel:"appearance",nav:"colors"},
+    appearance:{panel:"appearance",nav:"settings-appearance",focus:"ownerAppearanceForm"},
     colors:{panel:"appearance",nav:"colors",focus:"ownerAppearanceForm"},
-    "store-settings":{panel:"appearance",nav:"store-settings",focus:"ownerAppearanceForm"},
-    backup:{panel:"appearance",nav:"backup",focus:"ownerBackupSync"},
+    "store-settings":{panel:"settings",nav:"store-settings"},
+    "settings-appearance":{panel:"appearance",nav:"settings-appearance",focus:"ownerAppearanceForm"},
+    "settings-information":{panel:"settings-information",nav:"settings-information"},
+    "settings-notifications":{panel:"settings-notifications",nav:"settings-notifications"},
+    "settings-delivery":{panel:"settings-delivery",nav:"settings-delivery"},
+    "settings-security":{panel:"settings-security",nav:"settings-security"},
+    "settings-backup":{panel:"settings-backup",nav:"settings-backup"},
+    backup:{panel:"settings-backup",nav:"settings-backup"},
     reports:{panel:"reports",nav:"reports"},
     onboarding:{panel:"onboarding",nav:"onboarding"}
   };
   return {...(routes[section]||routes.dashboard)};
+}
+
+function ownerSettingsCardMarkup(route,icon,title,description){
+  return `<button type="button" class="owner-settings-card" onclick="renderOwnerPanel('${route}')"><span class="owner-settings-icon" aria-hidden="true">${icon}</span><span class="owner-settings-copy"><strong>${escapeHtml(title)}</strong><small>${escapeHtml(description)}</small></span><span class="owner-settings-arrow" aria-hidden="true">›</span></button>`;
+}
+
+function renderOwnerSettingsHub(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can view store settings.","تەنێ خاوەن دەتوانیت ڕێکخستنێن فرۆشگە ببینیت.","يمكن لمالك المتجر فقط عرض إعدادات المتجر.");return;}
+  const cards=[
+    ["settings-appearance","◐",ownerDashboardText("Appearance","دەرکەفتن","المظهر"),ownerDashboardText("Colors, fonts, themes, and store appearance.","ڕەنگ، فۆنت، بابەت و دەرکەفتنا فرۆشگە.","الألوان والخطوط والسمات ومظهر المتجر.")],
+    ["settings-information","⌂",ownerDashboardText("Store Information","زانیاریێن فرۆشگە","معلومات المتجر"),ownerDashboardText("Store name, logo, description, and contact details.","ناڤ، لۆگۆ، وەسف و زانیاریێن پەیوەندی.","اسم المتجر والشعار والوصف وبيانات الاتصال.")],
+    ["settings-notifications","◉",ownerDashboardText("Notifications","ئاگاداری","الإشعارات"),ownerDashboardText("Owner alerts, customer notifications, and preferences.","ئاگاداریێن خاوەن و ئاگاداریێن کڕیاران.","تنبيهات المالك وإشعارات العملاء والتفضيلات.")],
+    ["settings-delivery","↗",ownerDashboardText("Delivery & Orders","گەهاندن و داخوازی","التوصيل والطلبات"),ownerDashboardText("Delivery zones, timing, checkout notes, and order guidance.","ناڤچە، دەم، تێبینیێن پارەدانێ و ڕێنماییێن داخوازی.","مناطق التوصيل والوقت وملاحظات الدفع وإرشادات الطلب.")],
+    ["settings-security","♙",ownerDashboardText("Security","پاراستن","الأمان"),ownerDashboardText("Owner password and protected account access.","پەیڤا نهێنی یا خاوەن و چوونا پاراستی.","كلمة مرور المالك والوصول الآمن للحساب.")],
+    ["settings-backup","⤓",ownerDashboardText("Backup & Sync","پاشەکەفتن و هاوکاتکرن","النسخ الاحتياطي والمزامنة"),ownerDashboardText("Existing backup restore tools and shared sync status.","ئامرازێن ڤەگەڕاندنا پاشەکەفتی و دۆخێ هاوکاتکرنا هاوبەش.","أدوات استعادة النسخ الاحتياطية وحالة المزامنة المشتركة.")]
+  ];
+  box.innerHTML='<section class="owner-settings-hub" aria-labelledby="ownerSettingsHeading"><div class="owner-dashboard-section-head"><div><h3 id="ownerSettingsHeading">'+ownerSettingsTranslation("Store Settings","ڕێکخستنێن فرۆشگە","إعدادات المتجر")+'</h3><p>'+ownerSettingsTranslation("Manage your store from one place.","فرۆشگەیا خۆ ل یەک شوێنێ بەڕێڤەببە.","أدر متجرك من مكان واحد.")+'</p></div></div><p class="owner-settings-intro">'+ownerSettingsTranslation("Choose a section to open its dedicated settings. Public store details and appearance use the existing shared Owner settings record.","بەشەکێ هەلبژێرە بۆ ڤەکرنا ڕێکخستنێن وێ. زانیاریێن گشتی و دەرکەفتن ل ڕێکا تۆمارا ڕێکخستنێن خاوەنێ هاوبەش هێنە پاشەکەفتکرن.","اختر قسماً لفتح إعداداته. تُحفظ تفاصيل المتجر العامة ومظهره في سجل إعدادات المالك المشترك.")+'</p><div class="owner-settings-grid">'+cards.map(card=>ownerSettingsCardMarkup(...card)).join("")+'</div></section>';
+}
+
+function renderOwnerNotificationSettings(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can view notification settings.","تەنێ خاوەن دەتوانیت ڕێکخستنێن ئاگاداریان ببینیت.","يمكن لمالك المتجر فقط عرض إعدادات الإشعارات.");return;}
+  const preferences=readOwnerNotificationPreferences(),events=[
+    ["new_order","New order","داخوازییا نوو","طلب جديد"],["low_stock","Low stock","کۆگا کێمە","المخزون منخفض"],["out_of_stock","Out of stock","کۆگا نەما","نفد المخزون"],["discount_expiring","Discount ending soon","داشاندن دێ ب زوویی تەمام بیت","ينتهي الخصم قريباً"],["discount_expired","Discount ended","داشاندن تەمام بوو","انتهى الخصم"]
+  ];
+  const rows=events.map(([type,en,ku,ar])=>{
+    const state=preferences[type],inAppLabel=ownerSettingsTranslation("In-app for "+en,"ئاگادارییا ناڤی بۆ "+ku,"تنبيه داخل التطبيق: "+ar),pushLabel=ownerSettingsTranslation("Push for "+en,"ئاگادارییا push بۆ "+ku,"إشعار دفع: "+ar);
+    return '<div class="owner-notification-row"><strong>'+escapeHtml(ownerDashboardText(en,ku,ar))+'</strong><label><input id="ownerNotify_'+type+'_inApp" type="checkbox" '+(state.inApp?'checked':'')+' aria-label="'+inAppLabel+'"><span>'+ownerSettingsTranslation("In-app","ناڤی","داخل التطبيق")+'</span></label><label><input id="ownerNotify_'+type+'_push" type="checkbox" '+(state.push?'checked':'')+' aria-label="'+pushLabel+'"><span>'+ownerSettingsTranslation("Push","پوش","دفع")+'</span></label></div>';
+  }).join("");
+  box.innerHTML='<section class="owner-dashboard-section"><form id="ownerNotificationPreferencesForm" class="owner-form owner-settings-form" onsubmit="saveOwnerNotificationPreferences(event)"><div class="owner-dashboard-section-head"><div><h3>'+ownerSettingsTranslation("Notifications","ئاگاداری","الإشعارات")+'</h3><p>'+ownerSettingsTranslation("Choose how the signed-in Owner receives each store alert.","چێوازێ وەرگرتنا هەر ئاگادارییەکێ یا خاوەنێ دیار بکە.","اختر طريقة استلام المالك المسجل لكل تنبيه للمتجر.")+'</p></div></div><p class="owner-settings-intro">'+ownerSettingsTranslation("These private preferences control Owner in-app alerts and push notices. Customer opt-in, broadcasts, and delivery remain unchanged.","ڤان ڕێکخستنێن تایبەت ئاگاداریێن ناڤی و push یێن خاوەنێ بەڕێڤە دبەن. ڕێکخستنا وەرگرتنا کڕیاران و ئاگاداریێن گشتی ناگۆڕن.","تتحكم هذه التفضيلات الخاصة بتنبيهات المالك داخل التطبيق وإشعارات الدفع. لا تتغير موافقات العملاء أو رسائلهم.")+'</p><div class="owner-notification-preferences" role="group" aria-label="'+ownerSettingsTranslation("Owner notification preferences","ڕێکخستنێن ئاگاداریێن خاوەن","تفضيلات إشعارات المالك")+'"><div class="owner-notification-row owner-notification-heading"><strong>'+ownerSettingsTranslation("Alert type","جۆرێ ئاگاداری","نوع التنبيه")+'</strong><strong>'+ownerSettingsTranslation("In-app","ناڤی","داخل التطبيق")+'</strong><strong>'+ownerSettingsTranslation("Push","پوش","دفع")+'</strong></div>'+rows+'</div><div class="owner-settings-shortcuts"><button type="button" class="owner-action" onclick="renderOwnerPanel(\'alerts\')">'+ownerSettingsTranslation("Open Smart Alerts & Owner Push","ئاگاداریێن زیرەک و push یێن خاوەن ڤەکە","افتح التنبيهات الذكية وإشعارات المالك")+'</button><button type="button" class="owner-action" onclick="renderOwnerPanel(\'customer-notifications\')">'+ownerSettingsTranslation("Open Customer Notifications","ئاگاداریێن کڕیاران ڤەکە","افتح إشعارات العملاء")+'</button></div><p id="ownerNotificationPreferencesStatus" class="owner-settings-status" role="status" aria-live="polite"></p><button class="main-btn" type="submit">'+ownerSettingsTranslation("Save Notification Preferences","ڕێکخستنێن ئاگاداریان پاشەکەفت بکە","احفظ تفضيلات الإشعارات")+'</button></form></section>';
+}
+async function saveOwnerNotificationPreferences(event){
+  event.preventDefault();if(!isOwner())return;const form=event.currentTarget;if(form?.dataset.saving==="true")return;
+  if(cloudMode&&cloudAccount?.role!=="owner"){ownerSettingsStatus("ownerNotificationPreferencesStatus",ownerDashboardText("Sign in to the shared Owner account before changing notification preferences.","پێش گۆڕینا ڕێکخستنێن ئاگاداریان گرێدانا هژمارا خاوەنێ هاوبەش بکە.","سجل الدخول إلى حساب المالك المشترك قبل تغيير تفضيلات الإشعارات."),true);return;}
+  const preferences={version:1};for(const type of OWNER_NOTIFICATION_EVENT_TYPES)preferences[type]={inApp:document.getElementById("ownerNotify_"+type+"_inApp")?.checked===true,push:document.getElementById("ownerNotify_"+type+"_push")?.checked===true};
+  const requestId=createOwnerSaveRequestId();
+  try{localStorage.setItem(OWNER_NOTIFICATION_PREFERENCES_KEY,JSON.stringify(normalizeOwnerNotificationPreferences(preferences)));}
+  catch(error){ownerSettingsStatus("ownerNotificationPreferencesStatus",ownerDashboardText("Notification preferences could not be saved on this device.","ڕێکخستنێن ئاگاداریان ل ڤی ئامێری نەهێنە پاشەکەفتکرن.","تعذر حفظ تفضيلات الإشعارات على هذا الجهاز."),true);return;}
+  if(form){form.dataset.saving="true";form.dataset.shivanDraftDirty="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;}
+  ownerSettingsStatus("ownerNotificationPreferencesStatus",ownerDashboardText("Saving notification preferences…","ڕێکخستنێن ئاگاداریان پاشەکەفت دبن…","جارٍ حفظ تفضيلات الإشعارات…"));
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_NOTIFICATION_PREFERENCES_KEY,requestId);
+    const message=cloudMode&&cloudAccount?.role==="owner"?ownerDashboardText("Notification preferences saved and synced.","ڕێکخستنێن ئاگاداریان هاتنە پاشەکەفتکرن و هاوکاتکرن.","تم حفظ تفضيلات الإشعارات ومزامنتها."):ownerDashboardText("Notification preferences saved on this device.","ڕێکخستنێن ئاگاداریان ل ڤی ئامێری هاتنە پاشەکەفتکرن.","تم حفظ تفضيلات الإشعارات على هذا الجهاز.");
+    ownerSettingsStatus("ownerNotificationPreferencesStatus",message);showToast(message);
+  }catch(error){ownerSaveDiagnostic("owner.notification_preferences.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});ownerSettingsStatus("ownerNotificationPreferencesStatus",ownerDashboardText("Saved locally, but shared sync was not confirmed. Retry when connected.","ل ئامێری هاتە پاشەکەفتکرن، لێ هاوکاتکرنا هاوبەش نەهاتییە پشتڕاستکرن. دەمێ گرێدانی هەیە دوبارە هەوڵ بدە.","تم الحفظ محلياً، لكن لم يتم تأكيد المزامنة. أعد المحاولة عند الاتصال."),true);}
+  finally{if(form){form.dataset.saving="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=false;}}
+}
+function renderOwnerStoreInformation(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can edit store information.","تەنێ خاوەن دەتوانیت زانیاریێن فرۆشگە بگۆڕیت.","يمكن لمالك المتجر فقط تعديل معلومات المتجر.");return;}
+  const info=normalizeOwnerAppearance(ownerAppearance),logo=info.storeLogoUrl,logoPreview=logo?'<img id="ownerStoreLogoPreview" src="'+escapeHtml(logo)+'" alt="'+ownerSettingsTranslation("Store logo preview","پێشبینیا لۆگۆیا فرۆشگە","معاينة شعار المتجر")+'">':'<span id="ownerStoreLogoPreview" class="owner-settings-preview-mark" aria-hidden="true">SH</span>';
+  box.innerHTML='<form id="ownerStoreInformationForm" class="owner-form owner-settings-form" onsubmit="saveOwnerStoreInformation(event)"><h3>'+ownerSettingsTranslation("Store Information","زانیاریێن فرۆشگە","معلومات المتجر")+'</h3><p class="owner-settings-intro">'+ownerSettingsTranslation("Public brand, contact, and address details appear in the shop and checkout. A blank optional logo address keeps the current logo.","زانیاریێن گشتی یێن براند، پەیوەندی و ناڤنیشان ل فرۆشگە و پارەدانێ دیار دبن. ئەگەر ناڤنیشانا لۆگۆیێ بەتاڵ بیت، لۆگۆیا هەیی دپارێزیت.","تظهر بيانات العلامة والاتصال والعنوان العامة في المتجر والدفع. ترك عنوان الشعار فارغاً يحافظ على الشعار الحالي.")+'</p><label for="ownerStoreName">'+ownerSettingsTranslation("Store name","ناڤێ فرۆشگە","اسم المتجر")+'</label><input id="ownerStoreName" maxlength="80" required value="'+escapeHtml(info.storeName||"Shivan Shop")+'" oninput="previewOwnerStoreInformation()"><label for="ownerTagline">'+ownerSettingsTranslation("Short tagline","پەیڤا کورت","عبارة قصيرة")+'</label><input id="ownerTagline" maxlength="140" value="'+escapeHtml(info.tagline)+'" oninput="previewOwnerStoreInformation()"><label for="ownerHeroTitle">'+ownerSettingsTranslation("Shop banner heading (optional)","سەردێڕێ ڕاگەهاندنێ (ئارەزوومەندانە)","عنوان لافتة المتجر (اختياري)")+'</label><input id="ownerHeroTitle" maxlength="120" value="'+escapeHtml(info.heroTitle)+'" oninput="previewOwnerStoreInformation()"><label for="ownerStoreDescription">'+ownerSettingsTranslation("Store description","وەسفا فرۆشگە","وصف المتجر")+'</label><textarea id="ownerStoreDescription" maxlength="500" rows="3" oninput="previewOwnerStoreInformation()">'+escapeHtml(info.storeDescription||info.heroMessage)+'</textarea><label for="ownerStoreLogoUrl">'+ownerSettingsTranslation("Store logo address (optional)","ناڤنیشانا لۆگۆ (ئارەزوومەندانە)","عنوان شعار المتجر (اختياري)")+'</label><input id="ownerStoreLogoUrl" type="text" inputmode="url" maxlength="2048" dir="ltr" value="'+escapeHtml(info.storeLogoUrl)+'" placeholder="https://… or /api/media/shop/…" oninput="this.dataset.clearLogo=\'false\';previewOwnerStoreInformation()"><div class="owner-settings-shortcuts"><button id="ownerClearStoreLogo" type="button" class="owner-action" '+(logo?"":"disabled")+' onclick="clearOwnerStoreLogoDraft()">'+ownerSettingsTranslation("Remove current logo","لۆگۆیا هەیی ژێببە","إزالة الشعار الحالي")+'</button></div><small>'+ownerSettingsTranslation("Use an HTTPS image address or a Shivan Shop shared-media URL. Leave it blank to preserve the current logo; use Remove current logo to clear it.","ناڤنیشانا وێنەیەکا HTTPS یان لینکەکا میدیایا هاوبەش یا Shivan Shop بکارهێنە. بۆ پاراستنا لۆگۆیا هەیی بەتاڵ بھێلە، یان دوگمەیا ژێبرنێ بکە.","استخدم عنوان صورة HTTPS أو رابط وسائط Shivan Shop المشترك. اتركه فارغاً للحفاظ على الشعار، أو اختر إزالة الشعار الحالي لمسحه.")+'</small><label for="ownerStoreLogoFile">'+ownerSettingsTranslation("Upload store logo (optional)","لۆگۆیا فرۆشگە بار بکە (ئارەزوومەندانە)","ارفع شعار المتجر (اختياري)")+'</label><input id="ownerStoreLogoFile" type="file" accept="image/*" aria-label="'+ownerSettingsTranslation("Choose a store logo image","وێنەیەکا لۆگۆ هەلبژێرە","اختر صورة للشعار")+'" onchange="uploadOwnerStoreLogo(this)"><small>'+ownerSettingsTranslation("The image is resized and saved to shared storage. Save Store Information after uploading to publish it.","وێنە دێ بچویکرێت و ل شوێنێ هاوبەش دێ هێتە پاراستن. پشتی بارکرنێ زانیاریێن فرۆشگە پاشەکەفت بکە.","سيتم تغيير حجم الصورة وحفظها في التخزين المشترك. احفظ معلومات المتجر بعد الرفع لنشرها.")+'</small><div id="ownerStoreInformationPreview" class="owner-settings-preview owner-store-information-preview">'+logoPreview+'<div class="owner-settings-preview-copy"><strong id="ownerStoreInformationPreviewName">'+escapeHtml(info.storeName||"Shivan Shop")+'</strong><small id="ownerStoreInformationPreviewTagline">'+escapeHtml(info.tagline||"")+'</small></div><div class="owner-settings-preview-details"><p><strong>'+ownerSettingsTranslation("Banner heading","سەردێڕێ ڕاگەهاندنێ","عنوان اللافتة")+'</strong> <span id="ownerStoreInformationPreviewHeading"></span></p><p><strong>'+ownerSettingsTranslation("Description","وەسف","الوصف")+'</strong> <span id="ownerStoreInformationPreviewDescription"></span></p><p><strong>'+ownerSettingsTranslation("Phone","مۆبایل","الهاتف")+'</strong> <span id="ownerStoreInformationPreviewPhone"></span></p><p><strong>'+ownerSettingsTranslation("Email","ئیمەیل","البريد الإلكتروني")+'</strong> <span id="ownerStoreInformationPreviewEmail"></span></p><p><strong>'+ownerSettingsTranslation("Address","ناڤنیشان","العنوان")+'</strong> <span id="ownerStoreInformationPreviewAddress"></span></p></div></div><label for="ownerContactPhone">'+ownerSettingsTranslation("Public contact phone","مۆبایلا پەیوەندی یا گشتی","هاتف الاتصال العام")+'</label><input id="ownerContactPhone" type="tel" maxlength="60" autocomplete="tel" value="'+escapeHtml(info.contactPhone)+'" oninput="previewOwnerStoreInformation()"><label for="ownerContactEmail">'+ownerSettingsTranslation("Public contact email","ئیمەیلا پەیوەندی یا گشتی","بريد الاتصال العام")+'</label><input id="ownerContactEmail" type="email" maxlength="254" autocomplete="email" value="'+escapeHtml(info.contactEmail)+'" oninput="previewOwnerStoreInformation()"><label for="ownerStoreAddress">'+ownerSettingsTranslation("Public store address (optional)","ناڤنیشانا گشتی یا فرۆشگە (ئارەزوومەندانە)","عنوان المتجر العام (اختياري)")+'</label><textarea id="ownerStoreAddress" maxlength="240" rows="2" oninput="previewOwnerStoreInformation()">'+escapeHtml(info.storeAddress)+'</textarea><p id="ownerStoreInformationStatus" class="owner-settings-status" role="status" aria-live="polite"></p><button class="main-btn" type="submit">'+ownerSettingsTranslation("Save Store Information","زانیاریێن فرۆشگە پاشەکەفت بکە","احفظ معلومات المتجر")+'</button></form>';
+  previewOwnerStoreInformation();
+}
+function previewOwnerStoreInformation(){
+  if(!isOwner())return;
+  const current=normalizeOwnerAppearance(ownerAppearance),name=document.getElementById("ownerStoreName")?.value.trim()||"Shivan Shop",tagline=document.getElementById("ownerTagline")?.value.trim()||"",heading=document.getElementById("ownerHeroTitle")?.value.trim()||name,description=document.getElementById("ownerStoreDescription")?.value.trim()||"",phone=document.getElementById("ownerContactPhone")?.value.trim()||"",email=document.getElementById("ownerContactEmail")?.value.trim()||"",address=document.getElementById("ownerStoreAddress")?.value.trim()||"",logoInput=document.getElementById("ownerStoreLogoUrl"),url=logoInput?.dataset?.clearLogo==="true"?"":safeStoreLogoUrl(logoInput?.value)||current.storeLogoUrl,empty=ownerDashboardText("Not provided","نەهاتییە دانان","غير متوفر");
+  const setText=(id,value)=>{const node=document.getElementById(id);if(node)node.textContent=value||empty;};
+  setText("ownerStoreInformationPreviewName",name);setText("ownerStoreInformationPreviewTagline",tagline||ownerDashboardText("Store preview","پێشبینیا فرۆشگە","معاينة المتجر"));setText("ownerStoreInformationPreviewHeading",heading);setText("ownerStoreInformationPreviewDescription",description);setText("ownerStoreInformationPreviewPhone",phone);setText("ownerStoreInformationPreviewEmail",email);setText("ownerStoreInformationPreviewAddress",address);
+  const container=document.getElementById("ownerStoreInformationPreview"),mount=container?.querySelector("#ownerStoreLogoPreview");if(!container)return;
+  if(url){if(mount?.tagName?.toLowerCase()==="img")mount.src=url;else{const img=document.createElement("img");img.id="ownerStoreLogoPreview";img.src=url;img.alt=ownerDashboardText("Store logo preview","پێشبینیا لۆگۆیا فرۆشگە","معاينة شعار المتجر");if(mount)mount.replaceWith(img);else container.prepend(img);}}
+  else if(mount?.tagName?.toLowerCase()==="img"){const mark=document.createElement("span");mark.id="ownerStoreLogoPreview";mark.className="owner-settings-preview-mark";mark.setAttribute("aria-hidden","true");mark.textContent="SH";mount.replaceWith(mark);}
+}
+function clearOwnerStoreLogoDraft(){
+  if(!isOwner())return;const input=document.getElementById("ownerStoreLogoUrl");if(input){input.value="";input.dataset.clearLogo="true";}previewOwnerStoreInformation();
+}
+
+async function uploadOwnerStoreLogo(input){
+  if(!isOwner()){input.value="";return false;}
+  const file=input.files?.[0];if(!file)return false;
+  if(!cloudMode||cloudAccount?.role!=="owner"){input.value="";ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Sign in to the shared Owner account before uploading a logo.","پێش بارکرنا لۆگۆیێ گرێدانا هژمارا خاوەنێ هاوبەش بکە.","سجل الدخول إلى حساب المالك المشترك قبل رفع الشعار."),true);return false;}
+  if(!String(file.type||"").startsWith("image/")||file.size>MAX_OWNER_IMAGE_INPUT_BYTES){input.value="";ownerSettingsStatus("ownerStoreInformationStatus",file.size>MAX_OWNER_IMAGE_INPUT_BYTES?ownerDashboardText("Choose an image smaller than 15 MB.","وێنەیەکا بچویکتر ژ ١٥ MB هەلبژێرە.","اختر صورة أصغر من 15 MB."):ownerDashboardText("Choose a supported image file.","فایلەکا وێنەیێ پشتگیری کری هەلبژێرە.","اختر ملف صورة مدعوماً."),true);return false;}
+  const form=document.getElementById("ownerStoreInformationForm");if(form?.dataset.saving==="true")return false;
+  const submit=form?.querySelector('[type="submit"]');let source=null,canvas=null;
+  input.disabled=true;if(form)form.dataset.saving="true";if(submit)submit.disabled=true;
+  ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Preparing the logo image…","وێنەیا لۆگۆ ئامادە دبیت…","جارٍ تجهيز صورة الشعار…"));
+  try{
+    source=await prepareOwnerCropSource(file);
+    const bitmap=source.bitmap,scale=Math.min(1,512/Math.max(bitmap.width,bitmap.height));
+    canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    const context=canvas.getContext("2d");if(!context)throw new Error("The logo image could not be prepared. Choose another image and try again.");
+    context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+    let blob=null;
+    for(const type of ["image/webp","image/jpeg"]){const candidate=await canvasBlob(canvas,type,.82);if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}}
+    if(!blob)throw new Error("The logo image could not be compressed for shared storage. Choose a simpler image and retry.");
+    const logoUrl=await uploadOwnerImageToCloud(blob,createOwnerSaveRequestId()),target=document.getElementById("ownerStoreLogoUrl");
+    if(!target)throw new Error("The Store Information form is no longer open.");
+    target.value=logoUrl;target.dataset.clearLogo="false";if(form)form.dataset.shivanDraftDirty="true";
+    previewOwnerStoreInformation();
+    ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Logo uploaded to shared storage. Save Store Information to publish it.","لۆگۆ ل شوینا هاوبەش هاتە بارکرن. بۆ بلۆکردنا وێ زانیاریێن فرۆشگە پاشەکەفت بکە.","تم رفع الشعار إلى التخزين المشترك. احفظ معلومات المتجر لنشره."));
+    return true;
+  }catch(error){ownerSettingsStatus("ownerStoreInformationStatus",error.message||ownerDashboardText("The logo could not be uploaded. Try again.","لۆگۆ نەشیا بهێتە بارکرن. دوبارە هەوڵ بدە.","تعذر رفع الشعار. حاول مجدداً." ),true);return false;}
+  finally{
+    releasePreparedCropSource(source);if(canvas){canvas.width=0;canvas.height=0;}
+    input.value="";input.disabled=false;
+    if(form){form.dataset.saving="false";if(submit)submit.disabled=false;}
+  }
+}
+
+function ownerSettingsStatus(id,message,isError=false){const node=document.getElementById(id);if(node){node.textContent=String(message||"");node.dataset.state=isError?"error":"success";}}
+
+async function saveOwnerStoreInformation(event){
+  event.preventDefault();if(!isOwner())return;const form=event.currentTarget;if(form?.dataset.saving==="true")return;
+  const current=normalizeOwnerAppearance(ownerAppearance),email=String(document.getElementById("ownerContactEmail")?.value||"").trim(),logoField=document.getElementById("ownerStoreLogoUrl"),logoInput=String(logoField?.value||"").trim(),clearLogo=logoField?.dataset?.clearLogo==="true",logoUrl=logoInput?safeStoreLogoUrl(logoInput):clearLogo?"":current.storeLogoUrl;
+  if(email&&!/^\S+@\S+\.\S+$/.test(email)){ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Enter a valid contact email, or leave it blank.","ئیمەیلەکا دروست بنڤیسە یان بەتاڵ بھێلە.","أدخل بريداً إلكترونياً صحيحاً أو اتركه فارغاً."),true);return;}
+  if(logoInput&&!logoUrl){ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Use an HTTPS image address or a valid Shivan Shop shared-media URL.","ناڤنیشانا وێنەیەکا HTTPS یان لینکەکا دروستا میدیایا هاوبەش یا Shivan Shop بکارهێنە.","استخدم عنوان صورة HTTPS أو رابط وسائط Shivan Shop مشتركاً وصحيحاً."),true);return;}
+  const storeName=String(document.getElementById("ownerStoreName")?.value||"").trim(),tagline=String(document.getElementById("ownerTagline")?.value||"").trim(),heroTitle=String(document.getElementById("ownerHeroTitle")?.value||"").trim(),storeDescription=String(document.getElementById("ownerStoreDescription")?.value||"").trim(),contactPhone=String(document.getElementById("ownerContactPhone")?.value||"").trim(),storeAddress=String(document.getElementById("ownerStoreAddress")?.value||"").trim(),phoneDigits=contactPhone.replace(/\D/g,"");
+  if(!storeName||storeName.length>80||tagline.length>140||heroTitle.length>120||storeDescription.length>500||contactPhone.length>60||storeAddress.length>240){ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Review the field lengths and try again.","درێژی خانەیان پێداچوونەوە بکە و دوبارە هەوڵ بدە.","راجع أطوال الحقول ثم حاول مرة أخرى."),true);return;}
+  if(contactPhone&&(!/^[+\d][+\d\s().-]*$/.test(contactPhone)||phoneDigits.length<7||phoneDigits.length>20)){ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Enter a valid public phone number, or leave it blank.","ژمارەکا دروستا مۆبایلا گشتی بنڤیسە یان بەتاڵ بھێلە.","أدخل رقم هاتف عام صحيحاً أو اتركه فارغاً."),true);return;}
+  const previous=ownerAppearance,previousSaved=ownerAppearanceSaved,requestId=createOwnerSaveRequestId();
+  ownerAppearance=normalizeOwnerAppearance({...current,storeName,tagline,heroTitle,storeDescription,heroMessage:storeDescription,storeLogoUrl:logoUrl,contactPhone,contactEmail:email,storeAddress});ownerAppearanceSaved=true;
+  try{localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));}catch(error){ownerAppearance=previous;ownerAppearanceSaved=previousSaved;ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Store information could not be saved on this device. Check available storage and retry.","زانیاریێن فرۆشگە ل ڤی ئامێری نەهێنە پاشەکەفتکرن. شوینا پاشەکەفتی بپشکنە و دوبارە هەوڵ بدە.","تعذر حفظ معلومات المتجر على هذا الجهاز. تحقق من مساحة التخزين ثم حاول مجدداً."),true);return;}
+  if(form){form.dataset.saving="true";form.dataset.shivanDraftDirty="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;}
+  applyOwnerAppearance();ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Saving your store information…","زانیاریێن فرۆشگە پاشەکەفت دبن…","جارٍ حفظ معلومات المتجر…"));
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);if(logoField)logoField.dataset.clearLogo="false";
+    const message=cloudMode&&cloudAccount?.role==="owner"?ownerDashboardText("Store information saved and synced across devices.","زانیاریێن فرۆشگە هاتنە پاشەکەفتکرن و ل ئامێرێن دیتر هاتنە هاوکاتکرن.","تم حفظ معلومات المتجر ومزامنتها بين الأجهزة."):ownerDashboardText("Store information saved on this device.","زانیاریێن فرۆشگە ل ڤی ئامێری هاتنە پاشەکەفتکرن.","تم حفظ معلومات المتجر على هذا الجهاز.");
+    ownerSettingsStatus("ownerStoreInformationStatus",message);showToast(message);
+  }catch(error){ownerSaveDiagnostic("owner.store_information.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});ownerSettingsStatus("ownerStoreInformationStatus",ownerDashboardText("Saved locally, but shared sync was not confirmed. Retry when connected.","ل ئامێری هاتە پاشەکەفتکرن، لێ هاوکاتکرنا هاوبەش نەهاتییە پشتڕاستکرن. دەمێ گرێدانی هەیە دوبارە هەوڵ بدە.","تم الحفظ محلياً، لكن لم يتم تأكيد المزامنة. أعد المحاولة عند الاتصال."),true);}
+  finally{if(form){form.dataset.saving="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=false;}}
+}
+
+function ownerDeliveryZoneRowMarkup(zone){
+  const id=escapeHtml(zone.id),name=escapeHtml(zone.name),fee=escapeHtml(String(zone.fee??""));
+  return '<div class="owner-delivery-zone-row" data-owner-delivery-zone-row><input type="hidden" data-zone-field="id" value="'+id+'"><label><span>'+ownerSettingsTranslation("Zone name","ناڤێ ناڤچەیێ","اسم المنطقة")+'</span><input data-zone-field="name" maxlength="80" value="'+name+'" oninput="updateOwnerDeliveryZoneDraft()"></label><label><span>'+ownerSettingsTranslation("Fee (IQD)","خەرجی (IQD)","الرسم (IQD)")+'</span><input data-zone-field="fee" type="number" inputmode="numeric" min="0" max="10000000" step="1" dir="ltr" value="'+fee+'" oninput="updateOwnerDeliveryZoneDraft()"></label><button type="button" class="owner-action" aria-label="'+ownerSettingsTranslation("Remove delivery zone","ناڤچەیا گەهاندنێ ژێببە","إزالة منطقة التوصيل")+'" onclick="removeOwnerDeliveryZone(\''+id+'\')">'+ownerSettingsTranslation("Remove","ژێببە","إزالة")+'</button></div>';
+}
+function renderOwnerDeliveryZoneRows(){
+  const box=document.getElementById("ownerDeliveryZoneRows");if(!box)return;
+  box.innerHTML=ownerDeliveryZonesDraft.map(ownerDeliveryZoneRowMarkup).join("")||'<p class="owner-settings-empty">'+ownerSettingsTranslation("No delivery zones are configured. Add your own zones and IQD fees; nothing is prefilled.","ناڤچە و خەرجیێن گەهاندنێ نەهێنە ڕێکخستن. ناڤ و خەرجیێن خۆ زێدە بکە؛ هیچ تشتەک نەهاتییە پڕکرن.","لم يتم إعداد مناطق التوصيل. أضف المناطق والرسوم التي تحددها؛ لا توجد قيم مسبقة.")+'</p>';
+  updateOwnerDeliveryZoneDraft();
+}
+function updateOwnerDeliveryZoneDraft(){
+  const rows=document.querySelectorAll?.("#ownerDeliveryZoneRows [data-owner-delivery-zone-row]");
+  if(rows?.length)ownerDeliveryZonesDraft=Array.from(rows).map(row=>({id:row.querySelector('[data-zone-field="id"]')?.value||"",name:row.querySelector('[data-zone-field="name"]')?.value||"",fee:row.querySelector('[data-zone-field="fee"]')?.value||""}));
+  const toggle=document.getElementById("ownerDeliveryChargingEnabled");let validZones=ownerDeliveryZonesDraft.length>0;try{validateOwnerDeliveryZones(ownerDeliveryZonesDraft);}catch(error){validZones=false;}if(toggle)toggle.disabled=!validZones;
+  return ownerDeliveryZonesDraft;
+}
+function addOwnerDeliveryZone(){
+  if(!isOwner())return;updateOwnerDeliveryZoneDraft();const id=globalThis.crypto?.randomUUID?.()||"zone-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);
+  ownerDeliveryZonesDraft.push({id,name:"",fee:""});renderOwnerDeliveryZoneRows();
+}
+function removeOwnerDeliveryZone(id){
+  if(!isOwner())return;updateOwnerDeliveryZoneDraft();ownerDeliveryZonesDraft=ownerDeliveryZonesDraft.filter(zone=>zone.id!==String(id));renderOwnerDeliveryZoneRows();
+}
+function renderOwnerDeliverySettings(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can edit delivery and order information.","تەنێ خاوەن دەتوانیت زانیاریێن گەهاندن و داخوازیان بگۆڕیت.","يمكن لمالك المتجر فقط تعديل معلومات التوصيل والطلبات.");return;}
+  const info=normalizeOwnerAppearance(ownerAppearance);ownerDeliveryZonesDraft=info.deliveryZones.map(zone=>({...zone,fee:String(zone.fee)}));
+  box.innerHTML='<form id="ownerDeliverySettingsForm" class="owner-form owner-settings-form" onsubmit="saveOwnerDeliverySettings(event)"><h3>'+ownerSettingsTranslation("Delivery & Orders","گەهاندن و داخوازی","التوصيل والطلبات")+'</h3><p class="owner-settings-intro">'+ownerSettingsTranslation("Charging starts off. Add only the zones and whole IQD fees you configure, then turn charging on. Checkout and the server will validate the selected zone and fee. Existing orders are not recalculated.","خەرجی ل سەرەتا ناچالاکە. تەنێ ناڤچە و خەرجیێن IQD یێن تە ڕێکخستی زێدە بکە، پاشی خەرجی چالاک بکە. پارەدان و سێرڤەر ناڤچە و خەرجی دپشکنن. داخوازیێن هەیی دووبارە حیساب ناکرێن.","يبدأ التحصيل متوقفاً. أضف المناطق والرسوم الصحيحة بالدينار التي تحددها، ثم فعّل التحصيل. يتحقق الدفع والخادم من المنطقة والرسم. لا يعاد حساب الطلبات السابقة.")+'</p><label for="ownerDeliveryAreas">'+ownerSettingsTranslation("Delivery areas (information)","ناڤچەێن گەهاندنێ (زانیاری)","مناطق التوصيل (معلومات)")+'</label><textarea id="ownerDeliveryAreas" maxlength="600" rows="3" placeholder="'+ownerSettingsTranslation("Optional notes about coverage","تێبینیێن ئارەزوومەندانە یێن شوینا گەهاندنێ","ملاحظات اختيارية عن التغطية")+'">'+escapeHtml(info.deliveryAreas)+'</textarea><div class="owner-delivery-zones"><div class="owner-settings-section-head"><div><h4>'+ownerSettingsTranslation("Configured zones and fees","ناڤچە و خەرجیێن ڕێکخستی","المناطق والرسوم المحددة")+'</h4><p>'+ownerSettingsTranslation("Enter each fee as a whole IQD amount. No locations or prices are supplied by default.","هەر خەرجییەک وەک ژمارەکا تەمام یا IQD بنڤیسە. هیچ شوێن یان نرخەک ل سەرەتا نینە.","أدخل كل رسم كقيمة صحيحة بالدينار. لا توجد مواقع أو أسعار افتراضية.")+'</p></div><button type="button" class="owner-action" onclick="addOwnerDeliveryZone()">'+ownerSettingsTranslation("Add delivery zone","ناڤچەیا گەهاندنێ زێدە بکە","أضف منطقة توصيل")+'</button></div><div id="ownerDeliveryZoneRows"></div><label class="owner-settings-toggle" for="ownerDeliveryChargingEnabled"><input id="ownerDeliveryChargingEnabled" type="checkbox" '+(info.deliveryChargingEnabled?'checked':'')+' '+(info.deliveryZones.length?"":"disabled")+'><span>'+ownerSettingsTranslation("Charge the selected delivery fee at checkout","خەرجییا هەلبژارتی ل پارەدانێ وەرگرە","احتسب رسم التوصيل المحدد عند الدفع")+'</span></label></div><label for="ownerDeliveryEstimate">'+ownerSettingsTranslation("Estimated delivery time","دەمێ پێشبینی یا گەهاندنێ","وقت التوصيل المتوقع")+'</label><input id="ownerDeliveryEstimate" maxlength="120" value="'+escapeHtml(info.deliveryEstimate)+'" placeholder="'+ownerSettingsTranslation("For example: 1–3 business days","بۆ نموونە: ١–٣ ڕۆژێن کاری","مثال: من يوم إلى 3 أيام عمل")+'"><label for="ownerCheckoutNotice">'+ownerSettingsTranslation("Checkout message for customers","پەیاما پارەدانێ بۆ کڕیاران","رسالة الدفع للعملاء")+'</label><textarea id="ownerCheckoutNotice" maxlength="400" rows="3" placeholder="'+ownerSettingsTranslation("Optional delivery or payment guidance","ڕێنماییا گەهاندن یان پارەدان (ئارەزوومەندانە)","إرشادات اختيارية للتوصيل أو الدفع")+'">'+escapeHtml(info.checkoutNotice)+'</textarea><label for="ownerOrderInstructions">'+ownerSettingsTranslation("Order information for customers","زانیاریێن داخوازی بۆ کڕیاران","معلومات الطلب للعملاء")+'</label><textarea id="ownerOrderInstructions" maxlength="400" rows="3" placeholder="'+ownerSettingsTranslation("Optional note shown before customers place an order","تێبینییا ئارەزوومەندانە پێش ناردنا داخوازیێ","ملاحظة اختيارية تظهر قبل إرسال الطلب")+'">'+escapeHtml(info.orderInstructions)+'</textarea><p id="ownerDeliverySettingsStatus" class="owner-settings-status" role="status" aria-live="polite"></p><button class="main-btn" type="submit">'+ownerSettingsTranslation("Save Delivery & Order Information","زانیاریێن گەهاندن و داخوازیان پاشەکەفت بکە","احفظ معلومات التوصيل والطلبات")+'</button></form>';
+  renderOwnerDeliveryZoneRows();
+}
+async function saveOwnerDeliverySettings(event){
+  event.preventDefault();if(!isOwner())return;const form=event.currentTarget;if(form?.dataset.saving==="true")return;
+  const zoneDraft=updateOwnerDeliveryZoneDraft(),toggle=document.getElementById("ownerDeliveryChargingEnabled"),chargingEnabled=toggle?.checked===true;let deliveryZones;
+  try{deliveryZones=validateOwnerDeliveryZones(zoneDraft);}catch(error){ownerSettingsStatus("ownerDeliverySettingsStatus",error.message||ownerDashboardText("Review the delivery zones and IQD fees.","ناڤچە و خەرجیێن IQD پێداچوونەوە بکە.","راجع مناطق التوصيل ورسوم الدينار."),true);return;}
+  if(chargingEnabled&&!deliveryZones.length){ownerSettingsStatus("ownerDeliverySettingsStatus",ownerDashboardText("Add at least one valid zone and fee before enabling delivery charges.","پێش چالاککرنا خەرجییا گەهاندنێ لانیکێ ناڤچە و خەرجییەکا دروست زێدە بکە.","أضف منطقة ورسماً صحيحاً واحداً على الأقل قبل تفعيل رسوم التوصيل."),true);return;}
+  const fields={deliveryAreas:document.getElementById("ownerDeliveryAreas")?.value.trim()||"",deliveryZones,deliveryChargingEnabled:chargingEnabled,deliveryEstimate:document.getElementById("ownerDeliveryEstimate")?.value.trim()||"",checkoutNotice:document.getElementById("ownerCheckoutNotice")?.value.trim()||"",orderInstructions:document.getElementById("ownerOrderInstructions")?.value.trim()||""};
+  if(fields.deliveryAreas.length>600||fields.deliveryEstimate.length>120||fields.checkoutNotice.length>400||fields.orderInstructions.length>400){ownerSettingsStatus("ownerDeliverySettingsStatus",ownerDashboardText("Some text is too long. Shorten it and retry.","هندەک زانیاریان زۆر درێژن. کورت بکە و دوبارە هەوڵ بدە.","بعض النصوص طويلة جداً. اختصرها وحاول مرة أخرى."),true);return;}
+  const previous=ownerAppearance,previousSaved=ownerAppearanceSaved,requestId=createOwnerSaveRequestId();ownerAppearance=normalizeOwnerAppearance({...ownerAppearance,...fields});ownerAppearanceSaved=true;
+  try{localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));}catch(error){ownerAppearance=previous;ownerAppearanceSaved=previousSaved;ownerSettingsStatus("ownerDeliverySettingsStatus",ownerDashboardText("Delivery information could not be saved on this device.","زانیاریێن گەهاندنێ ل ڤی ئامێری نەهێنە پاشەکەفتکرن.","تعذر حفظ معلومات التوصيل على هذا الجهاز."),true);return;}
+  if(form){form.dataset.saving="true";form.dataset.shivanDraftDirty="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;}
+  renderCheckoutStoreInfo();ownerSettingsStatus("ownerDeliverySettingsStatus",ownerDashboardText("Saving delivery information…","زانیاریێن گەهاندنێ پاشەکەفت دبن…","جارٍ حفظ معلومات التوصيل…"));
+  try{
+    if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
+    const message=cloudMode&&cloudAccount?.role==="owner"?ownerDashboardText("Delivery settings saved and synced. Fees apply only to new orders after you enable charging.","ڕێکخستنێن گەهاندنێ هاتنە پاشەکەفتکرن و هاوکاتکرن. خەرجی تەنێ پشتی چالاککرنێ ل داخوازیێن نوو دهێتە زێدەکرن.","تم حفظ إعدادات التوصيل ومزامنتها. تُطبق الرسوم على الطلبات الجديدة بعد تفعيلها فقط."):ownerDashboardText("Delivery settings saved on this device. Fees apply only to new orders after you enable charging.","ڕێکخستنێن گەهاندنێ ل ڤی ئامێری هاتنە پاشەکەفتکرن. خەرجی تەنێ پشتی چالاککرنێ ل داخوازیێن نوو دهێتە زێدەکرن.","تم حفظ إعدادات التوصيل على هذا الجهاز. تُطبق الرسوم على الطلبات الجديدة بعد تفعيلها فقط.");
+    ownerSettingsStatus("ownerDeliverySettingsStatus",message);showToast(message);
+  }catch(error){ownerSaveDiagnostic("owner.delivery_settings.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});ownerSettingsStatus("ownerDeliverySettingsStatus",ownerDashboardText("Saved locally, but shared sync was not confirmed. Retry when connected.","ل ئامێری هاتە پاشەکەفتکرن، لێ هاوکاتکرنا هاوبەش نەهاتییە پشتڕاستکرن. دەمێ گرێدانی هەیە دوبارە هەوڵ بدە.","تم الحفظ محلياً، لكن لم يتم تأكيد المزامنة. أعد المحاولة عند الاتصال."),true);}
+  finally{if(form){form.dataset.saving="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=false;}}
+}
+
+function renderOwnerSecuritySettings(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can manage Owner security.","تەنێ خاوەن دەتوانیت پاراستنا هژمارا خاوەن بەڕێڤە ببەیت.","يمكن لمالك المتجر فقط إدارة أمان حساب المالك.");return;}
+  const account=cloudAccount?.role==="owner"?cloudAccount:currentUser?.role==="owner"?currentUser:null;
+  box.innerHTML='<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><div><h3>'+ownerSettingsTranslation("Security","پاراستن","الأمان")+'</h3><p>'+ownerSettingsTranslation("Change the password for the currently signed-in Owner account.","پەیڤا نهێنی یا هژمارا خاوەنێ گرێدای بگۆڕە.","غيّر كلمة مرور حساب المالك المسجل حالياً.")+'</p></div></div><p class="owner-settings-intro">'+ownerSettingsTranslation("Owner-only screens and shared settings are checked by the server. Passwords are sent only to the secure account endpoint and are never stored in this page’s shared settings.","سێرڤەر دەرگەهێن تایبەت و ڕێکخستنێن هاوبەش دپشکنیت. پەیڤێن نهێنی تەنێ بۆ دەرگەهێ پاراستی دهێنە ناردن و ل ڕێکخستنێن فرۆشگە ناهێنە پاشەکەفتکرن.","يتحقق الخادم من الشاشات الخاصة وإعدادات المشاركة. تُرسل كلمات المرور إلى نقطة الحساب الآمنة فقط ولا تُحفظ في إعدادات المتجر.")+'</p><form id="ownerSecurityForm" class="owner-form owner-settings-form" onsubmit="saveOwnerSecurity(event)"><label>'+ownerSettingsTranslation("Signed-in role","رۆلا گرێدای","الدور المسجل")+'</label><input value="'+ownerSettingsTranslation("Owner","خاوەن","المالك")+(account?.name?" · "+escapeHtml(account.name):"")+'" readonly><label for="ownerCurrentPassword">'+ownerSettingsTranslation("Current password","پەیڤا نهێنی یا نوکە","كلمة المرور الحالية")+'</label><input id="ownerCurrentPassword" type="password" autocomplete="current-password" required maxlength="128"><label for="ownerNewPassword">'+ownerSettingsTranslation("New password (at least 10 characters)","پەیڤا نهێنی یا نوو (لانیکێ ١٠ پیت)","كلمة مرور جديدة (10 أحرف على الأقل)")+'</label><input id="ownerNewPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><label for="ownerConfirmNewPassword">'+ownerSettingsTranslation("Confirm new password","پەیڤا نهێنی یا نوو پشتڕاست بکە","أكد كلمة المرور الجديدة")+'</label><input id="ownerConfirmNewPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><p id="ownerSecurityStatus" class="owner-settings-status" role="status" aria-live="polite"></p><button class="main-btn" type="submit">'+ownerSettingsTranslation("Update Owner Password","پەیڤا نهێنی یا خاوەن نوێ بکە","حدّث كلمة مرور المالك")+'</button></form></section>';
+}
+async function saveOwnerSecurity(event){
+  event.preventDefault();if(!isOwner())return;const form=event.currentTarget;if(form?.dataset.saving==="true")return;
+  const oldPassword=document.getElementById("ownerCurrentPassword")?.value||"",newPassword=document.getElementById("ownerNewPassword")?.value||"",confirmation=document.getElementById("ownerConfirmNewPassword")?.value||"";
+  if(!cloudMode||cloudAccount?.role!=="owner"){ownerSettingsStatus("ownerSecurityStatus",ownerDashboardText("Sign in to the shared Owner account before changing its password.","پێش گۆڕینا پەیڤا نهێنی گرێدانا هژمارا خاوەنێ هاوبەش بکە.","سجل الدخول إلى حساب المالك المشترك قبل تغيير كلمة المرور."),true);return;}
+  if(newPassword.length<10){ownerSettingsStatus("ownerSecurityStatus",ownerDashboardText("Use a password with at least 10 characters.","پەیڤەکا نهێنی ب لانیکێ ١٠ پیتان بکارهێنە.","استخدم كلمة مرور من 10 أحرف على الأقل."),true);return;}
+  if(newPassword!==confirmation){ownerSettingsStatus("ownerSecurityStatus",ownerDashboardText("The new passwords do not match.","پەیڤێن نهێنی یێن نوو نەگونجاین.","كلمتا المرور الجديدتان غير متطابقتين."),true);return;}
+  if(form){form.dataset.saving="true";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;}
+  ownerSettingsStatus("ownerSecurityStatus",ownerDashboardText("Updating the Owner password…","پەیڤا نهێنی یا خاوەن نوێ دبیت…","جارٍ تحديث كلمة مرور المالك…"));
+  try{await cloudRequest("/api/auth/owner-password",{method:"POST",body:JSON.stringify({oldPassword,newPassword}),timeoutMs:15000});for(const id of ["ownerCurrentPassword","ownerNewPassword","ownerConfirmNewPassword"]){const input=document.getElementById(id);if(input)input.value="";}if(form)form.dataset.shivanDraftDirty="false";const message=ownerDashboardText("Owner password updated.","پەیڤا نهێنی یا خاوەن هاتە نووکرن.","تم تحديث كلمة مرور المالك.");ownerSettingsStatus("ownerSecurityStatus",message);showToast(message);}
+  catch(error){ownerSettingsStatus("ownerSecurityStatus",error.message||ownerDashboardText("The password was not changed. Check the current password and retry.","پەیڤا نهێنی نەهاتە گۆڕین. پەیڤا نوکە بپشکنە و دوبارە هەوڵ بدە.","لم تتغير كلمة المرور. تحقق من الحالية وحاول مرة أخرى."),true);}
+  finally{if(form){form.dataset.saving="false";const button=form.querySelector('button[type="submit"]');if(button)button.disabled=false;}}
+}
+function renderOwnerBackupSync(box){
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can use backup and sync controls.","تەنێ خاوەن دەتوانیت ئامرازێن پاشەکەفتن و هاوکاتکرنێ بکارهێنیت.","يمكن لمالك المتجر فقط استخدام النسخ الاحتياطي والمزامنة.");return;}
+  const shared=Boolean(cloudMode&&cloudAccount?.role==="owner");
+  box.innerHTML='<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><div><h3>'+ownerSettingsTranslation("Backup & Sync","پاشەکەفتن و هاوکاتکرن","النسخ الاحتياطي والمزامنة")+'</h3><p>'+ownerSettingsTranslation("Use the existing restore and synchronization tools.","ئامرازێن هەیی یێن ڤەگەڕاندن و هاوکاتکرنێ بکارهێنە.","استخدم أدوات الاستعادة والمزامنة الحالية.")+'</p></div></div><div class="owner-form"><strong>'+ownerSettingsTranslation(shared?"Signed in to the shared Owner account.":"This session is using local preview data.",shared?"گرێدای هژمارا خاوەنێ هاوبەشە.":"ڤی دانیشینێ داتای پێشبینینا ناڤی بکاردئینیت.",shared?"مسجل الدخول إلى حساب المالك المشترك.":"تستخدم هذه الجلسة بيانات معاينة محلية.")+'</strong><p class="owner-settings-intro">'+ownerSettingsTranslation(shared?"Refresh to load the latest shared settings on this device.":"Sign in to the shared Owner account to synchronize settings across devices.",shared?"بۆ وەرگرتنا ڕێکخستنێن نوو ل ڤی ئامێری نوو بکە.":"بۆ هاوکاتکرنا ڕێکخستنێن ل ئامێرێن دیتر گرێدانا هژمارا خاوەنێ هاوبەش بکە.",shared?"حدّث لتحميل أحدث الإعدادات المشتركة على هذا الجهاز.":"سجل الدخول إلى حساب المالك المشترك لمزامنة الإعدادات بين الأجهزة.")+'</p><div class="owner-settings-shortcuts">'+(shared?'<button type="button" class="owner-action" onclick="refreshOwnerSettingsSync()">'+ownerSettingsTranslation("Refresh shared data","داتا یا هاوبەش نوو بکە","حدّث البيانات المشتركة")+'</button>':"")+'<button type="button" class="owner-action" onclick="exportLegacyBackup()">'+ownerSettingsTranslation("Download available data backup","پاشەکەفتا داتای بەردەست دابەزینە","نزّل نسخة من البيانات المتاحة")+'</button></div><p id="ownerSettingsSyncStatus" class="owner-settings-status" role="status" aria-live="polite"></p></div><div id="ownerBackupSync" class="owner-form"><h4>'+ownerSettingsTranslation("Restore a Shivan Shop backup","پاشەکەفتەکا Shivan Shop ڤەگەڕێنە","استعد نسخة Shivan Shop احتياطية")+'</h4><p class="owner-settings-intro">'+ownerSettingsTranslation("Import uses the existing Owner-only migration endpoint. A restore can replace shared settings and account data for matching records; verify the file before importing.","هاوردن دەرگەهێ گواستنەوە یا تایبەت ب خاوەنێ بکاردئینیت. ڤەگەڕاندن دەتوانیت ڕێکخستن و داتای هژمارا هاوبەش بگۆڕیت؛ پێش هاوردن فایلێ بپشکنە.","يستخدم الاستيراد نقطة الترحيل الخاصة بالمالك. قد يستبدل الاسترداد الإعدادات والبيانات المشتركة للسجلات المطابقة؛ تحقق من الملف قبل الاستيراد.")+'</p><label for="cloudBackupFile">'+ownerSettingsTranslation("Choose backup file","فایلا پاشەکەفتی هەلبژێرە","اختر ملف النسخة الاحتياطية")+'</label><input id="cloudBackupFile" type="file" accept="application/json,.json" onchange="migrateLegacyBackup(this.files[0]);this.value=\'\'"><small>'+ownerSettingsTranslation("Supported format: Shivan Shop cloud backup JSON.","فۆرماتا پشتگیری: JSON یا پاشەکەفتا Cloud یا Shivan Shop.","الصيغة المدعومة: ملف JSON لنسخة Shivan Shop السحابية.")+'</small></div></section>';
+}
+async function refreshOwnerSettingsSync(){
+  if(!isOwner()||!cloudMode||cloudAccount?.role!=="owner")return false;
+  const status=document.getElementById("ownerSettingsSyncStatus");if(status)status.textContent=ownerDashboardText("Refreshing shared data…","داتا یا هاوبەش نوو دبیت…","جارٍ تحديث البيانات المشتركة…");
+  try{await refreshCloudData();const current=document.getElementById("ownerSettingsSyncStatus");if(current){current.textContent=ownerDashboardText("Shared data refreshed from the server.","داتا یا هاوبەش ژ سێرڤەری هاتە نووکرن.","تم تحديث البيانات المشتركة من الخادم.");current.dataset.state="success";}return true;}
+  catch(error){const current=document.getElementById("ownerSettingsSyncStatus");if(current){current.textContent=ownerDashboardText("Shared data could not be refreshed. Try again when connected.","داتا یا هاوبەش نەهاتییە نووکرن. دەمێ گرێدانی هەیە دوبارە هەوڵ بدە.","تعذر تحديث البيانات المشتركة. حاول مرة أخرى عند الاتصال.");current.dataset.state="error";}return false;}
 }
 
 function ownerDashboardNavItems(){
@@ -9252,7 +9494,7 @@ function ensureOwnerDashboardShell(box){
 
 function renderOwnerDashboardNavigation(){
   document.querySelectorAll("#ownerPanelContent [data-owner-route]").forEach(button=>{
-    const active=button.dataset.ownerRoute===ownerDashboardNavKey;
+  const route=button.dataset.ownerRoute,active=route===ownerDashboardNavKey||route==="store-settings"&&ownerDashboardNavKey.startsWith("settings-")||route==="colors"&&ownerDashboardNavKey==="settings-appearance"||route==="backup"&&ownerDashboardNavKey==="settings-backup";
     button.classList.toggle("active",active);
     if(active)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
   });
@@ -9309,7 +9551,7 @@ function markOwnerSmartAlertRead(id){if(!isOwner())return false;const s=readOwne
 function clearOwnerSmartAlert(id){if(!isOwner())return false;const s=readOwnerSmartAlertState(),target=String(id);if(!s.alerts.some(x=>x.id===target))return false;s.alerts=s.alerts.filter(x=>x.id!==target);s.clearedIds=[...new Set([...s.clearedIds,target])].slice(-5000);writeOwnerSmartAlertState(s);refreshOwnerSmartAlertView();showToast(ownerDashboardText("Alert cleared.","ئاگاداری هاتە پاککرن.","تم مسح التنبيه."));return true;}
 function markAllOwnerSmartAlertsRead(){if(!isOwner())return false;const s=readOwnerSmartAlertState(),t=new Date().toISOString();s.alerts=s.alerts.map(a=>({...a,readAt:a.readAt||t}));writeOwnerSmartAlertState(s);refreshOwnerSmartAlertView();return true;}
 function scheduleOwnerSmartAlertEvaluation(now=Date.now()){if(ownerSmartAlertTimer){clearTimeout(ownerSmartAlertTimer);ownerSmartAlertTimer=0;}if(!isOwner()||typeof setTimeout!=="function")return;const times=(Array.isArray(products)?products:[]).filter(p=>p?.discountTimerEnabled===true&&productDiscountPercent(p)>0).map(p=>Date.parse(String(p.discountEndsAt||""))).filter(x=>Number.isFinite(x)&&x>now).map(x=>x-now>OWNER_SMART_ALERT_EXPIRING_MS?x-OWNER_SMART_ALERT_EXPIRING_MS:x);if(!times.length)return;ownerSmartAlertTimer=setTimeout(()=>{ownerSmartAlertTimer=0;reconcileOwnerSmartAlerts({notify:true});},Math.max(1000,Math.min(2147480000,Math.min(...times)-now+1000)));}
-function reconcileOwnerSmartAlerts(options={}){if(!isOwner())return {created:[],state:normalizeOwnerSmartAlertState({})};const now=Number.isFinite(Number(options.now))?Number(options.now):Date.now(),notify=options.notify!==false,s=readOwnerSmartAlertState(),created=[],ids=[...new Set((typeof getOrders==="function"?getOrders():[]).map(o=>String(o?.id||o?.orderId||"")).filter(Boolean))];if(!s.initialized){s.initialized=true;s.seenOrderIds=ids;}else{const seen=new Set(s.seenOrderIds);for(const id of ids){if(seen.has(id))continue;const e={id:"order:"+encodeURIComponent(id),type:"new_order",entityId:id};if(recordOwnerSmartAlert(s,e,now))created.push(e);seen.add(id);}s.seenOrderIds=[...seen];}const all=Array.isArray(products)?products:[],baseline=!s.stockInitialized;for(const p of all){const pid=String(p?.id||"");if(!pid)continue;const variants=Array.isArray(p.variants)&&p.variants.length?p.variants:[{color:"",size:"",stock:p.stock}];for(const v of variants){const color=String(v?.color||""),size=String(v?.size||""),variantId=String(v?.qrId||""),key=pid+"|"+(variantId||pid+"|"+color+"|"+size),qty=Math.max(0,Math.floor(Number(v?.stock)||0)),status=qty===0?"out":qty<=OWNER_SMART_ALERT_LOW_STOCK?"low":"normal",prev=s.stockState[key];if(!prev){s.stockState[key]={status,cycle:0,updatedAt:new Date(now).toISOString()};if(!baseline&&status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":1",type,entityId:pid,variantId,color,size,quantity:qty,status};if(recordOwnerSmartAlert(s,e,now))created.push(e);s.stockState[key].cycle=1;}}else if(prev.status!==status){const cycle=(Number(prev.cycle)||0)+1;s.stockState[key]={status,cycle,updatedAt:new Date(now).toISOString()};if(status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":"+cycle,type,entityId:pid,variantId,color,size,quantity:qty,status};if(recordOwnerSmartAlert(s,e,now))created.push(e);}}}}s.stockInitialized=true;const active=new Set();for(const p of all){const pid=String(p?.id||""),end=Date.parse(String(p?.discountEndsAt||""));if(!pid||p?.discountTimerEnabled!==true||!productDiscountPercent(p)||!Number.isFinite(end))continue;active.add(pid);let d=s.discountState[pid];if(!d||Number(d.endAt)!==end)d={endAt:end,expiring:false,expired:false,updatedAt:new Date(now).toISOString()};if(end>now&&end-now<=OWNER_SMART_ALERT_EXPIRING_MS&&!d.expiring){const e={id:"discount:expiring:"+encodeURIComponent(pid)+":"+end,type:"discount_expiring",entityId:pid,endsAt:new Date(end).toISOString()};if(recordOwnerSmartAlert(s,e,now))created.push(e);d.expiring=true;d.updatedAt=new Date(now).toISOString();}if(end<=now&&!d.expired){const e={id:"discount:expired:"+encodeURIComponent(pid)+":"+end,type:"discount_expired",entityId:pid,endsAt:new Date(end).toISOString()};if(recordOwnerSmartAlert(s,e,now))created.push(e);d.expired=true;d.updatedAt=new Date(now).toISOString();}s.discountState[pid]=d;}for(const pid of Object.keys(s.discountState))if(!active.has(pid))delete s.discountState[pid];const saved=writeOwnerSmartAlertState(s);scheduleOwnerSmartAlertEvaluation(now);if(notify&&created.length&&typeof showToast==="function")showToast(ownerDashboardText(created.length===1?"A new store alert is ready.":created.length+" new store alerts are ready.",created.length===1?"ئاگادارییەکا نوو هەیە.":created.length+" ئاگاداریێن نوو هەن.","New store alert"));return {created,state:saved};}
+function reconcileOwnerSmartAlerts(options={}){if(!isOwner())return {created:[],state:normalizeOwnerSmartAlertState({})};const now=Number.isFinite(Number(options.now))?Number(options.now):Date.now(),notify=options.notify!==false,s=readOwnerSmartAlertState(),created=[],ids=[...new Set((typeof getOrders==="function"?getOrders():[]).map(o=>String(o?.id||o?.orderId||"")).filter(Boolean))];if(!s.initialized){s.initialized=true;s.seenOrderIds=ids;}else{const seen=new Set(s.seenOrderIds);for(const id of ids){if(seen.has(id))continue;const e={id:"order:"+encodeURIComponent(id),type:"new_order",entityId:id};if(ownerNotificationPreferenceEnabled(e.type,"inApp")&&recordOwnerSmartAlert(s,e,now))created.push(e);seen.add(id);}s.seenOrderIds=[...seen];}const all=Array.isArray(products)?products:[],baseline=!s.stockInitialized;for(const p of all){const pid=String(p?.id||"");if(!pid)continue;const variants=Array.isArray(p.variants)&&p.variants.length?p.variants:[{color:"",size:"",stock:p.stock}];for(const v of variants){const color=String(v?.color||""),size=String(v?.size||""),variantId=String(v?.qrId||""),key=pid+"|"+(variantId||pid+"|"+color+"|"+size),qty=Math.max(0,Math.floor(Number(v?.stock)||0)),status=qty===0?"out":qty<=OWNER_SMART_ALERT_LOW_STOCK?"low":"normal",prev=s.stockState[key];if(!prev){s.stockState[key]={status,cycle:0,updatedAt:new Date(now).toISOString()};if(!baseline&&status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":1",type,entityId:pid,variantId,color,size,quantity:qty,status};if(ownerNotificationPreferenceEnabled(e.type,"inApp")&&recordOwnerSmartAlert(s,e,now))created.push(e);s.stockState[key].cycle=1;}}else if(prev.status!==status){const cycle=(Number(prev.cycle)||0)+1;s.stockState[key]={status,cycle,updatedAt:new Date(now).toISOString()};if(status!=="normal"){const type=status==="out"?"out_of_stock":"low_stock",e={id:"stock:"+encodeURIComponent(key)+":"+status+":"+cycle,type,entityId:pid,variantId,color,size,quantity:qty,status};if(ownerNotificationPreferenceEnabled(e.type,"inApp")&&recordOwnerSmartAlert(s,e,now))created.push(e);}}}}s.stockInitialized=true;const active=new Set();for(const p of all){const pid=String(p?.id||""),end=Date.parse(String(p?.discountEndsAt||""));if(!pid||p?.discountTimerEnabled!==true||!productDiscountPercent(p)||!Number.isFinite(end))continue;active.add(pid);let d=s.discountState[pid];if(!d||Number(d.endAt)!==end)d={endAt:end,expiring:false,expired:false,updatedAt:new Date(now).toISOString()};if(end>now&&end-now<=OWNER_SMART_ALERT_EXPIRING_MS&&!d.expiring){const e={id:"discount:expiring:"+encodeURIComponent(pid)+":"+end,type:"discount_expiring",entityId:pid,endsAt:new Date(end).toISOString()};if(ownerNotificationPreferenceEnabled(e.type,"inApp")&&recordOwnerSmartAlert(s,e,now))created.push(e);d.expiring=true;d.updatedAt=new Date(now).toISOString();}if(end<=now&&!d.expired){const e={id:"discount:expired:"+encodeURIComponent(pid)+":"+end,type:"discount_expired",entityId:pid,endsAt:new Date(end).toISOString()};if(ownerNotificationPreferenceEnabled(e.type,"inApp")&&recordOwnerSmartAlert(s,e,now))created.push(e);d.expired=true;d.updatedAt=new Date(now).toISOString();}s.discountState[pid]=d;}for(const pid of Object.keys(s.discountState))if(!active.has(pid))delete s.discountState[pid];const saved=writeOwnerSmartAlertState(s);scheduleOwnerSmartAlertEvaluation(now);if(notify&&created.length&&typeof showToast==="function")showToast(ownerDashboardText(created.length===1?"A new store alert is ready.":created.length+" new store alerts are ready.",created.length===1?"ئاگادارییەکا نوو هەیە.":created.length+" ئاگاداریێن نوو هەن.","New store alert"));return {created,state:saved};}
 let ownerPushActionPending=false;
 let pendingOwnerPushTarget=null;
 let pendingCustomerPushTarget=null;
@@ -10091,51 +10333,66 @@ function ownerAppearanceThemePreset(theme){
   return Object.hasOwn(OWNER_THEME_PRESETS,String(theme||""))?OWNER_THEME_PRESETS[theme]:null;
 }
 
+function ownerAppearanceFieldLabel(field){
+  const labels={primary:["Primary accent color","ڕەنگا سەرەکی","لون التمييز الأساسي"],secondary:["Secondary accent color","ڕەنگا دووەم","لون التمييز الثانوي"],background:["Page background","پاشبنەمای پەڕێ","خلفية الصفحة"],card:["Card background","پاشبنەمای کارتی","خلفية البطاقة"],text:["Main text color","ڕەنگێ نووسینا سەرەکی","لون النص الأساسي"],secondaryText:["Secondary text color","ڕەنگێ نووسینا دووەم","لون النص الثانوي"],button:["Button color","ڕەنگێ دوگمەیێ","لون الزر"]};
+  const values=labels[field?.key]||[field?.label||"Color","ڕەنگ","اللون"];
+  return ownerDashboardText(...values);
+}
+function ownerAppearanceLocalizedContrastWarning(warning){
+  const messages={
+    "Main text needs stronger contrast against the page or card background.":["Main text needs stronger contrast against the page or card background.","نووسینا سەرەکی پێدڤی ب جیاوازییا زێدەتر ل دژی پاشبنەمێ پەڕێ یان کارتێ هەیە.","يحتاج النص الأساسي إلى تباين أقوى مع خلفية الصفحة أو البطاقة."],
+    "Secondary text needs stronger contrast against the page or card background.":["Secondary text needs stronger contrast against the page or card background.","نووسینا دووەم پێدڤی ب جیاوازییا زێدەتر ل دژی پاشبنەمێ پەڕێ یان کارتێ هەیە.","يحتاج النص الثانوي إلى تباين أقوى مع خلفية الصفحة أو البطاقة."],
+    "Primary accent text may be hard to read on the page or cards; the site will use a readable fallback for text.":["Primary accent text may be hard to read on the page or cards; the site will use a readable fallback for text.","نووسینا ڕەنگا سەرەکی دڤێت ل پەڕێ یان کارتان ب زەحمەت بخوینرێت؛ وێبسایتێ دێ ڕەنگەکا خواندنا ئاسان بکاردئینیت.","قد يصعب قراءة نص التمييز الأساسي على الصفحة أو البطاقات؛ سيستخدم الموقع لوناً بديلاً مقروءاً."],
+    "Secondary accents may be hard to distinguish from the page or cards.":["Secondary accents may be hard to distinguish from the page or cards.","جوداهیا ڕەنگێن دووەم دڤێت ژ پەڕێ یان کارتان ب زەحمەت دیار بیت.","قد يصعب تمييز ألوان التمييز الثانوية عن الصفحة أو البطاقات."],
+  };
+  const values=messages[warning];return values?ownerDashboardText(...values):warning;
+}
+
 function ownerAppearanceHexInput(field,value){
   const color=safeAppearanceColor(value,"#000000");
-  return `<div class="owner-theme-color-field"><label for="${field.id}Hex">${escapeHtml(field.label)}</label><input id="${field.id}Picker" type="color" value="${color}" aria-label="Choose ${escapeHtml(field.label)}" oninput="syncOwnerAppearanceColor('${field.key}','picker')"><input id="${field.id}Hex" type="text" value="${color.toUpperCase()}" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" inputmode="text" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(field.label)} HEX" aria-describedby="ownerAppearanceStatus" oninput="syncOwnerAppearanceColor('${field.key}','hex')" required></div>`;
+  return `<div class="owner-theme-color-field"><label for="${field.id}Hex">${escapeHtml(ownerAppearanceFieldLabel(field))}</label><input id="${field.id}Picker" type="color" value="${color}" aria-label="${ownerDashboardText("Choose ","هەلبژێرە ","اختر ")}${escapeHtml(ownerAppearanceFieldLabel(field))}" oninput="syncOwnerAppearanceColor('${field.key}','picker')"><input id="${field.id}Hex" type="text" value="${color.toUpperCase()}" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" inputmode="text" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(ownerAppearanceFieldLabel(field))} HEX" aria-describedby="ownerAppearanceStatus" oninput="syncOwnerAppearanceColor('${field.key}','hex')" required></div>`;
 }
 
 function ownerAppearancePresetMarkup(theme){
-  return Object.entries(OWNER_THEME_PRESETS).map(([key,preset])=>`<button type="button" class="owner-theme-preset" data-owner-theme="${key}" aria-pressed="${theme===key?"true":"false"}" style="--owner-theme-primary:${preset.primary}" onclick="selectOwnerTheme('${key}')"><span class="owner-theme-preset-swatches" aria-hidden="true"><i style="background:${preset.primary}"></i><i style="background:${preset.secondary}"></i><i style="background:${preset.button}"></i></span><span class="owner-theme-preset-copy"><strong>${OWNER_THEME_LABELS[key]}</strong><small>${theme===key?"Selected":"Choose theme"}</small></span></button>`).join("");
+  const labels={purple:ownerDashboardText("Purple","مۆر","بنفسجي"),pink:ownerDashboardText("Pink","پەمەیی","وردي"),blue:ownerDashboardText("Blue","شین","أزرق"),teal:ownerDashboardText("Teal","شینی سەوز","أزرق مخضر"),gold:ownerDashboardText("Gold","زێڕین","ذهبي")};
+  return Object.entries(OWNER_THEME_PRESETS).map(([key,preset])=>`<button type="button" class="owner-theme-preset" data-owner-theme="${key}" aria-pressed="${theme===key?"true":"false"}" style="--owner-theme-primary:${preset.primary}" onclick="selectOwnerTheme('${key}')"><span class="owner-theme-preset-swatches" aria-hidden="true"><i style="background:${preset.primary}"></i><i style="background:${preset.secondary}"></i><i style="background:${preset.button}"></i></span><span class="owner-theme-preset-copy"><strong>${labels[key]||OWNER_THEME_LABELS[key]}</strong><small>${theme===key?ownerDashboardText("Selected","هەلبژێردراو","محدد"):ownerDashboardText("Choose theme","بابەت هەلبژێرە","اختر السمة")}</small></span></button>`).join("");
 }
-
 function ownerAppearancePreviewMarkup(appearance={}){
   const theme=normalizeOwnerAppearance(appearance);
-  const product=(Array.isArray(products)?products:[]).find(item=>productDiscountPercent(item)>0)||(Array.isArray(products)?products:[])[0]||{name:"Fashion product",price:0,image:""};
+  const product=(Array.isArray(products)?products:[]).find(item=>productDiscountPercent(item)>0)||(Array.isArray(products)?products:[])[0]||{name:ownerDashboardText("Fashion product","بەرهەمێ شیک","منتج أزياء"),price:0,image:""};
   const pricing=typeof getProductPricing==="function"?getProductPricing(product):null;
   const original=Math.max(0,Number(pricing?.originalPrice??product.price)||0);
   const savedDiscount=productDiscountPercent(product);
   const discount=savedDiscount||20;
   const final=savedDiscount?Math.max(0,Number(pricing?.finalPrice)||0):Math.round(original*(100-discount)/100);
   const image=safeImageUrl(productPhotos(product)?.[0]?.src||product.image||"");
-  const productName=typeof getProductName==="function"?getProductName(product):String(product.name||"Fashion product");
-  const category=String(product.category||"New collection");
+  const productName=typeof getProductName==="function"?getProductName(product):String(product.name||ownerDashboardText("Fashion product","بەرهەمێ شیک","منتج أزياء"));
+  const category=String(product.category||ownerDashboardText("New collection","کۆلیکشەکا نوو","مجموعة جديدة"));
   const label=OWNER_FONT_LABELS[theme.font]||OWNER_FONT_LABELS.tahoma;
   const warnings=ownerAppearanceContrastIssues(theme);
-  const imageMarkup=image?"<img src=\""+escapeHtml(image)+"\" alt=\""+escapeHtml(productName)+" preview\">":"";
-  const warningMarkup=warnings.length?"<p class=\"owner-theme-contrast-note\" role=\"status\">For comfortable reading: "+warnings.map(escapeHtml).join(" ")+"</p>":"";
+  const imageMarkup=image?"<img src=\""+escapeHtml(image)+"\" alt=\""+escapeHtml(productName)+" "+ownerDashboardText("preview","پێشبینین","معاينة")+"\">":"";
+  const warningMarkup=warnings.length?"<p class=\"owner-theme-contrast-note\" role=\"status\">"+ownerDashboardText("For comfortable reading: ","بۆ خواندنا ئاسان: ","لقراءة مريحة: ")+warnings.map(ownerAppearanceLocalizedContrastWarning).map(escapeHtml).join(" ")+"</p>":"";
   const readableText=ownerAppearanceReadableText(theme.text,[theme.background,theme.card]);
   const readableSecondaryText=ownerAppearanceReadableText(theme.secondaryText,[theme.background,theme.card]);
   const readablePrimary=ownerAppearanceReadableText(theme.primary,[theme.background,theme.card]);
   const readableSecondary=ownerAppearanceReadableText(theme.secondary,[theme.background,theme.card]);
   const style="--owner-theme-primary:"+theme.primary+";--owner-theme-secondary:"+theme.secondary+";--owner-theme-background:"+theme.background+";--owner-theme-card:"+theme.card+";--owner-theme-text:"+theme.text+";--owner-theme-secondary-text:"+theme.secondaryText+";--owner-theme-button:"+theme.button+";--owner-theme-button-text:"+ownerAppearanceContrastText(theme.button)+";--owner-theme-readable-text:"+readableText+";--owner-theme-readable-secondary-text:"+readableSecondaryText+";--owner-theme-readable-primary:"+readablePrimary+";--owner-theme-readable-secondary:"+readableSecondary+";font-family:"+(OWNER_FONT_OPTIONS[theme.font]||OWNER_FONT_OPTIONS.tahoma);
-  return "<div class=\"owner-theme-live-preview\" id=\"ownerThemeLivePreview\" style=\""+style+"\"><header class=\"owner-theme-preview-header\"><strong>"+escapeHtml(theme.storeName||"SHIVAN SHOP")+"</strong><span aria-hidden=\"true\">☰</span></header><nav class=\"owner-theme-preview-nav\" aria-label=\"Theme preview navigation\"><span>Shop</span><span>Search</span><span>Cart</span><span>Profile</span></nav><div class=\"owner-theme-preview-grid\"><article class=\"owner-theme-preview-product\"><div class=\"owner-theme-preview-image\">"+imageMarkup+"<span class=\"owner-theme-preview-discount\">-"+discount+"%"+(savedDiscount?"":" preview")+"</span></div><div class=\"owner-theme-preview-product-copy\"><strong>"+escapeHtml(productName)+"</strong><div class=\"owner-theme-preview-prices\"><del class=\"owner-theme-preview-old-price\">"+escapeHtml(formatPrice(original))+"</del><span class=\"owner-theme-preview-final-price\">"+escapeHtml(formatPrice(final))+"</span></div><button type=\"button\">Add to cart</button></div></article><div class=\"owner-theme-preview-category\"><span aria-hidden=\"true\">✦</span><span>"+escapeHtml(category)+"</span></div></div>"+warningMarkup+"<small>Font preview: "+escapeHtml(label)+" · visual preview only; store data is unchanged</small></div>";
+  return "<div class=\"owner-theme-live-preview\" id=\"ownerThemeLivePreview\" style=\""+style+"\"><header class=\"owner-theme-preview-header\"><strong>"+escapeHtml(theme.storeName||"SHIVAN SHOP")+"</strong><span aria-hidden=\"true\">☰</span></header><nav class=\"owner-theme-preview-nav\" aria-label=\""+ownerDashboardText("Theme preview navigation","ڕێڤەبەریا پێشبینینا بابەتێ","تنقل في معاينة السمة")+"\"><span>"+ownerDashboardText("Shop","فرۆشگە","المتجر")+"</span><span>"+ownerDashboardText("Search","گەڕان","بحث")+"</span><span>"+ownerDashboardText("Cart","سەبەت","السلة")+"</span><span>"+ownerDashboardText("Profile","پڕۆفایل","الملف الشخصي")+"</span></nav><div class=\"owner-theme-preview-grid\"><article class=\"owner-theme-preview-product\"><div class=\"owner-theme-preview-image\">"+imageMarkup+"<span class=\"owner-theme-preview-discount\">-"+discount+"%"+(savedDiscount?"":" "+ownerDashboardText("preview","پێشبینین","معاينة"))+"</span></div><div class=\"owner-theme-preview-product-copy\"><strong>"+escapeHtml(productName)+"</strong><div class=\"owner-theme-preview-prices\"><del class=\"owner-theme-preview-old-price\">"+escapeHtml(formatPrice(original))+"</del><span class=\"owner-theme-preview-final-price\">"+escapeHtml(formatPrice(final))+"</span></div><button type=\"button\">"+ownerDashboardText("Add to cart","زێدە بکە سەبەتێ","أضف إلى السلة")+"</button></div></article><div class=\"owner-theme-preview-category\"><span aria-hidden=\"true\">✦</span><span>"+escapeHtml(category)+"</span></div></div>"+warningMarkup+"<small>"+ownerDashboardText("Font preview: ","پێشبینیا فۆنتێ: ","معاينة الخط: ")+""+escapeHtml(label)+" · "+ownerDashboardText("visual preview only; store data is unchanged","تەنێ پێشبینییە؛ داتا یا فرۆشگە ناگۆڕیت","معاينة فقط؛ بيانات المتجر لم تتغير")+"</small></div>";
 }
 function readOwnerAppearanceForm(){
   const form=document.getElementById("ownerAppearanceForm");
-  if(!form)throw new Error("The appearance editor is not available. Reopen Colors & Font and try again.");
+  if(!form)throw new Error(ownerDashboardText("The appearance editor is not available. Reopen Colors & Font and try again.","دەستکاریا دەرکەفتنێ بەردەست نینە. ڕەنگ و فۆنت دووبارە ڤەکە.","محرر المظهر غير متاح. أعد فتح الألوان والخط ثم حاول مجدداً."));
   const colors={};
   for(const field of OWNER_APPEARANCE_COLOR_FIELDS){
     const input=document.getElementById(`${field.id}Hex`);
     const value=String(input?.value||"").trim();
-    if(!isValidAppearanceHex(value)){input?.setAttribute("aria-invalid","true");throw new Error(`${field.label} must use a HEX color such as #8966FF.`);}
+    if(!isValidAppearanceHex(value)){input?.setAttribute("aria-invalid","true");throw new Error(ownerDashboardText("Use a six-digit HEX color such as #8966FF.","ڕەنگەکا HEX یا شەش ژمارەیی وەک #8966FF بکارهێنە.","استخدم لون HEX من ستة أرقام مثل #8966FF."));}
     input?.removeAttribute("aria-invalid");
     colors[field.key]=value.toLowerCase();
   }
   const font=document.getElementById("ownerFont")?.value||"tahoma";
-  if(!Object.hasOwn(OWNER_FONT_OPTIONS,font))throw new Error("Choose one of the available fonts.");
-  const value={...ownerAppearance,...colors,theme:form.dataset.theme||ownerAppearance.theme,font,storeName:document.getElementById("ownerStoreName")?.value.trim()||"",tagline:document.getElementById("ownerTagline")?.value.trim()||"",heroTitle:document.getElementById("ownerHeroTitle")?.value.trim()||"",heroMessage:document.getElementById("ownerHeroMessage")?.value.trim()||""};
+  if(!Object.hasOwn(OWNER_FONT_OPTIONS,font))throw new Error(ownerDashboardText("Choose one of the available fonts.","فۆنتەکێ ژ فۆنتێن بەردەست هەلبژێرە.","اختر خطاً من الخطوط المتاحة."));
+  const value={...ownerAppearance,...colors,theme:form.dataset.theme||ownerAppearance.theme,font};
   return normalizeOwnerAppearance(value);
 }
 
@@ -10153,34 +10410,25 @@ function renderOwnerAppearancePreview(appearance){
 }
 
 function renderOwnerAppearance(box){
-  if(!isOwner()){box.textContent="Only the store owner can change colors and fonts.";return;}
+  if(!isOwner()){box.textContent=ownerDashboardText("Only the store owner can change colors and fonts.","تەنێ خاوەن دەتوانیت ڕەنگ و فۆنتان بگۆڕیت.","يمكن لمالك المتجر فقط تغيير الألوان والخطوط.");return;}
   const appearance=normalizeOwnerAppearance(ownerAppearance);
   box.innerHTML=`
     <form id="ownerAppearanceForm" class="owner-form owner-theme-editor" data-theme="${escapeHtml(appearance.theme)}" onsubmit="saveOwnerAppearance(event)">
-      <h3>Colors &amp; Font</h3>
-      <p class="owner-theme-hint">Choose a ready-made palette or customize every store color. Preview your changes below before saving; only saved settings are shared with visitors on other devices.</p>
-      <strong>Ready-made themes</strong>
-      <div id="ownerThemePresets" class="owner-theme-presets" role="group" aria-label="Ready-made store themes">${ownerAppearancePresetMarkup(appearance.theme)}</div>
-      <strong>Custom colors</strong>
+      <h3>${ownerDashboardText("Colors &amp; Font","ڕەنگ و فۆنت","الألوان والخط")}</h3>
+      <p class="owner-theme-hint">${ownerDashboardText("Choose a ready-made palette or customize every store color. Preview your changes below before saving; only saved settings are shared with visitors on other devices.","ڕەنگەکێ ئامادە هەلبژێرە یان هەر ڕەنگەکێ بگۆڕە. پێش پاشەکەفتکرنێ پێشبینی بکە؛ تەنێ ڕێکخستنێن پاشەکەفتکری د ئامێرێن دیتر دا هێنە هاوبەشکرن.","اختر لوحة جاهزة أو خصص ألوان المتجر. راجع المعاينة قبل الحفظ؛ الإعدادات المحفوظة فقط تتم مشاركتها مع الزوار على الأجهزة الأخرى.")}</p>
+      <strong>${ownerDashboardText("Ready-made themes","بابەتێن ئامادە","سمات جاهزة")}</strong>
+      <div id="ownerThemePresets" class="owner-theme-presets" role="group" aria-label="${ownerDashboardText("Ready-made store themes","بابەتێن ئامادە یێن فرۆشگە","سمات المتجر الجاهزة")}">${ownerAppearancePresetMarkup(appearance.theme)}</div>
+      <strong>${ownerDashboardText("Custom colors","ڕەنگێن تایبەت","ألوان مخصصة")}</strong>
       <div class="owner-theme-color-grid">${OWNER_APPEARANCE_COLOR_FIELDS.map(field=>ownerAppearanceHexInput(field,appearance[field.key])).join("")}</div>
-      <label for="ownerFont">Font</label>
+      <label for="ownerFont">${ownerDashboardText("Font","فۆنت","الخط")}</label>
       <select id="ownerFont" onchange="previewOwnerAppearance()">${Object.entries(OWNER_FONT_LABELS).map(([value,label])=>`<option value="${value}" ${appearance.font===value?"selected":""}>${label}</option>`).join("")}</select>
-      <div id="ownerFontPreview" class="owner-theme-font-preview" style="font-family:${OWNER_FONT_OPTIONS[appearance.font]||OWNER_FONT_OPTIONS.tahoma}"><strong>Live font preview</strong><span>Shivan Shop · New collection · Elegant everyday style</span></div>
-      <strong>Live store preview</strong>
+      <div id="ownerFontPreview" class="owner-theme-font-preview" style="font-family:${OWNER_FONT_OPTIONS[appearance.font]||OWNER_FONT_OPTIONS.tahoma}"><strong>${ownerDashboardText("Live font preview","پێشبینیا راستەوخۆ یا فۆنتێ","معاينة مباشرة للخط")}</strong><span>${ownerDashboardText("Shivan Shop · New collection · Elegant everyday style","Shivan Shop · کۆلیکشەکا نوو · شێوازێ ڕۆژانە","Shivan Shop · مجموعة جديدة · أناقة يومية")}</span></div>
+      <strong>${ownerDashboardText("Live store preview","پێشبینیا راستەوخۆ یا فرۆشگە","معاينة مباشرة للمتجر")}</strong>
       <div id="ownerThemePreviewMount">${ownerAppearancePreviewMarkup(appearance)}</div>
       <p id="ownerAppearanceStatus" class="msg" role="status" aria-live="polite"></p>
-      <label for="ownerStoreName">Store name</label><input id="ownerStoreName" value="${escapeHtml(appearance.storeName)}" placeholder="Shivan Shop" oninput="previewOwnerAppearance()">
-      <label for="ownerTagline">Store tagline</label><input id="ownerTagline" value="${escapeHtml(appearance.tagline)}" placeholder="Leave blank for the default tagline" oninput="previewOwnerAppearance()">
-      <label for="ownerHeroTitle">Hero heading</label><input id="ownerHeroTitle" value="${escapeHtml(appearance.heroTitle)}" placeholder="Leave blank for the default heading" oninput="previewOwnerAppearance()">
-      <label for="ownerHeroMessage">Hero message</label><textarea id="ownerHeroMessage" placeholder="Leave blank for the default message" oninput="previewOwnerAppearance()">${escapeHtml(appearance.heroMessage)}</textarea>
-      <button class="main-btn" type="submit">Save Changes</button>
-      <button class="owner-action" type="button" onclick="resetOwnerAppearance()">Reset to Default</button>
+      <button class="main-btn" type="submit">${ownerDashboardText("Save Changes","گۆڕانکاریان پاشەکەفت بکە","احفظ التغييرات")}</button>
+      <button class="owner-action" type="button" onclick="resetOwnerAppearance()">${ownerDashboardText("Reset to Default","بگەڕێ د ڕێکخستنێن بنەڕەتی","استعد الإعدادات الافتراضية")}</button>
     </form>
-    <div id="ownerBackupSync" class="owner-form" style="margin-top:12px">
-      <h3>Move store data between devices</h3>
-      <p>Choose an existing backup file here to move its saved information. Passwords from old accounts are kept as secure hashes.</p>
-      ${cloudMode?'<label for="cloudBackupFile">Choose backup to sync store data</label><input id="cloudBackupFile" type="file" accept="application/json,.json" onchange="migrateLegacyBackup(this.files[0]);this.value=\'\'">':'<button class="owner-action" type="button" onclick="exportLegacyBackup()">Download legacy data backup</button><small>You can select this file later from the newer website.</small>'}
-    </div>
   `;
 }
 
@@ -10198,7 +10446,7 @@ function selectOwnerTheme(themeName){
   document.querySelectorAll("#ownerThemePresets [data-owner-theme]").forEach(button=>{
     const selected=button.dataset.ownerTheme===themeName;
     button.setAttribute("aria-pressed",String(selected));
-    const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent=selected?"Selected":"Choose theme";
+    const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent=selected?ownerDashboardText("Selected","هەلبژێردراو","محدد"):ownerDashboardText("Choose theme","بابەت هەلبژێرە","اختر السمة");
   });
   setOwnerAppearanceStatus("");
   previewOwnerAppearance();
@@ -10211,9 +10459,9 @@ function syncOwnerAppearanceColor(key,source="hex"){
   const picker=document.getElementById(`${field.id}Picker`),hex=document.getElementById(`${field.id}Hex`),form=document.getElementById("ownerAppearanceForm");
   if(!picker||!hex||!form)return;
   const value=source==="picker"?picker.value:String(hex.value||"").trim();
-  if(!isValidAppearanceHex(value)){hex.setAttribute("aria-invalid","true");setOwnerAppearanceStatus(`${field.label} must use a HEX color such as #8966FF.`,true);return;}
+  if(!isValidAppearanceHex(value)){hex.setAttribute("aria-invalid","true");setOwnerAppearanceStatus(ownerDashboardText("Use a six-digit HEX color such as #8966FF.","ڕەنگەکا HEX یا شەش ژمارەیی وەک #8966FF بکارهێنە.","استخدم لون HEX من ستة أرقام مثل #8966FF."),true);return;}
   hex.value=value.toUpperCase();hex.removeAttribute("aria-invalid");picker.value=value.toLowerCase();form.dataset.theme="custom";
-  document.querySelectorAll("#ownerThemePresets [data-owner-theme]").forEach(button=>{button.setAttribute("aria-pressed","false");const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent="Choose theme";});
+  document.querySelectorAll("#ownerThemePresets [data-owner-theme]").forEach(button=>{button.setAttribute("aria-pressed","false");const label=button.querySelector(".owner-theme-preset-copy small");if(label)label.textContent=ownerDashboardText("Choose theme","بابەت هەلبژێرە","اختر السمة");});
   setOwnerAppearanceStatus("");
   previewOwnerAppearance();
 }
@@ -10221,7 +10469,7 @@ function syncOwnerAppearanceColor(key,source="hex"){
 function previewOwnerAppearance(){
   if(!isOwner())return;
   try{renderOwnerAppearancePreview(readOwnerAppearanceForm());setOwnerAppearanceStatus("");}
-  catch(error){setOwnerAppearanceStatus(error.message||"Enter valid HEX colors to preview your theme.",true);}
+  catch(error){setOwnerAppearanceStatus(error.message||ownerDashboardText("Enter valid HEX colors to preview your theme.","بۆ پێشبینی یا بابەتێ ڕەنگێن HEX یێن دروست بنڤیسە.","أدخل ألوان HEX صحيحة لمعاينة السمة."),true);}
 }
 
 async function saveOwnerAppearance(event){
@@ -10233,55 +10481,59 @@ async function saveOwnerAppearance(event){
   const requestId=createOwnerSaveRequestId();
   let nextAppearance;
   try{nextAppearance=readOwnerAppearanceForm();}
-  catch(error){setOwnerAppearanceStatus(error.message||"Review the color values and try again.",true);showToast(error.message||"Some theme colors are invalid.");return;}
+  catch(error){setOwnerAppearanceStatus(error.message||ownerDashboardText("Review the color values and try again.","بهایێن ڕەنگان پێداچوونەوە بکە و دوبارە هەوڵ بدە.","راجع قيم الألوان وحاول مجدداً."),true);showToast(error.message||ownerDashboardText("Some theme colors are invalid.","هندەک ڕەنگێن بابەتێ نەدروستن.","بعض ألوان السمة غير صالحة."));return;}
   const previousAppearance=ownerAppearance,previousSaved=ownerAppearanceSaved;
   ownerAppearance=nextAppearance;
   ownerAppearanceSaved=true;
   try{localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));}
-  catch(error){ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;setOwnerAppearanceStatus("The theme could not be saved on this device. Check available storage and retry.",true);showToast("Theme was not saved on this device.");return;}
-  if(form)form.dataset.saving="true";
+  catch(error){ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;setOwnerAppearanceStatus(ownerDashboardText("The theme could not be saved on this device. Check available storage and retry.","بابەت ل ڤی ئامێری نەهێتە پاشەکەفتکرن. شوینا پاشەکەفتی بپشکنە و دوبارە هەوڵ بدە.","تعذر حفظ السمة على هذا الجهاز. تحقق من مساحة التخزين وحاول مجدداً."),true);showToast(ownerDashboardText("Theme was not saved on this device.","بابەت ل ڤی ئامێری نەهاتە پاشەکەفتکرن.","لم تُحفظ السمة على هذا الجهاز."));return;}
+  if(form){form.dataset.saving="true";form.dataset.shivanDraftDirty="false";}
   if(submitButton)submitButton.disabled=true;
   applyOwnerAppearance();
-  setOwnerAppearanceStatus("Saving your theme…");
+  setOwnerAppearanceStatus(ownerDashboardText("Saving your theme…","بابەت پاشەکەفت دبیت…","جارٍ حفظ السمة…"));
   try{
     if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
-    const message=cloudMode&&cloudAccount?.role==="owner"?"Theme and font saved and synced across devices.":"Theme and font saved on this device. Sign in to the shared Owner service to sync it across devices.";
+    const message=cloudMode&&cloudAccount?.role==="owner"?ownerDashboardText("Theme and font saved and synced across devices.","بابەت و فۆنت هاتنە پاشەکەفتکرن و ل ئامێرێن دیتر هاتنە هاوکاتکرن.","تم حفظ السمة والخط ومزامنتهما بين الأجهزة."):ownerDashboardText("Theme and font saved on this device. Sign in to the shared Owner service to sync it across devices.","بابەت و فۆنت ل ڤی ئامێری هاتنە پاشەکەفتکرن. بۆ هاوکاتکرنا وان ل ئامێرێن دیتر گرێدانا هژمارا خاوەنێ هاوبەش بکە.","حُفظت السمة والخط على هذا الجهاز. سجل الدخول إلى حساب المالك المشترك لمزامنتهما بين الأجهزة.");
     setOwnerAppearanceStatus(message);showToast(message);
   }catch(error){
     ownerSaveDiagnostic("owner.appearance.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
-    const message=`The theme is saved on this device, but the shared save was not confirmed. It will retry when sync is available. Reference: ${error?.requestId||requestId}`;
+    const message=ownerDashboardText(`The theme is saved on this device, but the shared save was not confirmed. It will retry when sync is available. Reference: ${error?.requestId||requestId}`,`بابەت ل ئامێری هاتە پاشەکەفتکرن، لێ پاشەکەفتنا هاوبەش نەهاتییە پشتڕاستکرن. دێ دەمێ هاوکاتکرنێ بەردەست بیت دوبارە هەوڵ بدەت. ژمارا پەیوەندی: ${error?.requestId||requestId}`,`حُفظت السمة على الجهاز، لكن لم يتم تأكيد الحفظ المشترك. ستتم إعادة المحاولة عند توفر المزامنة. المرجع: ${error?.requestId||requestId}`);
     setOwnerAppearanceStatus(message,true);showToast(message);
   }finally{if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}}
 }
 
 async function resetOwnerAppearance(){
   if(!isOwner())return;
-  if(!window.confirm("Reset the store theme, colors, font, and branding text to the Shivan Shop defaults?"))return;
+  if(!window.confirm(ownerDashboardText("Reset the store theme, colors, and font to the Shivan Shop defaults? Store information, delivery zones, and contact details will be kept.","دەرکەفتن، ڕەنگ و فۆنتێ فرۆشگە بگەڕێنە ڕێکخستنێن بنەڕەتی یێن Shivan Shop؟ زانیاریێن فرۆشگە، ناڤچەێن گەهاندنێ و پەیوەندی دپارێزیت.","هل تريد استعادة المظهر والألوان والخط إلى إعدادات Shivan Shop الافتراضية؟ ستبقى معلومات المتجر ومناطق التوصيل وبيانات الاتصال محفوظة.")))return;
   const previousAppearance={...ownerAppearance};
   const previousSaved=ownerAppearanceSaved;
   const previousValue=localStorage.getItem(OWNER_APPEARANCE_KEY);
   const requestId=createOwnerSaveRequestId();
-  ownerAppearance=normalizeOwnerAppearance(OWNER_APPEARANCE_DEFAULT);
-  ownerAppearanceSaved=false;
+  const storeFields=["storeName","tagline","heroTitle","heroMessage","storeDescription","storeLogoUrl","contactPhone","contactEmail","storeAddress","deliveryAreas","deliveryZones","deliveryChargingEnabled","deliveryEstimate","checkoutNotice","orderInstructions"];
+  const preservedStoreFields=Object.fromEntries(storeFields.filter(key=>String(previousAppearance[key]||"").trim()).map(key=>[key,previousAppearance[key]]));
+  ownerAppearance=normalizeOwnerAppearance({...OWNER_APPEARANCE_DEFAULT,...preservedStoreFields});
+  ownerAppearanceSaved=Object.keys(preservedStoreFields).length>0;
   try{
-    localStorage.removeItem(OWNER_APPEARANCE_KEY);
-    if(localStorage.getItem(OWNER_APPEARANCE_KEY)!==null)throw new Error("The device could not remove its saved appearance.");
+    if(ownerAppearanceSaved)localStorage.setItem(OWNER_APPEARANCE_KEY,JSON.stringify(ownerAppearance));
+    else localStorage.removeItem(OWNER_APPEARANCE_KEY);
+    if(ownerAppearanceSaved&&localStorage.getItem(OWNER_APPEARANCE_KEY)!==JSON.stringify(ownerAppearance))throw new Error("The device could not save the default theme.");
+    if(!ownerAppearanceSaved&&localStorage.getItem(OWNER_APPEARANCE_KEY)!==null)throw new Error("The device could not remove the saved theme.");
   }catch(error){
     ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
     renderAdvertisements();renderOwnerPanel("appearance");
-    showToast("The previous theme was kept because this device could not save the reset.");
+    showToast(ownerDashboardText("The previous theme was kept because this device could not save the reset.","بابەتا پێشوو هاتە پاراستن چونکی ڤی ئامێری نەشیا ڤەگەڕاندنێ پاشەکەفت بکەت.","تم الاحتفاظ بالسمة السابقة لأن الجهاز لم يتمكن من حفظ الاستعادة."));
     return;
   }
   renderAdvertisements();
   renderOwnerPanel("appearance");
   try{
     if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(OWNER_APPEARANCE_KEY,requestId);
-    showToast(cloudMode&&cloudAccount?.role==="owner"?"Default theme restored and synced across devices.":"Default theme restored on this device.");
+    showToast(cloudMode&&cloudAccount?.role==="owner"?ownerDashboardText("Default theme restored and synced. Store and delivery information was kept.","بابەتا بنەڕەتی هاتە ڤەگەڕاندن و هاوکاتکرن. زانیاریێن فرۆشگە و گەهاندنێ هاتنە پاراستن.","تمت استعادة السمة الافتراضية ومزامنتها. بقيت معلومات المتجر والتوصيل محفوظة."):ownerDashboardText("Default theme restored on this device. Store and delivery information was kept.","بابەتا بنەڕەتی ل ڤی ئامێری هاتە ڤەگەڕاندن. زانیاریێن فرۆشگە و گەهاندنێ هاتنە پاراستن.","تمت استعادة السمة الافتراضية على هذا الجهاز. بقيت معلومات المتجر والتوصيل محفوظة."));
   }catch(error){
     ownerAppearance=previousAppearance;ownerAppearanceSaved=previousSaved;
     try{if(previousValue===null)localStorage.removeItem(OWNER_APPEARANCE_KEY);else localStorage.setItem(OWNER_APPEARANCE_KEY,previousValue);}catch(restoreError){}
     applyOwnerAppearance();renderAdvertisements();renderOwnerPanel("appearance");
-    showToast(`The shared reset was not confirmed; the previous theme was restored. Reference: ${error?.requestId||requestId}`);
+    showToast(ownerDashboardText(`The shared reset was not confirmed; the previous theme was restored. Reference: ${error?.requestId||requestId}`,`ڤەگەڕاندنا هاوبەش نەهاتییە پشتڕاستکرن؛ بابەتا پێشوو هاتە ڤەگەڕاندن. ژمارا پەیوەندی: ${error?.requestId||requestId}`,`لم يتم تأكيد الاستعادة المشتركة؛ تمت استعادة السمة السابقة. المرجع: ${error?.requestId||requestId}`));
   }
 }
 

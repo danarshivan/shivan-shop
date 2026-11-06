@@ -66,8 +66,7 @@ assert.equal(runtime.ownerConfirmedSalesOrder({ paymentStatus: "PAID", total: 10
 
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("categories"))), { panel: "products", nav: "categories" }, "Categories opens the existing category manager");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("colors"))), { panel: "appearance", nav: "colors", focus: "ownerAppearanceForm" }, "Colors & Font opens the existing appearance editor");
-assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("store-settings"))), { panel: "appearance", nav: "store-settings", focus: "ownerAppearanceForm" }, "Store Settings reuses the existing store appearance editor");
-assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("backup"))), { panel: "appearance", nav: "backup", focus: "ownerBackupSync" }, "Backup & Sync opens the existing backup controls");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("store-settings"))), { panel: "settings", nav: "store-settings" }, "Store Settings opens the six-section settings hub");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("analytics"))), { panel: "analytics", nav: "analytics" }, "Analytics opens its owner-only report view");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("alerts"))), { panel: "alerts", nav: "alerts" }, "Smart Alerts opens its Owner-only section");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("discounts"))), { panel: "products", nav: "discounts" }, "Discounts reuse the existing product editor and stored settings");
