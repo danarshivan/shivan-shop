@@ -3222,109 +3222,76 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
   <!-- HOME -->
 
-  <div id="homeView" class="view active">
+  <div id="homeView" class="view active shop-home-view">
+    <header class="shop-discovery-header">
+      <div><p class="shop-eyebrow">SHIVAN SHOP · COLLECTION</p><h1>جولبەرگ و شتێن جوان</h1></div>
+      <button class="shop-discovery-profile" type="button" onclick="openView('profile')" aria-label="پڕۆفایل"><span aria-hidden="true">S</span></button>
+    </header>
 
-    <div class="hero">
-
+    <section class="hero shop-editorial-hero" aria-label="SHIVAN SHOP collection">
       <div class="hero-slide active">
-        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=85">
+        <img id="heroMainImage" src="" alt="" fetchpriority="high">
         <div class="hero-overlay"></div>
-
         <div class="hero-copy">
-          <small id="heroMainEyebrow">NEW COLLECTION</small>
-          <h2 id="heroMainTitle">کۆمەڵا نوێ<br><span style="color:#7447ff">جولبەرگ بۆ کچان</span></h2>
-          <p id="heroMainMessage">ستایلی جوان، راحت و کوالێتی باش بۆ هەموو کاتەکان.</p>
-          <button onclick="scrollProducts()">بینین بەرهەمەکان ←</button>
+          <small id="heroMainEyebrow">SHIVAN SHOP</small>
+          <h2 id="heroMainTitle">کۆمەڵا نوێ</h2>
+          <p id="heroMainMessage">جولبەرگ و شتێن جوان</p>
+          <button type="button" onclick="scrollProducts()">بینین بەرهەمەکان <span aria-hidden="true">→</span></button>
         </div>
       </div>
+      <div class="hero-dots"><span class="active"></span></div>
+    </section>
 
-      <div class="hero-slide">
-        <img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=1000&q=85">
-        <div class="hero-overlay"></div>
+    <section class="shop-category-shelf" aria-labelledby="shopCategoryHeading">
+      <header class="shop-shelf-heading"><div><p class="shop-eyebrow">DISCOVER YOUR STYLE</p><h2 id="shopCategoryHeading">جۆرێن بەرهەمان</h2></div><button type="button" onclick="filterCategory('هەموو')">هەمی ببینە <span aria-hidden="true">→</span></button></header>
+      <div class="categories" id="categoryButtons" aria-label="جۆرێن بەرهەمان"></div>
+    </section>
 
-        <div class="hero-copy">
-          <small>SHIVAN STYLE</small>
-          <h2>جوانی و ستایل<br><span style="color:#7447ff">بۆ هەموو کەس</span></h2>
-          <p>هەڵبژاردەیەکی جوان بۆ ستایلی ڕۆژانە.</p>
-          <button onclick="scrollProducts()">بینین بەرهەمەکان ←</button>
-        </div>
-      </div>
-
-      <div class="hero-slide">
-        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=85">
-        <div class="hero-overlay"></div>
-
-        <div class="hero-copy">
-          <small>BEST STYLE</small>
-          <h2>هەڵبژێرە<br><span style="color:#7447ff">ئەوەی دڵت دەوێت</span></h2>
-          <p>بە نرخێن گونجاو و کوالێتی باش.</p>
-          <button onclick="scrollProducts()">بینین بەرهەمەکان ←</button>
-        </div>
-      </div>
-
-      <div class="hero-dots">
-        <span class="active"></span>
-        <span></span>
-        <span></span>
-      </div>
-
-    </div>
-
-
-    <div class="categories" id="categoryButtons" aria-label="جۆرێن بەرهەمان"></div>
-
-
-    <div class="section-head">
-      <h2>بەرهەمە نوێ</h2>
-      <button onclick="filterCategory('هەموو')">هەمی ببینە ←</button>
-    </div>
-
-    <div id="productsGrid" class="products"></div>
-
+    <section class="shop-product-shelf" aria-labelledby="shopProductsHeading">
+      <header class="section-head shop-shelf-heading"><div><p class="shop-eyebrow">THE SHIVAN EDIT</p><h2 id="shopProductsHeading">بەرهەمە نوێ</h2></div><button type="button" onclick="filterCategory('هەموو')">هەمی ببینە <span aria-hidden="true">→</span></button></header>
+      <div id="productsGrid" class="products" aria-live="polite"></div>
+    </section>
   </div>
 
 
   <!-- SEARCH -->
 
-  <div id="searchView" class="view page">
-    <h1 class="page-title">گەڕان</h1>
+  <div id="searchView" class="view page shop-search-view">
+    <header class="shop-page-heading"><p class="shop-eyebrow">FIND YOUR NEXT LOOK</p><h1 class="page-title">گەڕان</h1><p>بەرهەم، ڕەنگ و ستایلێ خۆ بدۆزەڤە.</p></header>
 
-    <div class="search" style="margin-bottom:15px">
-      <span>⌕</span>
+    <label class="search shop-search-field" style="margin-bottom:15px">
+      <span aria-hidden="true">⌕</span>
       <input
         id="searchPageInput"
         type="text"
         placeholder="ناڤێ بەرهەم بنڤیسە..."
+        aria-label="ناڤێ بەرهەم بنڤیسە..."
         oninput="searchProducts(this.value)"
       >
-    </div>
+    </label>
 
-    <div id="searchGrid" class="products"></div>
+    <div id="searchGrid" class="products shop-search-results" aria-live="polite"></div>
   </div>
 
 
   <!-- CART -->
 
-  <div id="cartView" class="view page">
+  <div id="cartView" class="view page shop-cart-view">
+    <header class="shop-page-heading shop-cart-heading"><div><p class="shop-eyebrow">YOUR SHIVAN SELECTION</p><h1 class="page-title">سەبەت</h1></div><span class="shop-page-mark" aria-hidden="true">S</span></header>
+    <div class="cart-shopping-layout"><div id="cartList" class="cart-item-list"></div><aside id="cartTotal" class="cart-summary" aria-live="polite"></aside></div>
+  </div>
 
-    <h1 class="page-title">سەبەت</h1>
-
-    <div id="cartList"></div>
-
-    <div id="cartTotal"></div>
-    <section class="cart-orders-section" aria-labelledby="cartOrdersHeading">
-      <h2 id="cartOrdersHeading">داخوازی</h2>
-      <div id="ordersList"></div>
-    </section>
-
+  <div id="ordersView" class="view page shop-orders-view">
+    <header class="shop-page-heading"><p class="shop-eyebrow">YOUR SHIVAN STORY</p><h1 class="page-title">داخوازی</h1><p>داخوازی و وردەکاریێن خۆ ل ڤێرە ببینە.</p></header>
+    <div id="ordersList" class="customer-order-list"></div>
   </div>
 
 
   <!-- PROFILE -->
 
-  <div id="profileView" class="view page">
+  <div id="profileView" class="view page shop-profile-view">
 
-    <h1 class="page-title">پڕۆفایل</h1>
+    <header class="shop-page-heading"><p class="shop-eyebrow">YOUR SHIVAN ACCOUNT</p><h1 class="page-title">پڕۆفایل</h1></header>
 
     <section id="profileGuestAccess" class="profile-guest-access" aria-labelledby="profileGuestHeading" hidden>
       <h2 id="profileGuestHeading">Welcome to Shivan Shop</h2>
@@ -3337,26 +3304,23 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
     <div id="profileGuestAuthMount" class="profile-auth-mount" hidden aria-live="polite"></div>
 
-    <div id="authenticatedProfileCard" class="profile-card" hidden>
+    <div id="authenticatedProfileCard" class="profile-card shop-profile-card" hidden>
+      <header class="shop-profile-identity"><div id="avatar" class="avatar">S</div><div><h2 id="profileName">Shivan</h2><p id="profileIdentifier"></p></div></header>
 
-      <div id="avatar" class="avatar">S</div>
+      <div class="profile-actions shop-profile-actions">
 
-      <h2 id="profileName">Shivan</h2>
-
-      <p id="profileIdentifier" style="color:#999"></p>
-
-      <div class="profile-actions">
+        <button type="button" onclick="openOrdersFromNavigation()">▣ داخوازیێن من <span aria-hidden="true">›</span></button>
 
         <button onclick="editProfile()">
-          ✎ دەستکاری پڕۆفایل
+          ✎ دەستکاری پڕۆفایل <span aria-hidden="true">›</span>
         </button>
 
         <button onclick="openSettings()">
-          ⚙ رێکخستن
+          ⚙ رێکخستن <span aria-hidden="true">›</span>
         </button>
 
         <button onclick="openSupport()">
-          ? پشتگیری
+          ? پشتگیری <span aria-hidden="true">›</span>
         </button>
 
         <button class="logout" onclick="logout()">
@@ -3387,11 +3351,13 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
   <!-- PRODUCT DETAIL -->
 
-  <div id="detailView" class="view">
+  <div id="detailView" class="view shop-detail-view">
     <div id="detailBackEdge" aria-hidden="true" onpointerdown="beginProductBackSwipe(event)" onpointermove="moveProductBackSwipe(event)" onpointerup="endProductBackSwipe(event)" onpointercancel="cancelProductBackSwipe(event)"></div>
     <div class="detail">
       <div class="detail-toolbar">
         <button class="back" type="button" onclick="goBack()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 5-7 7 7 7"/></svg></button>
+        <span class="detail-toolbar-brand">SHIVAN SHOP</span>
+        <button class="detail-favorite" type="button" onclick="currentProduct&&toggleFavorite(currentProduct.id)" aria-label="♥">♡</button>
       </div>
 
       <div class="detail-main">
@@ -3401,6 +3367,12 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
           <div id="detailDiscountCountdown" class="detail-countdown-slot"></div>
         </div>
         <div class="detail-side">
+          <div class="detail-summary">
+            <p class="shop-eyebrow">SHIVAN SHOP · EDIT</p>
+            <h1 id="detailName" class="detail-title"></h1>
+            <div id="detailPrice" class="detail-price"></div>
+            <div class="detail-stock"><span>بەردەستبوون:</span> <strong id="detailStock" class="stock-line"></strong></div>
+          </div>
           <div class="detail-options">
             <div class="detail-box">
               <h3>قیاس</h3>
@@ -3410,11 +3382,6 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
               <h3>ڕەنگ</h3>
               <div id="colorOptions" class="options"></div>
             </div>
-          </div>
-          <div class="detail-summary">
-            <h1 id="detailName" class="detail-title"></h1>
-            <div id="detailPrice" class="detail-price"></div>
-            <div class="detail-stock"><span>بەردەستبوون:</span> <strong id="detailStock" class="stock-line"></strong></div>
           </div>
         </div>
       </div>
@@ -3471,6 +3438,11 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
       <span>سەبەت</span>
     </button>
 
+    <button class="nav-item" onclick="openOrdersFromNavigation()" id="navOrders">
+      <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6M9 10h6M9 14h6M9 18h3"/></svg>
+      <span>داخوازی</span>
+    </button>
+
     <button class="nav-item" onclick="openView('profile')" id="navProfile">
       <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1z"/></svg>
       <span>پڕۆفایل</span>
@@ -3479,6 +3451,11 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
     <button id="ownerPanelButton" class="nav-item owner-btn" onclick="openView('owner')" aria-label="Owner">
       <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 3l9 7v10H3z"/><path d="M9 20v-6h6v6M7 10h10"/></svg>
       <span>Owner</span>
+    </button>
+
+    <button id="navAnalytics" class="nav-item owner-analytics-nav" onclick="openOwnerAnalyticsFromNavigation()" aria-label="Analytics" hidden>
+      <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11m5 9V5m5 15v-7m5 7V3"/></svg>
+      <span>Analytics</span>
     </button>
 
   </nav>
@@ -4038,6 +4015,18 @@ languageRows.push(
   ["وێنەیا ئەسڵی دەمینیتە ناڤ بەرهەمێ تا پشتڕاستی و پاشەکەفتێ بکەی.","The original stays in the product until you confirm and save.","تبقى الصورة الأصلية في المنتج حتى تؤكد وتحفظ التغييرات."],
   ["وێنەی بەرهەم","Product photo","صورة المنتج"]
 );
+languageRows.push(
+  ["ستایلی خۆ بدۆزەڤە","DISCOVER YOUR STYLE","اكتشفي أسلوبك"],
+  ["دەستەبژێرا SHIVAN SHOP","THE SHIVAN EDIT","اختيارات SHIVAN SHOP"],
+  ["ستایلی داهاتووی خۆ بدۆزەڤە","FIND YOUR NEXT LOOK","اكتشفي إطلالتك القادمة"],
+  ["بەرهەم، ڕەنگ و ستایلێ خۆ بدۆزەڤە.","Discover products, colors and styles.","اكتشفي المنتجات والألوان والتصاميم."],
+  ["هەلبژاردنێن SHIVAN SHOP","YOUR SHIVAN SELECTION","اختياراتك من SHIVAN SHOP"],
+  ["چیرۆکا تە ل SHIVAN SHOP","YOUR SHIVAN STORY","حكايتك مع SHIVAN SHOP"],
+  ["هەژمارا تە ل SHIVAN SHOP","YOUR SHIVAN ACCOUNT","حسابك في SHIVAN SHOP"],
+  ["داخوازی و وردەکاریێن خۆ ل ڤێرە ببینە.","View your orders and their details here.","تابعي طلباتك وتفاصيلها هنا."],
+  ["داخوازیێن من","My orders","طلباتي"],
+  ["شیکاری","Analytics","التحليلات"]
+);
 const languageSourceMap=new Map();
 languageRows.forEach(([ku,en,ar])=>{
   if(!/[\u0600-\u06FF]/.test(ku)&&/[\u0600-\u06FF]/.test(en))[ku,en]=[en,ku];
@@ -4058,6 +4047,10 @@ function translateText(value,language=activeLanguage){
     if(source!==target&&result.includes(source)) result=result.split(source).join(target);
   }
   return result;
+}
+
+function customerUiText(en,ku,ar){
+  return activeLanguage==="ar"?ar:activeLanguage==="ku"?ku:en;
 }
 
 function getProductName(product,language=activeLanguage){
@@ -4266,7 +4259,7 @@ let shopOnboardingResumeState=null;
 const shopViewScrollPositions=new Map();
 let shopViewNavigationPopHandler=null;
 let shopViewNavigationScrollHandler=null;
-const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","profile","owner"]);
+const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","orders","profile","owner"]);
 let ownerPanelRefreshPending=false;
 let ownerProductWorkflowId="";
 let ownerAdWorkflowId="";
@@ -5279,7 +5272,7 @@ function applyOwnerStoreBranding(){
   const info=normalizeOwnerAppearance(ownerAppearance),name=info.storeName||"Shivan Shop",logo=document.querySelector?.("#mainApp .logo-small");
   if(brand)brand.textContent=name;
   if(tagline)tagline.textContent=info.tagline||translateText("جولبەرگ و شتێن جوان");
-  if(title){if(info.heroTitle)title.textContent=info.heroTitle;else title.innerHTML='کۆمەڵا نوێ<br><span style="color:#7447ff">جولبەرگ بۆ کچان</span>';}
+  if(title&&info.heroTitle)title.textContent=info.heroTitle;
   if(message)message.textContent=info.storeDescription||info.heroMessage||"ستایلی جوان، راحت و کوالێتی باش بۆ هەموو کاتەکان.";
   if(logo){
     if(info.storeLogoUrl)logo.innerHTML=`<img src="${escapeHtml(info.storeLogoUrl)}" alt="${escapeHtml(name)} logo">`;
@@ -6209,7 +6202,9 @@ function renderCategoryButtons(){
   const previousScrollLeft=container.scrollLeft;
   const categories=["هەموو",...getAllCategories()];
   container.innerHTML=categories.map(category=>{
-    return `<button class="category${currentCategory===category?" active":""}" type="button" data-category="${escapeHtml(category)}"><span class="cat-icon" aria-hidden="true">${escapeHtml(categoryEmoji(category))}</span><span>${escapeHtml(categoryLabel(category))}</span></button>`;
+    const sample=category==="هەموو"?null:products.find(product=>product.category===category&&product.image);
+    const icon=sample?`<img src="${escapeHtml(safeImageUrl(sample.image))}" alt="" loading="lazy">`:escapeHtml(categoryEmoji(category));
+    return `<button class="category${currentCategory===category?" active":""}" type="button" data-category="${escapeHtml(category)}"><span class="cat-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(categoryLabel(category))}</span></button>`;
   }).join("");
   container.scrollLeft=previousScrollLeft;
   container.querySelectorAll("[data-category]").forEach(button=>button.addEventListener("click",()=>filterCategory(button.dataset.category)));
@@ -6466,17 +6461,20 @@ async function addOwnerCategory(){
 function getAdvertisements(){
   try{
     const saved=JSON.parse(localStorage.getItem(ADS_KEY)||"null");
-    if(Array.isArray(saved)&&saved.length) return saved;
+    if(Array.isArray(saved)&&saved.length){advertisementsFromCatalog=false;return saved;}
   }catch(e){}
-  return [...document.querySelectorAll(".auth-ad-slide")].map(slide=>({
-    image:slide.querySelector("img")?.getAttribute("src")||"",
-    eyebrow:slide.querySelector("small")?.textContent||"SHIVAN SHOP",
-    title:slide.querySelector("h2")?.textContent||"",
-    description:slide.querySelector("p")?.textContent||""
+  advertisementsFromCatalog=true;
+  return products.slice(0,4).filter(product=>product&&product.image).map(product=>({
+    image:product.image,
+    eyebrow:"SHIVAN SHOP · FEATURED",
+    title:getProductName(product,"ku"),
+    description:formatPrice(getProductPricing(product)?.finalPrice??product.price),
+    productId:product.id
   }));
 }
 
 let advertisements=[];
+let advertisementsFromCatalog=true;
 
 function saveAdvertisements(){
   try{localStorage.setItem(ADS_KEY,JSON.stringify(advertisements));}
@@ -6487,14 +6485,14 @@ function saveAdvertisements(){
 
 function renderAdvertisements(){
   const box=document.querySelector(".auth-ad");
-  if(!advertisements.length)return;
+  if(!advertisements.length){renderHomeAdvertisements();applyOwnerAppearance();return;}
   authSlide=((authSlide||0)%advertisements.length+advertisements.length)%advertisements.length;
   heroSlide=((heroSlide||0)%advertisements.length+advertisements.length)%advertisements.length;
   if(box)box.innerHTML=advertisements.map((ad,index)=>`
     <div class="auth-ad-slide ${index===authSlide?"active":""}">
       <img src="${escapeHtml(safeImageUrl(ad.image))}" alt="">
       <div class="ad-overlay"></div>
-      <div class="ad-text"><small>${escapeHtml(ad.eyebrow)}</small><h2>${escapeHtml(ad.title)}</h2><p>${escapeHtml(ad.description)}</p></div>
+      <div class="ad-text"><small>${escapeHtml(ad.eyebrow)}</small><h2>${escapeHtml(ad.productId&&advertisementsFromCatalog?getProductName(products.find(product=>String(product.id)===String(ad.productId))):ad.title)}</h2><p>${escapeHtml(ad.productId&&advertisementsFromCatalog?formatPrice(getProductPricing(products.find(product=>String(product.id)===String(ad.productId)))?.finalPrice??products.find(product=>String(product.id)===String(ad.productId))?.price):ad.description)}</p></div>
     </div>
   `).join("")+`<div class="ad-dots">${advertisements.map((_,index)=>`<span class="${index===authSlide?"active":""}"></span>`).join("")}</div>`;
   renderHomeAdvertisements();
@@ -6503,19 +6501,25 @@ function renderAdvertisements(){
 
 function renderHomeAdvertisements(){
   const hero=document.querySelector("#homeView .hero");
-  if(!hero||!advertisements.length)return;
-  hero.innerHTML=advertisements.map((ad,index)=>`
+  if(!hero)return;
+  const slides=advertisementsFromCatalog?products.slice(0,4).filter(product=>product&&product.image).map(product=>({image:product.image,eyebrow:"SHIVAN SHOP · FEATURED",title:getProductName(product),description:formatPrice(getProductPricing(product)?.finalPrice??product.price),productId:product.id})):advertisements;
+  if(!slides.length){
+    hero.innerHTML=`<div class="hero-slide active"><div class="hero-overlay"></div><div class="hero-copy"><small id="heroMainEyebrow">SHIVAN SHOP</small><h2 id="heroMainTitle">${escapeHtml(customerUiText("New collection","کۆمەڵا نوێ","مجموعة جديدة"))}</h2><p id="heroMainMessage">${escapeHtml(customerUiText("Discover elegant pieces from Shivan Shop.","جولبەرگ و شتێن جوان ژ Shivan Shop بدۆزەڤە.","اكتشفي قطعاً أنيقة من Shivan Shop."))}</p><button type="button" onclick="scrollProducts()">${escapeHtml(customerUiText("Explore the collection","بینین بەرهەمەکان","تسوقي المجموعة"))} <span aria-hidden="true">→</span></button></div></div><div class="hero-dots"><span class="active"></span></div>`;
+    return;
+  }
+  heroSlide=Math.max(0,Math.min(slides.length-1,Number(heroSlide)||0));
+  hero.innerHTML=slides.map((ad,index)=>`
     <div class="hero-slide ${index===heroSlide?"active":""}">
-      <img src="${escapeHtml(safeImageUrl(ad.image))}" alt="">
+      <img ${index===0?'id="heroMainImage"':''} src="${escapeHtml(safeImageUrl(ad.image))}" alt="${escapeHtml(ad.productId?getProductName(products.find(product=>String(product.id)===String(ad.productId))):"")}" ${index===0?'fetchpriority="high"':'loading="lazy"'}>
       <div class="hero-overlay"></div>
       <div class="hero-copy">
         <small ${index===0?'id="heroMainEyebrow"':''}>${escapeHtml(ad.eyebrow)}</small>
         <h2 ${index===0?'id="heroMainTitle"':''}>${escapeHtml(ad.title)}</h2>
         <p ${index===0?'id="heroMainMessage"':''}>${escapeHtml(ad.description)}</p>
-        <button onclick="scrollProducts()">بینین بەرهەمەکان ←</button>
+        <button type="button" onclick="${ad.productId?`openProduct(${Number(ad.productId)})`:"scrollProducts()"}">${escapeHtml(translateText("بینین بەرهەمەکان"))} <span aria-hidden="true">→</span></button>
       </div>
     </div>
-  `).join("")+`<div class="hero-dots">${advertisements.map((_,index)=>`<span class="${index===heroSlide?"active":""}"></span>`).join("")}</div>`;
+  `).join("")+`<div class="hero-dots">${slides.map((_,index)=>`<span class="${index===heroSlide?"active":""}"></span>`).join("")}</div>`;
 }
 
 
@@ -6548,7 +6552,7 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
 }
 
 function getActiveShopView(){
-  return ["home","search","cart","profile","detail","owner"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||"home";
+  return ["home","search","cart","orders","profile","detail","owner"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||"home";
 }
 
 function shopViewHistoryState(view,position=readShopViewPosition(view)){
@@ -6898,7 +6902,7 @@ function showAuth(type){
 
 function openGuestAuthenticationModal(destination){
   const intent=typeof destination==="string"?{type:destination}:destination&&typeof destination==="object"?destination:null;
-  if(!intent||!(["cart","profile","product"].includes(intent.type))||currentUser||cloudAccount)return false;
+  if(!intent||!(["cart","orders","profile","product"].includes(intent.type))||currentUser||cloudAccount)return false;
   if(intent.type==="product"&&(intent.productId==null||intent.size==null||intent.color==null||!Number.isFinite(Number(intent.quantity))||Number(intent.quantity)<1))return false;
   const authPage=document.getElementById("authPage");
   const mainApp=document.getElementById("mainApp");
@@ -7078,7 +7082,7 @@ function resumeAuthenticationIntent(){
   const intent=pendingAuthenticationIntent;
   pendingAuthenticationIntent=null;
   if(!intent)return;
-  if(intent.type==="cart"||intent.type==="profile"){
+  if(intent.type==="cart"||intent.type==="orders"||intent.type==="profile"){
     openView(intent.type);
     return;
   }
@@ -7423,7 +7427,7 @@ function openMain(options={}){
   document.getElementById("authPage").style.display="none";
   document.getElementById("mainApp").style.display="block";
   document.getElementById("ownerPanelButton").classList.toggle("visible",isOwner()||isStaffSession());
-  document.querySelector(".bottom-nav")?.classList.toggle("owner-mode",isOwner()||isStaffSession());
+  document.querySelector(".bottom-nav")?.classList.toggle("owner-mode",getActiveShopView()==="owner"&&(isOwner()||isStaffSession()));
 
   if(!options.preserveProductGrid)renderProducts(products);
   updateCartBadge();
@@ -7443,7 +7447,7 @@ function openView(view,options={}){
   const authPage=document.getElementById("authPage");
   if(authPage?.classList.contains("is-shop-auth-modal")&&pendingAuthenticationIntent?.type==="product"&&!currentUser&&!cloudAccount)return false;
   if(authPage?.classList.contains("is-shop-auth-modal")&&!currentUser&&!cloudAccount)return false;
-  if((view==="cart"||view==="profile")&&!currentUser&&!cloudAccount){
+  if((view==="cart"||view==="orders"||view==="profile")&&!currentUser&&!cloudAccount){
     return openGuestAuthenticationModal(view);
   }
   const previousView=getActiveShopView();
@@ -7479,6 +7483,7 @@ function openView(view,options={}){
     "homeView",
     "searchView",
     "cartView",
+    "ordersView",
     "profileView",
     "detailView",
     "ownerView"
@@ -7489,6 +7494,9 @@ function openView(view,options={}){
   });
 
   document.getElementById(view+"View").classList.add("active");
+  const bottomNavigation=document.querySelector(".bottom-nav");
+  bottomNavigation?.classList.toggle("owner-mode",view==="owner"&&(isOwner()||isStaffSession()));
+  bottomNavigation?.classList.toggle("owner-customer-mode",view!=="owner"&&(isOwner()||isStaffSession()));
   document.querySelector(".app")?.classList.toggle("detail-mode",view==="detail");
   document.documentElement.classList.toggle("detail-view-open",view==="detail");
   document.body.classList.toggle("detail-view-open",view==="detail");
@@ -7509,6 +7517,9 @@ function openView(view,options={}){
   if(view==="cart")
     document.getElementById("navCart").classList.add("active");
 
+  if(view==="orders")
+    document.getElementById("navOrders").classList.add("active");
+
   if(view==="profile")
     document.getElementById("navProfile").classList.add("active");
 
@@ -7518,6 +7529,8 @@ function openView(view,options={}){
   if(view==="cart"){
     renderCart();
   }
+
+  if(view==="orders")renderOrders();
 
   if(view==="owner"){
     if(options.preserveOwnerPanel)ownerPanelRefreshPending=false;
@@ -7546,6 +7559,27 @@ function openView(view,options={}){
 
 }
 
+function openOrdersFromNavigation(){
+  if(isOwner()||isStaffSession()){
+    if(isStaffSession()&&!staffHasPermission("orders")){showToast(ownerDashboardText("Orders permission is required.","مۆڵەتا داخوازی پێدڤیە.","يلزم إذن الطلبات."));return false;}
+    openView("owner");
+    renderOwnerPanel("orders");
+    document.querySelectorAll(".bottom-nav .nav-item").forEach(button=>button.classList.remove("active"));
+    document.getElementById("navOrders")?.classList.add("active");
+    return true;
+  }
+  return openView("orders");
+}
+
+function openOwnerAnalyticsFromNavigation(){
+  if(!isOwner()&&!staffHasPermission("reports")){showToast(ownerDashboardText("Reports permission is required.","مۆڵەتا ڕاپۆرتان پێدڤیە.","يلزم إذن التقارير."));return false;}
+  openView("owner");
+  renderOwnerPanel("analytics");
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(button=>button.classList.remove("active"));
+  document.getElementById("navAnalytics")?.classList.add("active");
+  return true;
+}
+
 
 /* =========================================
    PRODUCTS
@@ -7565,6 +7599,8 @@ function renderProducts(list, target="productsGrid", append=false){
         </div>
       `;
 
+    if(target==="productsGrid"&&typeof renderHomeAdvertisements==="function"&&document.querySelector)renderHomeAdvertisements();
+
     return;
   }
 
@@ -7574,6 +7610,8 @@ function renderProducts(list, target="productsGrid", append=false){
 
       <button
         class="heart ${isFavorite(p.id)?"liked":""}"
+        type="button"
+        aria-label="${escapeHtml(isFavorite(p.id)?customerUiText("Saved to favorites","دڵخواز","أضيفت إلى المفضلة"):customerUiText("Add to favorites","زێدەکرنا دڵخواز","أضيفي إلى المفضلة"))}"
         onclick="event.stopPropagation();toggleFavorite(${p.id})">
         ${isFavorite(p.id)?"♥":"♡"}
       </button>
@@ -7581,43 +7619,15 @@ function renderProducts(list, target="productsGrid", append=false){
       <div class="product-image-frame">
         ${productDiscountPercent(p)?`<span class="product-discount-badge" aria-label="${productDiscountPercent(p)} percent off">-${productDiscountPercent(p)}%</span>`:""}
         ${renderTimedDiscountBadge(p)}
-        <img
-          class="product-img"
-          src="${escapeHtml(safeImageUrl(p.image))}"
-          alt="${escapeHtml(getProductName(p))}"
-          data-product-name-id="${p.id}"
-          loading="lazy"
-        >
+        <button class="product-image-open" type="button" onclick="event.stopPropagation();openProduct(${p.id})" aria-label="${escapeHtml(getProductName(p))}">
+          <img class="product-img" src="${escapeHtml(safeImageUrl(p.image))}" alt="${escapeHtml(getProductName(p))}" data-product-name-id="${p.id}" loading="lazy">
+        </button>
       </div>
 
       <div class="product-info">
-
-        <div class="product-name" data-product-name-id="${p.id}">${escapeHtml(getProductName(p))}</div>
-
-        <div class="price">
-          ${renderProductPricing(p)}
-        </div>
-        <div class="stock-line ${(Number(p.stock)||0)<=0?"out-of-stock":""}" role="status">${(Number(p.stock)||0)<=0?translateText("بەردەست نەماوە"):`بەردەست: ${Math.max(0,Number(p.stock)||0)}`}</div>
-
-        <div class="product-bottom">
-
-          <div class="colors">
-            ${p.colors.map(c=>`
-              <span
-                class="color-dot"
-                style="background:${escapeHtml(c)}">
-              </span>
-            `).join("")}
-          </div>
-
-          <button
-            class="add-mini"
-            ${Number(p.stock)<=0?"disabled":""}
-            onclick="event.stopPropagation();quickAdd(${p.id})">
-            🛒
-          </button>
-
-        </div>
+        <div class="product-copy-line"><div class="product-name" data-product-name-id="${p.id}">${escapeHtml(getProductName(p))}</div><div class="price">${renderProductPricing(p)}</div></div>
+        <div class="product-stock-row"><div class="colors" aria-label="${escapeHtml(customerUiText("Available colors","ڕەنگێن بەردەست","الألوان المتاحة"))}">${p.colors.map(c=>`<span class="color-dot" style="background:${escapeHtml(c)}" aria-label="${escapeHtml(getProductColorLabel(p,c))}"></span>`).join("")}</div><div class="stock-line ${(Number(p.stock)||0)<=0?"out-of-stock":""}" role="status">${(Number(p.stock)||0)<=0?translateText("بەردەست نەماوە"):`${translateText("بەردەست")}: ${Math.max(0,Number(p.stock)||0)}`}</div></div>
+        <div class="product-bottom"><button class="product-view-link" type="button" onclick="event.stopPropagation();openProduct(${p.id})">${escapeHtml(customerUiText("View details","زانیاری","التفاصيل"))} <span aria-hidden="true">→</span></button><button class="add-mini" type="button" ${Number(p.stock)<=0?"disabled":""} aria-label="${escapeHtml(customerUiText("Add to bag","زیادکرن بۆ سەبەت","أضيفي إلى الحقيبة"))}" onclick="event.stopPropagation();quickAdd(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.3 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg></button></div>
 
       </div>
 
@@ -7627,6 +7637,7 @@ function renderProducts(list, target="productsGrid", append=false){
   if(append)grid.insertAdjacentHTML("beforeend",cards);
   else grid.innerHTML=cards;
   refreshDiscountCountdownBadges();
+  if(target==="productsGrid"&&typeof renderHomeAdvertisements==="function"&&document.querySelector)renderHomeAdvertisements();
 
 }
 
@@ -8810,52 +8821,18 @@ function renderCart(){
 
   if(!cart.length){
 
-    box.innerHTML=`
-      <div class="empty">
-        <div style="font-size:50px">🛒</div>
-        <p>سەبەتەکەت بەتاڵە.</p>
-      </div>
-    `;
+    box.innerHTML=`<section class="empty shop-empty-state"><span class="shop-empty-monogram" aria-hidden="true">S</span><h2>${escapeHtml(customerUiText("Your bag is empty","سەبەتەکەت بەتاڵە.","حقيبتك فارغة"))}</h2><p>${escapeHtml(customerUiText("Explore the collection and find a piece you love.","بەرهەمە جوانەکان لە کەتەلۆگێ ببینە.","اكتشفي المجموعة واختاري قطعة تحبينها."))}</p><button type="button" class="main-btn" onclick="openView('home')">${escapeHtml(customerUiText("Explore the collection","بینین بەرهەمەکان","تسوقي المجموعة"))} <span aria-hidden="true">→</span></button></section>`;
 
     totalBox.innerHTML="";
     return;
   }
 
   box.innerHTML=cart.map(item=>`
-
-    <div class="cart-item">
-
-      <img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getCartItemName(item))}">
-
-      <div class="cart-info">
-
-        <strong>${escapeHtml(getCartItemName(item))}</strong>
-
-        <small>
-          قیاس: ${escapeHtml(item.size)}<br>
-          ڕەنگ: ${escapeHtml(item.colorName||item.color)}<br>
-        </small>
-
-        <div class="cart-qty">
-          <button onclick="changeCartQty(${Number(item.id)},-1)">−</button>
-          <span>${Number(item.qty)||1}</span>
-          <button onclick="changeCartQty(${Number(item.id)},1)">+</button>
-        </div>
-
-        <div class="price">
-          ${renderCartItemPrice(item)}
-        </div>
-
-      </div>
-
-      <button
-        class="remove"
-        onclick="removeCartItem(${item.id})">
-        ×
-      </button>
-
-    </div>
-
+    <article class="cart-item">
+      <div class="cart-item-media"><img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getCartItemName(item))}" loading="lazy"></div>
+      <div class="cart-info"><strong>${escapeHtml(getCartItemName(item))}</strong><div class="cart-item-attributes"><small>${escapeHtml(customerUiText("Size","قیاس","المقاس"))}: ${escapeHtml(item.size)}</small><small><span class="cart-item-swatch" style="background:${escapeHtml(normalizeHexColor(item.color)||"#e85a91")}" aria-hidden="true"></span>${escapeHtml(item.colorName||item.color)}</small></div><div class="cart-line-price">${renderCartItemPrice(item)}</div><div class="cart-qty" role="group" aria-label="${escapeHtml(customerUiText("Quantity","ژمارە","الكمية"))}"><button type="button" aria-label="${escapeHtml(customerUiText("Decrease quantity","کێمکرنا ژمارە","تقليل الكمية"))}" onclick="changeCartQty(${Number(item.id)},-1)">−</button><span>${Number(item.qty)||1}</span><button type="button" aria-label="${escapeHtml(customerUiText("Increase quantity","زێدەکرنا ژمارە","زيادة الكمية"))}" onclick="changeCartQty(${Number(item.id)},1)">+</button></div></div>
+      <button type="button" class="remove" aria-label="${escapeHtml(translateText("سڕینەوە"))}" onclick="removeCartItem(${item.id})"><span aria-hidden="true">×</span></button>
+    </article>
   `).join("");
 
   const total=cart.reduce(
@@ -8863,26 +8840,7 @@ function renderCart(){
     0
   );
 
-  totalBox.innerHTML=`
-
-    <div class="total">
-
-      <div class="total-row">
-        <span>کۆی گشتی</span>
-        <span class="total-price">
-          ${formatPrice(total)}
-        </span>
-      </div>
-
-      <button
-        class="main-btn"
-        onclick="openCheckout()">
-        تەواوکرنا داخوازی
-      </button>
-
-    </div>
-
-  `;
+  totalBox.innerHTML=`<section class="total"><p class="shop-eyebrow">${escapeHtml(customerUiText("ORDER SUMMARY","پوختەیا داخوازی","ملخص الطلب"))}</p><h2>${escapeHtml(customerUiText("Your selection","هەلبژاردنا تە","اختياراتك"))}</h2><div class="total-row"><span>${escapeHtml(customerUiText("Subtotal","کۆی بەرهەمان","المجموع الفرعي"))}</span><span class="total-price">${formatPrice(total)}</span></div><button type="button" class="main-btn" onclick="openCheckout()">${escapeHtml(customerUiText("Continue to checkout","بەردەوامبوون بۆ تەواوکرن","متابعة الدفع"))} <span aria-hidden="true">→</span></button></section>`;
 
 }
 
@@ -9146,7 +9104,10 @@ function renderOrders(){
 
   const box=document.getElementById("ordersList");
 
+  if(!box)return;
+
   if(!currentUser){
+    box.innerHTML=`<section class="empty shop-empty-state"><span class="shop-empty-monogram" aria-hidden="true">S</span><h2>${escapeHtml(customerUiText("Sign in to view your orders","بۆ دیتنا داخوازیان بچۆ ژوور","سجلي الدخول لعرض طلباتك"))}</h2><p>${escapeHtml(customerUiText("Your order history will be here after you sign in.","پشتی چوونا ژوور، مێژوویا داخوازیان ل ڤێرە دێ بیت.","سيظهر سجل طلباتك هنا بعد تسجيل الدخول."))}</p></section>`;
     return;
   }
 
@@ -9157,10 +9118,7 @@ function renderOrders(){
   if(!orders.length){
 
     box.innerHTML=`
-      <div class="empty">
-        <div style="font-size:50px">📦</div>
-        <p>هێشتا هیچ داخوازییەکت نییە.</p>
-      </div>
+      <section class="empty shop-empty-state"><span class="shop-empty-monogram" aria-hidden="true">S</span><h2>${escapeHtml(customerUiText("No orders yet","هێشتا داخوازی نینە","لا توجد طلبات بعد"))}</h2><p>${escapeHtml(customerUiText("When you place an order, its details will appear here.","دەمێ داخوازیەک بکەی، وردەکاریێن وێ ل ڤێرە دێ دەرکەڤن.","ستظهر تفاصيل طلبك هنا عند إتمام أول طلب."))}</p><button type="button" class="main-btn" onclick="openView('home')">${escapeHtml(customerUiText("Explore the collection","بینین بەرهەمەکان","تسوقي المجموعة"))} <span aria-hidden="true">→</span></button></section>
     `;
 
     return;
@@ -9170,14 +9128,11 @@ function renderOrders(){
     const items=Array.isArray(order.items)?order.items:[];
     const itemCount=items.reduce((count,item)=>count+(Number(item.qty)||1),0);
     return `
-      <div class="order-card">
-        <div class="order-head">
-          <strong>داخوازی #${escapeHtml(order.id)}</strong>
-          <span class="status">${escapeHtml(translateText(order.status||""))}</span>
-        </div>
-        <p style="color:#999;font-size:12px">${escapeHtml(order.date||"")}</p>
+      <article class="order-card customer-order-card">
+        <div class="order-head"><div><small class="shop-eyebrow">SHIVAN SHOP</small><strong>${escapeHtml(customerUiText("Order","داخوازی","الطلب"))} #${escapeHtml(order.id)}</strong><time datetime="${escapeHtml(order.date||"")}">${escapeHtml(order.date||"")}</time></div><span class="status">${escapeHtml(translateText(order.status||""))}</span></div>
+        <div class="customer-order-preview">${items.slice(0,4).map(item=>`<img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getCartItemName(item))}" loading="lazy">`).join("")}<span>${itemCount} ${escapeHtml(customerUiText("items","بەرهەم","منتجات"))}</span></div>
         <details class="order-items">
-          <summary>${itemCount} ${escapeHtml(translateText("بەرهەم"))}<span>${escapeHtml(translateText("زانیاری"))}</span></summary>
+          <summary>${escapeHtml(customerUiText("Order details","وردەکاریێن داخوازیێ","تفاصيل الطلب"))}<span>${escapeHtml(customerUiText("View items","دیتنا بەرهەمان","عرض المنتجات"))} <b aria-hidden="true">⌄</b></span></summary>
           <div class="order-item-list">
             ${items.map(item=>`
               <div class="order-item-detail">
@@ -9193,8 +9148,8 @@ function renderOrders(){
           </div>
         </details>
         ${order.paymentMethod?`<p class="order-payment">${escapeHtml(translateText("شێوازی پارەدان"))}: ${escapeHtml(paymentMethodLabel(order.paymentMethod,order))}</p>`:""}
-        <div class="price">${formatPrice(order.total)}</div>
-      </div>
+        <footer class="customer-order-total"><span>${escapeHtml(customerUiText("Total","کۆی گشتی","الإجمالي"))}</span><strong>${formatPrice(order.total)}</strong></footer>
+      </article>
     `;
   }).join("");
 
@@ -10064,6 +10019,7 @@ function renderOwnerDashboard(box){
   reconcileOwnerSmartAlerts({notify:false});
   const stats=ownerDashboardStats();
   const storeName=String(ownerAppearance?.storeName||"SHIVAN SHOP").trim()||"SHIVAN SHOP";
+  const ownerLogo=ownerAppearance?.storeLogoUrl?`<img src="${escapeHtml(safeImageUrl(ownerAppearance.storeLogoUrl))}" alt="">`:"SH";
   const currency=typeof formatPrice==="function"?formatPrice(stats.sales):String(stats.sales);
   const labels=[
     ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات"),stats.orders,ownerDashboardText("Saved orders","داخوازیێن پاشەکەفتکری","الطلبات المحفوظة")],
@@ -10096,12 +10052,12 @@ function renderOwnerDashboard(box){
     ["onboarding","▣",ownerDashboardText("Promotional Slides","پێشبینی","شرائح ترويجية")]
   ].map(([route,icon,label])=>`<button type="button" class="owner-management-card" onclick="renderOwnerPanel('${route}')"><span class="owner-dashboard-nav-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(label)}</span></button>`).join("");
   const offers=ownerActiveTimedOfferCount();
-  box.innerHTML=`<section class="owner-dashboard-banner" aria-label="${escapeHtml(storeName)} Owner dashboard"><div><p class="owner-dashboard-kicker">${escapeHtml(ownerDashboardText("OWNER DASHBOARD","داشبۆردا خاوەن","لوحة تحكم المالك"))}</p><h3>${escapeHtml(storeName)}</h3><p>${escapeHtml(ownerDashboardText("Your store at a glance. Manage products, orders, and promotions from one place.","دۆخی فرۆشگەیێ خۆ ببینە و بەرهەم، داخوازی و بانگەشەکان ل یەک شوێنێ بەڕێڤەبە.","تابع متجرك وأدر المنتجات والطلبات والعروض من مكان واحد."))}</p></div><span class="owner-dashboard-emblem" aria-hidden="true">SH</span></section>
+  box.innerHTML=`<div class="owner-dashboard-command-center"><section class="owner-dashboard-banner owner-dashboard-masthead" aria-label="${escapeHtml(storeName)} Owner dashboard"><div><div class="owner-dashboard-brandline"><span class="owner-dashboard-logo" aria-hidden="true">${ownerLogo}</span><span><p class="owner-dashboard-kicker">${escapeHtml(ownerDashboardText("OWNER DASHBOARD","داشبۆردا خاوەن","لوحة تحكم المالك"))}</p><h3>${escapeHtml(storeName)}</h3></span></div><p>${escapeHtml(ownerDashboardText("Your store at a glance. Manage products, orders, and promotions from one place.","دۆخی فرۆشگەیێ خۆ ببینە و بەرهەم، داخوازی و بانگەشەکان ل یەک شوێنێ بەڕێڤەبە.","تابع متجرك وأدر المنتجات والطلبات والعروض من مكان واحد."))}</p></div><span class="owner-dashboard-emblem" aria-hidden="true">SH</span></section>
     ${ownerSmartAlertDashboardSummaryMarkup()}
     <section class="owner-dashboard-section" aria-labelledby="ownerStatsHeading"><div class="owner-dashboard-section-head"><h3 id="ownerStatsHeading">${escapeHtml(ownerDashboardText("Store at a glance","پوختەیا فرۆشگەیێ","ملخص المتجر"))}</h3></div><div class="owner-dashboard-stats">${statCards}</div></section>
     <section class="owner-dashboard-section" aria-labelledby="ownerQuickActionsHeading"><div class="owner-dashboard-section-head"><h3 id="ownerQuickActionsHeading">${escapeHtml(ownerDashboardText("Quick Actions","کردارێن خێرا","إجراءات سريعة"))}</h3></div><div class="owner-quick-actions">${quick}</div></section>
     <section class="owner-dashboard-section" aria-labelledby="ownerManagementHeading"><div class="owner-dashboard-section-head"><h3 id="ownerManagementHeading">${escapeHtml(ownerDashboardText("Store Management","بەڕێڤەبرنا فرۆشگەیێ","إدارة المتجر"))}</h3></div><div class="owner-management-grid">${management}</div></section>
-    <section class="owner-dashboard-section owner-offer-banner" aria-label="${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}"><div class="owner-offer-copy"><span class="owner-offer-icon" aria-hidden="true">◷</span><span><strong>${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}</strong><small>${offers?escapeHtml(ownerDashboardText(`${offers} active timed offer${offers===1?"":"s"}`,`${offers} ئۆفەرا کاتی چالاکە`,`${offers} عروض محدودة نشطة`)):escapeHtml(ownerDashboardText("No active timed offers","هیچ ئۆفەرەکا کاتی چالاک نینە","لا توجد عروض محدودة نشطة"))}. ${escapeHtml(ownerDashboardText("Edit a product to set its offer end time.","بەرهەمەک دەستکاری بکە بۆ دانانا دەمێ داوی ئۆفەرێ.","عدّل منتجاً لتحديد وقت انتهاء العرض."))}</small></span></div><button type="button" class="owner-offer-action" onclick="openOwnerDiscountProducts(true)">${escapeHtml(ownerDashboardText("Create Offer","دروستکرنا ئۆفەرێ","إنشاء عرض"))}</button></section>`;
+    <section class="owner-dashboard-section owner-offer-banner" aria-label="${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}"><div class="owner-offer-copy"><span class="owner-offer-icon" aria-hidden="true">◷</span><span><strong>${escapeHtml(ownerDashboardText("Limited-Time Discount","داشکاندنا دیاریکری","خصم لفترة محدودة"))}</strong><small>${offers?escapeHtml(ownerDashboardText(`${offers} active timed offer${offers===1?"":"s"}`,`${offers} ئۆفەرا کاتی چالاکە`,`${offers} عروض محدودة نشطة`)):escapeHtml(ownerDashboardText("No active timed offers","هیچ ئۆفەرەکا کاتی چالاک نینە","لا توجد عروض محدودة نشطة"))}. ${escapeHtml(ownerDashboardText("Edit a product to set its offer end time.","بەرهەمەک دەستکاری بکە بۆ دانانا دەمێ داوی ئۆفەرێ.","عدّل منتجاً لتحديد وقت انتهاء العرض."))}</small></span></div><button type="button" class="owner-offer-action" onclick="openOwnerDiscountProducts(true)">${escapeHtml(ownerDashboardText("Create Offer","دروستکرنا ئۆفەرێ","إنشاء عرض"))}</button></section></div>`;
 }
 
 function openOwnerDiscountProducts(timed=false){
@@ -10977,6 +10933,7 @@ function renderOwnerProducts(box){
     const selectedTab=["basic","photos","inventory"].includes(ownerProductEditorTab)?ownerProductEditorTab:"basic";
     content=`<form id="ownerProductForm" class="owner-form owner-product-form owner-product-editor" novalidate onsubmit="saveOwnerProduct(event)">
       <header class="owner-product-editor-head"><h3>${product?t("Edit product","دەستکاری بەرهەم","تعديل المنتج"):t("Add product","بەرهەمێ نوێ","إضافة منتج")}</h3><button class="main-btn" type="submit">${t("Save changes","پاشەکەفتکرنا گۆڕانکاریان","حفظ التغييرات")}</button></header>
+      <div class="owner-product-editor-intro"><p>${t("Keep product details, photos, colors and stock together. Changes stay in this form until you save.","وردەکاری، وێنە، ڕەنگ و کۆگا ل ئێک جێگە ڕێک بخە. گۆڕانکاری دەمینن تا پاشەکەفتێ بکەی.","اجمع تفاصيل المنتج وصوره وألوانه ومخزونه. تبقى التغييرات هنا حتى تحفظها.")}</p>${product?`<span class="owner-product-editor-status">${t("Editing saved product","دەستکاری بەرهەمێ پاشەکەفتکری","تعديل منتج محفوظ")}</span>`:`<span class="owner-product-editor-status">${t("New product","بەرهەمێ نوێ","منتج جديد")}</span>`}</div>
       <div class="owner-product-editor-tabs" role="tablist" aria-label="${t("Product details","وردەکاریێن بەرهەم","تفاصيل المنتج")}">
         <button type="button" role="tab" data-owner-product-tab="basic" aria-controls="ownerProductBasicPanel" aria-selected="${selectedTab==="basic"}" onclick="selectOwnerProductEditorTab('basic')">${t("Basic Info","زانیاریێن سەرەکی","المعلومات الأساسية")}</button>
         <button type="button" role="tab" data-owner-product-tab="photos" aria-controls="ownerProductPhotosPanel" aria-selected="${selectedTab==="photos"}" onclick="selectOwnerProductEditorTab('photos')">${t("Photos","وێنە","الصور")}</button>
@@ -11057,8 +11014,8 @@ function renderOwnerProducts(box){
       const offer=getProductPricing(item)?.discountPercent>0;
       const categoryName=categoryLabel(item.category||"");
       return `<article class="owner-list-item ${isDiscountView?"owner-discount-product-card":""}" data-owner-product-card data-product-search="${escapeHtml(`${getProductName(item,"en")} ${getProductName(item,"ku")} ${getProductName(item,"ar")} ${categoryName}`.toLocaleLowerCase())}">
-        <img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getProductName(item))}" loading="lazy">
-        <div class="owner-list-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${escapeHtml(categoryName)} · ${Number(item.stock)||0} ${t("in stock","دانە ل کۆگا","قطعة في المخزون")} · ${(item.variants||[]).length} ${t("variants","جۆر","خيارات")}</small><div class="owner-product-card-price">${priceMarkup}${isDiscountView?`<span class="owner-product-status" data-offer="${offer}">${offer?t("Discount","داشکاندن","خصم"):t("No discount","بێ داشکاندن","بدون خصم")}</span>`:""}</div></div>
+        <div class="owner-product-card-media"><img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getProductName(item))}" loading="lazy">${offer?`<span class="owner-product-card-offer">${t("Offer","ئۆفەر","عرض")}</span>`:""}</div>
+        <div class="owner-list-copy owner-product-card-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${escapeHtml(categoryName)} · ${Number(item.stock)||0} ${t("in stock","دانە ل کۆگا","قطعة في المخزون")} · ${(item.variants||[]).length} ${t("variants","جۆر","خيارات")}</small><div class="owner-product-card-price">${priceMarkup}${isDiscountView?`<span class="owner-product-status" data-offer="${offer}">${offer?t("Discount","داشکاندن","خصم"):t("No discount","بێ داشکاندن","بدون خصم")}</span>`:""}</div></div>
         <div class="owner-actions"><button type="button" onclick="editOwnerProduct(${item.id})">${isDiscountView?t("Edit offer","دەستکاری ئۆفەر","تعديل العرض"):t("Edit product","دەستکاری بەرهەم","تعديل المنتج")}</button>${canDeleteProduct?`<button type="button" class="danger" onclick="deleteOwnerProduct(${item.id})">${t("Delete","سڕینەوە","حذف")}</button>`:""}</div>
       </article>`;
     }).join(""):`<p class="owner-empty-state">${t("No products have been added yet.","هێشتا هیچ بەرهەمێک زیاد نەکراوە.","لم تتم إضافة منتجات بعد.")}</p>`;
@@ -11924,7 +11881,13 @@ function updateProfile(){
 
   document.getElementById("ownerPanelButton")
     .classList.toggle("visible",isOwner()||isStaffSession());
-  document.querySelector(".bottom-nav")?.classList.toggle("owner-mode",isOwner()||isStaffSession());
+  const bottomNavigation=document.querySelector(".bottom-nav");
+  bottomNavigation?.classList.toggle("owner-mode",getActiveShopView()==="owner"&&(isOwner()||isStaffSession()));
+  bottomNavigation?.classList.toggle("owner-customer-mode",getActiveShopView()!=="owner"&&(isOwner()||isStaffSession()));
+  const analyticsNavigation=document.getElementById("navAnalytics");
+  if(analyticsNavigation)analyticsNavigation.hidden=!(isOwner()||staffHasPermission("reports"));
+  const ordersNavigation=document.getElementById("navOrders");
+  if(ordersNavigation)ordersNavigation.hidden=isStaffSession()&&!staffHasPermission("orders");
 
   refreshCustomerPushControls();
 

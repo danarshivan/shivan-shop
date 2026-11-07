@@ -20,7 +20,7 @@ assert.match(html, /html\.shop-auth-modal-open,body\.shop-auth-modal-open\{overf
 assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?openGuestAuthenticationModal\(view\)/, "guest Cart and Profile should open auth without changing the active view first");
 assert.match(html, /function openView\(view,options=\{\}\)\{[\s\S]*?is-shop-auth-modal[\s\S]*?return false/, "background or repeated navigation must not replace a guest modal's underlying page");
 assert.match(html, /function openMain\(options=\{\}\)\{[\s\S]*?is-shop-auth-modal[\s\S]*?!currentUser&&!cloudAccount[\s\S]*?return false/, "startup hydration must not close the guest modal before authentication succeeds");
-assert.match(html, /if\(intent\.type==="cart"\|\|intent\.type==="profile"\)\{\s*openView\(intent\.type\)/, "successful authentication should resume the Cart or Profile destination that was requested");
+assert.match(html, /if\(intent\.type==="cart"\|\|intent\.type==="orders"\|\|intent\.type==="profile"\)\{\s*openView\(intent\.type\)/, "successful authentication should resume the Cart, Orders, or Profile destination that was requested");
 assert.match(signupSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful Sign Up must enter shared post-auth navigation");
 assert.match(loginSource, /currentUser=data\.account;[\s\S]*?openMain\(\)/, "successful cloud Login must enter shared post-auth navigation");
 assert.match(loginSource, /currentUser\s*=\s*account;[\s\S]*?openMain\(\)/, "successful local Login must enter shared post-auth navigation");
@@ -62,10 +62,10 @@ for (const [id, cls] of [
   ["loginForm", "auth-form active"], ["signupForm", "auth-form"], ["loginTab", "active"], ["signupTab", ""],
   ["authPage", ""], ["authHeroEyebrow", ""], ["authHeroTitle", ""], ["authHeroDescription", ""],
   ["shopAuthModalClose", ""], ["languageSwitcher", "language-switcher"],
-  ["profileView", "view page"], ["homeView", "view active"], ["searchView", "view"], ["cartView", "view"],
+  ["profileView", "view page"], ["homeView", "view active"], ["searchView", "view"], ["cartView", "view"], ["ordersView", "view page"],
   ["detailView", "view"], ["ownerView", "view"], ["profileGuestAccess", ""], ["profileGuestAuthMount", ""],
   ["authenticatedProfileCard", "profile-card"], ["profileAuthBack", ""], ["loginId", ""], ["signupName", ""],
-  ["navHome", ""], ["navSearch", ""], ["navCart", ""], ["navProfile", ""], ["ownerPanelButton", ""],
+  ["navHome", ""], ["navSearch", ""], ["navCart", ""], ["navOrders", ""], ["navProfile", ""], ["ownerPanelButton", ""], ["navAnalytics", ""],
   ["mainApp", ""],
 ]) get(id, cls);
 get("profileGuestAccess").hidden = true;
@@ -112,7 +112,7 @@ const context = {
   cloudMode: false,
   ownerPanel: "products",
   shopViewScrollPositions: new Map(),
-  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "profile", "owner"]),
+  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "owner"]),
   shopViewNavigationPopHandler: null,
   shopViewNavigationScrollHandler: null,
   ownerPanelHasPendingWork: () => false,
@@ -236,6 +236,19 @@ context.testApi.closeGuestAuthenticationModal();
 assert.equal(get("searchView").scrollTop, 311, "closing Cart auth restores Search scroll exactly");
 assert.equal(context.window.scrollY, 52);
 
+assert.equal(context.testApi.openView("orders"), true, "guest Orders opens the same authentication modal");
+assert.equal(context.pendingAuthenticationIntent.type, "orders");
+assert.equal(get("searchView").classList.contains("active"), true, "Orders auth leaves the current page visible behind the modal");
+context.testApi.closeGuestAuthenticationModal();
+assert.equal(get("searchView").classList.contains("active"), true, "closing Orders auth restores the prior page");
+context.pendingAuthenticationIntent = { type: "orders" };
+context.currentUser = { id: "offline-orders-customer", role: "customer" };
+context.testApi.resumeAuthenticationIntent();
+assert.equal(get("ordersView").classList.contains("active"), true, "successful authentication opens the dedicated Orders screen");
+assert.equal(get("searchView").classList.contains("active"), false);
+context.currentUser = null;
+context.testApi.openView("home");
+
 const preservedCart = [{ productId: "dress-1", size: "M", color: "#123456", qty: 1 }];
 context.cart = preservedCart;
 context.document.activeElement = get("navProfile");
@@ -297,4 +310,4 @@ await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
 assert.equal(context.pendingAuthenticationIntent, null);
 
-console.log("Offline authentication checks passed: guest Cart/Profile modal behavior, background-hydration race protection, exact page/scroll restoration, repeated-tap protection, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");
+console.log("Offline authentication checks passed: guest Cart/Orders/Profile modal behavior, background-hydration race protection, exact page/scroll restoration, repeated-tap protection, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");

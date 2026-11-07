@@ -21,6 +21,36 @@ assert.match(css, /@media\s*\(min-width:900px\)/, "wide-screen layouts are prese
 assert.match(css, /prefers-reduced-motion:reduce/, "the redesign respects reduced-motion preferences");
 assert.match(css, /overflow:clip/, "the redesigned app frame prevents accidental horizontal overflow");
 
+const homeStart = html.indexOf('<div id="homeView"');
+const searchStart = html.indexOf('<!-- SEARCH -->', homeStart);
+assert.ok(homeStart >= 0 && searchStart > homeStart, "the home screen has a distinct redesigned section");
+const homeMarkup = html.slice(homeStart, searchStart);
+assert.match(homeMarkup, /shop-discovery-header/, "the storefront has a branded discovery header");
+assert.match(homeMarkup, /shop-category-shelf/, "categories are presented as a dedicated discovery shelf");
+assert.match(homeMarkup, /shop-product-shelf/, "the real product catalog has its own collection section");
+assert.doesNotMatch(homeMarkup, /images\.unsplash\.com/, "the storefront does not hardcode mock fashion imagery");
+assert.match(html, /id="ordersView" class="view page shop-orders-view"/, "customers have a dedicated Orders screen");
+assert.match(html, /id="navOrders"/, "the shopping navigation includes Orders");
+assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","owner"\]\)/, "Orders participates in the existing browser history state model");
+assert.match(html, /function openOrdersFromNavigation\(\)[\s\S]*?openView\("orders"\)/, "customer Orders navigation opens the authenticated Orders view");
+assert.match(html, /function resumeAuthenticationIntent\(\)[\s\S]*?intent\.type==="cart"\|\|intent\.type==="orders"\|\|intent\.type==="profile"/, "sign-in resumes a pending Orders destination");
+const productRendererStart = html.indexOf("function renderProducts(list, target=\"productsGrid\", append=false){");
+const productRendererEnd = html.indexOf("function renderVisibleProductGrid(){", productRendererStart);
+assert.ok(productRendererStart >= 0 && productRendererEnd > productRendererStart, "the shared product card renderer is present");
+const productRenderer = html.slice(productRendererStart, productRendererEnd);
+assert.match(productRenderer, /product-image-open/, "product cards provide an accessible image-to-detail action");
+assert.match(productRenderer, /renderProductPricing\(p\)/, "product cards display live store pricing");
+assert.match(productRenderer, /quickAdd\(\$\{p\.id\}\)/, "product cards keep the existing quick-add behavior");
+assert.match(productRenderer, /data-product-name-id/, "product card names continue to follow the selected language");
+assert.match(html, /owner-dashboard-banner owner-dashboard-masthead/, "the Owner dashboard has the new store identity masthead");
+assert.match(html, /owner-product-editor-intro/, "the three-tab product editor has a redesigned overview");
+for (const selector of [
+  ".shop-discovery-header", ".shop-editorial-hero", ".shop-category-shelf", ".product-image-open", ".cart-shopping-layout",
+  ".customer-order-card", ".shop-profile-identity", ".detail-toolbar-brand", ".owner-dashboard-masthead", ".owner-product-editor-intro"
+]) assert.ok(css.includes(selector), `screen composition styling covers ${selector}`);
+assert.match(css, /\.bottom-nav\.owner-mode #navSearch,\.bottom-nav\.owner-mode #navCart/, "Owner navigation retains its five primary destinations without changing customer navigation");
+assert.match(css, /@media\s*\(max-width:430px\)/, "the redesign has narrow-phone layout rules");
+
 let depth = 0;
 for (const character of css) {
   if (character === "{") depth += 1;
@@ -29,4 +59,4 @@ for (const character of css) {
 }
 assert.equal(depth, 0, "stylesheet blocks are balanced");
 
-console.log("Luxury redesign wiring checks passed: reference palette, all-screen coverage, RTL rules, responsive breakpoints, reduced motion, and production asset copy.");
+console.log("Luxury redesign checks passed: premium screen composition, real catalog presentation, dedicated Orders navigation, all-screen styling, RTL rules, responsive breakpoints, reduced motion, and production asset copy.");
