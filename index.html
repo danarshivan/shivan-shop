@@ -3209,36 +3209,36 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
   <!-- HOME -->
 
   <div id="homeView" class="view active shop-home-view">
-    <header class="shop-discovery-header">
-      <button class="shop-header-icon" type="button" onclick="openView('search')" aria-label="گەڕان"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
+    <header class="shop-discovery-header shop-home-topbar">
+      <button id="homeBackButton" class="shop-header-icon" type="button" onclick="goBackFromHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
       <div class="shop-brand-lockup">
-        <div class="logo-small" aria-hidden="true"><svg viewBox="0 0 48 54"><path d="m10 12 6 4 8-10 8 10 6-4-2 10H12zM14 23h20l4 25H10z"/><path d="M19 28h10v13H19zM24 28v13"/><text x="24" y="40" text-anchor="middle">S</text></svg></div>
-        <div class="brand-small"><strong id="shopBrandName">Shivan Shop</strong><span id="shopTagline">جولبەرگ و شتێن جوان</span></div>
+        <div class="logo-small" aria-hidden="true"><svg viewBox="0 0 48 44"><path d="m5 13 9 7 10-12 10 12 9-7-2 16H7zM10 33h28"/></svg></div>
+        <div class="brand-small"><strong id="shopBrandName">Shivan Shop</strong><span id="shopTagline" aria-hidden="true">جولبەرگ و شتێن جوان</span></div>
       </div>
-      <button class="shop-header-icon shop-discovery-profile" type="button" onclick="openView('profile')" aria-label="پڕۆفایل"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1z"/></svg></button>
+      <button id="homeNotificationsButton" class="shop-header-icon shop-home-notifications" type="button" onclick="openCustomerNotifications()" aria-label="Notifications" title="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button>
     </header>
 
-    <section class="hero shop-editorial-hero" aria-label="SHIVAN SHOP collection">
+    <section class="hero shop-editorial-hero shop-home-promo" aria-label="SHIVAN SHOP collection">
       <div class="hero-slide active">
         <img id="heroMainImage" src="" alt="" fetchpriority="high">
         <div class="hero-overlay"></div>
         <div class="hero-copy">
-          <small id="heroMainEyebrow">SHIVAN SHOP</small>
+          <small id="heroMainEyebrow">SHIVAN SHOP · NEW COLLECTION</small>
           <h2 id="heroMainTitle">کۆمەڵا نوێ</h2>
           <p id="heroMainMessage">جولبەرگ و شتێن جوان</p>
-          <button type="button" onclick="scrollProducts()">بینین بەرهەمەکان <span aria-hidden="true">→</span></button>
+          <button id="homeHeroShopButton" type="button" onclick="scrollProducts()">ئێستا بکڕە <span aria-hidden="true">→</span></button>
         </div>
       </div>
       <div class="hero-dots"><span class="active"></span></div>
     </section>
 
     <section class="shop-category-shelf" aria-labelledby="shopCategoryHeading">
-      <header class="shop-shelf-heading"><div><p class="shop-eyebrow">DISCOVER YOUR STYLE</p><h2 id="shopCategoryHeading">جۆرێن بەرهەمان</h2></div><button type="button" onclick="filterCategory('هەموو')">هەمی ببینە <span aria-hidden="true">→</span></button></header>
+      <header class="shop-shelf-heading"><h2 id="shopCategoryHeading">جۆرێن بەرهەمان</h2><button id="homeCategoryToggle" type="button" onclick="toggleHomeCategories()" aria-expanded="false">هەمی ببینە <span aria-hidden="true">→</span></button></header>
       <div class="categories" id="categoryButtons" aria-label="جۆرێن بەرهەمان"></div>
     </section>
 
     <section class="shop-product-shelf" aria-labelledby="shopProductsHeading">
-      <header class="section-head shop-shelf-heading"><div><p class="shop-eyebrow">THE SHIVAN EDIT</p><h2 id="shopProductsHeading">بەرهەمە نوێ</h2></div><button type="button" onclick="filterCategory('هەموو')">هەمی ببینە <span aria-hidden="true">→</span></button></header>
+      <header class="section-head shop-shelf-heading"><h2 id="shopProductsHeading">باوترین بەرهەم</h2><button id="homeProductsToggle" type="button" onclick="showAllHomeProducts()">هەمی ببینە <span aria-hidden="true">→</span></button></header>
       <div id="productsGrid" class="products" aria-live="polite"></div>
     </section>
   </div>
@@ -3300,6 +3300,8 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
       <div class="profile-actions shop-profile-actions">
 
         <button type="button" onclick="openOrdersFromNavigation()">▣ داخوازیێن من <span aria-hidden="true">›</span></button>
+
+        <button id="profileOwnerDashboardEntry" type="button" onclick="openOwnerDashboardFromProfile()" hidden><span aria-hidden="true">♛</span> <span id="profileOwnerDashboardLabel">Owner Dashboard</span> <span aria-hidden="true">›</span></button>
 
         <button onclick="editProfile()">
           ✎ دەستکاری پڕۆفایل <span aria-hidden="true">›</span>
@@ -4043,6 +4045,19 @@ function customerUiText(en,ku,ar){
   return activeLanguage==="ar"?ar:activeLanguage==="ku"?ku:en;
 }
 
+function renderHomeLabels(){
+  const setText=(id,value)=>{const element=document.getElementById(id);if(element)element.textContent=value;};
+  setText("shopCategoryHeading",customerUiText("Categories","جۆرێن بەرهەمان","الفئات"));
+  setText("shopProductsHeading",customerUiText("Trending Now","باوترین بەرهەم","الأكثر رواجًا"));
+  const categoryToggle=document.getElementById("homeCategoryToggle");
+  const expanded=document.getElementById("categoryButtons")?.classList.contains("expanded");
+  if(categoryToggle)categoryToggle.innerHTML=`${escapeHtml(customerUiText(expanded?"Show less":"See All",expanded?"کێمتر ببینە":"هەمی ببینە",expanded?"عرض أقل":"عرض الكل"))} <span aria-hidden="true">${expanded?"↑":"→"}</span>`;
+  const productsToggle=document.getElementById("homeProductsToggle");
+  if(productsToggle)productsToggle.innerHTML=`${escapeHtml(customerUiText("See All","هەمی ببینە","عرض الكل"))} <span aria-hidden="true">→</span>`;
+  const back=document.getElementById("homeBackButton");if(back){const label=customerUiText("Back","گەڕانەوە","رجوع");back.setAttribute("aria-label",label);back.title=label;}
+  const notifications=document.getElementById("homeNotificationsButton");if(notifications){const label=customerUiText("Notifications","ئاگاداری","الإشعارات");notifications.setAttribute("aria-label",label);notifications.title=label;}
+  const profileOwnerLabel=document.getElementById("profileOwnerDashboardLabel");if(profileOwnerLabel)profileOwnerLabel.textContent=customerUiText("Owner Dashboard","داشبۆردا خاوەن","لوحة المالك");  const categoryList=document.getElementById("categoryButtons");if(categoryList)categoryList.setAttribute("aria-label",customerUiText("Categories","جۆرێن بەرهەمان","الفئات"));
+}
 function getProductName(product,language=activeLanguage){
   if(!product)return "";
   const names=product.names&&typeof product.names==="object"?product.names:null;
@@ -4118,6 +4133,7 @@ function applyLanguage(language,persist=true){
   applyOwnerAppearance();
   if(typeof renderAdvertisements==="function")renderAdvertisements();
   if(typeof renderCategoryButtons==="function")renderCategoryButtons();
+  if(typeof renderHomeLabels==="function")renderHomeLabels();
   const selectedCategory=document.getElementById("ownerProductCategory")?.value||"";
   if(selectedCategory&&typeof populateOwnerCategorySelect==="function")populateOwnerCategorySelect(selectedCategory);
   refreshLocalizedProductNames();
@@ -6192,14 +6208,41 @@ function renderCategoryButtons(){
   const container=document.getElementById("categoryButtons");
   if(!container)return;
   const previousScrollLeft=container.scrollLeft;
-  const categories=["هەموو",...getAllCategories()];
+  const expanded=container.classList.contains("expanded");
+  const allCategories=getAllCategories();
+  const categories=expanded?allCategories:allCategories.slice(0,4);
   container.innerHTML=categories.map(category=>{
-    const sample=category==="هەموو"?null:products.find(product=>product.category===category&&product.image);
+    const sample=products.find(product=>product.category===category&&product.image);
     const icon=sample?`<img src="${escapeHtml(safeImageUrl(sample.image))}" alt="" loading="lazy">`:escapeHtml(categoryEmoji(category));
     return `<button class="category${currentCategory===category?" active":""}" type="button" data-category="${escapeHtml(category)}"><span class="cat-icon" aria-hidden="true">${icon}</span><span>${escapeHtml(categoryLabel(category))}</span></button>`;
   }).join("");
+  container.classList.toggle("expanded",expanded);
   container.scrollLeft=previousScrollLeft;
   container.querySelectorAll("[data-category]").forEach(button=>button.addEventListener("click",()=>filterCategory(button.dataset.category)));
+  updateHomeCategoryToggle(allCategories.length);
+}
+
+function updateHomeCategoryToggle(categoryCount=getAllCategories().length){
+  const toggle=document.getElementById("homeCategoryToggle");
+  const container=document.getElementById("categoryButtons");
+  if(!toggle||!container)return;
+  const expanded=container.classList.contains("expanded");
+  toggle.hidden=categoryCount<=4;
+  toggle.setAttribute("aria-expanded",String(expanded));
+  toggle.innerHTML=`${escapeHtml(customerUiText(expanded?"Show less":"See All",expanded?"کێمتر ببینە":"هەمی ببینە",expanded?"عرض أقل":"عرض الكل"))} <span aria-hidden="true">${expanded?"↑":"→"}</span>`;
+}
+
+function toggleHomeCategories(){
+  const container=document.getElementById("categoryButtons");
+  if(!container)return false;
+  container.classList.toggle("expanded");
+  renderCategoryButtons();
+  return true;
+}
+
+function showAllHomeProducts(){
+  filterCategory("هەموو");
+  document.querySelector("#homeView .shop-product-shelf")?.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function ownerCategoryOptions(selected=""){
@@ -6494,9 +6537,9 @@ function renderAdvertisements(){
 function renderHomeAdvertisements(){
   const hero=document.querySelector("#homeView .hero");
   if(!hero)return;
-  const slides=advertisementsFromCatalog?products.slice(0,4).filter(product=>product&&product.image).map(product=>({image:product.image,eyebrow:"SHIVAN SHOP · FEATURED",title:getProductName(product),description:formatPrice(getProductPricing(product)?.finalPrice??product.price),productId:product.id})):advertisements;
+  const slides=advertisementsFromCatalog?products.filter(product=>product&&product.image).slice(0,4).map(product=>{const discount=productDiscountPercent(product);return {image:product.image,eyebrow:customerUiText("SHIVAN SHOP · NEW COLLECTION","SHIVAN SHOP · کۆمەڵا نوێ","SHIVAN SHOP · مجموعة جديدة"),title:customerUiText("New Collection","کۆمەڵا نوێ","مجموعة جديدة"),description:discount?customerUiText("Up to "+discount+"% off",discount+"% داشکاندن","خصم يصل إلى "+discount+"%"):getProductName(product),productId:product.id};}):advertisements;
   if(!slides.length){
-    hero.innerHTML=`<div class="hero-slide active"><div class="hero-overlay"></div><div class="hero-copy"><small id="heroMainEyebrow">SHIVAN SHOP</small><h2 id="heroMainTitle">${escapeHtml(customerUiText("New collection","کۆمەڵا نوێ","مجموعة جديدة"))}</h2><p id="heroMainMessage">${escapeHtml(customerUiText("Discover elegant pieces from Shivan Shop.","جولبەرگ و شتێن جوان ژ Shivan Shop بدۆزەڤە.","اكتشفي قطعاً أنيقة من Shivan Shop."))}</p><button type="button" onclick="scrollProducts()">${escapeHtml(customerUiText("Explore the collection","بینین بەرهەمەکان","تسوقي المجموعة"))} <span aria-hidden="true">→</span></button></div></div><div class="hero-dots"><span class="active"></span></div>`;
+    hero.innerHTML=`<div class="hero-slide active"><div class="hero-overlay"></div><div class="hero-copy"><small id="heroMainEyebrow">SHIVAN SHOP</small><h2 id="heroMainTitle">${escapeHtml(customerUiText("New collection","کۆمەڵا نوێ","مجموعة جديدة"))}</h2><p id="heroMainMessage">${escapeHtml(customerUiText("Discover elegant pieces from Shivan Shop.","جولبەرگ و شتێن جوان ژ Shivan Shop بدۆزەڤە.","اكتشفي قطعاً أنيقة من Shivan Shop."))}</p><button id="homeHeroShopButton" type="button" onclick="scrollProducts()">${escapeHtml(customerUiText("Shop Now","ئێستا بکڕە","تسوقي الآن"))} <span aria-hidden="true">→</span></button></div></div><div class="hero-dots"><span class="active"></span></div>`;
     return;
   }
   heroSlide=Math.max(0,Math.min(slides.length-1,Number(heroSlide)||0));
@@ -6508,7 +6551,7 @@ function renderHomeAdvertisements(){
         <small ${index===0?'id="heroMainEyebrow"':''}>${escapeHtml(ad.eyebrow)}</small>
         <h2 ${index===0?'id="heroMainTitle"':''}>${escapeHtml(ad.title)}</h2>
         <p ${index===0?'id="heroMainMessage"':''}>${escapeHtml(ad.description)}</p>
-        <button type="button" onclick="${ad.productId?`openProduct(${Number(ad.productId)})`:"scrollProducts()"}">${escapeHtml(translateText("بینین بەرهەمەکان"))} <span aria-hidden="true">→</span></button>
+        <button type="button" onclick="${ad.productId?`openProduct(${Number(ad.productId)})`:"scrollProducts()"}">${escapeHtml(customerUiText("Shop Now","ئێستا بکڕە","تسوقي الآن"))} <span aria-hidden="true">→</span></button>
       </div>
     </div>
   `).join("")+`<div class="hero-dots">${slides.map((_,index)=>`<span class="${index===heroSlide?"active":""}"></span>`).join("")}</div>`;
@@ -8776,12 +8819,26 @@ function filterCategory(category){
 
 
 function scrollProducts(){
+  const target=document.querySelector("#homeView .shop-product-shelf");
+  (target||document.querySelector(".section-head"))?.scrollIntoView({behavior:"smooth",block:"start"});
+}
 
-  document.querySelector(".section-head")
-    ?.scrollIntoView({
-      behavior:"smooth"
-    });
+function goBackFromHome(){
+  if(!window.history||window.history.length<=1)return false;
+  window.history.back();
+  return true;
+}
 
+function openCustomerNotifications(){
+  const opened=openView("profile");
+  if(opened===false)return false;
+  requestAnimationFrame(()=>document.getElementById("customerPushSettings")?.scrollIntoView({behavior:"smooth",block:"center"}));
+  return true;
+}
+
+function openOwnerDashboardFromProfile(){
+  if(!isOwner()&&!isStaffSession()){showToast("Only the authorized Owner or signed-in staff can open this workspace.");return false;}
+  return openView("owner");
 }
 
 
@@ -11857,6 +11914,11 @@ async function disableCustomerPushNotifications(){
 }
 
 function updateProfile(){
+  const profileOwnerEntry=document.getElementById("profileOwnerDashboardEntry");
+  const canOpenOwnerWorkspace=isOwner()||isStaffSession();
+  if(profileOwnerEntry)profileOwnerEntry.hidden=!canOpenOwnerWorkspace;
+  const profileOwnerLabel=document.getElementById("profileOwnerDashboardLabel");
+  if(profileOwnerLabel)profileOwnerLabel.textContent=customerUiText("Owner Dashboard","داشبۆردا خاوەن","لوحة المالك");
 
   if(!currentUser){refreshCustomerPushControls();return;}
 

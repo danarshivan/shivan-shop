@@ -1090,3 +1090,88 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   #mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 }
 @media(prefers-reduced-motion:reduce){#mainApp #detailView.active .detail-gallery img,#mainApp #detailView.active .detail-actions-row button,#mainApp #detailView.active .detail-recommendation-grid .product{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+/* Home screen replacement: compact fashion storefront, real catalog content, and five customer destinations. */
+body:has(#homeView.active)>.language-switcher{top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:110;gap:5px;min-height:30px;padding:4px 8px;border-color:rgba(255,179,207,.24);border-radius:999px;background:rgba(41,8,24,.88);box-shadow:0 6px 18px rgba(5,0,3,.2);backdrop-filter:blur(12px)}
+body:has(#homeView.active)>.language-switcher span{font-size:12px}
+body:has(#homeView.active)>.language-switcher select{width:75px;max-width:75px;font-size:10px}
+#mainApp #homeView.shop-home-view{width:100%;max-width:1120px;margin-inline:auto;padding:0 14px 18px;overflow:visible}
+#mainApp #homeView .shop-home-topbar{direction:ltr;grid-template-columns:40px minmax(0,1fr) 40px;gap:8px;min-height:48px;margin:max(42px,calc(env(safe-area-inset-top) + 10px)) 0 12px;padding:0 2px;border:0}
+#mainApp #homeView .shop-home-topbar .shop-header-icon{width:38px;height:38px;flex-basis:38px;border-color:rgba(255,179,207,.22);background:linear-gradient(145deg,#54152f,#2d091b);color:#ffe9f1;box-shadow:0 6px 16px rgba(8,0,4,.2)}
+#mainApp #homeView .shop-home-topbar .shop-header-icon svg{width:18px;height:18px}
+#mainApp #homeView .shop-home-topbar .shop-brand-lockup{gap:4px;min-width:0;flex-direction:column}
+#mainApp #homeView .shop-home-topbar .logo-small{flex:0 0 20px;width:27px;height:22px;color:#ffc5d9}
+#mainApp #homeView .shop-home-topbar .logo-small svg{width:26px;height:22px;stroke-width:2}
+#mainApp #homeView .shop-home-topbar .logo-small img{width:25px;height:25px;border-radius:50%}
+#mainApp #homeView .shop-home-topbar .brand-small{display:block;min-width:0}
+#mainApp #homeView .shop-home-topbar .brand-small strong{display:block;max-width:min(58vw,250px);font-size:clamp(16px,4.3vw,20px);font-style:italic;letter-spacing:0}
+#mainApp #homeView .shop-home-topbar #shopTagline{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap}
+#mainApp #homeView .shop-home-promo{width:100%;height:clamp(166px,46vw,210px);min-height:166px;margin:0 auto 17px;border:1px solid rgba(255,181,209,.32);border-radius:18px;background:linear-gradient(125deg,#5a1433,#2b091b 65%,#19050e);box-shadow:0 14px 32px rgba(6,0,4,.28),0 0 20px rgba(218,58,124,.09)}
+#mainApp #homeView .shop-home-promo .hero-slide img{object-position:75% 34%;filter:saturate(.91) contrast(1.03)}
+#mainApp #homeView .shop-home-promo .hero-overlay{background:linear-gradient(90deg,rgba(26,4,15,.94) 0%,rgba(43,5,23,.78) 43%,rgba(43,5,23,.08) 83%),linear-gradient(0deg,rgba(20,3,12,.3),transparent 60%)}
+#mainApp #homeView .shop-home-promo .hero-copy{top:50%;right:auto;left:16px;width:min(57%,250px);transform:translateY(-50%);text-align:left}
+#mainApp #homeView .shop-home-promo .hero-copy small{display:block;margin-bottom:5px;color:#ffd0df;font-size:8px;font-weight:800;letter-spacing:.12em;line-height:1.3}
+#mainApp #homeView .shop-home-promo .hero-copy h2{max-width:11ch;margin:2px 0 5px;color:#fff4f8;font-size:clamp(22px,6vw,29px);line-height:1.02}
+#mainApp #homeView .shop-home-promo .hero-copy p{max-width:22ch;margin:0 0 10px;color:#f5d7e2;font-size:10px;line-height:1.35}
+#mainApp #homeView .shop-home-promo .hero-copy button{min-height:34px;padding:7px 13px;border:0;border-radius:999px;background:linear-gradient(110deg,#ffb6d0,#e84f91);color:#3b0a20;font-size:10px;font-weight:850;box-shadow:0 7px 17px rgba(212,49,112,.24)}
+#mainApp #homeView .shop-home-promo .hero-copy button span{margin-inline-start:4px}
+#mainApp #homeView .shop-home-promo .hero-dots{right:14px;bottom:10px;gap:5px}
+#mainApp #homeView .shop-home-promo .hero-dots span{width:6px;height:6px}
+[dir="rtl"] #mainApp #homeView .shop-home-promo .hero-overlay{background:linear-gradient(90deg,rgba(43,5,23,.08) 0%,rgba(43,5,23,.78) 57%,rgba(26,4,15,.94) 100%),linear-gradient(0deg,rgba(20,3,12,.3),transparent 60%)}
+[dir="rtl"] #mainApp #homeView .shop-home-promo .hero-copy{right:auto;left:16px;text-align:right}
+#mainApp #homeView .shop-category-shelf,#mainApp #homeView .shop-product-shelf{max-width:100%;margin:0 auto 17px;min-width:0}
+#mainApp #homeView .shop-shelf-heading{align-items:center;gap:8px;margin:0;padding:0 1px 9px}
+#mainApp #homeView .shop-shelf-heading h2{margin:0;color:#fff3f7;font-family:var(--shivan-display);font-size:clamp(17px,4.8vw,21px);font-weight:600;letter-spacing:-.015em;line-height:1.2}
+#mainApp #homeView .shop-shelf-heading button{min-height:32px;padding:4px 1px;color:#ffc0d7;font-size:10px;font-weight:800;white-space:nowrap}
+#mainApp #homeView .shop-shelf-heading button span{font-size:14px}
+#mainApp #homeView #categoryButtons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-width:0;margin:0;padding:0;overflow:visible}
+#mainApp #homeView #categoryButtons .category{display:grid;grid-template-rows:auto minmax(1.2em,auto);justify-items:center;align-content:start;gap:5px;min-width:0;width:100%;min-height:0;margin:0;padding:0 1px 4px;border:0;border-radius:0;background:transparent;color:#fff0f5;font-size:10px;font-weight:700;line-height:1.2;text-align:center;box-shadow:none}
+#mainApp #homeView #categoryButtons .category>span:last-child{max-width:100%;overflow-wrap:anywhere}
+#mainApp #homeView #categoryButtons:not(.expanded) .category:nth-child(n+5){display:none}
+#mainApp #homeView #categoryButtons .category .cat-icon{display:grid;place-items:center;width:100%;max-width:78px;aspect-ratio:1;height:auto;overflow:hidden;border:1px solid rgba(255,205,223,.27);border-radius:14px;background:linear-gradient(145deg,#76304e,#391026);box-shadow:inset 0 1px rgba(255,255,255,.1),0 6px 14px rgba(7,0,4,.18)}
+#mainApp #homeView #categoryButtons .category .cat-icon img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 28%}
+#mainApp #homeView #categoryButtons .category.active .cat-icon{border-color:#ffb3ce;box-shadow:0 0 0 2px rgba(255,180,207,.16),0 7px 16px rgba(188,36,98,.2)}
+#mainApp #homeView #productsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:9px;margin:0;padding:0;direction:ltr}
+#mainApp #homeView #productsGrid>.product{min-width:0;border:1px solid rgba(255,178,207,.17);border-radius:15px;background:linear-gradient(160deg,#501831,#2d0a1c);box-shadow:0 9px 22px rgba(5,0,3,.22)}
+#mainApp #homeView #productsGrid .product-image-frame{aspect-ratio:4/4.8;border-radius:14px 14px 0 0;background:#351020}
+#mainApp #homeView #productsGrid .product-img{object-position:center 30%}
+#mainApp #homeView #productsGrid .product-info{gap:5px;padding:8px}
+#mainApp #homeView #productsGrid .product-name{min-height:2.3em;font-size:11px;line-height:1.2}
+#mainApp #homeView #productsGrid .product-copy-line .price{font-size:11px}
+#mainApp #homeView #productsGrid .product-stock-row{gap:4px}
+#mainApp #homeView #productsGrid .product-stock-row .stock-line{font-size:8px}
+#mainApp #homeView #productsGrid .product-bottom{gap:5px;padding-top:3px}
+#mainApp #homeView #productsGrid .product-view-link{font-size:9px}
+#mainApp #homeView #productsGrid .add-mini{width:30px;height:30px;flex-basis:30px}
+#mainApp #homeView #productsGrid .heart{width:29px;height:29px}
+.bottom-nav:not(.owner-mode){grid-template-columns:repeat(5,minmax(0,1fr))}
+.bottom-nav.owner-customer-mode:not(.owner-mode){grid-template-columns:repeat(5,minmax(0,1fr))}
+.bottom-nav:not(.owner-mode) #ownerPanelButton,.bottom-nav:not(.owner-mode) #navAnalytics{display:none!important}
+.bottom-nav:not(.owner-mode) .nav-item{min-width:0;gap:2px;font-size:9px}
+.bottom-nav:not(.owner-mode) .nav-item .nav-icon{width:20px;height:20px}
+.bottom-nav:not(.owner-mode) #navCart .nav-cart-badge{right:calc(50% - 20px)}
+@media(max-width:360px){
+  #mainApp #homeView.shop-home-view{padding-inline:11px}
+  #mainApp #homeView .shop-home-topbar{grid-template-columns:36px minmax(0,1fr) 36px;gap:5px}
+  #mainApp #homeView .shop-home-topbar .shop-header-icon{width:35px;height:35px}
+  #mainApp #homeView .shop-home-promo{height:164px;min-height:164px}
+  #mainApp #homeView .shop-home-promo .hero-copy{left:13px;width:59%}
+  [dir="rtl"] #mainApp #homeView .shop-home-promo .hero-copy{left:13px}
+  #mainApp #homeView #categoryButtons{gap:5px}
+  #mainApp #homeView #productsGrid{gap:7px}
+  #mainApp #homeView #productsGrid .product-info{padding:7px}
+}
+@media(min-width:761px){
+  #mainApp #homeView.shop-home-view{padding-inline:22px}
+  #mainApp #homeView .shop-home-topbar{margin-bottom:17px}
+  #mainApp #homeView .shop-home-promo{height:clamp(205px,26vw,270px);margin-bottom:22px}
+  #mainApp #homeView .shop-home-promo .hero-copy{left:clamp(24px,4vw,48px);width:min(46%,360px)}
+  [dir="rtl"] #mainApp #homeView .shop-home-promo .hero-copy{left:clamp(24px,4vw,48px)}
+  #mainApp #homeView .shop-home-promo .hero-copy h2{font-size:clamp(30px,4vw,42px)}
+  #mainApp #homeView .shop-home-promo .hero-copy p{font-size:13px}
+  #mainApp #homeView .shop-home-promo .hero-copy button{min-height:40px;padding:9px 16px;font-size:12px}
+  #mainApp #homeView #categoryButtons .category .cat-icon{max-width:86px}
+  #mainApp #homeView #productsGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+}
+@media(min-width:1100px){#mainApp #homeView #productsGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:17px}}
+@media(prefers-reduced-motion:reduce){#mainApp #homeView .shop-home-promo img,#mainApp #homeView #categoryButtons .category,#mainApp #homeView #productsGrid>.product{scroll-behavior:auto;transition:none!important;animation:none!important}}
