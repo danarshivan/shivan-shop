@@ -2912,6 +2912,86 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 #mainApp.detail-mode #detailView.active.product-detail-entering{animation:shopMotionProductOpen 190ms var(--shop-motion-ease)}
 @media(prefers-reduced-motion:reduce){#mainApp.detail-mode #detailView.active.product-detail-entering{animation:none!important}}
 @keyframes shopMotionProductOpen{from{opacity:0;transform:translate3d(0,5px,0)}to{opacity:1;transform:none}}
+
+/* Owner product workspace refresh */
+.owner-product-nav{display:flex;gap:8px;margin:0 0 16px;padding:8px 0;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none;background:rgba(5,6,13,.96)}
+.owner-product-nav::-webkit-scrollbar{display:none}
+.owner-product-nav button{flex:0 0 auto;min-width:108px;min-height:44px;padding-inline:14px;border-radius:999px;font-size:13px;font-weight:750;white-space:nowrap}
+.owner-product-nav button.active{box-shadow:0 8px 22px color-mix(in srgb,var(--shop-button,#7045ff) 32%,transparent)}
+.owner-product-mode-content{min-width:0;scroll-margin-top:78px}
+.owner-products-heading,.owner-product-editor-head,.owner-product-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0;margin:0 0 14px}
+.owner-products-heading h3,.owner-product-editor-head h3,.owner-product-section-head h3{margin:0;color:#f7f4ff;font-size:clamp(18px,4vw,23px);line-height:1.25;overflow-wrap:anywhere}
+.owner-products-heading p,.owner-product-section-head p{margin:5px 0 0;color:#aaa5b8;font-size:12px;line-height:1.55}
+.owner-products-heading .owner-action{flex:0 0 auto;min-height:44px;margin:0;padding:9px 13px}
+.owner-products-search{display:grid;gap:6px;margin:0 0 12px;color:#bdb5cf;font-size:12px;font-weight:700}
+.owner-products-search input{width:100%;min-width:0;min-height:46px;padding:11px 13px;border:1px solid #39304f;border-radius:13px;background:#0b0d16;color:#f8f6ff;font:inherit;font-size:16px}
+.owner-product-cards{display:grid;gap:9px}
+.owner-list-item{display:grid;grid-template-columns:66px minmax(0,1fr);align-items:start;gap:10px;margin:0;padding:11px;border-color:#302a43;border-radius:16px;background:linear-gradient(145deg,#11121c,#0a0b12);box-shadow:0 10px 26px #0002}
+.owner-list-item>img{width:66px;height:78px;border:1px solid #383149;border-radius:12px;background:#0a0910;object-fit:cover}
+.owner-list-copy{display:grid;gap:4px;min-width:0}
+.owner-list-copy strong{color:#f8f5ff;font-size:14px;line-height:1.4}
+.owner-list-copy small{margin:0;color:#a9a4b5;font-size:11px;line-height:1.45}
+.owner-product-card-price{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:2px;color:#d5caff;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.owner-product-card-price .owner-product-status{padding:3px 7px;border:1px solid #47375f;border-radius:999px;background:#211833;color:#cfbaff;font-size:10px;font-weight:750}
+.owner-product-status[data-offer="true"]{border-color:#69435a;background:#2c1724;color:#ffc5d5}
+.owner-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;margin-top:1px}
+.owner-actions button{min-width:0;min-height:42px;padding:8px 10px;border-radius:11px;font:inherit;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.owner-product-editor{display:grid;gap:13px;min-width:0;padding:clamp(12px,3vw,20px);border:1px solid #302a43;border-radius:20px;background:linear-gradient(150deg,#11111b,#090a11 70%);box-shadow:0 16px 38px #0003}
+.owner-product-editor-head{align-items:center;margin:0}
+.owner-product-editor-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:5px;border:1px solid #302943;border-radius:14px;background:#080910}
+.owner-product-editor-tabs button{min-width:0;min-height:44px;padding:7px 4px;border:1px solid transparent;border-radius:10px;background:transparent;color:#aaa4b8;font:inherit;font-size:clamp(10px,2.8vw,12px);font-weight:750;line-height:1.25;overflow-wrap:anywhere;cursor:pointer;touch-action:manipulation}
+.owner-product-editor-tabs button[aria-selected="true"]{border-color:#6042a5;background:linear-gradient(135deg,#352451,#21172f);color:#f5ecff;box-shadow:0 5px 15px #0003}
+.owner-product-tab-panel{display:grid;gap:11px;min-width:0;align-content:start;scroll-margin-top:80px}
+.owner-product-tab-panel[hidden]{display:none!important}
+.owner-product-field-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0}
+.owner-product-field-grid>label,.owner-product-name-fields>label{display:grid;gap:6px;min-width:0;color:#cfc6e0;font-size:12px;font-weight:700}
+.owner-product-field-grid input,.owner-product-field-grid select,.owner-product-field-grid textarea,.owner-product-name-fields input{width:100%;min-width:0;min-height:46px;padding:10px 12px;border:1px solid #383149;border-radius:12px;background:#090a12;color:#f8f6ff;font:inherit;font-size:16px;outline:none}
+.owner-product-field-grid textarea{min-height:96px;resize:vertical;line-height:1.55}
+.owner-product-name-fields{gap:10px;padding:13px;border-color:#302943;border-radius:16px;background:#0b0c14}
+.owner-product-name-fields>small,.owner-product-help{color:#aaa5b8;font-size:11px;line-height:1.55}
+.owner-product-section-head{align-items:center;margin:2px 0 0}
+.owner-product-photo-actions{display:grid;gap:7px}
+.owner-photo-list{display:grid;gap:8px}
+.owner-photo-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:8px;min-width:0;padding:8px;border:1px solid #302943;border-radius:13px;background:#0b0c14}
+.owner-photo-row img{width:58px;height:64px;border-radius:9px;object-fit:cover;background:#06070c}
+.owner-photo-row select{width:100%;min-width:0;min-height:42px;padding:7px;border:1px solid #3b3450;border-radius:10px;background:#14121e;color:#fff;font:inherit;font-size:13px}
+.owner-photo-row button{min-width:42px;min-height:42px;border:1px solid #584050;border-radius:10px;background:#21131b;color:#ffb1bd;font:inherit;font-size:17px;cursor:pointer}
+.owner-photo-row .owner-photo-edit{grid-column:2/-1;min-height:40px;padding:7px 10px;border:1px solid #514080;border-radius:10px;background:#17132a;color:#eee5ff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.owner-inventory-scroll{overflow:visible;border:0;background:transparent}
+.owner-inventory-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:4px}
+.owner-inventory-color-card{min-width:0;padding:11px;border:1px solid #302943;border-radius:15px;background:#0c0d15}
+.owner-inventory-color-card header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 9px}
+.owner-inventory-color-label{min-width:0;overflow-wrap:anywhere;color:#f4efff;font-size:12px;font-weight:750}
+.owner-inventory-size-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,112px),1fr));gap:7px}
+.owner-inventory-size-field{display:grid;gap:5px;min-width:0;color:#a9a3b7;font-size:11px}
+.owner-inventory-size-field input{width:100%;min-width:0;min-height:44px;padding:7px;text-align:center;border:1px solid #3b3554;border-radius:10px;background:#11131f;color:#fff;font:inherit;font-size:16px}
+.owner-inventory-total{display:block;padding:10px 12px;border:1px solid #3c3154;border-radius:12px;background:#15101f;color:#ded0ff;font-size:13px}
+.owner-product-save-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding-top:3px}
+.owner-product-save-actions .main-btn{min-height:50px;margin:0;border-radius:13px;font-size:14px;font-weight:800}
+.owner-product-save-actions .owner-action{min-height:44px;margin:0}
+.owner-discount-search{margin-bottom:12px}
+.owner-discount-product-card{border-inline-start:3px solid #8053c7}
+.owner-category-title{align-items:center;flex-wrap:wrap}
+.owner-category-title .owner-action{min-height:42px}
+.owner-category-add,.owner-category-edit-head,.owner-category-edit-languages{min-width:0}
+.owner-category-add input,.owner-category-edit-row input{min-width:0;max-width:100%}
+@media(min-width:620px){.owner-product-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-product-field-grid .owner-field-span{grid-column:1/-1}.owner-inventory-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}.owner-product-cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}.owner-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.owner-product-nav button{min-width:94px;padding-inline:10px}.owner-product-editor{padding:10px}.owner-product-editor-tabs{gap:3px;padding:4px}.owner-product-editor-tabs button{font-size:10px}.owner-products-heading{align-items:stretch;flex-direction:column}.owner-products-heading .owner-action{width:100%}.owner-photo-row{grid-template-columns:48px minmax(0,1fr) auto}.owner-photo-row img{width:48px;height:56px}}
+@media(prefers-reduced-motion:reduce){.owner-product-nav button,.owner-product-editor-tabs button,.owner-list-item{transition:none!important}}
+.crop-image-plane{position:absolute;inset:auto;transform-origin:center;pointer-events:none}
+.crop-image-plane img{left:50%;top:50%;transform-origin:center;}
+.crop-handle{position:absolute;z-index:4;width:24px;height:24px;padding:0;border:2px solid #fff;border-radius:50%;background:var(--shop-button,#7045ff);box-shadow:0 1px 8px #000b;touch-action:none;cursor:nwse-resize}
+.crop-handle[data-crop-handle="nw"]{top:3px;left:3px}
+.crop-handle[data-crop-handle="ne"]{top:3px;right:3px;cursor:nesw-resize}
+.crop-handle[data-crop-handle="sw"]{bottom:3px;left:3px;cursor:nesw-resize}
+.crop-handle[data-crop-handle="se"]{bottom:3px;right:3px}
+.crop-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:6px 0}
+.crop-tools button{min-width:0;min-height:42px;padding:6px 3px;border:1px solid #34394e;border-radius:10px;background:#141722;color:#eee;font:inherit;font-size:11px;line-height:1.2;white-space:normal;cursor:pointer;touch-action:manipulation}
+.crop-tools button[data-crop-action="preview"]{grid-column:span 2;background:#211738}
+.crop-viewport.is-preview .crop-handle{display:none}
+.crop-ratios{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:380px){.crop-tools{gap:4px}.crop-tools button{font-size:10px}.crop-ratios{gap:4px}}
+
 </style>
 </head>
 
@@ -3588,20 +3668,34 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
     </div>
     <p class="crop-modal-hint">وێنەکە بکشە بۆ ڕێکخستن؛ زووم بکە و قەبارەی بڕین هەڵبژێرە.</p>
     <div id="cropViewport" class="crop-viewport" onpointerdown="cropPointerDown(event)" onpointermove="cropPointerMove(event)" onpointerup="cropPointerUp(event)" onpointercancel="cropPointerUp(event)">
-      <img id="cropImage" alt="پێشبینینی وێنەی بڕاو" draggable="false">
+      <div id="cropImagePlane" class="crop-image-plane"><img id="cropImage" alt="پێشبینینی وێنەی بڕاو" draggable="false"></div>
+      <button class="crop-handle" type="button" data-crop-handle="nw" aria-label="ڕێکخستنی گوشەی سەرەوە چەپ" onpointerdown="cropResizeDown(event)"></button>
+      <button class="crop-handle" type="button" data-crop-handle="ne" aria-label="ڕێکخستنی گوشەی سەرەوە ڕاست" onpointerdown="cropResizeDown(event)"></button>
+      <button class="crop-handle" type="button" data-crop-handle="sw" aria-label="ڕێکخستنی گوشەی خوارەوە چەپ" onpointerdown="cropResizeDown(event)"></button>
+      <button class="crop-handle" type="button" data-crop-handle="se" aria-label="ڕێکخستنی گوشەی خوارەوە ڕاست" onpointerdown="cropResizeDown(event)"></button>
     </div>
     <div class="crop-ratios" aria-label="قەبارەی بڕین">
-      <button type="button" data-crop-ratio="original" onclick="setCropRatio('original')">ئەسڵی</button>
-      <button type="button" data-crop-ratio="0.8" onclick="setCropRatio(0.8)">4:5</button>
+      <button type="button" data-crop-ratio="free" onclick="setCropRatio('free')">ئازاد</button>
       <button type="button" data-crop-ratio="1" onclick="setCropRatio(1)">1:1</button>
-      <button type="button" data-crop-ratio="1.7777778" onclick="setCropRatio(1.7777778)">16:9</button>
+      <button type="button" data-crop-ratio="0.75" onclick="setCropRatio(0.75)">3:4</button>
+      <button type="button" data-crop-ratio="0.8" onclick="setCropRatio(0.8)">4:5</button>
+      <button type="button" data-crop-ratio="0.5625" onclick="setCropRatio(0.5625)">9:16</button>
+      <button type="button" data-crop-ratio="1.7777778" data-crop-only="ad" onclick="setCropRatio(1.7777778)">16:9</button>
+    </div>
+    <div class="crop-tools">
+      <button type="button" data-crop-transform="rotate-left">↶ چەپ بسووڕێنە</button>
+      <button type="button" data-crop-transform="rotate-right">↷ ڕاست بسووڕێنە</button>
+      <button type="button" data-crop-transform="flip-x">ئاسۆیی پێچەوانە بکە</button>
+      <button type="button" data-crop-transform="flip-y">ستوونی پێچەوانە بکە</button>
+      <button type="button" data-crop-action="preview">پێشبینین</button>
+      <button type="button" data-crop-action="reset">نووکرن</button>
     </div>
     <label id="cropColorRow" class="crop-color-row" for="cropImageColor"><span>ڕەنگێ وێنە</span><select id="cropImageColor"></select></label>
     <label class="crop-zoom-row" for="cropZoom"><span>زووم</span><input id="cropZoom" type="range" min="1" max="5" step="0.01" value="1" oninput="setCropZoom(this.value)"></label>
     <p id="cropStatus" class="crop-status" role="status" aria-live="polite"></p>
     <div class="crop-actions">
       <button type="button" data-crop-action="cancel">هەڵوەشاندنەوە</button>
-      <button type="button" class="main-btn" data-crop-action="apply">بڕین و پاشەکەفتکردن</button>
+      <button type="button" class="main-btn" data-crop-action="apply">تەواو</button>
     </div>
   </div>
 </div>
@@ -3892,6 +3986,57 @@ const languageRows = [
   ["وێنەکان زۆر گەورەن بۆ پاشەکەفتی براوزەر؛ وێنەی بچووکتر هەڵبژێرە.","Images exceed this browser's storage. Choose smaller photos.","تتجاوز الصور مساحة تخزين المتصفح. اختر صورًا أصغر."]
 ];
 
+
+
+languageRows.push(
+  ["ناڤێ بەرهەمێ ئینگلیزی","English product name","اسم المنتج بالإنجليزية"],
+  ["ناڤێ بەرهەمێ عەرەبی","Arabic product name","اسم المنتج بالعربية"],
+  ["ناڤێ بەرهەمێ کوردی","Kurdish product name","اسم المنتج بالكردية"],
+  ["زانیاریێن سەرەکی","Basic Info","المعلومات الأساسية"],
+  ["وێنە","Photos","الصور"],
+  ["ڕەنگ و ستۆک","Colors & Stock","الألوان والمخزون"],
+  ["ئازاد","Free","حر"],
+  ["بڕینی وێنە","Crop photo","قص الصورة"],
+  ["پێشبینین","Preview","معاينة"],
+  ["نووکرن","Reset","إعادة ضبط"],
+  ["سوڕاندن","Rotate","تدوير"],
+  ["پێچەوانەکردن","Flip","قلب"],
+  ["ڕەنگا ئاسۆیی","Flip horizontal","قلب أفقي"],
+  ["ڕەنگا ستوونی","Flip vertical","قلب عمودي"],
+  ["تەواو","Done","تم"],
+  ["چوارگۆشە","Square","مربع"],
+  ["داشکاندن","Discount","خصم"],
+  ["بێ داشکاندن","No discount","بدون خصم"],
+  ["نرخ نادیارە","Price hidden","السعر مخفي"],
+  ["گەڕان بۆ بەرهەم...","Search products...","ابحث عن المنتجات..."],
+  ["بەرهەمەکێ نەدۆزرایەوە","No products found","لم يتم العثور على منتجات"]
+);
+languageRows.push(
+  ["چەپ بسووڕێنە","Rotate left","تدوير لليسار"],
+  ["ڕاست بسووڕێنە","Rotate right","تدوير لليمين"],
+  ["ئاسۆیی پێچەوانە بکە","Flip horizontal","قلب أفقي"],
+  ["ستوونی پێچەوانە بکە","Flip vertical","قلب عمودي"],
+  ["ڕێکخستنی گوشەی سەرەوە چەپ","Resize top left crop handle","تحريك مقبض القص العلوي الأيسر"],
+  ["ڕێکخستنی گوشەی سەرەوە ڕاست","Resize top right crop handle","تحريك مقبض القص العلوي الأيمن"],
+  ["ڕێکخستنی گوشەی خوارەوە چەپ","Resize bottom left crop handle","تحريك مقبض القص السفلي الأيسر"],
+  ["ڕێکخستنی گوشەی خوارەوە ڕاست","Resize bottom right crop handle","تحريك مقبض القص السفلي الأيمن"],
+  ["بڕین و پاشەکەفتکردن","Done","تم"],
+  ["Crop editing is ready.","دەستکاریکرنا crop ئامادەیە.","أصبح تعديل القص جاهزاً."],
+  ["Crop preview is ready.","پێشبینینا crop ئامادەیە.","معاينة القص جاهزة."],
+  ["Preparing crop preview…","پێشبینینا crop ئامادە دبیت…","جارٍ تجهيز معاينة القص…"],
+  ["The crop preview could not be prepared.","نەشیا پێشبینینا crop ئامادە بکەت.","تعذر تجهيز معاينة القص."],
+  ["Preview shows the exact image that Done will upload. Press Preview again to keep editing.","پێشبینین هەمان وێنە دیار دبەت کو دێ ب تەواوکرنێ بارببیت. بۆ بەردەوامبوونا دەستکاریێ دوبارە پێشبینین لێبدە.","تعرض المعاينة الصورة نفسها التي سيرفعها زر تم. اضغط معاينة مجدداً لمتابعة التعديل."],
+  ["Drag or zoom the photo, then save the crop.","وێنەکە بکشە یان زووم بکە، پاشان بڕینەکە پاشەکەفت بکە.","اسحب الصورة أو كبّرها ثم احفظ القص."],
+  ["The original stays in the product until you confirm and save.","وێنەیا ئەسڵی دەمینیتە ناڤ بەرهەمێ تا پشتڕاستی و پاشەکەفتێ بکەی.","تبقى الصورة الأصلية في المنتج حتى تؤكد وتحفظ التغييرات."]
+);
+languageRows.push(
+  ["دەستکاری crop","Edit crop","تعديل القص"],
+  ["وێنەکە بکشە یان زووم بکە، پاشان بڕینەکە پاشەکەفت بکە.","Drag or zoom the photo, then save the crop.","اسحب الصورة أو كبّرها ثم احفظ القص."],
+  ["پێشبینینا crop ئامادەیە.","Crop preview is ready.","معاينة القص جاهزة."],
+  ["نەشیا پێشبینینا crop ئامادە بکەت.","The crop preview could not be prepared.","تعذر تجهيز معاينة القص."],
+  ["وێنەیا ئەسڵی دەمینیتە ناڤ بەرهەمێ تا پشتڕاستی و پاشەکەفتێ بکەی.","The original stays in the product until you confirm and save.","تبقى الصورة الأصلية في المنتج حتى تؤكد وتحفظ التغييرات."],
+  ["وێنەی بەرهەم","Product photo","صورة المنتج"]
+);
 const languageSourceMap=new Map();
 languageRows.forEach(([ku,en,ar])=>{
   if(!/[\u0600-\u06FF]/.test(ku)&&/[\u0600-\u06FF]/.test(en))[ku,en]=[en,ku];
@@ -4869,6 +5014,7 @@ let editingAdIndex = null;
 let ownerPanel = "dashboard";
 let ownerDashboardNavKey = "dashboard";
 let ownerProductMode = "menu";
+let ownerProductEditorTab="basic";
 let ownerInventoryDraft = new Map();
 let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""};
 let ownerReportSelection={preset:"month",start:"",end:""};
@@ -5238,11 +5384,14 @@ function bindImageCropActions(){
   if(!modal||modal.dataset.cropActionsBound==="true")return;
   modal.dataset.cropActionsBound="true";
   modal.addEventListener("click",event=>{
-    const button=event.target?.closest?.("[data-crop-action]");
+    const button=event.target?.closest?.("[data-crop-action],[data-crop-transform]");
     if(!button||button.disabled||!modal.contains(button))return;
     event.preventDefault();
+    if(button.dataset.cropTransform){setOwnerCropTransform(button.dataset.cropTransform);return;}
     if(button.dataset.cropAction==="cancel")void finishImageCrop(false);
     else if(button.dataset.cropAction==="apply")void finishImageCrop(true);
+    else if(button.dataset.cropAction==="preview")void previewOwnerImageCrop();
+    else if(button.dataset.cropAction==="reset")resetOwnerImageCrop();
   });
 }
 
@@ -5355,7 +5504,8 @@ let ownerProductImageQueue=null;
 
 function releaseCropForm(state,clearInput=true){
   if(state?.input){state.input.disabled=false;if(clearInput)state.input.value="";}
-  if(state?.submit)state.submit.disabled=false;
+  if(Array.isArray(state?.submitButtons))state.submitButtons.forEach(button=>button.disabled=false);
+  else if(state?.submit)state.submit.disabled=false;
 }
 
 function setOwnerImageStatus(message){
@@ -5368,14 +5518,17 @@ function showImageCrop(source,details){
   image.onload=()=>{
     const sourceRatio=source.width/source.height;
     const defaultRatioMode=details.kind==="ad"?"1.7777778":"0.8";
-    pendingImageCrop={...details,...source,sourceRatio,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:0.8,zoom:1,left:null,top:null,scale:null,drag:null};
+    pendingImageCrop={...details,...source,sourceRatio,defaultRatioMode,defaultRatio:details.kind==="ad"?1.7777778:0.8,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:0.8,zoom:1,left:null,top:null,scale:null,drag:null,rotation:0,flipX:false,flipY:false,frameWidth:null,previewBlob:null,previewObjectUrl:"",previewing:false};
     const modal=document.getElementById("imageCropModal");
     modal.classList.add("show");
     modal.setAttribute("aria-hidden","false");
     setImageCropBusy(false);
     const cropStatus=document.getElementById("cropStatus");
-    if(cropStatus)cropStatus.textContent=details.queue?`Photo ${details.queueIndex+1} of ${ownerProductImageQueue?.files.length||details.queueIndex+1}: drag or zoom, then save the crop.`:"Drag or zoom the photo, then save the crop.";
+    const queuedCount=ownerProductImageQueue?.files.length||details.queueIndex+1;
+    if(cropStatus)cropStatus.textContent=details.queue?ownerDashboardText(`Photo ${details.queueIndex+1} of ${queuedCount}: drag, zoom, or resize the crop, then preview it.`,`وێنە ${details.queueIndex+1} ژ ${queuedCount}: بکشە، زووم بکە، یان قەبارەیا بڕینێ بگۆڕە و پێشبینین بکە.`,`الصورة ${details.queueIndex+1} من ${queuedCount}: اسحب أو كبّر أو غيّر إطار القص ثم اعرض المعاينة.`):ownerDashboardText("Drag or zoom the photo, then save the crop.","وێنەکە بکشە یان زووم بکە، پاشان بڕینەکە پاشەکەفت بکە.","اسحب الصورة أو كبّرها ثم احفظ القص.");
     document.querySelectorAll("[data-crop-ratio]").forEach(button=>button.classList.toggle("active",button.dataset.cropRatio===pendingImageCrop.ratioMode));
+    document.querySelectorAll("[data-crop-only]").forEach(button=>button.hidden=button.dataset.cropOnly!==details.kind);
+    const previewButton=document.querySelector('[data-crop-action="preview"]');if(previewButton)previewButton.textContent=ownerDashboardText("Preview","پێشبینین","معاينة");
     document.getElementById("cropZoom").value="1";
     const colorRow=document.getElementById("cropColorRow");
     const colorSelect=document.getElementById("cropImageColor");
@@ -5388,7 +5541,7 @@ function showImageCrop(source,details){
     }else colorSelect.innerHTML="";
     requestAnimationFrame(()=>{
       sizeCropViewport();
-      layoutCropImage(true);
+      layoutCropImage(true);image.onload=null;
     });
   };
   image.onerror=()=>{
@@ -5449,9 +5602,11 @@ function uploadOwnerProductImages(input){
   if(bad){input.value="";showToast(bad.size>MAX_OWNER_IMAGE_INPUT_BYTES?"قەبارەی وێنە زۆرە؛ وێنەیەکی کەمتر لە ١٥ مێگابایت هەڵبژێرە.":"تکایە فایلێکی وێنە هەڵبژێرە.");return;}
   const colors=parseOwnerColorEntries(document.getElementById("ownerProductColors")?.value||"").map(item=>item.value);
   ownerProductWorkflowId=ownerProductWorkflowId||createOwnerSaveRequestId();
-  ownerProductImageQueue={files,index:0,failed:0,input,submit:input.closest("form")?.querySelector('[type="submit"]'),colors,requestId:ownerProductWorkflowId};
+  const form=input.closest("form");
+  const submitButtons=[...(form?.querySelectorAll?.('button[type="submit"]')||[])];
+  ownerProductImageQueue={files,index:0,failed:0,input,submit:submitButtons[0]||form?.querySelector('[type="submit"]'),submitButtons,colors,requestId:ownerProductWorkflowId};
   input.disabled=true;
-  if(ownerProductImageQueue.submit)ownerProductImageQueue.submit.disabled=true;
+  submitButtons.forEach(button=>button.disabled=true);
   startNextQueuedProductImage();
 }
 
@@ -5475,47 +5630,48 @@ function sizeCropViewport(){
   if(!pendingImageCrop)return;
   const viewport=document.getElementById("cropViewport");
   const card=document.querySelector(".crop-modal-card");
-  const ratio=pendingImageCrop.ratio;
-  const maxWidth=Math.max(150,Math.min(420,(card?.clientWidth||460)-32));
+  const ratio=Math.max(.2,Math.min(5,Number(pendingImageCrop.ratio)||1));
+  const maxWidth=Math.max(120,Math.min(420,(card?.clientWidth||460)-32));
   const visibleHeight=window.visualViewport?.height||window.innerHeight;
-  const maxHeight=Math.max(130,Math.min(320,visibleHeight*.3));
-  const width=Math.min(maxWidth,maxHeight*ratio);
-  viewport.style.width=`${width}px`;
-  viewport.style.height=`${width/ratio}px`;
+  const maxHeight=Math.max(120,Math.min(320,visibleHeight*.3));
+  const fittedWidth=Math.min(maxWidth,maxHeight*ratio);
+  const width=Math.max(100,Math.min(fittedWidth,Number(pendingImageCrop.frameWidth)||fittedWidth));
+  viewport.style.width=width+"px";
+  viewport.style.height=width/ratio+"px";
+  pendingImageCrop.frameWidth=width;
 }
 
 function layoutCropImage(reset=false){
   if(!pendingImageCrop)return;
   const viewport=document.getElementById("cropViewport");
+  const plane=document.getElementById("cropImagePlane");
   const image=document.getElementById("cropImage");
   const state=pendingImageCrop;
-  const viewWidth=viewport.clientWidth;
-  const viewHeight=viewport.clientHeight;
+  const target=plane||image;
+  const viewWidth=viewport.clientWidth,viewHeight=viewport.clientHeight;
   if(!viewWidth||!viewHeight||!image.naturalWidth)return;
-  const oldScale=state.scale;
-  const oldLeft=state.left;
-  const oldTop=state.top;
-  const fitScale=Math.max(viewWidth/image.naturalWidth,viewHeight/image.naturalHeight);
-  const scale=fitScale*state.zoom;
-  const width=image.naturalWidth*scale;
-  const height=image.naturalHeight*scale;
-  let left,top;
-  if(reset||oldScale==null||oldLeft==null||oldTop==null){
-    left=(viewWidth-width)/2;
-    top=(viewHeight-height)/2;
-  }else{
-    const centerX=(viewWidth/2-oldLeft)/oldScale;
-    const centerY=(viewHeight/2-oldTop)/oldScale;
-    left=viewWidth/2-centerX*scale;
-    top=viewHeight/2-centerY*scale;
+  if(state.previewing){
+    target.style.width=viewWidth+"px";target.style.height=viewHeight+"px";target.style.left="0px";target.style.top="0px";target.style.transform="none";
+    image.style.width=viewWidth+"px";image.style.height=viewHeight+"px";image.style.left="0px";image.style.top="0px";image.style.transform="none";
+    return;
   }
-  state.scale=scale;
-  state.left=Math.min(0,Math.max(viewWidth-width,left));
-  state.top=Math.min(0,Math.max(viewHeight-height,top));
-  image.style.width=`${width}px`;
-  image.style.height=`${height}px`;
-  image.style.left=`${state.left}px`;
-  image.style.top=`${state.top}px`;
+  const rotation=((Number(state.rotation)||0)%360+360)%360;
+  const rotated=rotation===90||rotation===270;
+  const rawWidth=image.naturalWidth,rawHeight=image.naturalHeight;
+  const imageWidth=rotated?rawHeight:rawWidth,imageHeight=rotated?rawWidth:rawHeight;
+  const oldScale=state.scale,oldLeft=state.left,oldTop=state.top;
+  const fitScale=Math.max(viewWidth/imageWidth,viewHeight/imageHeight);
+  const scale=fitScale*(Number(state.zoom)||1);
+  const width=imageWidth*scale,height=imageHeight*scale;
+  const rawCssWidth=rawWidth*scale,rawCssHeight=rawHeight*scale;
+  let left,top;
+  if(reset||oldScale==null||oldLeft==null||oldTop==null){left=(viewWidth-width)/2;top=(viewHeight-height)/2;}
+  else{const centerX=(viewWidth/2-oldLeft)/oldScale;const centerY=(viewHeight/2-oldTop)/oldScale;left=viewWidth/2-centerX*scale;top=viewHeight/2-centerY*scale;}
+  state.scale=scale;state.left=Math.min(0,Math.max(viewWidth-width,left));state.top=Math.min(0,Math.max(viewHeight-height,top));
+  target.style.width=width+"px";target.style.height=height+"px";target.style.left=state.left+"px";target.style.top=state.top+"px";
+  target.style.transform="scaleX("+(state.flipX?-1:1)+") scaleY("+(state.flipY?-1:1)+")";
+  image.style.width=rawCssWidth+"px";image.style.height=rawCssHeight+"px";image.style.left="50%";image.style.top="50%";
+  image.style.transform="translate(-50%, -50%) rotate("+rotation+"deg)";
 }
 
 window.addEventListener("resize",()=>{
@@ -5531,42 +5687,58 @@ window.visualViewport?.addEventListener("resize",()=>{
 
 function setCropRatio(ratio){
   if(!pendingImageCrop)return;
+  clearOwnerCropPreview();
   const ratioMode=String(ratio);
   pendingImageCrop.ratioMode=ratioMode;
-  pendingImageCrop.ratio=ratioMode==="original"?pendingImageCrop.sourceRatio:Number(ratio);
-  pendingImageCrop.zoom=1;
-  document.getElementById("cropZoom").value="1";
-  pendingImageCrop.left=null;
-  pendingImageCrop.top=null;
-  pendingImageCrop.scale=null;
+  if(ratioMode!=="free")pendingImageCrop.ratio=Math.max(.2,Math.min(5,Number(ratioMode)||1));
+  pendingImageCrop.zoom=1;pendingImageCrop.frameWidth=null;pendingImageCrop.left=null;pendingImageCrop.top=null;pendingImageCrop.scale=null;
+  const zoom=document.getElementById("cropZoom");if(zoom)zoom.value="1";
   document.querySelectorAll("[data-crop-ratio]").forEach(button=>button.classList.toggle("active",button.dataset.cropRatio===pendingImageCrop.ratioMode));
-  sizeCropViewport();
-  layoutCropImage(true);
+  sizeCropViewport();layoutCropImage(true);
 }
 
 function setCropZoom(value){
   if(!pendingImageCrop)return;
+  clearOwnerCropPreview();
   pendingImageCrop.zoom=Math.max(1,Math.min(5,Number(value)||1));
   layoutCropImage(false);
 }
 
 function cropPointerDown(event){
-  if(!pendingImageCrop)return;
+  if(!pendingImageCrop||event.target?.closest?.(".crop-handle"))return;
   event.preventDefault();
-  event.currentTarget.setPointerCapture(event.pointerId);
-  pendingImageCrop.drag={x:event.clientX,y:event.clientY,left:pendingImageCrop.left,top:pendingImageCrop.top};
+  event.currentTarget.setPointerCapture?.(event.pointerId);
+  pendingImageCrop.drag={mode:"image",x:event.clientX,y:event.clientY,left:pendingImageCrop.left,top:pendingImageCrop.top};
 }
 
 function cropPointerMove(event){
   if(!pendingImageCrop?.drag)return;
-  const state=pendingImageCrop;
-  const viewport=document.getElementById("cropViewport");
-  const image=document.getElementById("cropImage");
+  const state=pendingImageCrop,drag=state.drag;
+  const viewport=document.getElementById("cropViewport"),image=document.getElementById("cropImage"),plane=document.getElementById("cropImagePlane")||image;
   const viewWidth=viewport.clientWidth,viewHeight=viewport.clientHeight;
-  state.left=Math.min(0,Math.max(viewWidth-image.offsetWidth,state.drag.left+event.clientX-state.drag.x));
-  state.top=Math.min(0,Math.max(viewHeight-image.offsetHeight,state.drag.top+event.clientY-state.drag.y));
-  image.style.left=`${state.left}px`;
-  image.style.top=`${state.top}px`;
+  if(drag.mode==="resize"){
+    const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+    const horizontal=drag.handle.endsWith("e")?1:-1,vertical=drag.handle.startsWith("s")?1:-1;
+    const visibleHeight=window.visualViewport?.height||window.innerHeight;
+    const card=document.querySelector(".crop-modal-card");
+    const maxWidth=Math.max(120,Math.min(420,(card?.clientWidth||460)-32));
+    const maxHeight=Math.max(120,Math.min(320,visibleHeight*.3));
+    let width,height;
+    if(state.ratioMode==="free"){
+      width=Math.max(100,Math.min(maxWidth,drag.width+horizontal*dx));
+      height=Math.max(100,Math.min(maxHeight,drag.height+vertical*dy));
+      state.ratio=width/height;
+    }else{
+      const ratio=Math.max(.2,Math.min(5,Number(state.ratio)||1));
+      width=(drag.width+horizontal*dx+vertical*dy*ratio)/(1+ratio*ratio);
+      width=Math.max(100,Math.min(Math.min(maxWidth,maxHeight*ratio),width));
+      height=width/ratio;
+    }
+    state.frameWidth=width;viewport.style.width=width+"px";viewport.style.height=height+"px";layoutCropImage(false);return;
+  }
+  state.left=Math.min(0,Math.max(viewWidth-plane.offsetWidth,drag.left+event.clientX-drag.x));
+  state.top=Math.min(0,Math.max(viewHeight-plane.offsetHeight,drag.top+event.clientY-drag.y));
+  plane.style.left=state.left+"px";plane.style.top=state.top+"px";
 }
 
 function cropPointerUp(){if(pendingImageCrop)pendingImageCrop.drag=null;}
@@ -5574,13 +5746,13 @@ function cropPointerUp(){if(pendingImageCrop)pendingImageCrop.drag=null;}
 function closeImageCrop(){
   const state=pendingImageCrop;
   setImageCropBusy(false);
-  document.getElementById("imageCropModal").classList.remove("show");
-  document.getElementById("imageCropModal").setAttribute("aria-hidden","true");
-  const image=document.getElementById("cropImage");
-  image.onload=null;image.onerror=null;image.removeAttribute("src");
+  const modal=document.getElementById("imageCropModal");
+  modal?.classList.remove("show");modal?.setAttribute("aria-hidden","true");
+  const viewport=document.getElementById("cropViewport");viewport?.classList?.remove("is-preview");
+  const image=document.getElementById("cropImage");if(image){image.onload=null;image.onerror=null;image.removeAttribute("src");}
+  if(state?.previewObjectUrl){URL.revokeObjectURL(state.previewObjectUrl);state.previewObjectUrl="";}
   releasePreparedCropSource(state);
-  const status=document.getElementById("cropStatus");
-  if(status)status.textContent="";
+  const status=document.getElementById("cropStatus");if(status)status.textContent="";
   pendingImageCrop=null;
   if(!state?.queue)releaseCropForm(state);
 }
@@ -5589,119 +5761,138 @@ async function finishImageCrop(apply){
   const state=pendingImageCrop;
   if(!state)return;
   if(!apply){
-    state.cancelled=true;
-    state.abortController?.abort();
-    state.uploading=false;
-    setImageCropBusy(false);
-    if(state.queue){
-      const queue=ownerProductImageQueue;
-      ownerProductImageQueue=null;
-      closeImageCrop();
-      releaseCropForm(queue);
-      setOwnerImageStatus("Photo selection canceled. Existing product photos are unchanged.");
-      showToast("هەڵبژاردنی وێنەکان هەڵوەشایەوە.");
-    }else closeImageCrop();
-    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
-      const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
-      if(ownerStatus)ownerStatus.textContent="Image selection canceled. The previous slide image is unchanged.";
-    }
+    state.cancelled=true;state.abortController?.abort();state.uploading=false;setImageCropBusy(false);
+    if(state.queue){const queue=ownerProductImageQueue;ownerProductImageQueue=null;closeImageCrop();releaseCropForm(queue);setOwnerImageStatus("Photo selection canceled. Existing product photos are unchanged.");showToast("هەڵوەشایەوە.");}
+    else closeImageCrop();
+    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");if(ownerStatus)ownerStatus.textContent="Image selection canceled. The previous slide image is unchanged.";}
     return;
   }
   if(state.uploading)return;
-  state.uploading=true;
-  state.cancelled=false;
-  state.abortController=typeof AbortController==="function"?new AbortController():null;
-  const status=document.getElementById("cropStatus");
-  if(status)status.textContent="Preparing the cropped photo…";
-  ownerSaveDiagnostic("image.crop.start",{requestId:state.requestId||"",stage:state.kind||"image",ratio:state.ratioMode||""});
-  setImageCropBusy(true);
+  state.uploading=true;state.cancelled=false;state.abortController=typeof AbortController==="function"?new AbortController():null;
+  const status=document.getElementById("cropStatus");if(status)status.textContent="Preparing the confirmed crop…";
+  ownerSaveDiagnostic("image.crop.start",{requestId:state.requestId||"",stage:state.kind||"image",ratio:state.ratioMode||""});setImageCropBusy(true);
   try{
-    const viewport=document.getElementById("cropViewport");
-    const image=document.getElementById("cropImage");
-    const viewWidth=viewport.clientWidth,viewHeight=viewport.clientHeight;
-    if(!state.scale||!viewWidth||!viewHeight)throw new Error("پێشبینینی crop ئامادە نییە؛ دووبارە هەوڵ بدە.");
-    const cropSource=state.bitmap||image;
-    const previewWidth=image.naturalWidth;
-    const previewHeight=image.naturalHeight;
-    const sourceScaleX=(cropSource.width||previewWidth)/previewWidth;
-    const sourceScaleY=(cropSource.height||previewHeight)/previewHeight;
-    const previewCropWidth=viewWidth/state.scale;
-    const previewCropHeight=viewHeight/state.scale;
-    const previewX=Math.max(0,Math.min(previewWidth-previewCropWidth,-state.left/state.scale));
-    const previewY=Math.max(0,Math.min(previewHeight-previewCropHeight,-state.top/state.scale));
-    const sourceWidth=previewCropWidth*sourceScaleX;
-    const sourceHeight=previewCropHeight*sourceScaleY;
-    const sourceX=previewX*sourceScaleX;
-    const sourceY=previewY*sourceScaleY;
-    const canvas=document.createElement("canvas");
-    const context=canvas.getContext("2d");
-    if(!context)throw new Error("ئامادەکردنی وێنە سەرکەفتوو نەبوو.");
-    let blob=null;
-    let outputWidth=0,outputHeight=0;
-    try{
-      for(const maxOutput of [1000,760]){
-        if(blob)break;
-        outputWidth=Math.max(1,Math.round(state.ratio>=1?maxOutput:maxOutput*state.ratio));
-        outputHeight=Math.max(1,Math.round(state.ratio>=1?maxOutput/state.ratio:maxOutput));
-        canvas.width=outputWidth;canvas.height=outputHeight;
-        context.drawImage(cropSource,sourceX,sourceY,sourceWidth,sourceHeight,0,0,outputWidth,outputHeight);
-        for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){
-          const candidate=await canvasBlob(canvas,type,quality,{signal:state.abortController?.signal});
-          if(state.cancelled||pendingImageCrop!==state)return;
-          if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}
-          if(blob)break;
-        }
-      }
-    }finally{
-      canvas.width=0;canvas.height=0;
-    }
-    if(!blob)throw new Error("The image could not be compressed below the shared-storage limit. Choose a smaller crop.");
-    ownerSaveDiagnostic("image.crop.compressed",{requestId:state.requestId||"",mime:blob.type,bytes:blob.size,width:outputWidth,height:outputHeight});
-    if(status)status.textContent="Uploading the photo to the shared shop…";
+    const blob=state.previewBlob||await renderOwnerCropBlob(state);
+    if(state.cancelled||pendingImageCrop!==state)return;
+    if(!blob)throw new Error("The selected crop could not be prepared.");
+    ownerSaveDiagnostic("image.crop.compressed",{requestId:state.requestId||"",mime:blob.type,bytes:blob.size,width:blob.width||0,height:blob.height||0});
+    if(status)status.textContent="Uploading the confirmed photo to shared storage…";
     const imageUrl=await uploadOwnerImageToCloud(blob,state.requestId||"",state.abortController?.signal);
     if(state.cancelled||pendingImageCrop!==state)return;
     if(state.queue){
-      const target=document.getElementById("ownerProductImagesData");
-      if(!target)throw new Error("فۆرمی وێنە نەدۆزرایەوە.");
-      const selectedColor=document.getElementById("cropImageColor").value;
-      const photos=readOwnerProductPhotos();
-      photos.push({src:imageUrl,color:normalizeHexColor(selectedColor)||""});
-      target.value=JSON.stringify(photos);
-      renderOwnerProductPhotoList();
-      closeImageCrop();
-      ownerProductImageQueue.index++;
-      startNextQueuedProductImage();
+      const target=document.getElementById("ownerProductImagesData");if(!target)throw new Error("The product photo form was not found.");
+      const selectedColor=document.getElementById("cropImageColor")?.value||"";
+      const photos=readOwnerProductPhotos();photos.push({src:imageUrl,color:normalizeHexColor(selectedColor)||""});writeOwnerProductPhotos(photos);renderOwnerProductPhotoList();
+      closeImageCrop();ownerProductImageQueue.index++;startNextQueuedProductImage();
+    }else if(state.kind==="product"&&Number.isInteger(state.photoIndex)){
+      const photos=readOwnerProductPhotos();if(!photos[state.photoIndex])throw new Error("The original product photo is no longer in this draft.");
+      const selectedColor=document.getElementById("cropImageColor")?.value??photos[state.photoIndex].color;
+      photos[state.photoIndex]={src:imageUrl,color:normalizeHexColor(selectedColor)||""};writeOwnerProductPhotos(photos);renderOwnerProductPhotoList();
+      closeImageCrop();setOwnerImageStatus("The cropped photo is ready. Save the product to replace the original.");showToast("وێنەیا بڕدرا ئامادەیە؛ بەرهەمەکە پاشەکەفت بکە.");
     }else{
-      const target=document.getElementById(state.hiddenId);
-      const preview=document.getElementById(state.previewId);
-      if(!target||!preview)throw new Error("فۆرمی وێنە نەدۆزرایەوە.");
-      target.value=imageUrl;
-      preview.src=imageUrl;
-      preview.classList.add("has-image");
-      closeImageCrop();
-      if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
-        const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
-        if(ownerStatus)ownerStatus.textContent="Cropped image saved to shared storage. Press Save promotional slides to publish it.";
-      }
+      const target=document.getElementById(state.hiddenId),preview=document.getElementById(state.previewId);if(!target||!preview)throw new Error("The image form was not found.");
+      target.value=imageUrl;preview.src=imageUrl;preview.classList.add("has-image");closeImageCrop();
+      if(String(state.hiddenId||"").startsWith("shopPromoImageData")){const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");if(ownerStatus)ownerStatus.textContent="Cropped image saved to shared storage. Press Save promotional slides to publish it.";}
       showToast("وێنە بڕدرا و ئامادەیە؛ فۆرمەکە پاشەکەفت بکە.");
     }
   }catch(error){
     if(state.cancelled||pendingImageCrop!==state)return;
-    if(pendingImageCrop===state){
-      state.uploading=false;
-      state.abortController=null;
-      if(status)status.textContent=error.message||"The crop could not be saved. Try again.";
-      setImageCropBusy(false);
-      if(state.queue&&ownerProductImageQueue?.submit)ownerProductImageQueue.submit.disabled=false;
-      else if(state.submit)state.submit.disabled=false;
-    }
+    state.uploading=false;state.abortController=null;if(status)status.textContent=error.message||"The crop could not be saved. Try again.";setImageCropBusy(false);
+    if(state.queue&&ownerProductImageQueue){if(Array.isArray(ownerProductImageQueue.submitButtons))ownerProductImageQueue.submitButtons.forEach(button=>button.disabled=false);else if(ownerProductImageQueue.submit)ownerProductImageQueue.submit.disabled=false;}else if(Array.isArray(state.submitButtons))state.submitButtons.forEach(button=>button.disabled=false);else if(state.submit)state.submit.disabled=false;
     ownerSaveDiagnostic("image.crop.failed",{requestId:state.requestId||error?.requestId||"",stage:"image.crop_or_upload",code:ownerSaveDiagnosticCode(error)});
-    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){
-      const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");
-      if(ownerStatus)ownerStatus.textContent=`Image upload failed: ${error.message||"Could not prepare the image."}`;
-    }
-    showToast(`${error.message||"بڕینی وێنە سەرکەفتوو نەبوو."}${state.requestId?` (${state.requestId})`:""}`);
+    if(String(state.hiddenId||"").startsWith("shopPromoImageData")){const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");if(ownerStatus)ownerStatus.textContent="Image upload failed: "+(error.message||"Could not prepare the image.");}
+    showToast((error.message||"Crop could not be saved.")+(state.requestId?" ("+state.requestId+")":""));
   }
+}
+
+function cropResizeDown(event){
+  if(!pendingImageCrop)return;event.preventDefault();event.stopPropagation();event.currentTarget.setPointerCapture?.(event.pointerId);clearOwnerCropPreview();
+  const viewport=document.getElementById("cropViewport");
+  pendingImageCrop.drag={mode:"resize",handle:event.currentTarget.dataset.cropHandle,x:event.clientX,y:event.clientY,width:viewport.clientWidth,height:viewport.clientHeight};
+}
+
+function setOwnerCropTransform(action){
+  if(!pendingImageCrop)return;clearOwnerCropPreview();const state=pendingImageCrop;
+  if(action==="rotate-left")state.rotation=((Number(state.rotation)||0)-90+360)%360;
+  else if(action==="rotate-right")state.rotation=((Number(state.rotation)||0)+90)%360;
+  else if(action==="flip-x")state.flipX=!state.flipX;
+  else if(action==="flip-y")state.flipY=!state.flipY;
+  state.left=null;state.top=null;state.scale=null;layoutCropImage(true);
+}
+
+function resetOwnerImageCrop(){
+  if(!pendingImageCrop)return;clearOwnerCropPreview();const state=pendingImageCrop;
+  state.ratioMode=state.defaultRatioMode;state.ratio=state.defaultRatio;state.zoom=1;state.rotation=0;state.flipX=false;state.flipY=false;state.frameWidth=null;state.left=null;state.top=null;state.scale=null;
+  const zoom=document.getElementById("cropZoom");if(zoom)zoom.value="1";
+  document.querySelectorAll("[data-crop-ratio]").forEach(button=>button.classList.toggle("active",button.dataset.cropRatio===state.ratioMode));
+  sizeCropViewport();layoutCropImage(true);
+}
+
+function clearOwnerCropPreview(){
+  const state=pendingImageCrop;if(!state?.previewing)return;
+  const image=document.getElementById("cropImage"),viewport=document.getElementById("cropViewport"),previewUrl=state.previewObjectUrl;
+  state.previewing=false;state.previewBlob=null;state.previewObjectUrl="";viewport?.classList.remove("is-preview");
+  if(image){image.onload=()=>{layoutCropImage(true);image.onload=null;};image.src=state.objectUrl;}
+  if(previewUrl)URL.revokeObjectURL(previewUrl);
+  const button=document.querySelector('[data-crop-action="preview"]');if(button)button.textContent=ownerDashboardText("Preview","پێشبینین","معاينة");
+}
+
+async function previewOwnerImageCrop(){
+  const state=pendingImageCrop;if(!state||state.uploading)return;
+  if(state.previewing){clearOwnerCropPreview();const status=document.getElementById("cropStatus");if(status)status.textContent=ownerDashboardText("Crop editing is ready.","دەستکاریکرنا crop ئامادەیە.","أصبح تعديل القص جاهزاً.");return;}
+  state.uploading=true;state.abortController=typeof AbortController==="function"?new AbortController():null;setImageCropBusy(true);const status=document.getElementById("cropStatus");if(status)status.textContent=ownerDashboardText("Preparing crop preview…","پێشبینینا crop ئامادە دبیت…","جارٍ تجهيز معاينة القص…");
+  try{
+    const blob=await renderOwnerCropBlob(state);if(pendingImageCrop!==state)return;
+    if(!blob)throw new Error("The crop preview could not be prepared.");
+    state.previewBlob=blob;state.previewObjectUrl=URL.createObjectURL(blob);state.previewing=true;
+    const viewport=document.getElementById("cropViewport"),image=document.getElementById("cropImage");viewport?.classList?.add("is-preview");
+    image.onload=()=>{layoutCropImage(true);image.onload=null;};image.src=state.previewObjectUrl;
+    const button=document.querySelector('[data-crop-action="preview"]');if(button)button.textContent=ownerDashboardText("Edit crop","دەستکاری crop","تعديل القص");
+    if(status)status.textContent=ownerDashboardText("Preview shows the exact image that Done will upload. Press Preview again to keep editing.","پێشبینین هەمان وێنە دیار دبەت کو دێ ب تەواوکرنێ بارببیت. بۆ بەردەوامبوونا دەستکاریێ دوبارە پێشبینین لێبدە.","تعرض المعاينة الصورة نفسها التي سيرفعها زر تم. اضغط معاينة مجدداً لمتابعة التعديل.");
+  }catch(error){if(pendingImageCrop===state){if(status)status.textContent=error.message||"The crop preview could not be prepared.";showToast(error.message||"The crop preview could not be prepared.");}}
+  finally{if(pendingImageCrop===state){state.uploading=false;state.abortController=null;setImageCropBusy(false);}}
+}
+
+function ownerCropDrawMatrix(width,height,rotation,flipX,flipY,cropX,cropY,cropWidth,cropHeight,outputWidth,outputHeight){
+  const turn=((Number(rotation)||0)%360+360)%360;if(![0,90,180,270].includes(turn))throw new Error("Unsupported crop rotation.");
+  const orientedWidth=turn===90||turn===270?height:width,orientedHeight=turn===90||turn===270?width:height;
+  let a=1,b=0,c=0,d=1,e=0,f=0;
+  if(turn===90){a=0;b=1;c=-1;d=0;e=height;f=0;}
+  else if(turn===180){a=-1;b=0;c=0;d=-1;e=width;f=height;}
+  else if(turn===270){a=0;b=-1;c=1;d=0;e=0;f=width;}
+  if(flipX){a=-a;c=-c;e=orientedWidth-e;}
+  if(flipY){b=-b;d=-d;f=orientedHeight-f;}
+  const sx=outputWidth/cropWidth,sy=outputHeight/cropHeight;
+  return [sx*a,sy*b,sx*c,sy*d,sx*(e-cropX),sy*(f-cropY)];
+}
+
+async function renderOwnerCropBlob(state){
+  const viewport=document.getElementById("cropViewport"),image=document.getElementById("cropImage");
+  const source=state.bitmap||image,rawWidth=Number(state.width)||Number(source.width)||image.naturalWidth,rawHeight=Number(state.height)||Number(source.height)||image.naturalHeight;
+  const previewWidth=image.naturalWidth,previewHeight=image.naturalHeight;
+  const viewWidth=viewport.clientWidth,viewHeight=viewport.clientHeight,rotation=((Number(state.rotation)||0)%360+360)%360,rotated=rotation===90||rotation===270;
+  if(!state.scale||!viewWidth||!viewHeight||!previewWidth||!previewHeight||!rawWidth||!rawHeight)throw new Error("Crop preview is not ready. Try again.");
+  const orientedPreviewWidth=rotated?previewHeight:previewWidth,orientedPreviewHeight=rotated?previewWidth:previewHeight;
+  const previewCropWidth=Math.min(orientedPreviewWidth,viewWidth/state.scale),previewCropHeight=Math.min(orientedPreviewHeight,viewHeight/state.scale);
+  const previewX=Math.max(0,Math.min(orientedPreviewWidth-previewCropWidth,-state.left/state.scale));
+  const previewY=Math.max(0,Math.min(orientedPreviewHeight-previewCropHeight,-state.top/state.scale));
+  const sourceScaleX=rotated?rawHeight/previewHeight:rawWidth/previewWidth;
+  const sourceScaleY=rotated?rawWidth/previewWidth:rawHeight/previewHeight;
+  const cropX=previewX*sourceScaleX,cropY=previewY*sourceScaleY,cropWidth=previewCropWidth*sourceScaleX,cropHeight=previewCropHeight*sourceScaleY;
+  const ratio=cropWidth/cropHeight,maxOutput=1000,outputWidth=Math.max(1,Math.round(ratio>=1?maxOutput:maxOutput*ratio)),outputHeight=Math.max(1,Math.round(ratio>=1?maxOutput/ratio:maxOutput));
+  const canvas=document.createElement("canvas"),context=canvas.getContext("2d");if(!context)throw new Error("Crop image could not be prepared.");
+  let blob=null;
+  try{
+    for(const limit of [1000,760]){
+      if(blob)break;const w=Math.max(1,Math.round(ratio>=1?limit:limit*ratio)),h=Math.max(1,Math.round(ratio>=1?limit/ratio:limit));canvas.width=w;canvas.height=h;
+      if(context.setTransform)context.setTransform(...ownerCropDrawMatrix(rawWidth,rawHeight,rotation,Boolean(state.flipX),Boolean(state.flipY),cropX,cropY,cropWidth,cropHeight,w,h));
+      context.drawImage(source,0,0,rawWidth,rawHeight);
+      for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){const candidate=await canvasBlob(canvas,type,quality,{signal:state.abortController?.signal});if(state.cancelled||pendingImageCrop!==state)return null;if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}}
+    }
+  }finally{canvas.width=0;canvas.height=0;}
+  if(!blob)throw new Error("The crop could not be compressed below the shared-storage limit. Choose a smaller crop.");
+  try{Object.defineProperties(blob,{width:{value:outputWidth},height:{value:outputHeight}});}catch{}
+  return blob;
 }
 
 function getCartKey(){
@@ -5826,24 +6017,36 @@ function writeOwnerProductPhotos(photos){
 }
 
 function renderOwnerProductPhotoList(){
-  const box=document.getElementById("ownerProductPhotoList");
-  if(!box)return;
-  const colors=parseOwnerColorEntries(document.getElementById("ownerProductColors")?.value||"");
-  const allowedColors=colors.map(color=>color.value);
-  let photos=readOwnerProductPhotos();
-  const normalized=photos.map(photo=>({...photo,color:allowedColors.includes(photo.color)?photo.color:""}));
+  const box=document.getElementById("ownerProductPhotoList");if(!box)return;
+  const colors=parseOwnerColorEntries(document.getElementById("ownerProductColors")?.value||""),allowedColors=colors.map(color=>color.value);
+  let photos=readOwnerProductPhotos();const normalized=photos.map(photo=>({...photo,color:allowedColors.includes(photo.color)?photo.color:""}));
   if(JSON.stringify(photos)!==JSON.stringify(normalized)){photos=normalized;writeOwnerProductPhotos(photos);}
-  if(!photos.length){box.innerHTML='<small class="owner-photo-empty">هێشتا وێنە نەهاتییە زیادکرن.</small>';return;}
+  const t=(en,ku,ar)=>escapeHtml(ownerDashboardText(en,ku,ar));
+  if(!photos.length){box.innerHTML=`<small class="owner-photo-empty">${t("No photos added yet.","هێشتا وێنە نەهاتییە زیادکرن.","لم تتم إضافة صور بعد.")}</small>`;return;}
   box.innerHTML=photos.map((photo,index)=>`
-    <div class="owner-photo-row">
-      <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(`وێنە ${index+1}`)}">
-      <select aria-label="ڕەنگی وێنە ${index+1}" onchange="updateOwnerProductPhotoColor(${index},this.value)">
-        <option value="">هەمی ڕەنگان / گشتی</option>
+    <div class="owner-photo-row" data-owner-photo-index="${index}">
+      <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(ownerDashboardText("Product photo "+(index+1),"وێنە "+(index+1),"صورة المنتج "+(index+1)))}" loading="lazy">
+      <select aria-label="${t("Photo color","ڕەنگێ وێنە","لون الصورة")}" onchange="updateOwnerProductPhotoColor(${index},this.value)">
+        <option value="" ${photo.color?"":"selected"}>${t("All colors","هەمی ڕەنگان / گشتی","كل الألوان")}</option>
         ${colors.map(color=>`<option value="${escapeHtml(color.value)}" ${photo.color===color.value?"selected":""}>${escapeHtml(color.name)}</option>`).join("")}
       </select>
-      <button type="button" onclick="removeOwnerProductPhoto(${index})" aria-label="سڕینەوەی وێنە ${index+1}">×</button>
+      <button type="button" onclick="removeOwnerProductPhoto(${index})" aria-label="${t("Remove photo","وێنە بسڕەڤە","إزالة الصورة")}">×</button>
+      <button class="owner-photo-edit" type="button" onclick="editOwnerProductPhoto(${index})">${t("Crop photo","وێنە ببڕە","قص الصورة")}</button>
     </div>
   `).join("");
+}
+
+async function editOwnerProductPhoto(index){
+  if(!isOwner()&&!staffHasPermission("products"))return;
+  const photo=readOwnerProductPhotos()[index];if(!photo)return;
+  const status=document.getElementById("ownerImageStatus");if(status)status.textContent=ownerDashboardText("Preparing the original photo for editing…","وێنەیا ئەسڵی بۆ دەستکاری ئامادە دبیت…","جارٍ تجهيز الصورة الأصلية للتعديل…");
+  try{
+    const response=await fetch(safeImageUrl(photo.src),{credentials:"same-origin"});
+    if(!response.ok)throw new Error("This photo could not be opened for editing.");
+    const blob=await response.blob();if(!blob.type.startsWith("image/")||blob.size>MAX_OWNER_IMAGE_INPUT_BYTES)throw new Error("This photo cannot be edited safely. Choose a smaller image.");
+    ownerProductWorkflowId=ownerProductWorkflowId||createOwnerSaveRequestId();
+    openOwnerImageCrop(blob,{kind:"product",photoIndex:index,defaultColor:photo.color||"",requestId:ownerProductWorkflowId});
+  }catch(error){if(status)status.textContent=error.message||"The original photo is unchanged.";showToast(error.message||"The original photo is unchanged.");}
 }
 
 function updateOwnerProductPhotoColor(index,color){
@@ -9179,7 +9382,7 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   if(ownerViewActive&&!ownerNavigationRestoring&&ownerNavigationLedger.current())ownerNavigationLedger.updateContext({analyticsSelection:ownerAnalyticsSelection,reportSelection:ownerReportSelection,ordersSelection:ownerOrdersSelection,position:positionBeforeRender});
   const previousPanel=ownerPanel;
   const previousNav=ownerDashboardNavKey;
-  if(section===previousPanel&&(previousPanel==="appearance"||previousPanel==="products"))route.nav=previousNav;
+  if(section===previousPanel&&(previousPanel==="appearance"||previousPanel==="products")&&!options.forceRoute)route.nav=previousNav;
   if(!options.historyRestore&&(route.panel!==previousPanel||route.nav!==previousNav)&&ownerPanelHasPendingWork()){
     ownerPanelRefreshPending=true;
     showToast("Save or finish the current Owner change before switching sections. Your draft is still open.");
@@ -9761,7 +9964,7 @@ function previewOwnerCustomerBroadcast(){
   if(imageNode){imageNode.hidden=!image;if(image)imageNode.src=image;else imageNode.removeAttribute("src");}
   return true;
 }
-function customerBroadcastStatusLabel(status){return ({queued:"Queued",sent:"Sent",partial:"Partially delivered",failed:"Delivery failed",no_subscribers:"No customers opted into this type",already_queued:"Already queued"})[status]||String(status||"Pending");}
+function customerBroadcastStatusLabel(status){return ({queued:"Queued",sent:"Sent",partial:"Partially delivered",failed:"Delivery failed",no_subscribers:"No customer devices subscribed",already_queued:"Already queued"})[status]||String(status||"Pending");}
 async function loadOwnerCustomerBroadcastHistory(){
   if(!isOwner())return false;
   const box=document.getElementById("ownerCustomerBroadcastHistory");if(!box)return false;
@@ -9826,6 +10029,7 @@ function renderOwnerDashboard(box){
     ["discounts","％",ownerDashboardText("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض")],
     ["orders","▣",ownerDashboardText("Orders","داخوازی","الطلبات")],
     ["alerts","◉",ownerDashboardText("Smart Alerts","ئاگاداریێن زیرەک","التنبيهات الذكية")],
+    ["customer-notifications","◉",ownerDashboardText("Customer Notifications","ئاگاداریێن کڕیاران","إشعارات العملاء")],
     ["customers","♙",ownerDashboardText("Customers","کڕیار","العملاء")],
     ["colors","◐",ownerDashboardText("Colors & Font","ڕەنگ و فۆنت","الألوان والخط")],
     ["inventory","▦",ownerDashboardText("QR Code","کۆدی QR","رمز QR")],
@@ -10449,11 +10653,17 @@ function startNewOwnerProduct(){
     return;
   }
   editingProductId=null;
+  ownerProductEditorTab="basic";
   ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
   ownerProductMode="form";
   renderOwnerPanel("products");
   scrollOwnerTo("ownerProductForm");
+}
+
+function navigateOwnerProductSection(section){
+  if(section==="products"&&ownerPanel==="products"&&ownerDashboardNavKey!=="products")return renderOwnerPanel("products",{forceRoute:true});
+  return renderOwnerPanel(section);
 }
 
 function showOwnerProductSection(mode,focusId=""){
@@ -10687,96 +10897,120 @@ async function resetOwnerAppearance(){
 }
 
 function renderOwnerProducts(box){
+  if(!box)return;
   const product=products.find(item=>item.id===editingProductId);
   const discountFocus=ownerDashboardNavKey==="discounts";
   const productNames=product?{en:product.names?.en||"",ar:product.names?.ar||"",ku:product.names?.ku||product.name||""}:{en:"",ar:"",ku:""};
   const colorText=product?product.colors.map((color,index)=>`${product.colorNames?.[index]||colorLabelForValue(color,index)}:${color}`).join(", "):"";
-  const photoJson=JSON.stringify(product?productPhotos(product):[]);const canEditProductDetails=isOwner()||staffHasPermission("products"),canEditPrices=isOwner()||staffHasPermission("prices"),canEditInventory=isOwner()||staffHasPermission("inventory");
-  const navigation=`<nav class="owner-product-nav" aria-label="بەشێن بەرهەم"><button type="button" class="${ownerProductMode==="menu"?"active":""}" onclick="showOwnerProductSection('menu')">سەرەتا</button><button type="button" class="${ownerProductMode==="form"?"active":""}" onclick="startNewOwnerProduct()">بەرهەمی نوێ</button><button type="button" class="${ownerProductMode==="list"?"active":""}" onclick="showOwnerProductSection('list')">بەرهەمەکان</button><button type="button" class="${ownerProductMode==="categories"?"active":""}" onclick="showOwnerProductSection('categories')">جۆرەکان</button></nav>`;
+  const photoJson=JSON.stringify(product?productPhotos(product):[]);
+  const canEditProductDetails=isOwner()||staffHasPermission("products");
+  const canEditPrices=isOwner()||staffHasPermission("prices");
+  const canEditInventory=isOwner()||staffHasPermission("inventory");
+  const canManageCategories=isOwner();
+  const canDeleteProduct=isOwner()||staffHasPermission("products")&&staffHasPermission("inventory");
+  const t=(en,ku,ar)=>escapeHtml(ownerDashboardText(en,ku,ar));
+  const activeSection=discountFocus?"discounts":ownerProductMode==="categories"?"categories":"products";
+  const navigation=`<nav class="owner-product-nav" aria-label="${t("Product management","بەڕێڤەبرنا بەرهەمان","إدارة المنتجات")}">
+    <button type="button" class="${activeSection==="products"?"active":""}" aria-current="${activeSection==="products"?"page":"false"}" onclick="navigateOwnerProductSection('products')">${t("Products","بەرهەمەکان","المنتجات")}</button>
+    <button type="button" class="${activeSection==="categories"?"active":""}" aria-current="${activeSection==="categories"?"page":"false"}" onclick="navigateOwnerProductSection('categories')" ${isStaffSession()&&!staffHasPermission("products")?"hidden":""}>${t("Categories","جۆرەکان","الفئات")}</button>
+    <button type="button" class="${activeSection==="discounts"?"active":""}" aria-current="${activeSection==="discounts"?"page":"false"}" onclick="navigateOwnerProductSection('discounts')" ${isStaffSession()&&!staffHasPermission("prices")?"hidden":""}>${t("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض")}</button>
+  </nav>`;
   const categoryDatalist=`<datalist id="ownerEmojiChoices"><option value="👚"><option value="🧥"><option value="🧢"><option value="👖"><option value="👗"><option value="👟"><option value="👜"><option value="🛍️"><option value="📦"></datalist>`;
   let content="";
 
-  if(ownerProductMode==="menu"){
-    content=`<div class="owner-product-home">
-      <h3>بەڕێڤەبرنا بەرهەم و جۆرەکان</h3>
-      <button type="button" class="owner-product-home-card" onclick="startNewOwnerProduct()"><span class="home-icon">＋</span><span><strong>بەرهەمی نوێ زیاد بکە</strong><small>وێنە، نرخ، ڕەنگ، قیاس و ستۆک دابنێ</small></span><span class="home-count">›</span></button>
-      <button type="button" class="owner-product-home-card" onclick="showOwnerProductSection('list')"><span class="home-icon">🛍️</span><span><strong>لیستی بەرهەمەکان</strong><small>بەرهەمەکان ببینە، دەستکاری بکە یان بیسڕەوە</small></span><span class="home-count">${products.length}</span></button>
-      <button type="button" class="owner-product-home-card" onclick="showOwnerProductSection('categories')"><span class="home-icon">📂</span><span><strong>جۆرەکان</strong><small>جۆری نوێ زیاد بکە یان ناو و emoji بگۆڕە</small></span><span class="home-count">${getAllCategories().length}</span></button>
-    </div>`;
-  }else if(ownerProductMode==="form"){
-    content=`<form id="ownerProductForm" class="owner-form" onsubmit="saveOwnerProduct(event)">
-      <h3>${product?"دەستکاری بەرهەم":"بەرهەمێ نوێ"}</h3>
-      <div class="owner-product-name-fields">
-        <small>ناڤی هەر زمانێ ل خانەیا خۆ بنڤیسە</small>
-        <label for="ownerProductNameEn">ناڤێ ئینگلیزی</label>
-        <input id="ownerProductNameEn" required maxlength="100" placeholder="ناڤێ ئینگلیزی" dir="ltr" value="${escapeHtml(productNames.en||"")}" ${canEditProductDetails?"":"disabled"}>
-        <label for="ownerProductNameAr">ناڤێ عەرەبی</label>
-        <input id="ownerProductNameAr" required maxlength="100" placeholder="ناڤێ عەرەبی" dir="rtl" value="${escapeHtml(productNames.ar||"")}" ${canEditProductDetails?"":"disabled"}>
-        <label for="ownerProductNameKu">ناڤێ کوردی</label>
-        <input id="ownerProductNameKu" required maxlength="100" placeholder="ناڤێ کوردی" dir="rtl" value="${escapeHtml(productNames.ku||"")}" ${canEditProductDetails?"":"disabled"}>
+  if(ownerProductMode==="form"){
+    const selectedTab=["basic","photos","inventory"].includes(ownerProductEditorTab)?ownerProductEditorTab:"basic";
+    content=`<form id="ownerProductForm" class="owner-form owner-product-form owner-product-editor" novalidate onsubmit="saveOwnerProduct(event)">
+      <header class="owner-product-editor-head"><h3>${product?t("Edit product","دەستکاری بەرهەم","تعديل المنتج"):t("Add product","بەرهەمێ نوێ","إضافة منتج")}</h3><button class="main-btn" type="submit">${t("Save changes","پاشەکەفتکرنا گۆڕانکاریان","حفظ التغييرات")}</button></header>
+      <div class="owner-product-editor-tabs" role="tablist" aria-label="${t("Product details","وردەکاریێن بەرهەم","تفاصيل المنتج")}">
+        <button type="button" role="tab" data-owner-product-tab="basic" aria-controls="ownerProductBasicPanel" aria-selected="${selectedTab==="basic"}" onclick="selectOwnerProductEditorTab('basic')">${t("Basic Info","زانیاریێن سەرەکی","المعلومات الأساسية")}</button>
+        <button type="button" role="tab" data-owner-product-tab="photos" aria-controls="ownerProductPhotosPanel" aria-selected="${selectedTab==="photos"}" onclick="selectOwnerProductEditorTab('photos')">${t("Photos","وێنە","الصور")}</button>
+        <button type="button" role="tab" data-owner-product-tab="inventory" aria-controls="ownerProductInventoryPanel" aria-selected="${selectedTab==="inventory"}" onclick="selectOwnerProductEditorTab('inventory')">${t("Colors & Stock","ڕەنگ و ستۆک","الألوان والمخزون")}</button>
       </div>
-       <input id="ownerProductPrice" type="number" min="0" step="1" ${canEditPrices?"":"disabled"} required placeholder="نرخ بە دینار" value="${product?.price??""}" oninput="updateOwnerDiscountPreview()">
-       <label for="ownerProductDiscount">Discount (%)</label>
-       <input id="ownerProductDiscount" type="number" min="1" max="99" step="1" inputmode="numeric" ${canEditPrices?"":"disabled"} placeholder="Optional: 1–99%" value="${product?.discount??""}" oninput="updateOwnerDiscountPreview()">
-       <small class="owner-discount-hint">Leave blank for the original price. Enter a whole percentage from 1 to 99.</small>
-       <p id="ownerDiscountPreview" class="owner-discount-preview" role="status" aria-live="polite"></p>
-       <div class="owner-discount-timer">
-         <label class="owner-discount-timer-toggle"><input id="ownerProductDiscountTimerEnabled" type="checkbox" ${product?.discountTimerEnabled===true?"checked":""} ${canEditPrices?"":"disabled"} onchange="updateOwnerDiscountTimerControls()"><span>Enable limited-time discount</span></label>
-         <div id="ownerDiscountTimerFields" class="owner-discount-timer-fields" ${product?.discountTimerEnabled===true?"":"hidden"}>
-           <label for="ownerProductDiscountEndsAt">Discount end date and time</label>
-           <input id="ownerProductDiscountEndsAt" type="datetime-local" value="${escapeHtml(discountTimerInputValue(product?.discountEndsAt))}" ${canEditPrices?"":"disabled"} oninput="updateOwnerDiscountPreview()">
-           <small>Choose the exact end time in your device’s local time zone.</small>
-         </div>
-         <p id="ownerDiscountTimerStatus" class="owner-discount-timer-status" role="status" aria-live="polite"></p>
-       </div>
-      <label for="ownerProductCategory">جۆری بەرهەم</label>
-      <select id="ownerProductCategory" ${canEditProductDetails?"":"disabled"} required>${ownerCategoryOptions(product?.category||DEFAULT_CATEGORIES[0])}</select>
-      <input id="ownerProductSizes" ${canEditInventory?"":"disabled"} required placeholder="قیاس، بۆ نموونە S, M, L" value="${escapeHtml(product?.sizes?.join(", ")||"")}" onchange="renderOwnerInventoryMatrix()">
-      <div class="owner-color-picker">
-        <strong>ڕەنگەکان هەڵبژێرە</strong>
-        <small>چەند ڕەنگێک دەتوانیت هەڵبژێریت؛ ڕەنگەکان بە خاڵی ڕەنگین دیار دەبن.</small>
-        <div id="ownerColorPalette" class="owner-color-palette"></div>
-        <div class="owner-color-custom-row"><span>ڕەنگی تایبەت زیاد بکە</span><input id="ownerCustomColor" type="color" value="#7455ff" aria-label="ڕەنگی تایبەت"><button type="button" onclick="addOwnerCustomProductColor(document.getElementById('ownerCustomColor').value)">زیادکردنی ڕەنگ</button></div>
-        <input id="ownerProductColors" type="hidden" value="${escapeHtml(colorText)}">
-        <div id="ownerColorSelectedCount" class="owner-color-selected-count" role="status" aria-live="polite"></div>
-        <div id="ownerColorSelectionList" class="owner-color-selection-list"></div>
-      </div>
-      <div class="owner-image-pick">
-        <label for="ownerProductImageFile">چەند وێنەی بەرهەم هەڵبژێرە</label>
-        <small>سەرەتا ڕەنگەکان هەڵبژێرە؛ لە پێشبینینی هەر وێنەدا ڕەنگی گونجاو دیاری بکە تا کاتی کلیک لەسەر ڕەنگ وێنەکەی پیشان بدرێت.</small>
-        <input id="ownerProductImageFile" ${canEditProductDetails?"":"disabled"} type="file" accept="image/*" multiple onchange="uploadOwnerProductImages(this)">
+      <section id="ownerProductBasicPanel" class="owner-product-tab-panel" role="tabpanel" data-owner-product-panel="basic" ${selectedTab==="basic"?"":"hidden"}>
+        <div class="owner-product-name-fields">
+          <small>${t("Enter the product name in each language.","ناڤێ بەرهەمێ ل هەر زمانەکێ بنڤیسە.","أدخل اسم المنتج بكل لغة.")}</small>
+          <label for="ownerProductNameEn">${t("English product name","ناڤێ بەرهەمێ ئینگلیزی","اسم المنتج بالإنجليزية")}</label>
+          <input id="ownerProductNameEn" required maxlength="100" placeholder="${t("English product name","ناڤێ بەرهەمێ ئینگلیزی","اسم المنتج بالإنجليزية")}" dir="ltr" value="${escapeHtml(productNames.en||"")}" ${canEditProductDetails?"":"disabled"}>
+          <label for="ownerProductNameAr">${t("Arabic product name","ناڤێ بەرهەمێ عەرەبی","اسم المنتج بالعربية")}</label>
+          <input id="ownerProductNameAr" required maxlength="100" placeholder="${t("Arabic product name","ناڤێ بەرهەمێ عەرەبی","اسم المنتج بالعربية")}" dir="rtl" value="${escapeHtml(productNames.ar||"")}" ${canEditProductDetails?"":"disabled"}>
+          <label for="ownerProductNameKu">${t("Kurdish product name","ناڤێ بەرهەمێ کوردی","اسم المنتج بالكردية")}</label>
+          <input id="ownerProductNameKu" required maxlength="100" placeholder="${t("Kurdish product name","ناڤێ بەرهەمێ کوردی","اسم المنتج بالكردية")}" dir="rtl" value="${escapeHtml(productNames.ku||"")}" ${canEditProductDetails?"":"disabled"}>
+        </div>
+        <div class="owner-product-field-grid">
+          <label for="ownerProductPrice">${t("Price (IQD)","نرخ (IQD)","السعر (دينار عراقي)")}<input id="ownerProductPrice" type="number" min="0" step="1" inputmode="numeric" ${canEditPrices?"":"disabled"} required value="${product?.price??""}" oninput="updateOwnerDiscountPreview()"></label>
+          <label for="ownerProductDiscount">${t("Discount (%)","داشاندن (%)","الخصم (%)")}<input id="ownerProductDiscount" type="number" min="1" max="99" step="1" inputmode="numeric" ${canEditPrices?"":"disabled"} placeholder="${t("Optional: 1–99%","ئارەزوومەندانە: ١–٩٩٪","اختياري: 1–99٪")}" value="${product?.discount??""}" oninput="updateOwnerDiscountPreview()"></label>
+          <small class="owner-product-help owner-field-span">${t("Leave blank to keep the original price.","بۆ پاراستنا نرخێ ئەسڵی بەتاڵ بھێلە.","اتركه فارغاً للاحتفاظ بالسعر الأصلي.")}</small>
+          <p id="ownerDiscountPreview" class="owner-discount-preview owner-field-span" role="status" aria-live="polite"></p>
+          <div class="owner-discount-timer owner-field-span">
+            <label class="owner-discount-timer-toggle"><input id="ownerProductDiscountTimerEnabled" type="checkbox" ${product?.discountTimerEnabled===true?"checked":""} ${canEditPrices?"":"disabled"} onchange="updateOwnerDiscountTimerControls()"><span>${t("Limited-time offer","ئۆفەرێ ب دەمەکێ سنوردار","عرض لفترة محدودة")}</span></label>
+            <div id="ownerDiscountTimerFields" class="owner-discount-timer-fields" ${product?.discountTimerEnabled===true?"":"hidden"}>
+              <label for="ownerProductDiscountEndsAt">${t("Offer end date and time","دەمێ داویێ ئۆفەرێ","تاريخ ووقت انتهاء العرض")}</label>
+              <input id="ownerProductDiscountEndsAt" type="datetime-local" value="${escapeHtml(discountTimerInputValue(product?.discountEndsAt))}" ${canEditPrices?"":"disabled"} oninput="updateOwnerDiscountPreview()">
+              <small>${t("Uses your device’s local time.","دەمێ ئامێرێ تە بکاردهێنیت.","يستخدم التوقيت المحلي لجهازك.")}</small>
+            </div>
+            <p id="ownerDiscountTimerStatus" class="owner-discount-timer-status" role="status" aria-live="polite"></p>
+          </div>
+          <label class="owner-field-span" for="ownerProductCategory">${t("Category","جۆری بەرهەم","الفئة")}<select id="ownerProductCategory" ${canEditProductDetails?"":"disabled"} required>${ownerCategoryOptions(product?.category||DEFAULT_CATEGORIES[0])}</select></label>
+          <label class="owner-field-span" for="ownerProductDescription">${t("Product description","کورتە زانیاری","وصف المنتج")}<textarea id="ownerProductDescription" ${canEditProductDetails?"":"disabled"} placeholder="${t("Describe the product","کورتە زانیاریێن بەرهەم بنڤیسە","اكتب وصفاً للمنتج")}">${escapeHtml(product?.description||"")}</textarea></label>
+        </div>
+      </section>
+      <section id="ownerProductPhotosPanel" class="owner-product-tab-panel" role="tabpanel" data-owner-product-panel="photos" ${selectedTab==="photos"?"":"hidden"}>
+        <div class="owner-product-section-head"><div><h3>${t("Product photos","وێنەیێن بەرهەم","صور المنتج")}</h3><p>${t("Choose multiple photos and assign each one to a color.","چەند وێنە هەلبژێرە و هەر وێنەیەک بڕەنگەکێ ببەستە.","اختر عدة صور واربط كل صورة بلونها.")}</p></div></div>
+        <div class="owner-product-photo-actions">
+          <label for="ownerProductImageFile">${t("Add photos","وێنە زیاد بکە","أضف صوراً")}</label>
+          <input id="ownerProductImageFile" ${canEditProductDetails?"":"disabled"} type="file" accept="image/*" multiple onchange="uploadOwnerProductImages(this)">
+          <small class="owner-product-help">${t("The original stays in the product until you confirm and save.","وێنەیا ئەسڵی دەمینیتە ناڤ بەرهەمێ تا پشتڕاستی و پاشەکەفتێ بکەی.","تبقى الصورة الأصلية في المنتج حتى تؤكد وتحفظ التغييرات.")}</small>
+        </div>
         <p id="ownerImageStatus" class="owner-image-status" role="status" aria-live="polite"></p>
         <input id="ownerProductImagesData" type="hidden" value="${escapeHtml(photoJson)}">
         <div id="ownerProductPhotoList" class="owner-photo-list"></div>
-      </div>
-      <p id="ownerInventoryLimitMessage" class="owner-inventory-limit" role="status" aria-live="polite"></p>
-      <div id="ownerInventoryMatrix" class="owner-inventory-scroll"></div>
-      <strong id="ownerInventoryTotal"></strong>
-      <textarea id="ownerProductDescription" ${canEditProductDetails?"":"disabled"} placeholder="کورتە زانیاری">${escapeHtml(product?.description||"")}</textarea>
-      <button class="main-btn" type="submit">${product?"پاشەکەفتکرنا گۆڕانکاریان":"زیادکرنا بەرهەم"}</button>
-      <button class="owner-action" type="button" onclick="cancelProductEdit()">گەڕانەوە بۆ لیست</button>
+      </section>
+      <section id="ownerProductInventoryPanel" class="owner-product-tab-panel" role="tabpanel" data-owner-product-panel="inventory" ${selectedTab==="inventory"?"":"hidden"}>
+        <label for="ownerProductSizes">${t("Sizes","قیاس","المقاسات")}<input id="ownerProductSizes" ${canEditInventory?"":"disabled"} required placeholder="${t("For example: S, M, L","بۆ نموونە S, M, L","مثال: S, M, L")}" value="${escapeHtml(product?.sizes?.join(", ")||"")}" onchange="renderOwnerInventoryMatrix()"></label>
+        <div class="owner-color-picker">
+          <strong>${t("Colors","ڕەنگەکان","الألوان")}</strong>
+          <small>${t("Select colors to build the stock matrix.","ڕەنگان هەلبژێرە بۆ دروستکرنا خشتەیا کۆگا.","اختر الألوان لإنشاء جدول المخزون.")}</small>
+          <div id="ownerColorPalette" class="owner-color-palette"></div>
+          <div class="owner-color-custom-row"><span>${t("Add a custom color","ڕەنگەکا تایبەت زێدە بکە","أضف لوناً مخصصاً")}</span><input id="ownerCustomColor" type="color" value="#7455ff" aria-label="${t("Custom color","ڕەنگا تایبەت","لون مخصص")}"><button type="button" onclick="addOwnerCustomProductColor(document.getElementById('ownerCustomColor').value)">${t("Add color","زێدەکرنا ڕەنگ","إضافة لون")}</button></div>
+          <input id="ownerProductColors" type="hidden" value="${escapeHtml(colorText)}">
+          <div id="ownerColorSelectedCount" class="owner-color-selected-count" role="status" aria-live="polite"></div>
+          <div id="ownerColorSelectionList" class="owner-color-selection-list"></div>
+        </div>
+        <p id="ownerInventoryLimitMessage" class="owner-inventory-limit" role="status" aria-live="polite"></p>
+        <div id="ownerInventoryMatrix" class="owner-inventory-scroll"></div>
+        <strong id="ownerInventoryTotal" class="owner-inventory-total"></strong>
+      </section>
+      <div class="owner-product-save-actions"><button class="main-btn" type="submit">${product?t("Save changes","پاشەکەفتکرنا گۆڕانکاریان","حفظ التغييرات"):t("Add product","زیادکرنا بەرهەم","إضافة المنتج")}</button><button class="owner-action" type="button" onclick="cancelProductEdit()">${t("Cancel","هەڵوەشاندنەوە","إلغاء")}</button></div>
     </form>`;
   }else if(ownerProductMode==="categories"){
-    content=`<section class="owner-product-mode-content">
+    content=canManageCategories?`<section class="owner-product-mode-content owner-products-page">
+      <header class="owner-products-heading"><div><h3>${t("Categories","جۆرەکان","الفئات")}</h3><p>${t("Organize the products shown in your store.","بەرهەمێن فرۆشگا ڕێک بخە.","نظّم المنتجات المعروضة في متجرك.")}</p></div></header>
       <form class="owner-form" id="ownerCategoryAddRow" onsubmit="event.preventDefault();addOwnerCategory()">
-        <h3>جۆری نوێ زیاد بکە</h3>
-        <div class="owner-category-add"><input id="ownerNewCategory" placeholder="ناڤێ کوردی" maxlength="40"><input class="owner-category-emoji" id="ownerNewCategoryEmoji" list="ownerEmojiChoices" placeholder="emoji" value="📦" maxlength="8"><button type="submit">زیادکرنا جۆر</button></div>
+        <h3>${t("Add category","جۆری نوێ زیاد بکە","أضف فئة")}</h3>
+        <div class="owner-category-add"><input id="ownerNewCategory" placeholder="${t("Kurdish name","ناڤێ کوردی","الاسم بالكردية")}" maxlength="40"><input class="owner-category-emoji" id="ownerNewCategoryEmoji" list="ownerEmojiChoices" placeholder="${t("Emoji","emoji","رمز")}" value="📦" maxlength="8"><button type="submit">${t("Add category","زیادکرنا جۆر","إضافة فئة")}</button></div>
         ${categoryDatalist}
-        <div class="owner-category-edit-languages"><input id="ownerNewCategoryEn" placeholder="ناڤێ ئینگلیزی" maxlength="40"><input id="ownerNewCategoryAr" placeholder="ناڤێ عەرەبی" maxlength="40"></div>
+        <div class="owner-category-edit-languages"><input id="ownerNewCategoryEn" placeholder="${t("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية")}" maxlength="40"><input id="ownerNewCategoryAr" placeholder="${t("Arabic name","ناڤێ عەرەبی","الاسم بالعربية")}" maxlength="40"></div>
       </form>
-      <div class="owner-category-title"><h3>دەستکاری جۆرەکان</h3></div>
+      <div class="owner-category-title"><h3>${t("Manage categories","دەستکاری جۆرەکان","إدارة الفئات")}</h3></div>
       <div id="ownerCategoryManager" class="owner-category-manager">${renderOwnerCategoryManager()}</div>
-    </section>`;
+    </section>`:`<section class="owner-product-mode-content owner-products-page"><header class="owner-products-heading"><div><h3>${t("Categories","جۆرەکان","الفئات")}</h3><p>${t("Product categories","جۆرێن بەرهەمێ","فئات المنتجات")}</p></div></header><div class="owner-product-cards">${getAllCategories().map(category=>`<article class="owner-management-card"><span>${escapeHtml(categoryLabel(category))}</span></article>`).join("")}</div></section>`;
   }else{
-    content=`<section class="owner-product-mode-content" id="ownerProductList">
-      <div class="owner-category-title"><h3>${discountFocus?"Discounts & timed offers":"هەموو بەرهەم"} (${products.length})</h3><button class="owner-action" type="button" onclick="startNewOwnerProduct()">+ بەرهەمی نوێ</button></div>${discountFocus?"<p>Choose any product and use Edit to create, change, or remove its discount and optional end time. The existing product editor remains the single source for these settings.</p>":""}
-      ${products.length?products.map(item=>`
-        <div class="owner-list-item">
-          <img src="${escapeHtml(safeImageUrl(item.image))}" alt="">
-          <div class="owner-list-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${renderProductPricing(item,{badge:true})} · ${Number(item.stock)||0} دانە · ${(item.variants||[]).length} جۆر</small></div>
-          <div class="owner-actions"><button type="button" onclick="editOwnerProduct(${item.id})">دەستکاری</button><button type="button" class="danger" onclick="deleteOwnerProduct(${item.id})">سڕینەوە</button></div>
-        </div>
-      `).join(""):"<p>هێشتا هیچ بەرهەمێک زیاد نەکراوە.</p>"}
+    const isDiscountView=discountFocus;
+    const productsMarkup=products.length?products.map(item=>{
+      const priceMarkup=canEditPrices?renderProductPricing(item,{badge:true}):`<span>${t("Price hidden","نرخ نادیارە","السعر مخفي")}</span>`;
+      const offer=getProductPricing(item)?.discountPercent>0;
+      const categoryName=categoryLabel(item.category||"");
+      return `<article class="owner-list-item ${isDiscountView?"owner-discount-product-card":""}" data-owner-product-card data-product-search="${escapeHtml(`${getProductName(item,"en")} ${getProductName(item,"ku")} ${getProductName(item,"ar")} ${categoryName}`.toLocaleLowerCase())}">
+        <img src="${escapeHtml(safeImageUrl(item.image))}" alt="${escapeHtml(getProductName(item))}" loading="lazy">
+        <div class="owner-list-copy"><strong data-product-name-id="${item.id}">${escapeHtml(getProductName(item))}</strong><small>${escapeHtml(categoryName)} · ${Number(item.stock)||0} ${t("in stock","دانە ل کۆگا","قطعة في المخزون")} · ${(item.variants||[]).length} ${t("variants","جۆر","خيارات")}</small><div class="owner-product-card-price">${priceMarkup}${isDiscountView?`<span class="owner-product-status" data-offer="${offer}">${offer?t("Discount","داشکاندن","خصم"):t("No discount","بێ داشکاندن","بدون خصم")}</span>`:""}</div></div>
+        <div class="owner-actions"><button type="button" onclick="editOwnerProduct(${item.id})">${isDiscountView?t("Edit offer","دەستکاری ئۆفەر","تعديل العرض"):t("Edit product","دەستکاری بەرهەم","تعديل المنتج")}</button>${canDeleteProduct?`<button type="button" class="danger" onclick="deleteOwnerProduct(${item.id})">${t("Delete","سڕینەوە","حذف")}</button>`:""}</div>
+      </article>`;
+    }).join(""):`<p class="owner-empty-state">${t("No products have been added yet.","هێشتا هیچ بەرهەمێک زیاد نەکراوە.","لم تتم إضافة منتجات بعد.")}</p>`;
+    content=`<section class="owner-product-mode-content owner-products-page" id="ownerProductList">
+      <header class="owner-products-heading"><div><h3>${isDiscountView?t("Discounts & Offers","داشکاندن و ئۆفەر","الخصومات والعروض"):t("Products","بەرهەمەکان","المنتجات")} <span>(${products.length})</span></h3><p>${isDiscountView?t("Choose a product to add or update its discount.","بەرهەمەکێ هەلبژێرە بۆ زێدەکرن یان نووکرنا داشاندنێ.","اختر منتجاً لإضافة الخصم أو تحديثه."):t("Manage product details, photos, colors, and stock.","وردەکاری، وێنە، ڕەنگ و کۆگا بەڕێڤە ببە.","أدر تفاصيل المنتجات وصورها وألوانها ومخزونها.")}</p></div>${isDiscountView?"":`<button class="owner-action" type="button" onclick="startNewOwnerProduct()">${t("Add product","+ بەرهەم","+ منتج")}</button>`}</header>
+      ${isDiscountView?`<label class="owner-products-search owner-discount-search">${t("Find a product","بەرهەمێک بدۆزەڤە","ابحث عن منتج")}<input id="ownerDiscountProductSearch" type="search" placeholder="${t("Search products...","گەڕان بۆ بەرهەم...","ابحث عن المنتجات...")}" oninput="filterOwnerDiscountProducts(this.value)"></label>`:""}
+      <div class="owner-product-cards">${productsMarkup}</div>
     </section>`;
   }
 
@@ -10786,8 +11020,9 @@ function renderOwnerProducts(box){
     renderOwnerInventoryMatrix();
     renderOwnerProductPhotoList();
     updateOwnerDiscountTimerControls();
+    selectOwnerProductEditorTab(ownerProductEditorTab,false);
   }
-  if(ownerProductMode==="categories")bindOwnerCategoryManager();
+  if(ownerProductMode==="categories"&&canManageCategories)bindOwnerCategoryManager();
   if(isStaffSession()){
     const detailAccess=staffHasPermission("products"),priceAccess=staffHasPermission("prices"),inventoryAccess=staffHasPermission("inventory");
     const disable=(selector,allowed)=>document.querySelectorAll(selector).forEach(field=>{field.disabled=!allowed;});
@@ -10795,10 +11030,28 @@ function renderOwnerProducts(box){
     disable("#ownerProductPrice,#ownerProductDiscount,#ownerProductDiscountTimerEnabled,#ownerProductDiscountEndsAt",priceAccess);
     disable("#ownerProductSizes,.owner-color-picker button,.owner-color-picker input:not([type=hidden]),#ownerInventoryMatrix input",inventoryAccess);
     if(!detailAccess||!priceAccess||!inventoryAccess)document.querySelectorAll("#ownerProductList button").forEach(button=>{if(String(button.getAttribute("onclick")||"").includes("startNewOwnerProduct()"))button.hidden=true;});
-    if(!detailAccess||!inventoryAccess)document.querySelectorAll("#ownerProductList button").forEach(button=>{if(String(button.getAttribute("onclick")||"").includes("deleteOwnerProduct("))button.hidden=true;});
   }
 }
 
+function selectOwnerProductEditorTab(tab,scroll=true){
+  const selected=["basic","photos","inventory"].includes(tab)?tab:"basic";
+  ownerProductEditorTab=selected;
+  document.querySelectorAll("[data-owner-product-tab]").forEach(button=>button.setAttribute("aria-selected",String(button.dataset.ownerProductTab===selected)));
+  document.querySelectorAll("[data-owner-product-panel]").forEach(panel=>{panel.hidden=panel.dataset.ownerProductPanel!==selected;});
+  if(scroll){const panel=document.querySelector('[data-owner-product-panel="'+selected+'"]');panel?.scrollIntoView({behavior:"smooth",block:"start"});}
+  return selected;
+}
+
+function filterOwnerDiscountProducts(query){
+  const normalized=String(query||"").trim().toLocaleLowerCase();
+  document.querySelectorAll("[data-owner-product-card]").forEach(card=>{card.hidden=normalized&&!String(card.dataset.productSearch||"").includes(normalized);});
+  const list=document.querySelector("#ownerProductList .owner-product-cards");
+  if(!list)return;
+  let empty=list.querySelector(".owner-discount-filter-empty");
+  const visible=[...list.querySelectorAll("[data-owner-product-card]")].some(card=>!card.hidden);
+  if(!visible&&!empty){empty=document.createElement("p");empty.className="owner-discount-filter-empty";empty.textContent=ownerDashboardText("No products found","بەرهەمەکێ نەدۆزرایەوە","لم يتم العثور على منتجات");list.appendChild(empty);}
+  else if(visible)empty?.remove();
+}
 function discountTimerInputValue(value){
   const milliseconds=Date.parse(String(value||""));
   if(!Number.isFinite(milliseconds))return "";
@@ -10826,6 +11079,7 @@ function updateOwnerDiscountPreview(){
   const discountInput=document.getElementById("ownerProductDiscount");
   const preview=document.getElementById("ownerDiscountPreview");
   if(!priceInput||!discountInput||!preview)return false;
+  const localize=(en,ku,ar)=>typeof ownerDashboardText==="function"?ownerDashboardText(en,ku,ar):en;
   const timerEnabled=Boolean(document.getElementById("ownerProductDiscountTimerEnabled")?.checked);
   const timerInput=document.getElementById("ownerProductDiscountEndsAt");
   const timerStatus=document.getElementById("ownerDiscountTimerStatus");
@@ -10836,21 +11090,23 @@ function updateOwnerDiscountPreview(){
   const discount=discountRaw===""?null:Number(discountRaw);
   const validDiscount=discount===null||(Number.isInteger(discount)&&discount>=1&&discount<=99);
   discountInput.setAttribute?.("aria-invalid",validDiscount?"false":"true");
-  if(!validPrice){preview.textContent="Enter a whole nonnegative price to preview the final amount.";return false;}
-  if(!validDiscount){preview.textContent="Discount must be a whole percentage from 1 to 99.";return false;}
+  if(!validPrice){preview.textContent=localize("Enter a whole nonnegative price to preview the final amount.","بۆ پێشبینینا نرخێ داوی، نرخەکا تەمام و نەمنفی بنڤیسە.","أدخل سعراً صحيحاً غير سالب لمعاينة المبلغ النهائي.");return false;}
+  if(!validDiscount){preview.textContent=localize("Discount must be a whole percentage from 1 to 99.","داشاندن پێدڤیە ل نێڤ ١ و ٩٩٪ بێت.","يجب أن تكون نسبة الخصم عدداً صحيحاً من 1 إلى 99.");return false;}
   const pricing=getProductPricing(discount===null?{price}:{price,discount});
-  if(!pricing){preview.textContent="This price cannot be calculated safely.";return false;}
+  if(!pricing){preview.textContent=localize("This price cannot be calculated safely.","نرخ نەشێت ب شێوەیەکێ پاراستی هەژمار بکەی.","تعذر حساب هذا السعر بأمان.");return false;}
   const endIso=ownerDiscountTimerEndIso();
   const endTime=endIso?Date.parse(endIso):NaN;
   const validTimer=!timerEnabled||(discount!==null&&Boolean(endIso)&&Number.isFinite(endTime));
+  const locale=typeof activeLanguage==="string"?(activeLanguage==="ku"?"ku-IQ":activeLanguage==="ar"?"ar-IQ":"en-IQ"):undefined;
+  const endLabel=Number.isFinite(endTime)?new Date(endTime).toLocaleString(locale):"";
   if(timerInput)timerInput.setAttribute?.("aria-invalid",validTimer?"false":"true");
   if(timerStatus){
     timerStatus.dataset.expired=timerEnabled&&Number.isFinite(endTime)&&endTime<=Date.now()?"true":"false";
-    timerStatus.textContent=!timerEnabled?"":!validTimer?"Set a valid discount and end date/time to enable the countdown.":endTime<=Date.now()?"The selected time has passed; the regular discount will remain active.":`Offer ends ${new Date(endTime).toLocaleString()}.`;
+    timerStatus.textContent=!timerEnabled?"":!validTimer?localize("Set a valid discount and end date/time to enable the countdown.","بۆ چالاککرنا ژمێرەری، داشاندن و دەمەکێ دروست دانە.","أدخل خصماً ووقت انتهاء صحيحين لتفعيل العد التنازلي."):endTime<=Date.now()?localize("The selected time has passed; the regular discount will remain active.","دەمێ هەلبژارتی تێپەڕییە؛ داشاندنا ئاسایی دێ چالاک بمینیت.","انقضى الوقت المحدد؛ سيبقى الخصم العادي فعالاً."):localize("Offer ends "+endLabel+".","داویێ ئۆفەرێ "+endLabel+".","ينتهي العرض في "+endLabel+".");
   }
-  if(!validTimer){preview.textContent="A limited-time discount needs a valid 1–99% discount and an end date/time.";return false;}
-  const pricePreview=discount===null?`Final price: ${formatPrice(pricing.finalPrice)} (no discount).`:`Final price: ${formatPrice(pricing.finalPrice)} after ${discount}% off ${formatPrice(pricing.originalPrice)}.`;
-  preview.textContent=timerEnabled?`${pricePreview} Limited-time offer ends ${new Date(endTime).toLocaleString()}.`:pricePreview;
+  if(!validTimer){preview.textContent=localize("A limited-time discount needs a valid 1–99% discount and an end date/time.","داشاندنا دەم‌سنوردار پێدڤی ب داشاندنەکا ١–٩٩٪ و دەمەکێ داویێ دروست هەیە.","يتطلب الخصم المحدد بوقت نسبة صحيحة من 1 إلى 99 ووقت انتهاء.");return false;}
+  const pricePreview=discount===null?localize("Final price: "+formatPrice(pricing.finalPrice)+" (no discount).","نرخێ داوی: "+formatPrice(pricing.finalPrice)+" (بێ داشاندن).","السعر النهائي: "+formatPrice(pricing.finalPrice)+" (من دون خصم)."):localize("Final price: "+formatPrice(pricing.finalPrice)+" after "+discount+"% off "+formatPrice(pricing.originalPrice)+".","نرخێ داوی: "+formatPrice(pricing.finalPrice)+" پشتی "+discount+"٪ داشاندنێ ژ "+formatPrice(pricing.originalPrice)+".","السعر النهائي: "+formatPrice(pricing.finalPrice)+" بعد خصم "+discount+"٪ من "+formatPrice(pricing.originalPrice)+".");
+  preview.textContent=timerEnabled?localize(pricePreview+" Limited-time offer ends "+endLabel+".",pricePreview+" داویێ ئۆفەرێ دەم‌سنوردار "+endLabel+".",pricePreview+" ينتهي العرض المحدد بوقت في "+endLabel+"."):pricePreview;
   return true;
 }
 
@@ -10889,13 +11145,16 @@ function renderOwnerInventoryMatrix(){
   if(!sizes.length||!colors.length){box.innerHTML="";box.hidden=true;updateOwnerInventoryTotal();return;}
   box.hidden=false;
   const product=products.find(item=>item.id===editingProductId);
-  box.innerHTML=`<table class="owner-inventory-table"><thead><tr><th>ڕەنگ</th>${sizes.map(size=>`<th>${escapeHtml(size)}</th>`).join("")}</tr></thead><tbody>${colors.map(color=>`
-    <tr data-inventory-color-row="${escapeHtml(color.value)}"><th><span class="owner-inventory-color-head"><span class="owner-inventory-color-label"><span class="detail-color-swatch" style="background:${escapeHtml(color.value)}"></span>${escapeHtml(color.name)}</span><small class="owner-inventory-color-total" data-color-total>0 دانە</small></span></th>${sizes.map(size=>{
-       const key=JSON.stringify([color.value,size]);
-       const saved=product?.variants?.find(item=>item.color===color.value&&item.size===size)?.stock;
-       const value=draft.has(key)?draft.get(key):(saved??0);
-       return `<td><input type="number" min="0" step="1" inputmode="numeric" required data-inventory-stock data-color="${escapeHtml(color.value)}" data-size="${escapeHtml(size)}" aria-label="${escapeHtml(color.name)} ${escapeHtml(size)}" value="${escapeHtml(value)}" onchange="updateOwnerInventoryTotal()"></td>`;
-     }).join("")}</tr>`).join("")}</tbody></table>`;
+  box.innerHTML=`<div class="owner-inventory-grid">${colors.map(color=>`
+    <section class="owner-inventory-color-card" data-inventory-color-row="${escapeHtml(color.value)}">
+      <header><span class="owner-inventory-color-label"><span class="detail-color-swatch" style="background:${escapeHtml(color.value)}"></span>${escapeHtml(color.name)}</span><small class="owner-inventory-color-total" data-color-total>0 ${(typeof ownerDashboardText==="function"?ownerDashboardText("units","دانە","قطعة"):"units")}</small></header>
+      <div class="owner-inventory-size-grid">${sizes.map(size=>{
+        const key=JSON.stringify([color.value,size]);
+        const saved=product?.variants?.find(item=>item.color===color.value&&item.size===size)?.stock;
+        const value=draft.has(key)?draft.get(key):(saved??0);
+        return `<label class="owner-inventory-size-field"><span>${escapeHtml(size)}</span><input type="number" min="0" step="1" inputmode="numeric" required data-inventory-stock data-color="${escapeHtml(color.value)}" data-size="${escapeHtml(size)}" aria-label="${escapeHtml(color.name)} ${escapeHtml(size)}" value="${escapeHtml(value)}" onchange="updateOwnerInventoryTotal()"></label>`;
+      }).join("")}</div>
+    </section>`).join("")}</div>`;
   updateOwnerInventoryTotal();
 }
 
@@ -10923,7 +11182,8 @@ async function saveOwnerProduct(event){
   if(!canUseStaffProductEditor()) return;
   const form=event.currentTarget;
   if(form?.dataset.saving==="true")return;
-  const submitButton=form?.querySelector('button[type="submit"]');
+  const submitButtons=form?.querySelectorAll('button[type="submit"]')||[];
+  const submitButton=submitButtons[0];
   const requestId=ownerProductWorkflowId||createOwnerSaveRequestId();
   ownerProductWorkflowId=requestId;
   let record=null;
@@ -10969,6 +11229,10 @@ async function saveOwnerProduct(event){
     const validImages=images.length>0&&images.every(photo=>safeImageUrl(photo.src)&&(!photo.color||colors.includes(photo.color)));
     if(!names.en||!names.ar||!names.ku||!validPrice||!validDiscount||!validDiscountTimer||!image||!category||!validSizes||!validCombinationCount||!validColors||!validInventory||!validImages){
       ownerSaveDiagnostic("product.validation_failed",{requestId,stage:"owner_form",code:"INVALID_PRODUCT_FIELDS"});
+      const invalidTab=!names.en||!names.ar||!names.ku||!validPrice||!validDiscount||!validDiscountTimer||!category?"basic":!validImages?"photos":"inventory";
+      selectOwnerProductEditorTab(invalidTab,true);
+      const focusId=invalidTab==="basic"?(!names.en?"ownerProductNameEn":!names.ar?"ownerProductNameAr":!names.ku?"ownerProductNameKu":!validPrice?"ownerProductPrice":!validDiscount?"ownerProductDiscount":"ownerProductCategory"):invalidTab==="photos"?"ownerProductImageFile":"ownerProductSizes";
+      document.getElementById(focusId)?.focus({preventScroll:true});
       showToast(!validDiscountTimer?"A limited-time discount needs a valid discount and end date/time.":validDiscount?"تکایە هەموو زانیارییێن دروست بنڤیسە.":"Discount must be a whole percentage from 1 to 99, or left blank.");
       return;
     }
@@ -10986,7 +11250,7 @@ async function saveOwnerProduct(event){
       return;
     }
     if(form)form.dataset.saving="true";
-    if(submitButton)submitButton.disabled=true;
+    submitButtons.forEach(button=>button.disabled=true);
     const cloudSyncRequired=Boolean(cloudMode&&(isOwner()||isStaffSession()));
     let cloudSaved=false;
     ownerSaveDiagnostic("product.local_save_confirmed",{requestId,stage:"local_storage",productCount:products.length,imageCount:images.length});
@@ -11021,7 +11285,7 @@ async function saveOwnerProduct(event){
     if(record){editingProductId=record.id;ownerProductMode="form";}
     showToast(`Could not finish saving this product. Your draft remains on this device. Reference: ${error?.requestId||requestId}`);
   }finally{
-    if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}
+    if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;submitButtons.forEach(button=>button.disabled=false);}
   }
 }
 
@@ -11032,6 +11296,7 @@ function editOwnerProduct(id){
     return;
   }
   editingProductId=id;
+  ownerProductEditorTab="basic";
   ownerProductWorkflowId=createOwnerSaveRequestId();
   ownerInventoryDraft.clear();
   ownerProductMode="form";

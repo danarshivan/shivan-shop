@@ -58,9 +58,17 @@ const cropMarkup = html.slice(html.indexOf('<div id="imageCropModal"'), html.ind
 assert.match(cropMarkup, /data-crop-action="cancel"/);
 assert.match(cropMarkup, /data-crop-action="apply"/);
 assert.match(cropMarkup, /aria-label=/);
+for (const ratio of ["free", "1", "0.75", "0.8", "0.5625"]) assert.ok(cropMarkup.includes(`data-crop-ratio="${ratio}"`), `the crop editor exposes ${ratio}`);
+assert.equal((cropMarkup.match(/data-crop-handle=/g) || []).length, 4, "all crop frame corners have draggable handles");
+assert.match(cropMarkup, /data-crop-transform="rotate-left"/);
+assert.match(cropMarkup, /data-crop-transform="flip-x"/);
+assert.match(cropMarkup, /data-crop-action="preview"/);
+assert.match(cropMarkup, /data-crop-action="reset"/);
+assert.match(cropMarkup, />تەواو<\/button>/);
 assert.doesNotMatch(cropMarkup, /onclick\s*=\s*["']finishImageCrop/);
 assert.match(html, /touch-action:manipulation/);
 assert.match(html, /\.crop-actions button\{min-height:48px\}/);
+assert.match(html, /\.crop-viewport\.is-preview \.crop-handle\{display:none\}/);
 
 const actionCalls = [];
 const cancelButton = { dataset: { cropAction: "cancel" }, disabled: false };
@@ -93,6 +101,13 @@ for (const button of [disabledButton, outsideButton]) {
 }
 assert.deepEqual(actionCalls, [false, true], "delegated Cancel and Crop buttons dispatch the right actions");
 
+const matrixContext = vm.createContext({});
+install(matrixContext, "ownerCropDrawMatrix");
+const normalizeCropTransform = values => Array.from(values, value => Object.is(value, -0) ? 0 : value);
+assert.deepEqual(normalizeCropTransform(matrixContext.ownerCropDrawMatrix(80, 100, 0, false, false, 10, 20, 30, 40, 60, 80)), [2, 0, 0, 2, -20, -40], "free crop coordinates map into the output canvas");
+assert.deepEqual(normalizeCropTransform(matrixContext.ownerCropDrawMatrix(80, 100, 90, false, false, 0, 0, 100, 80, 100, 80)), [0, 1, -1, 0, 100, 0], "clockwise rotation swaps the oriented dimensions");
+assert.deepEqual(normalizeCropTransform(matrixContext.ownerCropDrawMatrix(80, 100, 0, true, false, 0, 0, 80, 100, 80, 100)), [-1, 0, 0, 1, 80, 0], "horizontal flip is applied within the oriented crop");
+assert.deepEqual(normalizeCropTransform(matrixContext.ownerCropDrawMatrix(80, 100, 0, false, true, 0, 0, 80, 100, 80, 100)), [1, 0, 0, -1, 0, 100], "vertical flip is applied within the oriented crop");
 function makeHarness(canvasFactory) {
   const buttonSet = [
     { dataset: { cropAction: "cancel" }, disabled: false },
@@ -136,7 +151,7 @@ function makeHarness(canvasFactory) {
     setTimeout: (callback, delay) => setTimeout(callback, Math.min(delay, 5)),
     clearTimeout
   });
-  for (const name of ["releaseCropForm", "setImageCropBusy", "canvasBlob", "closeImageCrop", "finishImageCrop"]) install(context, name);
+  for (const name of ["releaseCropForm", "setImageCropBusy", "canvasBlob", "closeImageCrop", "ownerCropDrawMatrix", "renderOwnerCropBlob", "finishImageCrop"]) install(context, name);
   return { context, elements, buttonSet, toasts, modalClasses };
 }
 

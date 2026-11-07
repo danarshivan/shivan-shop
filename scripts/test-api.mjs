@@ -4,6 +4,7 @@ import { webcrypto } from "node:crypto";
 import { runInNewContext } from "node:vm";
 
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
+const normalizeCropTransform = values => Array.from(values, value => Object.is(value, -0) ? 0 : value);
 
 const apiSource = await readFile(new URL("../functions/api/[[path]].js", import.meta.url), "utf8");
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
@@ -30,6 +31,8 @@ const inventoryDraftSource = htmlSource.match(/function readOwnerInventoryDraft\
 const inventoryRendererSource = htmlSource.match(/function renderOwnerInventoryMatrix\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const inventoryTotalSource = htmlSource.match(/function updateOwnerInventoryTotal\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const finishImageCropSource = htmlSource.match(/async function finishImageCrop\(apply\)\{[\s\S]*?\n\}/)?.[0] || "";
+const ownerCropDrawMatrixSource = htmlSource.match(/function ownerCropDrawMatrix\(width,height,rotation,flipX,flipY,cropX,cropY,cropWidth,cropHeight,outputWidth,outputHeight\)\{[\s\S]*?\n\}/)?.[0] || "";
+const renderOwnerCropBlobSource = htmlSource.match(/async function renderOwnerCropBlob\(state\)\{[\s\S]*?\n\}/)?.[0] || "";
 const bindImageCropActionsSource = htmlSource.match(/function bindImageCropActions\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const setImageCropBusySource = htmlSource.match(/function setImageCropBusy\(busy\)\{[\s\S]*?\n\}/)?.[0] || "";
 const closeImageCropSource = htmlSource.match(/function closeImageCrop\(\)\{[\s\S]*?\n\}/)?.[0] || "";
@@ -54,8 +57,8 @@ assert.match(inventoryRendererSource, /type="number" min="0" step="1" inputmode=
 assert.doesNotMatch(inventoryRendererSource, /<select|<option/, "the stock matrix must not generate large option lists");
 assert.match(inventoryRendererSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "the inventory table must stop rendering above the variant limit");
 assert.match(productSaveSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "the save handler must reject over-limit variants before building product data");
-assert.match(finishImageCropSource, /for\(const maxOutput of \[1000,760\]\)/, "crop compression should use two bounded output sizes");
-assert.match(finishImageCropSource, /\[\["image\/webp",\.76\],\["image\/jpeg",\.7\]\]/, "crop compression should make at most one attempt per format and output size");
+assert.match(renderOwnerCropBlobSource, /for\(const limit of \[1000,760\]\)/, "crop compression should use two bounded output sizes");
+assert.match(renderOwnerCropBlobSource, /\[\["image\/webp",\.76\],\["image\/jpeg",\.7\]\]/, "crop compression should make at most one attempt per format and output size");
 const cloudFailureBranch = productSaveSource.indexOf("if(cloudSyncRequired&&!cloudSaved)");
 const productSuccessExit = productSaveSource.indexOf("editingProductId=null");
 assert.ok(cloudFailureBranch >= 0 && cloudFailureBranch < productSuccessExit, "a failed shared save must keep the Owner form open before the success navigation");
@@ -1084,6 +1087,7 @@ const cropModal = { classList: { add() {}, remove() {} }, setAttribute() {} };
 const compressedCropBlob = new Blob([imageBytes], { type: "image/webp" });
 let cropDrawSource = null;
 let cropDrawArgs = null;
+let cropTransformArgs = null;
 let cropBitmapClosed = false;
 let cropEncodeAttempts = 0;
 const cropObjectUrlsRevoked = [];
@@ -1108,7 +1112,7 @@ const cropSandbox = {
     createElement: tag => tag === "canvas" ? {
       width: 0,
       height: 0,
-      getContext: () => ({ drawImage(...args) { cropDrawArgs = args; cropDrawSource = args[0]; } }),
+      getContext: () => ({ setTransform(...args) { cropTransformArgs = args; }, drawImage(...args) { cropDrawArgs = args; cropDrawSource = args[0]; } }),
       toBlob: (callback, type) => {
         cropEncodeAttempts++;
         const blob = cropEncodeAttempts <= 2 ? new Blob([new Uint8Array(1_300_001)], { type }) : new Blob([imageBytes], { type });
@@ -1134,6 +1138,7 @@ const cropSandbox = {
     return data.url;
   },
   readOwnerProductPhotos: () => JSON.parse(cropTarget.value),
+  writeOwnerProductPhotos: photos => { cropTarget.value = JSON.stringify(photos); },
   normalizeHexColor: value => String(value || ""),
   renderOwnerProductPhotoList() {},
   closeImageCrop() { cropSourceBitmap.close(); cropObjectUrlsRevoked.push("blob:crop-source"); pendingImageCrop = null; cropSandbox.pendingImageCrop = null; },
@@ -1150,12 +1155,13 @@ const cropSandbox = {
   ownerSaveDiagnosticCode: () => "TEST_FAILURE",
   showToast: message => { cropToast = message; },
 };
-await runInNewContext(`${setImageCropBusySource}\n${finishImageCropSource}\nfinishImageCrop(true)`, cropSandbox);
+await runInNewContext(`${setImageCropBusySource}\n${ownerCropDrawMatrixSource}\n${renderOwnerCropBlobSource}\n${finishImageCropSource}\nfinishImageCrop(true)`, cropSandbox);
 const croppedPhotos = JSON.parse(cropTarget.value);
 assert.equal(croppedPhotos.length, 1, "the completed crop should be attached to the product form");
 assert.match(croppedPhotos[0].src, /^\/api\/media\/shop\//);
 assert.equal(croppedPhotos[0].color, "#ff0000");
 assert.equal(cropDrawSource, cropSourceBitmap, "final crop rendering should use the bounded bitmap rather than the preview image");
+assert.deepEqual(normalizeCropTransform(cropTransformArgs), [7.6, 0, 0, 7.6, 0, 0], "crop coordinates should map the preview rectangle to the resized source at the successful bounded output size");
 assert.equal(cropDrawArgs[3], 80, "crop coordinates should map from the smaller preview back to the resized source width");
 assert.equal(cropDrawArgs[4], 100, "crop coordinates should map from the smaller preview back to the resized source height");
 assert.equal(cropBitmapClosed, true, "successful crop should release its decoded image resources");
@@ -1182,7 +1188,7 @@ const failedCropSandbox = {
   },
 };
 cropToast = "";
-await runInNewContext(`${setImageCropBusySource}\n${finishImageCropSource}\nfinishImageCrop(true)`, failedCropSandbox);
+await runInNewContext(`${setImageCropBusySource}\n${ownerCropDrawMatrixSource}\n${renderOwnerCropBlobSource}\n${finishImageCropSource}\nfinishImageCrop(true)`, failedCropSandbox);
 assert.equal(failedCropState.uploading, false, "a failed cropped-image upload should clear the busy state");
 assert.equal(failedCropButtons.every(button => !button.disabled), true, "crop controls should remain usable after a failed upload");
 assert.equal(failedCropSubmit.disabled, false, "the product form should remain responsive after a failed upload");
@@ -1214,7 +1220,7 @@ const cancelSandbox = {
   showToast() {},
   uploadOwnerImageToCloud: async () => { cancelImageUploadCount++; return "/api/media/shop/unused"; },
 };
-await runInNewContext(`${finishImageCropSource}\nfinishImageCrop(false)`, cancelSandbox);
+await runInNewContext(`${ownerCropDrawMatrixSource}\n${renderOwnerCropBlobSource}\n${finishImageCropSource}\nfinishImageCrop(false)`, cancelSandbox);
 assert.equal(busyCropState.cancelled, true, "Cancel must clear the crop operation even after Crop and save has started");
 assert.equal(cancelAbortCount, 1, "Cancel must abort pending compression or upload work");
 assert.equal(cancelCloseCount, 1, "Cancel must close the crop modal");
@@ -1261,7 +1267,7 @@ const timeoutCropSandbox = {
   showToast: message => { timeoutCropToast = message; },
 };
 const timeoutFinishSource = canvasBlobSource.replace("timeoutMs=15000", "timeoutMs=5");
-await runInNewContext(`${setImageCropBusySource}\n${timeoutFinishSource}\n${releasePreparedCropSourceSource}\n${closeImageCropSource}\n${finishImageCropSource}\nfinishImageCrop(true)`, timeoutCropSandbox);
+await runInNewContext(`${setImageCropBusySource}\n${timeoutFinishSource}\n${releasePreparedCropSourceSource}\n${closeImageCropSource}\n${ownerCropDrawMatrixSource}\n${renderOwnerCropBlobSource}\n${finishImageCropSource}\nfinishImageCrop(true)`, timeoutCropSandbox);
 assert.equal(timeoutCropState.uploading, false, "a stalled canvas encoder must release the crop busy state");
 assert.equal(timeoutApplyButton.disabled, false, "Crop and save must become available after an encoding timeout");
 assert.equal(timeoutCancelButton.disabled, false, "Cancel must stay available after an encoding timeout");
@@ -1270,8 +1276,13 @@ assert.match(timeoutCropToast, /Photo compression took too long/, "the user must
 assert.equal(timeoutSubmitButton.disabled, false, "the Owner product form must unlock after a crop timeout");
 assert.equal(timeoutCropUploads, 0, "a failed crop must not upload or attach an image");
 
-const productForm = { dataset: { saving: "false" }, querySelector: () => productSubmitButton };
 const productSubmitButton = { disabled: false };
+const productFooterSubmitButton = { disabled: false };
+const productForm = {
+  dataset: { saving: "false" },
+  querySelector: () => productSubmitButton,
+  querySelectorAll: selector => selector === 'button[type="submit"]' ? [productSubmitButton, productFooterSubmitButton] : [],
+};
 const productFields = new Map([
   ["ownerProductNameEn", { value: "Test crop jacket" }],
   ["ownerProductNameAr", { value: "سترة اختبار" }],
@@ -1286,8 +1297,12 @@ const productFields = new Map([
   ["ownerProductColors", { value: "Red:#ff0000" }],
   ["ownerProductDescription", { value: "Local regression test product" }],
 ]);
+let focusedProductFieldId = "";
+for (const [id, field] of productFields) field.focus = () => { focusedProductFieldId = id; };
 const localShopStorage = new Map();
 const productToasts = [];
+let selectedProductEditorTab = "";
+let requestedProductEditorTabFocus = false;
 const productApiResults = [];
 const testEvent = { currentTarget: productForm, preventDefault() {} };
 const productSandbox = {
@@ -1314,6 +1329,7 @@ const productSandbox = {
   products: [],
   testEvent,
   document: { getElementById: id => productFields.get(id) || null },
+  selectOwnerProductEditorTab: (tab, focus) => { selectedProductEditorTab = tab; requestedProductEditorTabFocus = focus; },
   localStorage: {
     getItem: key => localShopStorage.has(key) ? localShopStorage.get(key) : null,
     setItem: (key, value) => localShopStorage.set(key, String(value)),
@@ -1361,6 +1377,7 @@ assert.equal(productApiResults[0]?.status, 503, "the simulated production-like D
 assert.equal(productApiResults[0]?.data.code, "D1_WRITE_FAILED", "the save API should return a safe real failure code");
 assert.equal(productApiResults[0]?.data.requestId, uiRequestId, "the API failure should be correlated to the crop and product workflow");
 assert.equal(productSubmitButton.disabled, false, "a failed shared save must leave the Owner Save button usable");
+assert.equal(productFooterSubmitButton.disabled, false, "a failed shared save must leave the footer Save button usable");
 assert.equal(productForm.dataset.saving, "false", "a failed shared save must clear the form busy state");
 assert.equal(productSandbox.ownerProductMode, "form", "a failed shared save must keep the Owner form open");
 assert.equal(productSandbox.editingProductId, 20261012001, "a retry must retain the pending product ID");
@@ -1370,6 +1387,7 @@ await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSourc
 assert.equal(productApiResults[1]?.status, 200, "retrying the same form should persist the product through the shared API");
 assert.equal(productApiResults[1]?.data.persisted, true);
 assert.equal(productSubmitButton.disabled, false, "the Save button should remain responsive after retry success");
+assert.equal(productFooterSubmitButton.disabled, false, "the footer Save button should remain responsive after retry success");
 assert.equal(productSandbox.products.length, 1, "retrying a failed save must not duplicate the product");
 const uiStoredProducts = JSON.parse(uiDB.shop.get("shivan_shop_products"));
 assert.equal(uiStoredProducts.length, 1);
@@ -1424,6 +1442,9 @@ await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSourc
 assert.equal(productApiResults.length, writesBeforeInvalidDiscount, "the Owner form must reject an invalid percentage before calling the shared API");
 assert.equal(productSandbox.products.length, productCountBeforeInvalidDiscount, "an invalid percentage must not mutate the local product list");
 assert.match(productToasts.at(-1), /from 1 to 99/);
+assert.equal(selectedProductEditorTab, "basic", "invalid discount input should switch to Basic Info");
+assert.equal(requestedProductEditorTabFocus, true, "invalid product input should request focus after switching tabs");
+assert.equal(focusedProductFieldId, "ownerProductDiscount", "the invalid discount input should receive focus");
 productFields.get("ownerProductDiscount").value = "";
 
 const productCountBeforeMissingTimerDiscount = productSandbox.products.length;
