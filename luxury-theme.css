@@ -973,3 +973,120 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 [dir="rtl"] .shop-brand-lockup{direction:rtl}
 @media(prefers-reduced-motion:reduce){.shop-header-icon,.product,.owner-quick-action,.owner-management-card{transition:none!important}}
+
+/* Product details: keep the image, price, options, and purchase controls in a clear reading order. */
+#mainApp #detailView.active .detail-main{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:15px;max-width:760px;margin-inline:auto;min-width:0}
+#mainApp #detailView.active .detail-gallery{width:min(100%,560px);height:clamp(380px,56vh,620px);max-height:min(68dvh,620px);aspect-ratio:auto;margin-inline:auto;border:1px solid rgba(255,176,205,.24);border-radius:22px;background:radial-gradient(ellipse at 50% 35%,rgba(143,48,83,.28),transparent 65%),linear-gradient(150deg,#381024,#210712);box-shadow:0 16px 36px rgba(5,0,3,.3)}
+#mainApp #detailView.active .detail-gallery-track,#mainApp #detailView.active .detail-gallery-slide{height:100%}
+#mainApp #detailView.active .detail-gallery-slide{display:grid;place-items:center;min-width:0}
+#mainApp #detailView.active .detail-gallery .detail-image{width:100%;height:100%;object-fit:contain;object-position:center;background:transparent}
+#mainApp #detailView.active .detail-gallery-dots{bottom:11px}
+#mainApp #detailView.active .detail-gallery-dots button{width:7px;height:7px;border:1px solid rgba(255,235,243,.65);background:rgba(79,23,47,.78)}
+#mainApp #detailView.active .detail-gallery-dots button.active{width:19px;background:#ffb4cf;box-shadow:0 0 12px rgba(255,151,191,.45)}
+#mainApp #detailView.active .detail-side{display:grid;gap:14px;width:100%;min-width:0}
+#mainApp #detailView.active .detail-summary{display:grid;gap:5px;min-width:0;padding:2px 2px 0}
+#mainApp #detailView.active .detail-summary .shop-eyebrow{margin:0;color:#e5a9bf;font-size:9px;font-weight:800;letter-spacing:.14em}
+#mainApp #detailView.active .detail-title{margin:0;color:#fff6fa;font-family:var(--shivan-display);font-size:clamp(24px,5.5vw,34px);line-height:1.12;overflow-wrap:anywhere}
+#mainApp #detailView.active .detail-price{display:block;min-height:30px;margin:0;color:#ffafd0;font-size:clamp(20px,5vw,25px);font-weight:850;line-height:1.25;overflow-wrap:anywhere}
+#mainApp #detailView.active .detail-price .discount-price-layout{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:8px 11px;direction:ltr}
+#mainApp #detailView.active .detail-price .discount-price-values{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:5px 10px}
+#mainApp #detailView.active .detail-price .discounted-price{color:#ffafd0;font-size:inherit;font-weight:900}
+#mainApp #detailView.active .detail-price .original-price{color:#d4afbd;font-size:.62em;font-weight:550;text-decoration-thickness:1.5px}
+#mainApp #detailView.active .detail-price .discount-pill{padding:5px 9px;border:1px solid rgba(255,226,237,.45);border-radius:999px;background:linear-gradient(120deg,#f36b9c,#b52e63);color:#fff8fb;font-size:11px;font-weight:850}
+#mainApp #detailView.active .detail-stock{display:block;color:#d9bac7;font-size:11px}
+#mainApp #detailView.active .detail-stock .stock-line{color:#f5c4d6;font-size:11px}
+#mainApp #detailView.active .detail-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0}
+#mainApp #detailView.active .detail-options .detail-box{display:block;min-width:0;min-height:0;margin:0;padding:12px;border:1px solid rgba(255,173,202,.17);border-radius:15px;background:linear-gradient(150deg,#43132b,#290919)}
+#mainApp #detailView.active .detail-options .detail-box h3{margin:0 0 9px;color:#f8d9e4;font-family:var(--shivan-display);font-size:13px;line-height:1.2}
+#mainApp #detailView.active .detail-options .options{display:flex;align-items:center;flex-wrap:wrap;gap:7px;max-height:none;overflow:visible}
+#mainApp #detailView.active .detail-options #sizeOptions .option{display:inline-grid;place-items:center;min-width:37px;min-height:36px;padding:6px 10px;border:1px solid rgba(255,179,207,.28);border-radius:999px;background:#310b1e;color:#fff3f7;font-size:11px;font-weight:750;line-height:1}
+#mainApp #detailView.active .detail-options #sizeOptions .option.active{border-color:#ffd4e2;background:linear-gradient(125deg,#e95791,#9f2d5d);box-shadow:0 0 0 2px rgba(255,166,199,.12)}
+#mainApp #detailView.active .detail-options #sizeOptions .option:disabled{opacity:.42}
+#mainApp #detailView.active .detail-options #colorOptions .detail-color-option{display:grid;place-items:center;width:35px;height:35px;flex:0 0 35px;padding:3px;border:1px solid rgba(255,194,216,.3);border-radius:50%;background:rgba(36,7,21,.8)}
+#mainApp #detailView.active .detail-options #colorOptions .detail-color-option.active{border:2px solid #ffe0eb;box-shadow:0 0 0 3px rgba(240,92,147,.24),0 0 16px rgba(240,92,147,.28)}
+#mainApp #detailView.active .detail-options .detail-color-swatch{width:23px;height:23px;flex:0 0 23px;border:1px solid rgba(255,255,255,.63);box-shadow:inset 0 0 0 1px rgba(0,0,0,.13)}
+#mainApp #detailView.active .detail-options .option:focus-visible,#mainApp #detailView.active .detail-toolbar button:focus-visible{outline:2px solid #ffd0df;outline-offset:2px}
+#mainApp #detailView.active .detail-content-section{margin:2px 0 0;padding:16px;border:1px solid rgba(255,173,202,.17);border-radius:17px;background:linear-gradient(150deg,#401229,#280818);box-shadow:0 10px 26px rgba(7,0,4,.16)}
+#mainApp #detailView.active .detail-content-section h2{margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid rgba(255,173,202,.13);color:#fff1f6;font-family:var(--shivan-display);font-size:17px;line-height:1.25}
+#mainApp #detailView.active .detail-description{color:#e4cbd5;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+#mainApp #detailView.active .detail-review-summary{min-height:25px;flex-wrap:wrap;color:#d8bdc8;font-size:12px}
+#mainApp #detailView.active .detail-review-average{color:#fff4f8;font-size:20px}
+#mainApp #detailView.active .detail-review-list{gap:9px;margin-top:12px}
+#mainApp #detailView.active .detail-review-card{padding:11px 12px 4px;border:1px solid rgba(255,173,202,.12);border-radius:12px;background:rgba(63,16,39,.42)}
+#mainApp #detailView.active .detail-review-card strong{color:#fff1f6;font-size:12px}
+#mainApp #detailView.active .detail-review-card p{color:#dec4cf;font-size:12px;line-height:1.65}
+#mainApp #detailView.active .detail-review-empty{gap:7px;padding:12px;border:1px dashed rgba(255,173,202,.18);border-radius:12px;color:#d5b5c2;font-size:12px;line-height:1.55}
+#mainApp #detailView.active .detail-actions-row{position:static;inset:auto;z-index:auto;grid-template-columns:minmax(102px,.72fr) minmax(0,1.28fr);gap:9px;align-items:stretch;margin:14px 0 3px;padding:9px;border:1px solid rgba(255,173,202,.2);border-radius:17px;background:linear-gradient(150deg,#401229,#280818);box-shadow:0 9px 24px rgba(7,0,4,.16);backdrop-filter:none}
+#mainApp #detailView.active .detail-actions-row .detail-quantity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:54px;margin:0;padding:4px;border:0;background:transparent}
+#mainApp #detailView.active .detail-actions-row .detail-quantity h3{margin:0;color:#e6c4d1;font-size:10px;line-height:1.1}
+#mainApp #detailView.active .detail-actions-row .qty{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}
+#mainApp #detailView.active .detail-actions-row .qty button{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border:1px solid rgba(255,187,211,.22);border-radius:9px;background:linear-gradient(145deg,#682042,#3a1027);color:#fff3f7;font-size:18px}
+#mainApp #detailView.active .detail-actions-row .qty span{min-width:18px;color:#fff7fa;font-size:13px;font-weight:800;text-align:center}
+#mainApp #detailView.active .detail-actions-row .detail-buy{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:52px;padding:9px 12px;border:0;border-radius:999px;background:linear-gradient(110deg,#ffb9d1,#e84d90);color:#3b1021;font-size:13px;font-weight:850;line-height:1.25;text-align:center;white-space:normal;overflow-wrap:anywhere;box-shadow:0 8px 22px rgba(223,67,130,.2)}
+#mainApp #detailView.active .detail-recommendations{min-width:0;margin:18px 0 0;padding-bottom:6px}
+#mainApp #detailView.active .detail-recommendations .section-head{margin:0 0 9px;padding:0 2px}
+#mainApp #detailView.active .detail-recommendations .section-head h2{color:#fff1f6;font-family:var(--shivan-display);font-size:19px}
+#mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:10px;padding:0;direction:ltr}
+#mainApp #detailView.active .detail-recommendation-grid>.product{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid rgba(255,177,205,.15);border-radius:15px;background:linear-gradient(165deg,#4b172f,#2b091b);box-shadow:0 8px 20px rgba(7,0,4,.2)}
+#mainApp #detailView.active .detail-recommendation-grid .product-image-frame{flex:0 0 auto;overflow:hidden;aspect-ratio:4/5;border-radius:14px 14px 0 0;background:#42142a}
+#mainApp #detailView.active .detail-recommendation-grid .product-img{display:block;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;object-position:center 30%}
+#mainApp #detailView.active .detail-recommendation-grid .product-info{display:flex;flex:1 1 auto;flex-direction:column;gap:6px;min-width:0;padding:9px}
+#mainApp #detailView.active .detail-recommendation-grid .product-name{min-height:2.35em;color:#fff6fa;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+#mainApp #detailView.active .detail-recommendation-grid .product-copy-line{min-width:0}
+#mainApp #detailView.active .detail-recommendation-grid .product-copy-line .price,#mainApp #detailView.active .detail-recommendation-grid .discounted-price{color:#ffafd0;font-size:12px;font-weight:850}
+#mainApp #detailView.active .detail-recommendation-grid .discount-price-layout{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;direction:ltr}
+#mainApp #detailView.active .detail-recommendation-grid .original-price{color:#d3b4c0;font-size:9px}
+#mainApp #detailView.active .detail-recommendation-grid .discount-pill{padding:3px 6px;font-size:9px}
+#mainApp #detailView.active .detail-recommendation-grid .product-bottom{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;margin-top:auto;padding-top:5px;direction:ltr}
+#mainApp #detailView.active .detail-recommendation-grid .add-mini{width:32px;height:32px;flex:0 0 32px;border-radius:10px}
+#mainApp #detailView.active .detail-recommendation-grid .colors{min-width:0;flex-wrap:wrap}
+
+@media(max-width:1240px){
+  #mainApp.detail-mode #detailView.active .detail-toolbar{position:sticky;top:max(6px,env(safe-area-inset-top));z-index:3200;display:grid;grid-template-columns:36px minmax(0,1fr) 36px;align-items:center;gap:6px;width:calc(100% - 112px);max-width:none;margin:0 0 12px;padding:4px;border:1px solid rgba(255,173,202,.2);border-radius:999px;background:rgba(39,7,23,.94);box-shadow:0 8px 20px rgba(5,0,3,.2);backdrop-filter:blur(14px);direction:ltr}
+  #mainApp.detail-mode #detailView.active .detail-toolbar .back,#mainApp.detail-mode #detailView.active .detail-toolbar .detail-favorite{display:grid;place-items:center;width:36px;height:36px;min-width:36px;margin:0;padding:0;border:1px solid rgba(255,178,207,.22);border-radius:50%;background:linear-gradient(145deg,#5a1937,#351025);color:#ffeaf2}
+  #mainApp.detail-mode #detailView.active .detail-toolbar-brand{display:block;min-width:0;overflow:hidden;color:#fff0f6;font-family:var(--shivan-display);font-size:clamp(11px,2.9vw,14px);font-style:italic;line-height:1.2;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+  body:has(#mainApp.detail-mode)>.language-switcher{top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:3201;gap:4px;max-width:96px;padding:5px 7px;border-color:rgba(255,178,207,.24);background:rgba(48,11,30,.96)}
+  body:has(#mainApp.detail-mode)>.language-switcher select{width:58px;max-width:58px;font-size:11px}
+  #mainApp #detailView.active .detail-gallery{width:min(100%,520px);height:clamp(240px,42svh,360px);max-height:360px;margin-inline:auto;border-radius:18px}
+  #mainApp #detailView.active .detail-main{gap:13px;max-width:760px}
+  #mainApp #detailView.active .detail-side{gap:12px}
+  #mainApp #detailView.active .detail-summary{padding:1px 2px 0}
+  #mainApp #detailView.active .detail-options{gap:8px}
+  #mainApp #detailView.active .detail-content-section{padding:14px}
+  #mainApp #detailView.active .detail-actions-row{bottom:auto}
+  #mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+}
+@media(max-width:760px){
+  #mainApp #detailView.active .detail-main{gap:11px;max-width:none}
+  #mainApp #detailView.active .detail-gallery{width:calc(100% + 24px);height:clamp(240px,42svh,340px);max-height:340px;margin-inline:-12px;border-radius:0 0 20px 20px}
+  #mainApp #detailView.active .detail-side{gap:11px}
+  #mainApp #detailView.active .detail-options .detail-box{padding:11px}
+  #mainApp #detailView.active .detail-actions-row{grid-template-columns:minmax(94px,.72fr) minmax(0,1.28fr);gap:7px;margin:12px 0 2px;padding:8px}
+  #mainApp #detailView.active .detail-actions-row .qty button{width:28px;height:28px;flex-basis:28px}
+  #mainApp #detailView.active .detail-actions-row .detail-buy{min-height:48px;padding:8px 9px;font-size:12px}
+  #mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #mainApp #detailView.active .detail-recommendation-grid .product-info{padding:8px}
+  #mainApp #detailView.active .detail-recommendation-grid .product-name{font-size:11px}
+}
+@media(max-width:360px){
+  #mainApp.detail-mode #detailView.active .detail-toolbar{width:calc(100% - 108px);grid-template-columns:34px minmax(0,1fr) 34px;gap:5px}
+  #mainApp.detail-mode #detailView.active .detail-toolbar .back,#mainApp.detail-mode #detailView.active .detail-toolbar .detail-favorite{width:34px;height:34px;min-width:34px}
+  body:has(#mainApp.detail-mode)>.language-switcher{gap:3px;padding:5px 6px}
+  body:has(#mainApp.detail-mode)>.language-switcher select{width:54px;max-width:54px;font-size:10px}
+  #mainApp #detailView.active .detail-options{grid-template-columns:minmax(0,1fr)}
+  #mainApp #detailView.active .detail-options .detail-box{padding:10px 11px}
+  #mainApp #detailView.active .detail-actions-row{grid-template-columns:minmax(88px,.7fr) minmax(0,1.3fr);gap:6px;padding:7px}
+  #mainApp #detailView.active .detail-actions-row .qty button{width:26px;height:26px;flex-basis:26px}
+  #mainApp #detailView.active .detail-actions-row .detail-buy{font-size:11px}
+}
+@media(min-width:761px){
+  #mainApp #detailView.active .detail-side{gap:16px}
+  #mainApp #detailView.active .detail-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  #mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+}
+@media(min-width:1100px){
+  #mainApp #detailView.active .detail-main{gap:18px}
+  #mainApp #detailView.active .detail-gallery{height:clamp(420px,60vh,620px)}
+  #mainApp #detailView.active .detail-recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+}
+@media(prefers-reduced-motion:reduce){#mainApp #detailView.active .detail-gallery img,#mainApp #detailView.active .detail-actions-row button,#mainApp #detailView.active .detail-recommendation-grid .product{scroll-behavior:auto;transition:none!important;animation:none!important}}

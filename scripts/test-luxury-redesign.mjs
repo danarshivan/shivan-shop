@@ -56,6 +56,24 @@ for (const selector of [
 assert.match(css, /\.bottom-nav\.owner-mode #navSearch,\.bottom-nav\.owner-mode #navCart/, "Owner navigation retains its five primary destinations without changing customer navigation");
 assert.match(css, /@media\s*\(max-width:430px\)/, "the redesign has narrow-phone layout rules");
 
+const detailStart = html.indexOf('<div id="detailView"');
+const detailEnd = html.indexOf('<!-- BOTTOM NAV -->', detailStart);
+assert.ok(detailStart >= 0 && detailEnd > detailStart, "the customer Product Details screen is present");
+const detailMarkup = html.slice(detailStart, detailEnd);
+assert.ok(detailMarkup.indexOf('id="detailGallery"') < detailMarkup.indexOf('class="detail-summary"'), "product information remains directly after the image gallery");
+assert.ok(detailMarkup.indexOf('id="detailName"') < detailMarkup.indexOf('id="detailPrice"'), "the product name precedes the current and original price display");
+assert.ok(detailMarkup.indexOf('class="detail-actions-row"') < detailMarkup.indexOf('id="detailReviewSummary"'), "purchase controls stay in document flow before Reviews");
+assert.match(html, /getElementById\("detailPrice"\)\.innerHTML=renderProductPricing\(p,\{badge:true\}\)/, "Product Details retains the real price, original price, and discount renderer");
+assert.match(css, /#mainApp\.detail-mode #detailView\.active \.detail-toolbar\{[^}]*width:calc\(100% - 112px\)/, "the iPhone toolbar reserves space for the independent Language control");
+assert.match(css, /body:has\(#mainApp\.detail-mode\)>\.language-switcher/, "the Language control is compacted and separated while Product Details is open");
+assert.match(css, /#mainApp #detailView\.active \.detail-gallery \.detail-image\{[^}]*object-fit:contain/, "the Product Details image uses its original aspect ratio without stretching");
+assert.match(css, /#mainApp #detailView\.active \.detail-gallery\{width:calc\(100% \+ 24px\);height:clamp\(240px,42svh,340px\)/, "the iPhone product gallery has a shorter viewport-aware height");
+assert.match(css, /#mainApp #detailView\.active \.detail-actions-row\{position:static;inset:auto;z-index:auto;/, "Add to Cart and quantity controls no longer stick over product content");
+assert.match(css, /#mainApp #detailView\.active \.detail-options #sizeOptions \.option\.active/, "size selection has a clear selected state");
+assert.match(css, /#mainApp #detailView\.active \.detail-options #colorOptions \.detail-color-option\.active/, "color selection has a clear selected state");
+assert.match(css, /#mainApp #detailView\.active \.detail-recommendation-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "recommended products use a two-column phone grid");
+assert.match(css, /@media\(min-width:1100px\)[\s\S]*?detail-recommendation-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/, "recommended product cards expand responsively on desktop");
+
 let depth = 0;
 for (const character of css) {
   if (character === "{") depth += 1;
@@ -64,4 +82,4 @@ for (const character of css) {
 }
 assert.equal(depth, 0, "stylesheet blocks are balanced");
 
-console.log("Luxury redesign checks passed: premium screen composition, real catalog presentation, dedicated Orders navigation, all-screen styling, RTL rules, responsive breakpoints, reduced motion, and production asset copy.");
+console.log("Luxury redesign checks passed: premium screen composition, real catalog presentation, dedicated Orders navigation, responsive Product Details and purchase controls, all-screen styling, RTL rules, reduced motion, and production asset copy.");
