@@ -84,7 +84,16 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   const account = { id: "customer-9", name: "Test Customer", identifier: "customer@example.test", password: "test-password-123", role: "customer" };
   const context = {
     document,
-    window: { scrollY: 41, scrollTo(_x, y) { this.scrollY = y; } },
+    window: {
+      scrollY: 41,
+      history: {
+        state: null,
+        pushState(state) { this.state = state; },
+        replaceState(state) { this.state = state; },
+      },
+      addEventListener() {},
+      scrollTo(_x, y) { this.scrollY = y; },
+    },
     localStorage: storage, sessionStorage: { ...storage },
     currentUser: signedIn ? account : null,
     cloudAccount: null,
@@ -107,6 +116,9 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     OWNER_PASSWORD: "owner-password",
     ORDERS_KEY: "orders_test",
     shopViewScrollPositions: new Map(),
+    SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "profile", "owner"]),
+    shopViewNavigationPopHandler: null,
+    shopViewNavigationScrollHandler: null,
     ownerPanel: "products",
     windowScrollRestored: false,
     documentElement: root,
@@ -154,6 +166,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     activeElement: buyButton,
     body,
     documentElement: root,
+    addEventListener() {},
     getElementById: id => elements.get(id) || null,
     querySelector: context.querySelector.bind(context),
     querySelectorAll: context.querySelectorAll.bind(context),
@@ -223,7 +236,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   context.signupConfirmPass.value = "new-password-123";
   context.signupTerms.checked = true;
 
-  const names = ["getProductPricing", "cartPriceSnapshot", "getCartKey", "getCart", "saveCart", "updateCartBadge", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
+  const names = ["getProductPricing", "cartPriceSnapshot", "getCartKey", "getCart", "saveCart", "updateCartBadge", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
   const functions = names.map(source).join("\n");
   const vmContext = {
     ...context,

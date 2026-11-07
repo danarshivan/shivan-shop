@@ -92,7 +92,7 @@ const sessionSession = makeStorage();
 
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
-  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain",
+  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain",
 ];
 const functionSources = functionNames.map(name => {
   const source = html.match(new RegExp(`function ${name}\\([\\s\\S]*?\\n\\}`))?.[0];
@@ -112,6 +112,9 @@ const context = {
   cloudMode: false,
   ownerPanel: "products",
   shopViewScrollPositions: new Map(),
+  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "profile", "owner"]),
+  shopViewNavigationPopHandler: null,
+  shopViewNavigationScrollHandler: null,
   ownerPanelHasPendingWork: () => false,
   products: [],
   cart: [],
@@ -138,6 +141,7 @@ const context = {
     activeElement: null,
     body,
     documentElement: root,
+    addEventListener() {},
     getElementById: id => ids.get(id) || null,
     querySelector(selector) {
       if (selector === ".app") return app;
@@ -148,7 +152,12 @@ const context = {
     },
     querySelectorAll: () => [],
   },
-  window: { scrollY: 0, scrollTo(_x, y) { this.scrollY = Number(y) || 0; } },
+  window: {
+    scrollY: 0,
+    history: { state: null, pushState(state) { this.state = state; }, replaceState(state) { this.state = state; } },
+    addEventListener() {},
+    scrollTo(_x, y) { this.scrollY = Number(y) || 0; },
+  },
   requestAnimationFrame: callback => callback(),
   closeDetailImageFullscreen() {},
   hideShopOnboarding() {},

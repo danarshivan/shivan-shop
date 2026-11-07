@@ -32,6 +32,7 @@ const state = (panel, nav, savedPosition, extra = {}) => ({
   panel,
   nav,
   productMode: extra.productMode || (panel === "products" ? "list" : "menu"),
+  productEditorTab: extra.productEditorTab || "basic",
   editingProductId: extra.editingProductId ?? null,
   editingAdIndex: Number.isInteger(extra.editingAdIndex) ? extra.editingAdIndex : null,
   analyticsSelection: { period: "daily", date: "", month: "", year: "" },
@@ -121,7 +122,8 @@ assert.match(renderSource, /ownerNavigationHeaderMarkup\(\)/, "Owner routes rend
 assert.match(functionSource("installOwnerNavigationPopHandler"), /addEventListener\?\.\("popstate"/, "browser and device Back events restore Owner history");
 assert.match(functionSource("ownerNavigateBack"), /window\.history\.back\(\)/, "the visible Back button uses browser history when available");
 assert.match(functionSource("ownerNavigationHasUnsavedDraft"), /data-shivan-draft-dirty/, "Back does not discard an edited Owner form");
-assert.match(functionSource("openView"), /__shivanOwnerExitView/, "leaving Owner creates a neutral history entry so later Shop navigation still returns correctly");
+assert.match(functionSource("openView"), /writeShopViewHistory\(view/, "top-level Shop navigation is recorded in browser history");
+assert.doesNotMatch(functionSource("openView"), /__shivanOwnerExitView/, "leaving Owner does not insert a duplicate neutral history entry");
 assert.match(functionSource("ensureProductHistoryListener"), /if\(state\.__shivanOwnerNavigationId\)return/, "product-detail Back does not consume an Owner history entry");
 assert.match(html, /\.owner-route-header\{position:sticky/, "the Back control remains reachable while scrolling a long section");
 assert.match(html, /\.owner-route-back:focus-visible/, "the Back button has a visible keyboard-focus state");
@@ -199,17 +201,17 @@ function createOwnerNavigationRuntime(){
   context.readViewportPosition = () => ({ windowY: position.windowY, viewTop: ownerView.scrollTop, authTop: 0 });
   context.readRenderedHeader = () => dashboard.innerHTML + section.innerHTML;
   const source = `
-    let ownerPanel="dashboard", ownerDashboardNavKey="dashboard", ownerProductMode="menu", editingProductId=null, editingAdIndex=null;
+    let ownerPanel="dashboard", ownerDashboardNavKey="dashboard", ownerProductMode="menu", ownerProductEditorTab="basic", editingProductId=null, editingAdIndex=null;
     let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""}, ownerReportSelection={preset:"month",start:"",end:""}, ownerOrdersSelection={tab:"all",query:"",status:"",date:""}, ownerOrderDetailId="";
     let ownerNavigationRestoring=false, ownerPanelRefreshPending=false, ownerProductWorkflowId="", ownerAdWorkflowId="", ownerInventoryDraft=new Map();
     let ownerNavigationLedger=createOwnerNavigationLedger(), ownerNavigationPopHandler=null;
     ${integrationFunctions}
     ({
       renderOwnerPanel, ownerNavigateBack, history:window.history, get current(){return ownerNavigationLedger.current();},
-      get route(){return {panel:ownerPanel,nav:ownerDashboardNavKey,productMode:ownerProductMode,editingProductId,editingAdIndex};},
+      get route(){return {panel:ownerPanel,nav:ownerDashboardNavKey,productMode:ownerProductMode,productEditorTab:ownerProductEditorTab,editingProductId,editingAdIndex};},
       get scroll(){return readViewportPosition();}, get header(){return readRenderedHeader();},
       setPosition(windowY,viewTop=0){setViewportPosition(windowY,viewTop);},
-      setNestedState(values){if("productMode" in values)ownerProductMode=values.productMode;if("editingProductId" in values)editingProductId=values.editingProductId;if("editingAdIndex" in values)editingAdIndex=values.editingAdIndex;},
+      setNestedState(values){if("productMode" in values)ownerProductMode=values.productMode;if("productEditorTab" in values)ownerProductEditorTab=values.productEditorTab;if("editingProductId" in values)editingProductId=values.editingProductId;if("editingAdIndex" in values)editingAdIndex=values.editingAdIndex;},
       setDirtyDraft(value){setDirtyDraft(value);},
       get historyEntries(){return readHistoryEntries();},
     })`;
@@ -250,10 +252,12 @@ nestedUi.setNestedState({ productMode: "menu" });
 nestedUi.renderOwnerPanel("products");
 nestedUi.setNestedState({ productMode: "form", editingProductId: null });
 nestedUi.renderOwnerPanel("products");
+nestedUi.setNestedState({ productEditorTab: "photos" });
+nestedUi.renderOwnerPanel("products");
 nestedUi.setNestedState({ editingProductId: "product-7" });
 nestedUi.renderOwnerPanel("products");
 nestedUi.ownerNavigateBack();
-assert.deepEqual(JSON.parse(JSON.stringify(nestedUi.route)), { panel: "products", nav: "products", productMode: "form", editingProductId: null, editingAdIndex: null }, "Back from Edit Product restores the previous New Product screen");
+assert.deepEqual(JSON.parse(JSON.stringify(nestedUi.route)), { panel: "products", nav: "products", productMode: "form", productEditorTab: "photos", editingProductId: null, editingAdIndex: null }, "Back from Edit Product restores the previous New Product screen and selected editor tab");
 nestedUi.ownerNavigateBack();
 assert.equal(nestedUi.route.productMode, "menu", "Back from New Product restores the Product management menu");
 nestedUi.renderOwnerPanel("ads");

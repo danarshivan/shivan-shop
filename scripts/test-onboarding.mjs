@@ -486,6 +486,7 @@ const navPageList=target=>({
   toggle(name,enabled){enabled?target.add(name):target.delete(name);},
 });
 const navDocument={
+  addEventListener(){},
   documentElement:{style:{scrollBehavior:"smooth"},scrollTop:0,classList:navPageList(navRootClasses)},body:{scrollTop:0,classList:navPageList(navBodyClasses)},
   getElementById:id=>navElements.get(id)||null,
   querySelectorAll:selector=>selector===".nav-item"?[navElements.get("navHome"),navElements.get("navSearch"),navElements.get("navCart"),navElements.get("navProfile"),navElements.get("ownerPanelButton")]:[],
@@ -493,14 +494,16 @@ const navDocument={
 };
 let routeRuntime;
 routeRuntime={
-  document:navDocument,window:{scrollY:0,scrollTo(_x,y){this.scrollY=Number(y)||0;}},productDetailClosing:false,shopOnboardingActive:true,shopViewScrollPositions:new Map(),ownerPanelRefreshPending:false,
+  document:navDocument,window:{scrollY:0,history:{state:null,pushState(state){this.state=state;},replaceState(state){this.state=state;}},addEventListener(){},scrollTo(_x,y){this.scrollY=Number(y)||0;}},productDetailClosing:false,shopOnboardingActive:true,shopViewScrollPositions:new Map(),ownerPanelRefreshPending:false,
+  SHOP_HISTORY_VIEWS:new Set(["home","search","cart","profile","owner"]),shopViewNavigationPopHandler:null,shopViewNavigationScrollHandler:null,
   currentUser:{id:"offline-customer"},cloudAccount:null,pendingAuthenticationIntent:null,ownerPanel:"products",
   getActiveShopView(){return ["home","search","cart","profile","detail","owner"].find(view=>navClasses.get(`${view}View`)?.has("active"))||"home";},
   readShopViewPosition(){return {windowY:0,viewTop:0,authTop:0};},ownerPanelHasPendingWork:()=>false,
   hideShopOnboarding(){routeRuntime.shopOnboardingActive=false;navRootClasses.delete("shop-promo-onboarding-open");navBodyClasses.delete("shop-promo-onboarding-open");navElements.get("shopPromoOnboarding").hidden=true;},
   restoreProfileAuthCard(){},closeDetailImageFullscreen(){},isOwner:()=>true,showToast(){},renderCart(){},renderOwnerPanel(){},updateProfile(){},showGuestProfileChoices(){},requestAnimationFrame(callback){callback();},syncDetailPhotoTracks(){},
 };
-const routeFunction=runInNewContext(`${extractFunction("openView")}\nopenView`,routeRuntime);
+const routeHelpers=["shopViewHistoryState","writeShopViewHistory","installShopViewNavigation"].map(extractFunction).join("\n");
+const routeFunction=runInNewContext(`${routeHelpers}\n${extractFunction("openView")}\nopenView`,routeRuntime);
 for(const view of ["home","search","profile","owner"]){
   routeFunction(view);
   assert.ok(navClasses.get(`${view}View`)?.has("active"),`${view} navigation should activate its expected view`);
