@@ -2993,6 +2993,7 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 @media(max-width:380px){.crop-tools{gap:4px}.crop-tools button{font-size:10px}.crop-ratios{gap:4px}}
 
 </style>
+<link rel="stylesheet" href="/luxury-theme.css">
 </head>
 
 <body>
@@ -4857,14 +4858,15 @@ async function exportLegacyBackup(){
 }
 
 const OWNER_THEME_PRESETS=Object.freeze({
+  burgundy:Object.freeze({primary:"#f17ba9",secondary:"#ffd0df",background:"#1b0610",card:"#340d20",text:"#fff8fb",secondaryText:"#d9bac7",button:"#d94784"}),
   purple:Object.freeze({primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff"}),
   pink:Object.freeze({primary:"#ff63a7",secondary:"#ffadd0",background:"#10060d",card:"#1b0d17",text:"#fff7fb",secondaryText:"#c7a8b8",button:"#df3f8d"}),
   blue:Object.freeze({primary:"#55a8ff",secondary:"#9bceff",background:"#050b14",card:"#0c1725",text:"#f4f9ff",secondaryText:"#a5b7ca",button:"#287bd2"}),
   teal:Object.freeze({primary:"#35d3c0",secondary:"#8ce9de",background:"#03100f",card:"#0a1a19",text:"#f2fffd",secondaryText:"#a2c4bf",button:"#138f83"}),
   gold:Object.freeze({primary:"#e8bd5a",secondary:"#f4dda0",background:"#100d06",card:"#1b160a",text:"#fffaf0",secondaryText:"#c6b993",button:"#ac7c20"})
 });
-const OWNER_THEME_LABELS=Object.freeze({purple:"Purple",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
-const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"purple",primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",storeDescription:"",storeLogoUrl:"",contactPhone:"",contactEmail:"",storeAddress:"",deliveryAreas:"",deliveryZones:[],deliveryChargingEnabled:false,deliveryEstimate:"",checkoutNotice:"",orderInstructions:"",accent:"#8966ff",surface:"#0b0e18"});
+const OWNER_THEME_LABELS=Object.freeze({burgundy:"Burgundy",purple:"Purple",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
+const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"burgundy",primary:"#f17ba9",secondary:"#ffd0df",background:"#1b0610",card:"#340d20",text:"#fff8fb",secondaryText:"#d9bac7",button:"#d94784",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",storeDescription:"",storeLogoUrl:"",contactPhone:"",contactEmail:"",storeAddress:"",deliveryAreas:"",deliveryZones:[],deliveryChargingEnabled:false,deliveryEstimate:"",checkoutNotice:"",orderInstructions:"",accent:"#f17ba9",surface:"#340d20"});
 const OWNER_FONT_OPTIONS = Object.freeze({
   poppins:'"Poppins",Tahoma,Arial,sans-serif',
   roboto:'"Roboto",Tahoma,Arial,sans-serif',
@@ -10766,7 +10768,7 @@ function ownerAppearanceHexInput(field,value){
 }
 
 function ownerAppearancePresetMarkup(theme){
-  const labels={purple:ownerDashboardText("Purple","مۆر","بنفسجي"),pink:ownerDashboardText("Pink","پەمەیی","وردي"),blue:ownerDashboardText("Blue","شین","أزرق"),teal:ownerDashboardText("Teal","شینی سەوز","أزرق مخضر"),gold:ownerDashboardText("Gold","زێڕین","ذهبي")};
+  const labels={burgundy:ownerDashboardText("Burgundy","بورگوندی","خمري"),purple:ownerDashboardText("Purple","مۆر","بنفسجي"),pink:ownerDashboardText("Pink","پەمەیی","وردي"),blue:ownerDashboardText("Blue","شین","أزرق"),teal:ownerDashboardText("Teal","شینی سەوز","أزرق مخضر"),gold:ownerDashboardText("Gold","زێڕین","ذهبي")};
   return Object.entries(OWNER_THEME_PRESETS).map(([key,preset])=>`<button type="button" class="owner-theme-preset" data-owner-theme="${key}" aria-pressed="${theme===key?"true":"false"}" style="--owner-theme-primary:${preset.primary}" onclick="selectOwnerTheme('${key}')"><span class="owner-theme-preset-swatches" aria-hidden="true"><i style="background:${preset.primary}"></i><i style="background:${preset.secondary}"></i><i style="background:${preset.button}"></i></span><span class="owner-theme-preset-copy"><strong>${labels[key]||OWNER_THEME_LABELS[key]}</strong><small>${theme===key?ownerDashboardText("Selected","هەلبژێردراو","محدد"):ownerDashboardText("Choose theme","بابەت هەلبژێرە","اختر السمة")}</small></span></button>`).join("");
 }
 function ownerAppearancePreviewMarkup(appearance={}){

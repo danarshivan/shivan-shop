@@ -39,7 +39,7 @@ const makeElement = (value = "") => ({
   removeAttribute(name) { delete this.attributes[name]; },
   querySelector() { return this.submitButton || null; },
 });
-const presets = Object.keys({ purple: 1, pink: 1, blue: 1, teal: 1, gold: 1 }).map(name => ({
+const presets = Object.keys({ burgundy: 1, purple: 1, pink: 1, blue: 1, teal: 1, gold: 1 }).map(name => ({
   dataset: { ownerTheme: name },
   attributes: {},
   label: makeElement(),
@@ -89,7 +89,10 @@ const context = {
 const runtime = runInNewContext(`const OWNER_APPEARANCE_KEY="shivan_shop_owner_appearance";\n${constants}\n${functions}\n({OWNER_THEME_PRESETS,OWNER_FONT_OPTIONS,OWNER_APPEARANCE_COLOR_FIELDS,${required.join(",")},getAppearance:()=>ownerAppearance,setAppearance:value=>ownerAppearance=value,isAppearanceSaved:()=>ownerAppearanceSaved})`, context);
 
 const presetNames = Object.keys(runtime.OWNER_THEME_PRESETS);
-assert.deepEqual(presetNames, ["purple", "pink", "blue", "teal", "gold"], "exactly five ready-made themes are available");
+assert.deepEqual(presetNames, ["burgundy", "purple", "pink", "blue", "teal", "gold"], "the Burgundy redesign theme is available alongside existing themes");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.burgundy)), {
+  primary: "#f17ba9", secondary: "#ffd0df", background: "#1b0610", card: "#340d20", text: "#fff8fb", secondaryText: "#d9bac7", button: "#d94784",
+}, "Burgundy matches the new Shivan Shop redesign palette");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.purple)), {
   primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff",
 }, "Purple uses the existing Shivan Shop dark and purple palette");
@@ -142,7 +145,7 @@ assert.match(lowContrastCss, /--shop-button-text:#111111;/, "button foreground i
 const rendered = { innerHTML: "" };
 runtime.renderOwnerAppearance(rendered);
 assert.match(rendered.innerHTML, /owner-theme-presets/);
-assert.equal((rendered.innerHTML.match(/data-owner-theme=/g) || []).length, 5, "the editor renders exactly five theme choices");
+assert.equal((rendered.innerHTML.match(/data-owner-theme=/g) || []).length, 6, "the editor renders Burgundy and all five existing theme choices");
 assert.equal((rendered.innerHTML.match(/type="color"/g) || []).length, 7, "each custom color has a native color picker");
 assert.equal((rendered.innerHTML.match(/type="text"[^>]*pattern=/g) || []).length, 7, "each custom color has an editable validated HEX field");
 for (const font of ["Poppins", "Roboto", "Inter", "Montserrat", "Tahoma"]) assert.ok(rendered.innerHTML.includes(font), `${font} is offered`);
@@ -160,7 +163,7 @@ assert.match(rendered.innerHTML, /الألوان والخط/, "the Appearance se
 assert.match(rendered.innerHTML, /احفظ التغييرات/, "Arabic theme controls are translated");
 assert.match(rendered.innerHTML, /لون التمييز الأساسي/, "Arabic color field labels are translated");
 context.activeLanguage = "en"; runtime.renderOwnerAppearance(rendered);
-assert.match(rendered.innerHTML, /owner-theme-button-text:#ffffff/, "the live preview uses a contrast-aware button label");
+assert.match(rendered.innerHTML, /owner-theme-button-text:#111111/, "the Burgundy live preview selects dark button text for readable contrast");
 assert.doesNotMatch(rendered.innerHTML, /ownerBackupSync/, "backup controls have their own Store Settings section rather than being mixed into Appearance");
 const contrastPreview = runtime.ownerAppearancePreviewMarkup({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444" });
 assert.match(contrastPreview, /owner-theme-contrast-note/, "the live preview explains low-contrast custom selections");
@@ -188,7 +191,7 @@ assert.equal(elements.get("ownerThemePrimaryHex").value, "#FF63A7", "preset sele
 assert.equal(elements.get("ownerThemePrimaryPicker").value, "#ff63a7", "preset selection updates color pickers");
 assert.equal(presets.find(button => button.dataset.ownerTheme === "pink").attributes["aria-pressed"], "true", "selected preset is accessible and clearly indicated");
 assert.match(elements.get("ownerThemePreviewMount").innerHTML, /--owner-theme-primary:#ff63a7/);
-assert.equal(runtime.getAppearance().theme, "purple", "unsaved preview changes do not alter the published global theme");
+assert.equal(runtime.getAppearance().theme, "burgundy", "unsaved preview changes do not alter the published global theme");
 
 elements.get("ownerThemeSecondaryHex").value = "#12GG56";
 assert.throws(() => runtime.readOwnerAppearanceForm(), /six-digit HEX color/, "invalid custom HEX values block saving");
@@ -235,7 +238,7 @@ const savedStoreInformation = { ...oldTheme, storeName: "Shivan Shop Test", cont
 runtime.setAppearance(savedStoreInformation);
 localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(savedStoreInformation));
 await runtime.resetOwnerAppearance();
-assert.equal(runtime.getAppearance().theme, "purple", "reset restores the default theme");
+assert.equal(runtime.getAppearance().theme, "burgundy", "reset restores the Burgundy design theme");
 assert.equal(runtime.getAppearance().storeName, "Shivan Shop Test", "reset preserves the store name");
 assert.equal(runtime.getAppearance().contactEmail, "shop@example.test", "reset preserves store contact details");
 assert.equal(runtime.getAppearance().deliveryAreas, "Owner-entered coverage", "reset preserves delivery information");
@@ -246,7 +249,7 @@ runtime.setAppearance(oldTheme);
 localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(oldTheme));
 await runtime.resetOwnerAppearance();
 assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), null, "confirmed reset removes only the existing Owner appearance key");
-assert.equal(runtime.getAppearance().theme, "purple");
+assert.equal(runtime.getAppearance().theme, "burgundy");
 assert.equal(context.confirmedWrites.at(-1).key, "shivan_shop_owner_appearance", "reset uses the same shared Owner setting");
 
 context.isOwner = () => false;
@@ -264,4 +267,4 @@ assert.match(api, /if \(account\.role !== "owner"\)/, "shared appearance changes
 assert.match(functionSource("confirmCloudShopWrites"), /!isOwner\(\)&&!isStaffSession\(\)/, "shared shop writes require an Owner or staff session before checking individual key permissions");
 assert.match(functionSource("cloudCanWriteShopKey"), /if\(isOwner\(\)\)return true;[\s\S]*?return false;/, "staff access is restricted to explicitly permitted shop keys");
 
-console.log("Owner theme regression checks passed: global page coverage, five presets, seven validated HEX color controls, font selection, contrast-safe colors, live preview, shared save/hydration, reset confirmation, and scoped staff authorization.");
+console.log("Owner theme regression checks passed: global page coverage, six presets including Burgundy, seven validated HEX color controls, font selection, contrast-safe colors, live preview, shared save/hydration, reset confirmation, and scoped staff authorization.");
