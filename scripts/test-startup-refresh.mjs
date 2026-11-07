@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { runInNewContext } from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const css = await readFile(new URL("../luxury-theme.css", import.meta.url), "utf8");
 const sourceOf = (pattern, label) => {
   const match = html.match(pattern)?.[0] || "";
   assert.ok(match, "Could not find " + label + ".");
@@ -18,23 +19,24 @@ const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section
 
 assert.match(html, /SHOP_BRANDED_SPLASH_MS=2800/, "the branded logo should cover exactly 2.8 seconds");
 assert.match(html, /window\.__SHIVAN_STARTUP_STARTED_AT=performance\.now\(\)/, "startup timing should begin in the document head, before cloud requests");
-assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop monogram">SH<\/span>/, "the startup screen should render the approved white SH monogram");
-assert.match(splashMarkup, /<strong class="shop-startup-brand">BRAND SHIVAN SHOP<\/strong>/, "the startup screen should show the approved brand text");
+assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop crown and shopping bag"><svg viewBox="0 0 64 72" aria-hidden="true">[\s\S]*?<text x="32" y="55" text-anchor="middle">S<\/text><\/svg><\/span>/, "the startup screen should use the Shivan crown and shopping bag mark");
+assert.match(splashMarkup, /<strong class="shop-startup-brand">SHIVAN SHOP<\/strong>/, "the startup screen should show the Shivan Shop wordmark");
 assert.doesNotMatch(splashMarkup, /loading|preparing|spinner/i, "the startup screen should not show loading copy or a spinner");
 assert.ok(html.indexOf('<body>') < html.indexOf('id="shopStartupSplash"') && html.indexOf('id="shopStartupSplash"') < html.indexOf('class="language-switcher"'), "the splash should paint before the rest of the page markup");
 assert.match(html, /\.shop-startup-splash\{[^}]*place-items:center/, "the logo should be centered in the dark splash");
-assert.match(html, /\.shop-startup-splash\{[^}]*background:radial-gradient\([^}]*#03050d/, "the splash should retain its dark background with a soft purple glow");
-assert.match(html, /\.shop-startup-logo\{[^}]*border-radius:25px[^}]*color:#fff/, "the SH mark should remain white inside a rounded purple logo");
-assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft purple glow should appear first");
+assert.match(css, /\.shop-startup-splash\{[\s\S]*?linear-gradient\(155deg,#3a0a20,#19050f 57%,#10030a\)/, "the splash should use the burgundy and plum palette");
+assert.match(css, /\.shop-startup-logo\{[\s\S]*?background:linear-gradient\(145deg,#6b1235,#250714\)/, "the crown and shopping bag mark should sit on a burgundy surface");
+assert.match(css, /\.shop-startup-logo svg\{width:54px;height:61px/, "the startup brand mark remains legible on mobile screens");
+assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft burgundy glow should appear first");
 assert.match(html, /\.shop-startup-lockup\{position:absolute;inset:0/, "logo and wordmark should animate independently across the splash screen");
-assert.match(html, /\.shop-startup-logo\{[^}]*top:calc\(50% - 60px\)[^}]*left:50%[^}]*margin-left:-41px[^}]*border:1px solid color-mix\(in srgb,var\(--shop-secondary,#b49aff\) 88%,transparent\)[^}]*background:#000000[^}]*color:#fff[^}]*animation:shopStartupLogoIn 1\.8s/, "the white SH mark should keep its pure-black fill and use the globally selected secondary color for its thin outline");
+assert.match(html, /\.shop-startup-logo\{[^}]*top:calc\(50% - 60px\)[^}]*left:50%[^}]*margin-left:-41px[^}]*animation:shopStartupLogoIn 1\.8s/, "the brand mark keeps its centered fade-and-scale entrance");
 assert.match(html, /@keyframes shopStartupLogoIn\{from\{opacity:0;transform:translate3d\(0,12px,0\) scale\(\.74\)/, "the centered logo should fade and scale in gently over its existing duration");
 assert.match(html, /\.shop-startup-brand\{[^}]*top:calc\(50% \+ 45px\)[^}]*left:50%[^}]*animation:shopStartupBrandIn 1\.55s/, "the wordmark should remain centered directly below the logo while entering from the right");
 assert.match(html, /@keyframes shopStartupBrandIn\{from\{opacity:0;transform:translate3d\(calc\(50vw \+ 50%\),-50%,0\)/, "the wordmark should settle centered after entering from the right");
-assert.match(html, /\.shop-startup-logo::after\{[^}]*animation:shopStartupLogoTrail 1\.45s/, "the logo should leave a faint purple trail as it moves");
-assert.match(html, /\.shop-startup-brand::after\{[^}]*animation:shopStartupBrandTrail 1\.35s/, "the moving wordmark should have a faint purple light trail");
+assert.match(html, /\.shop-startup-logo::after\{[^}]*animation:shopStartupLogoTrail 1\.45s/, "the logo should leave a soft rose trail as it moves");
+assert.match(html, /\.shop-startup-brand::after\{[^}]*animation:shopStartupBrandTrail 1\.35s/, "the moving wordmark should have a soft rose light trail");
 assert.match(html, /@media\(max-width:560px\)\{\.shop-startup-logo::after/, "the logo trail should adjust on small screens");
-assert.match(html, /\.shop-startup-brand\{[^}]*text-shadow:0 0 20px color-mix\(in srgb,var\(--shop-secondary,#b49aff\) 24%,transparent\)/, "the centered wordmark glow should use the global secondary theme color");
+assert.match(css, /\.shop-startup-brand\{font-family:var\(--shivan-display\);letter-spacing:\.04em\}/, "the startup wordmark uses the refined Shivan display typeface");
 assert.match(html, /animation:shopStartupSparkle 1\.35s ease-out \.55s 1 both/, "any sparkle should remain faint and slow rather than flash");
 assert.match(html, /animation:shopStartupSplashOut \.55s ease-in-out/, "the splash should transition smoothly after its timed display");
 assert.ok(html.includes("SHOP_BRANDED_SPLASH_MS=2800") && html.includes("},550);"), "the 2.8-second splash should transition smoothly into Shop");

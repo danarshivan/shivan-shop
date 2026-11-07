@@ -14,7 +14,7 @@
 <script>window.__SHIVAN_STARTUP_STARTED_AT=performance.now();</script>
 
 <style>
-:root{--shop-primary:#8966ff;--shop-secondary:#b49aff;--shop-page-background:#03050d;--shop-card-background:#0b0e18;--shop-text:#ffffff;--shop-secondary-text:#a8a3b5;--shop-button:#7045ff;--shop-button-text:#ffffff;--shop-readable-text:#ffffff;--shop-readable-card-text:#ffffff;--shop-readable-secondary:#a8a3b5;--shop-readable-card-secondary:#a8a3b5;--shop-readable-primary:#8966ff;--shop-readable-card-primary:#8966ff}
+:root{--shop-primary:#f17ba9;--shop-secondary:#ffd0df;--shop-page-background:#1b0610;--shop-card-background:#340d20;--shop-text:#fff8fb;--shop-secondary-text:#d9bac7;--shop-button:#d94784;--shop-button-text:#fff8fb;--shop-readable-text:#fff8fb;--shop-readable-card-text:#fff8fb;--shop-readable-secondary:#d9bac7;--shop-readable-card-secondary:#d9bac7;--shop-readable-primary:#ffb5d0;--shop-readable-card-primary:#ffb5d0}
 *{
   box-sizing:border-box;
   -webkit-tap-highlight-color:transparent;
@@ -3001,8 +3001,8 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 <section id="shopStartupSplash" class="shop-startup-splash" aria-label="Shivan Shop startup">
   <span class="shop-startup-aura" aria-hidden="true"></span>
   <div class="shop-startup-lockup">
-    <span class="shop-startup-logo" role="img" aria-label="Shivan Shop monogram">SH</span>
-    <strong class="shop-startup-brand">BRAND SHIVAN SHOP</strong>
+    <span class="shop-startup-logo" role="img" aria-label="Shivan Shop crown and shopping bag"><svg viewBox="0 0 64 72" aria-hidden="true"><path d="m11 11 9 6 12-13 12 13 9-6-3 15H14zM17 29h30l6 37H11z"/><path d="M23 33v-5a9 9 0 0 1 18 0v5M26 39h12v19H26z"/><text x="32" y="55" text-anchor="middle">S</text></svg></span>
+    <strong class="shop-startup-brand">SHIVAN SHOP</strong>
   </div>
   <span class="shop-startup-sparkle" aria-hidden="true"></span>
 </section>
@@ -3206,26 +3206,16 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 
 <section id="mainApp">
 
-  <header class="topbar">
-
-    <div class="logo-small" aria-hidden="true">
-      <svg viewBox="0 0 48 54"><path d="M14 17v-5a10 10 0 0 1 20 0v5M8 18h32l4 31H4z"/><text x="24" y="40" text-anchor="middle">S</text></svg>
-    </div>
-
-    <div class="brand-small">
-      <strong id="shopBrandName">Shivan Shop</strong>
-      <span id="shopTagline">جولبەرگ و شتێن جوان</span>
-    </div>
-
-  </header>
-
-
   <!-- HOME -->
 
   <div id="homeView" class="view active shop-home-view">
     <header class="shop-discovery-header">
-      <div><p class="shop-eyebrow">SHIVAN SHOP · COLLECTION</p><h1>جولبەرگ و شتێن جوان</h1></div>
-      <button class="shop-discovery-profile" type="button" onclick="openView('profile')" aria-label="پڕۆفایل"><span aria-hidden="true">S</span></button>
+      <button class="shop-header-icon" type="button" onclick="openView('search')" aria-label="گەڕان"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
+      <div class="shop-brand-lockup">
+        <div class="logo-small" aria-hidden="true"><svg viewBox="0 0 48 54"><path d="m10 12 6 4 8-10 8 10 6-4-2 10H12zM14 23h20l4 25H10z"/><path d="M19 28h10v13H19zM24 28v13"/><text x="24" y="40" text-anchor="middle">S</text></svg></div>
+        <div class="brand-small"><strong id="shopBrandName">Shivan Shop</strong><span id="shopTagline">جولبەرگ و شتێن جوان</span></div>
+      </div>
+      <button class="shop-header-icon shop-discovery-profile" type="button" onclick="openView('profile')" aria-label="پڕۆفایل"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1z"/></svg></button>
     </header>
 
     <section class="hero shop-editorial-hero" aria-label="SHIVAN SHOP collection">
@@ -4852,13 +4842,13 @@ async function exportLegacyBackup(){
 
 const OWNER_THEME_PRESETS=Object.freeze({
   burgundy:Object.freeze({primary:"#f17ba9",secondary:"#ffd0df",background:"#1b0610",card:"#340d20",text:"#fff8fb",secondaryText:"#d9bac7",button:"#d94784"}),
-  purple:Object.freeze({primary:"#8966ff",secondary:"#b49aff",background:"#03050d",card:"#0b0e18",text:"#ffffff",secondaryText:"#a8a3b5",button:"#7045ff"}),
+  purple:Object.freeze({primary:"#c65d8a",secondary:"#e8a5bc",background:"#200916",card:"#3a102a",text:"#fff5f9",secondaryText:"#d9bac7",button:"#9e315c"}),
   pink:Object.freeze({primary:"#ff63a7",secondary:"#ffadd0",background:"#10060d",card:"#1b0d17",text:"#fff7fb",secondaryText:"#c7a8b8",button:"#df3f8d"}),
   blue:Object.freeze({primary:"#55a8ff",secondary:"#9bceff",background:"#050b14",card:"#0c1725",text:"#f4f9ff",secondaryText:"#a5b7ca",button:"#287bd2"}),
   teal:Object.freeze({primary:"#35d3c0",secondary:"#8ce9de",background:"#03100f",card:"#0a1a19",text:"#f2fffd",secondaryText:"#a2c4bf",button:"#138f83"}),
   gold:Object.freeze({primary:"#e8bd5a",secondary:"#f4dda0",background:"#100d06",card:"#1b160a",text:"#fffaf0",secondaryText:"#c6b993",button:"#ac7c20"})
 });
-const OWNER_THEME_LABELS=Object.freeze({burgundy:"Burgundy",purple:"Purple",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
+const OWNER_THEME_LABELS=Object.freeze({burgundy:"Burgundy",purple:"Plum",pink:"Pink",blue:"Blue",teal:"Teal",gold:"Gold"});
 const OWNER_APPEARANCE_DEFAULT=Object.freeze({theme:"burgundy",primary:"#f17ba9",secondary:"#ffd0df",background:"#1b0610",card:"#340d20",text:"#fff8fb",secondaryText:"#d9bac7",button:"#d94784",font:"tahoma",storeName:"",tagline:"",heroTitle:"",heroMessage:"",storeDescription:"",storeLogoUrl:"",contactPhone:"",contactEmail:"",storeAddress:"",deliveryAreas:"",deliveryZones:[],deliveryChargingEnabled:false,deliveryEstimate:"",checkoutNotice:"",orderInstructions:"",accent:"#f17ba9",surface:"#340d20"});
 const OWNER_FONT_OPTIONS = Object.freeze({
   poppins:'"Poppins",Tahoma,Arial,sans-serif',
@@ -5142,6 +5132,8 @@ function normalizeOwnerAppearance(value={}){
     secondaryText:safeAppearanceColor(saved.secondaryText,OWNER_APPEARANCE_DEFAULT.secondaryText),
     button:safeAppearanceColor(saved.button,OWNER_APPEARANCE_DEFAULT.button)
   };
+  const legacyPurple=String(saved.theme||"")==="purple"&&colors.primary==="#8966ff"&&colors.secondary==="#b49aff"&&colors.background==="#03050d"&&colors.card==="#0b0e18"&&colors.text==="#ffffff"&&colors.secondaryText==="#a8a3b5"&&colors.button==="#7045ff";
+  if(legacyPurple)Object.assign(colors,OWNER_THEME_PRESETS.purple);
   const legacyFonts={arial:"roboto",segoe:"roboto",verdana:"tahoma",georgia:"montserrat",mono:"inter"};
   const requestedFont=legacyFonts[String(saved.font||"").toLowerCase()]||String(saved.font||"tahoma").toLowerCase();
   const font=Object.hasOwn(OWNER_FONT_OPTIONS,requestedFont)?requestedFont:"tahoma";
@@ -5213,7 +5205,7 @@ function ownerAppearanceGlobalCss(appearance={}){
     "body{background:"+background+"!important;color:"+readableBackgroundText+"!important}",
     ".app{background:radial-gradient(circle at 50% -10%,color-mix(in srgb,"+primary+" 16%,transparent),transparent 30%),"+background+"!important;color:"+readableBackgroundText+"!important}",
     "#mainApp,#authPage{background-color:"+background+"!important;color:"+readableBackgroundText+"!important}",
-    "body,.app,.app *{color:"+readableBackgroundText+"!important}",
+    "body,.app{color:"+readableBackgroundText+"!important}",
     ".app :is("+cards+",.language-switcher){background:linear-gradient(145deg,color-mix(in srgb,"+card+" 94%,"+primary+" 6%),"+card+")!important;color:"+readableCardText+"!important;border-color:color-mix(in srgb,"+secondary+" 48%,"+card+")!important}",
     ".app :is("+cards+",.language-switcher) *{color:"+readableCardText+"!important}",
     ".app :is(.topbar,.bottom-nav,.owner-product-nav,.owner-route-header){border-color:color-mix(in srgb,"+secondary+" 52%,transparent)!important}",
@@ -5225,7 +5217,7 @@ function ownerAppearanceGlobalCss(appearance={}){
     ".brand-small span,.auth-tagline,.hero-copy p,.owner-dashboard-banner p,.owner-dashboard-section-head p{color:"+(ownerAppearanceContrastRatio(secondaryText,background)>=4.5?secondaryText:readableBackgroundText)+"!important}",
     ".shop-startup-splash{background:radial-gradient(ellipse at 50% 43%,color-mix(in srgb,"+primary+" 21%,transparent),transparent 38%),"+background+"!important;color:"+readableBackgroundText+"!important}",
     ".shop-startup-aura{background:radial-gradient(circle,color-mix(in srgb,"+primary+" 42%,transparent),color-mix(in srgb,"+secondary+" 20%,transparent) 42%,transparent 72%)!important}",
-    ".shop-startup-logo{border-color:"+secondary+"!important;background:#000!important;color:#fff!important;box-shadow:0 12px 42px color-mix(in srgb,"+button+" 25%,transparent),0 0 24px color-mix(in srgb,"+secondary+" 24%,transparent)!important}",
+    ".shop-startup-logo{border-color:"+secondary+"!important;background:linear-gradient(145deg,color-mix(in srgb,"+primary+" 52%,"+background+"),"+background+")!important;color:"+readableBackgroundText+"!important;box-shadow:0 12px 42px color-mix(in srgb,"+button+" 25%,transparent),0 0 24px color-mix(in srgb,"+secondary+" 24%,transparent)!important}",
     ".shop-startup-logo::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,"+secondary+" 36%,transparent),transparent)!important}",
     ".shop-startup-brand{color:"+readableBackgroundText+"!important;text-shadow:0 0 20px color-mix(in srgb,"+secondary+" 32%,transparent)!important}",
     ".shop-startup-brand::after{background:linear-gradient(90deg,color-mix(in srgb,"+secondary+" 30%,transparent),transparent)!important}",
@@ -10724,7 +10716,7 @@ function ownerAppearanceHexInput(field,value){
 }
 
 function ownerAppearancePresetMarkup(theme){
-  const labels={burgundy:ownerDashboardText("Burgundy","بورگوندی","خمري"),purple:ownerDashboardText("Purple","مۆر","بنفسجي"),pink:ownerDashboardText("Pink","پەمەیی","وردي"),blue:ownerDashboardText("Blue","شین","أزرق"),teal:ownerDashboardText("Teal","شینی سەوز","أزرق مخضر"),gold:ownerDashboardText("Gold","زێڕین","ذهبي")};
+  const labels={burgundy:ownerDashboardText("Burgundy","بورگوندی","خمري"),purple:ownerDashboardText("Plum","پڵەم","برقوقي"),pink:ownerDashboardText("Pink","پەمەیی","وردي"),blue:ownerDashboardText("Blue","شین","أزرق"),teal:ownerDashboardText("Teal","شینی سەوز","أزرق مخضر"),gold:ownerDashboardText("Gold","زێڕین","ذهبي")};
   return Object.entries(OWNER_THEME_PRESETS).map(([key,preset])=>`<button type="button" class="owner-theme-preset" data-owner-theme="${key}" aria-pressed="${theme===key?"true":"false"}" style="--owner-theme-primary:${preset.primary}" onclick="selectOwnerTheme('${key}')"><span class="owner-theme-preset-swatches" aria-hidden="true"><i style="background:${preset.primary}"></i><i style="background:${preset.secondary}"></i><i style="background:${preset.button}"></i></span><span class="owner-theme-preset-copy"><strong>${labels[key]||OWNER_THEME_LABELS[key]}</strong><small>${theme===key?ownerDashboardText("Selected","هەلبژێردراو","محدد"):ownerDashboardText("Choose theme","بابەت هەلبژێرە","اختر السمة")}</small></span></button>`).join("");
 }
 function ownerAppearancePreviewMarkup(appearance={}){
@@ -10984,7 +10976,7 @@ function renderOwnerProducts(box){
           <strong>${t("Colors","ڕەنگەکان","الألوان")}</strong>
           <small>${t("Select colors to build the stock matrix.","ڕەنگان هەلبژێرە بۆ دروستکرنا خشتەیا کۆگا.","اختر الألوان لإنشاء جدول المخزون.")}</small>
           <div id="ownerColorPalette" class="owner-color-palette"></div>
-          <div class="owner-color-custom-row"><span>${t("Add a custom color","ڕەنگەکا تایبەت زێدە بکە","أضف لوناً مخصصاً")}</span><input id="ownerCustomColor" type="color" value="#7455ff" aria-label="${t("Custom color","ڕەنگا تایبەت","لون مخصص")}"><button type="button" onclick="addOwnerCustomProductColor(document.getElementById('ownerCustomColor').value)">${t("Add color","زێدەکرنا ڕەنگ","إضافة لون")}</button></div>
+          <div class="owner-color-custom-row"><span>${t("Add a custom color","ڕەنگەکا تایبەت زێدە بکە","أضف لوناً مخصصاً")}</span><input id="ownerCustomColor" type="color" value="#a73563" aria-label="${t("Custom color","ڕەنگا تایبەت","لون مخصص")}"><button type="button" onclick="addOwnerCustomProductColor(document.getElementById('ownerCustomColor').value)">${t("Add color","زێدەکرنا ڕەنگ","إضافة لون")}</button></div>
           <input id="ownerProductColors" type="hidden" value="${escapeHtml(colorText)}">
           <div id="ownerColorSelectedCount" class="owner-color-selected-count" role="status" aria-live="polite"></div>
           <div id="ownerColorSelectionList" class="owner-color-selection-list"></div>

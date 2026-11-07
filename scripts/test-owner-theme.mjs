@@ -94,8 +94,15 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.burgundy)
   primary: "#f17ba9", secondary: "#ffd0df", background: "#1b0610", card: "#340d20", text: "#fff8fb", secondaryText: "#d9bac7", button: "#d94784",
 }, "Burgundy matches the new Shivan Shop redesign palette");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.purple)), {
-  primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff",
-}, "Purple uses the existing Shivan Shop dark and purple palette");
+  primary: "#c65d8a", secondary: "#e8a5bc", background: "#200916", card: "#3a102a", text: "#fff5f9", secondaryText: "#d9bac7", button: "#9e315c",
+}, "the retained Plum preset stays within the burgundy fashion palette");
+const legacyPurpleSaved = { theme: "purple", primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff", storeName: "Saved Store" };
+const migratedLegacyPurple = runtime.normalizeOwnerAppearance(legacyPurpleSaved);
+assert.equal(migratedLegacyPurple.theme, "purple", "the saved theme choice remains recognizable after visual migration");
+assert.equal(migratedLegacyPurple.primary, runtime.OWNER_THEME_PRESETS.purple.primary, "legacy saved purple accents render in the new Plum palette");
+assert.equal(migratedLegacyPurple.background, runtime.OWNER_THEME_PRESETS.purple.background, "legacy saved purple backgrounds render in the new Plum palette");
+assert.equal(migratedLegacyPurple.storeName, "Saved Store", "legacy theme migration preserves store branding");
+assert.equal(legacyPurpleSaved.primary, "#8966ff", "normalizing the legacy theme does not mutate saved source data");
 assert.equal(runtime.isValidAppearanceHex("#12aBcD"), true, "six-digit HEX accepts mixed-case digits");
 for (const invalid of ["#123", "123456", "#12GG56", "red", ""]) assert.equal(runtime.isValidAppearanceHex(invalid), false, `${invalid || "empty input"} is rejected as an invalid HEX color`);
 

@@ -26,6 +26,8 @@ const searchStart = html.indexOf('<!-- SEARCH -->', homeStart);
 assert.ok(homeStart >= 0 && searchStart > homeStart, "the home screen has a distinct redesigned section");
 const homeMarkup = html.slice(homeStart, searchStart);
 assert.match(homeMarkup, /shop-discovery-header/, "the storefront has a branded discovery header");
+assert.match(homeMarkup, /shop-brand-lockup/, "the redesigned home header contains one dynamic Shivan Shop wordmark");
+assert.doesNotMatch(html, /<header class="topbar">/, "the legacy duplicate global header is removed");
 assert.match(homeMarkup, /shop-category-shelf/, "categories are presented as a dedicated discovery shelf");
 assert.match(homeMarkup, /shop-product-shelf/, "the real product catalog has its own collection section");
 assert.doesNotMatch(homeMarkup, /images\.unsplash\.com/, "the storefront does not hardcode mock fashion imagery");
@@ -44,9 +46,12 @@ assert.match(productRenderer, /quickAdd\(\$\{p\.id\}\)/, "product cards keep the
 assert.match(productRenderer, /data-product-name-id/, "product card names continue to follow the selected language");
 assert.match(html, /owner-dashboard-banner owner-dashboard-masthead/, "the Owner dashboard has the new store identity masthead");
 assert.match(html, /owner-product-editor-intro/, "the three-tab product editor has a redesigned overview");
+assert.match(html, /shopBrandName/, "the new branded header keeps the saved store name binding");
+assert.match(html, /shopTagline/, "the new branded header keeps the saved store tagline binding");
 for (const selector of [
   ".shop-discovery-header", ".shop-editorial-hero", ".shop-category-shelf", ".product-image-open", ".cart-shopping-layout",
-  ".customer-order-card", ".shop-profile-identity", ".detail-toolbar-brand", ".owner-dashboard-masthead", ".owner-product-editor-intro"
+  ".customer-order-card", ".shop-profile-identity", ".detail-toolbar-brand", ".owner-dashboard-masthead", ".owner-product-editor-intro",
+  ".shop-brand-lockup", ".shop-header-icon", ".owner-quick-actions", ".owner-management-grid", ".owner-product-tab-panel", ".owner-photo-list"
 ]) assert.ok(css.includes(selector), `screen composition styling covers ${selector}`);
 assert.match(css, /\.bottom-nav\.owner-mode #navSearch,\.bottom-nav\.owner-mode #navCart/, "Owner navigation retains its five primary destinations without changing customer navigation");
 assert.match(css, /@media\s*\(max-width:430px\)/, "the redesign has narrow-phone layout rules");
