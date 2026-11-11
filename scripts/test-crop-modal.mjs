@@ -190,7 +190,7 @@ successHarness.context.uploadOwnerImageToCloud = async blob => {
 const successInput = { disabled: true, value: "photo.jpg" };
 const successSubmit = { disabled: true };
 successHarness.context.pendingImageCrop = {
-  uploading: false, queue: false, input: successInput, submit: successSubmit,
+  uploading: false, queue: false, kind: "ad", input: successInput, submit: successSubmit,
   hiddenId: "hidden", previewId: "preview", scale: 1, left: 0, top: 0, ratio: 0.8
 };
 await successHarness.context.finishImageCrop(true);
@@ -202,6 +202,107 @@ assert.equal(successInput.disabled, false);
 assert.equal(successSubmit.disabled, false);
 assert.ok(successHarness.toasts.some(message => message.includes("ئامادەیە")));
 assert.ok(successHarness.buttonSet.every(button => button.disabled === false), "closing restores crop controls");
+
+const categoryHarness = makeHarness(() => ({
+  getContext: () => ({ drawImage() {} }),
+  toBlob: callback => callback(new Blob(["cropped category"], { type: "image/webp" }))
+}));
+const categoryDraft = { value: "" }, categoryPreview = { innerHTML: "" }, categoryStatus = { textContent: "" }, categoryEditButton = { hidden: true };
+const categoryInput = { disabled: true, value: "new-category.webp", dataset: { savedImage: validImageUrl } }, categorySubmit = { disabled: true };
+const categoryHost = { querySelector(selector) {
+  if (selector === "[data-category-preview]") return categoryPreview;
+  if (selector === "[data-category-image-status]") return categoryStatus;
+  if (selector === "[data-category-edit-image]") return categoryEditButton;
+  return null;
+} };
+const replacementCategoryUrl = `/api/media/shop/${"b".repeat(43)}.webp`;
+let categoryUploads = 0;
+categoryHarness.context.categoryPreviewMarkup = url => `<img src="${url}">`;
+categoryHarness.context.ownerDashboardText = english => english;
+categoryHarness.context.uploadOwnerImageToCloud = async blob => { categoryUploads++; assert.equal(blob.type, "image/webp"); return replacementCategoryUrl; };
+categoryHarness.context.pendingImageCrop = {
+  uploading: false, queue: false, kind: "category", input: categoryInput, submit: categorySubmit,
+  categoryHost, categoryInput, categoryImageTarget: categoryDraft,
+  previewBlob: new Blob(["cropped category"], { type: "image/webp" })
+};
+await categoryHarness.context.finishImageCrop(true);
+assert.equal(categoryUploads, 1, "Done uploads only the confirmed category crop");
+assert.equal(categoryDraft.value, replacementCategoryUrl, "Done updates the unsaved category image draft");
+assert.equal(categoryInput.dataset.savedImage, validImageUrl, "cropping never replaces the original category image before category Save");
+assert.equal(categoryPreview.innerHTML, `<img src="${replacementCategoryUrl}">`, "the category preview shows the edited crop immediately");
+assert.equal(categoryEditButton.hidden, false, "the edited category crop can be reopened");
+assert.match(categoryStatus.textContent, /Save the category/, "the Owner is told to save category metadata after the crop upload");
+assert.equal(categoryHarness.context.pendingImageCrop, null, "a confirmed category crop closes the editor");
+
+const categoryCancelHarness = makeHarness(() => ({ getContext: () => ({ drawImage() {} }), toBlob() {} }));
+const cancelCategoryPreview = { innerHTML: "" }, cancelCategoryStatus = { textContent: "" };
+const cancelCategoryHost = { querySelector(selector) {
+  if (selector === "[data-category-preview]") return cancelCategoryPreview;
+  if (selector === "[data-category-image-status]") return cancelCategoryStatus;
+  return null;
+} };
+const cancelCategoryDraft = { value: "" }, cancelCategoryInput = { disabled: true, value: "selected.webp", dataset: { savedImage: validImageUrl } };
+let canceledCategoryUploads = 0;
+categoryCancelHarness.context.categoryPreviewMarkup = url => `<img src="${url}">`;
+categoryCancelHarness.context.ownerDashboardText = english => english;
+categoryCancelHarness.context.uploadOwnerImageToCloud = async () => { canceledCategoryUploads++; return replacementCategoryUrl; };
+categoryCancelHarness.context.pendingImageCrop = { uploading: false, queue: false, kind: "category", input: cancelCategoryInput, categoryInput: cancelCategoryInput, categoryHost: cancelCategoryHost, categoryImageTarget: cancelCategoryDraft };
+await categoryCancelHarness.context.finishImageCrop(false);
+assert.equal(canceledCategoryUploads, 0, "Cancel never uploads a category crop");
+assert.equal(cancelCategoryDraft.value, "", "Cancel leaves the unsaved category image draft unchanged");
+assert.equal(cancelCategoryPreview.innerHTML, `<img src="${validImageUrl}">`, "Cancel restores the original saved category preview");
+assert.match(cancelCategoryStatus.textContent, /saved category image is unchanged/i);
+
+const adImageElements = {
+  ownerAdImageData: { value: validImageUrl }, ownerAdImagePreview: { src: validImageUrl },
+  ownerAdImageFile: { disabled: false }
+};
+const adImageSubmit = { disabled: false }, adImageForm = { querySelector: () => adImageSubmit }, adOpenRequests = [];
+const adImageContext = vm.createContext({
+  isOwner: () => true, ownerAdWorkflowId: "banner-image-edit-1", safeImageUrl: value => value,
+  document: { getElementById: id => adImageElements[id] || null },
+  openSavedOwnerImageCrop: async (url, details) => { adOpenRequests.push({ url, details }); return true; },
+  showToast() {}
+});
+install(adImageContext, "editOwnerAdImage");
+const adImageButton = { closest: selector => selector === "form" ? adImageForm : null };
+assert.equal(await adImageContext.editOwnerAdImage(adImageButton), true, "the banner editor reopens an existing saved image");
+assert.equal(adOpenRequests[0].url, validImageUrl);
+assert.equal(adOpenRequests[0].details.kind, "ad", "reopened banner images keep the widescreen crop behavior");
+assert.equal(adImageElements.ownerAdImageFile.disabled, true, "the banner form stays locked while its existing image is being edited");
+assert.equal(adImageSubmit.disabled, true);
+
+const previousBanner = { image: validImageUrl, title: "Original banner", eyebrow: "Original", description: "Keep this" };
+const bannerForm = { dataset: {}, querySelector: () => bannerSubmit };
+const bannerSubmit = { disabled: false };
+const bannerFields = {
+  ownerAdImageData: { value: replacementCategoryUrl }, ownerAdTitle: { value: "Updated banner" },
+  ownerAdEyebrow: { value: "Updated" }, ownerAdDescription: { value: "Draft copy" }
+};
+const bannerToasts = [], bannerWrites = [];
+let bannerNavigationCalls = 0;
+let bannerContext;
+bannerContext = vm.createContext({
+  isOwner: () => true, cloudMode: true, cloudAccount: { role: "owner" },
+  ownerAdWorkflowId: "banner-save-retry-1", editingAdIndex: 0, advertisements: [previousBanner], authSlide: 0, heroSlide: 0,
+  document: { getElementById: id => bannerFields[id] || null },
+  safeImageUrl: value => value, createOwnerSaveRequestId: () => "banner-save-fallback",
+  saveAdvertisements() { bannerWrites.push(JSON.stringify(bannerContext.advertisements)); return true; },
+  confirmCloudShopWrite: async () => { throw Object.assign(new Error("Shared write was not confirmed"), { requestId: "banner-save-failed" }); },
+  ownerSaveDiagnostic() {}, ownerSaveDiagnosticCode: () => "TEST_ERROR",
+  showToast: message => bannerToasts.push(String(message)),
+  completeOwnerNestedEditNavigation() { bannerNavigationCalls++; }, captureOwnerNavigationSnapshot: () => ({}), readShopViewPosition: () => 0,
+  ownerDashboardText: english => english
+});
+install(bannerContext, "saveOwnerAd");
+await bannerContext.saveOwnerAd({ preventDefault() {}, currentTarget: bannerForm });
+assert.equal(JSON.stringify(bannerContext.advertisements), JSON.stringify([previousBanner]), "a failed shared save leaves the prior banner active");
+assert.equal(bannerForm.dataset.shivanDraftDirty, "true", "the edited banner remains available for retry");
+assert.equal(bannerForm.dataset.saving, "false");
+assert.equal(bannerSubmit.disabled, false, "the banner Save control unlocks after cloud failure");
+assert.equal(bannerNavigationCalls, 0, "a failed banner save does not navigate away");
+assert.equal(bannerToasts.some(message => /Advertisement saved and synced/i.test(message)), false, "a failed banner save never shows success");
+assert.ok(bannerToasts.some(message => /previous banner remains active/i.test(message)));
 
 const timeoutHarness = makeHarness(() => ({ getContext: () => ({ drawImage() {} }), toBlob() {} }));
 const failedInput = { disabled: true, value: "photo.jpg" };
@@ -223,4 +324,4 @@ assert.equal(timeoutHarness.context.pendingImageCrop, null, "Cancel closes after
 assert.equal(failedInput.disabled, false);
 assert.equal(failedSubmit.disabled, false, "Cancel releases the product form after a failed crop");
 
-console.log("Crop modal regression tests passed: touch delegation, modal containment, cancel/abort, successful crop upload, timeout error, retry/cancel recovery.");
+console.log("Crop modal regression tests passed: touch delegation, modal containment, cancel/abort, product and banner crop upload, category draft preservation and cancel, saved banner reopen, cloud failure recovery, timeout error, and retry/cancel recovery.");

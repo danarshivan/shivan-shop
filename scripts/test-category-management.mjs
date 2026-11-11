@@ -19,6 +19,12 @@ assert.match(functionSource("renderOwnerCategoryManager"), /type="file" accept="
 assert.match(functionSource("renderOwnerCategoryManager"), /data-category-visible/, "the Owner can change category visibility");
 assert.match(functionSource("renderOwnerCategoryManager"), /data-category-move/, "the Owner can reorder categories");
 assert.match(functionSource("renderOwnerCategoryManager"), /data-category-preview/, "the Owner sees a category-card preview");
+assert.ok(functionSource("renderOwnerCategoryManager").includes("data-category-image-url"), "the Owner form keeps a draft crop URL separate from the saved category image");
+assert.ok(functionSource("renderOwnerCategoryManager").includes("data-category-edit-image"), "the Owner can reopen an existing category photo");
+assert.ok(html.includes("id=\"ownerNewCategoryImageDraft\""), "new categories use a separate image-crop draft field");
+assert.ok(functionSource("editOwnerCategoryImage").includes("openSavedOwnerImageCrop"), "existing category images reopen from shared storage");
+assert.match(functionSource("bindOwnerCategoryManager"), /#ownerCategoryAddRow \[data-category-edit-image\]/, "the new-category form wires its saved crop back into the editor");
+assert.match(functionSource("editOwnerAdImage"), /openSavedOwnerImageCrop/, "saved banner images can be reopened in the shared editor");
 assert.match(html, /\.categories\{[\s\S]*?overflow-x:auto/);
 assert.match(html, /\.categories\{cursor:grab;[\s\S]*?touch-action:pan-x pan-y/);
 assert.match(html, /#homeView \.category\{[^}]*min-height:88px/, "Home category cards retain enough height for their image and label");
@@ -70,12 +76,12 @@ const fakeWindow = { addEventListener() {}, removeEventListener() {} };
 const productA = { id: "tops-1", category: "Tops" }, productB = { id: "dress-1", category: "Dresses" };
 const products = [productA, productB];
 const renderCalls = [], savedWrites = [], toastMessages = [];
-let requestNumber = 0;
+let requestNumber = 0, failNextCategorySync = false, fetchedCategoryUrl = ""; const cropRequests = [];
 const sandbox = vm.createContext({
   DEFAULT_CATEGORIES: DEFAULTS,
   OWNER_CATEGORIES_KEY: "shivan_shop_categories", OWNER_CATEGORY_META_KEY: "shivan_shop_category_meta",
   OWNER_CATEGORY_RENAMES_KEY: "shivan_shop_category_renames", OWNER_CATEGORY_DELETED_KEY: "shivan_shop_deleted_categories",
-  MAX_CLOUD_IMAGE_BYTES: 1_300_000, localStorage: storage, products, activeLanguage: "en", currentCategory: "هەموو",
+  MAX_CLOUD_IMAGE_BYTES: 1_300_000, MAX_OWNER_IMAGE_INPUT_BYTES: 15 * 1024 * 1024, Blob, localStorage: storage, products, activeLanguage: "en", currentCategory: "هەموو",
   cloudMode: true, cloudAccount: { role: "owner" }, isOwner: () => true,
   document: { getElementById: id => elements.get(id) || null, querySelectorAll: () => [] }, window: fakeWindow,
   URL: { createObjectURL: file => `blob:https://shop.test/${file.name}`, revokeObjectURL() {} },
@@ -85,17 +91,17 @@ const sandbox = vm.createContext({
   filterCategory: category => { sandbox.currentCategory = category; renderCalls.push(products.filter(product => product.category === category)); },
   renderProducts: list => renderCalls.push(list), showToast: message => toastMessages.push(message),
   selectSearchCategory() {}, populateOwnerCategorySelect() {}, scrollOwnerTo() {},
-  renderCategoryButtons: () => {}, refreshOwnerCategoryManager: () => {},
+  renderCategoryButtons: () => {}, refreshOwnerCategoryManager: () => {}, openOwnerImageCrop: async (file, details) => { cropRequests.push({ file, details }); return true; }, fetch: async url => { fetchedCategoryUrl = String(url); return { ok: true, blob: async () => new Blob(["saved image"], { type: "image/webp" }) }; },
   createOwnerSaveRequestId: () => `category-request-${++requestNumber}`,
-  uploadOwnerImageToCloud: async file => { assert.ok(file.size <= 1_300_000); return file.name === "new.webp" ? imageUrl : replacementImageUrl; },
-  confirmCloudShopWrites: async keys => { savedWrites.push([...keys]); return true; },
+  uploadOwnerImageToCloud: async () => { throw new Error("Category handlers must upload only a confirmed crop, never a raw file."); },
+  confirmCloudShopWrites: async keys => { savedWrites.push([...keys]); if (failNextCategorySync) { failNextCategorySync = false; throw Object.assign(new Error("Shared category save not confirmed"), { requestId: "category-sync-failed" }); } return true; },
   confirmCloudShopWrite: async key => { savedWrites.push([key]); return true; },
   ownerSaveDiagnostic() {}, ownerSaveDiagnosticCode: () => "TEST", saveProducts: () => true,
 });
 const names = [
   "getOwnerCategoryMeta", "getOwnerCategoryRenames", "getDeletedOwnerCategories", "resolveCategoryName", "categoryLabel",
   "categoryImageUrl", "categoryPreviewMarkup", "categoryArtworkMarkup", "homeCategoryArtworkMarkup", "bindCategoryImageFallbacks", "bindCategoryStripDrag",
-  "validateOwnerCategoryImageFile", "previewOwnerCategoryImage", "releaseOwnerCategoryPreview", "getSavedOwnerCategories",
+  "validateOwnerCategoryImageFile", "previewOwnerCategoryImage", "releaseOwnerCategoryPreview", "openSavedOwnerImageCrop", "editOwnerCategoryImage", "getSavedOwnerCategories",
   "getAllCategories", "renderCategoryButtons", "renderSearchCategoryCards", "filterCategory", "renderOwnerCategoryManager",
   "refreshOwnerCategoryManager", "bindOwnerCategoryManager", "saveOwnerCategory", "persistOwnerCategoryMeta", "moveOwnerCategory",
   "setOwnerCategoryVisibility", "addOwnerCategory",
@@ -112,29 +118,105 @@ sandbox.filterCategory("Tops");
 assert.deepEqual(renderCalls.at(-1).map(product => product.id), ["tops-1"], "category taps continue to filter the real product list");
 
 const createInput = { value: "New model pieces", focus() {} }, createEnglish = { value: "New model" }, createArabic = { value: "موديلات جديدة" };
-const createImage = { files: [{ name: "new.webp", type: "image/webp", size: 300_000 }], value: "chosen", dataset: {}, closest() { return { querySelector() { return null; } }; } };
-elements.set("ownerNewCategory", createInput); elements.set("ownerNewCategoryEn", createEnglish); elements.set("ownerNewCategoryAr", createArabic); elements.set("ownerNewCategoryImage", createImage);
-assert.equal(await sandbox.addOwnerCategory(), true, "Owner category creation succeeds after image upload and cloud confirmation");
+const createImageDraft = { value: "" }, createPreview = { innerHTML: "" }, createStatus = { textContent: "" }, createSubmit = { disabled: false };
+const createImageEdit = { hidden: true, dataset: {}, bindingCount: 0, addEventListener(type, listener) { this[`${type}Listener`] = listener; this.bindingCount++; }, closest(selector) { return selector === ".owner-category-image-control" ? createHost : null; }, click() { return this.clickListener?.(); } };
+const createForm = { querySelector(selector) { return selector === '[type="submit"]' ? createSubmit : null; } };
+const createHost = {
+  querySelector(selector) {
+    if (selector === "[data-category-image-url]") return createImageDraft;
+    if (selector === "[data-category-preview]") return createPreview;
+    if (selector === "[data-category-image-status]") return createStatus;
+    if (selector === "[data-category-edit-image]") return createImageEdit;
+    if (selector === "[data-category-image]") return createImage;
+    return null;
+  },
+  closest(selector) { return selector === "form" ? createForm : null; },
+};
+const createImage = {
+  files: [{ name: "new.webp", type: "image/webp", size: 5 * 1024 * 1024 }], value: "chosen", disabled: false, dataset: {},
+  closest(selector) { return selector === ".owner-category-image-control" ? createHost : selector === "form" ? createForm : null; },
+};
+elements.set("ownerNewCategory", createInput); elements.set("ownerNewCategoryEn", createEnglish); elements.set("ownerNewCategoryAr", createArabic); elements.set("ownerNewCategoryImage", createImage); elements.set("ownerNewCategoryImageDraft", createImageDraft);
+sandbox.document.querySelectorAll = selector => selector === "#ownerCategoryManager [data-category-edit-image],#ownerCategoryAddRow [data-category-edit-image]" ? [createImageEdit] : [];
+sandbox.bindOwnerCategoryManager();
+sandbox.bindOwnerCategoryManager();
+assert.equal(createImageEdit.bindingCount, 1, "refreshing category management does not bind the new-category crop button twice");
+assert.equal(createImageEdit.hidden, true, "the new-category edit control stays hidden until an image crop exists");
+assert.equal(await sandbox.previewOwnerCategoryImage(createImage), true, "selecting a category photo opens the shared crop editor");
+assert.equal(cropRequests.at(-1).details.kind, "category", "new category photos use the category crop ratio");
+assert.equal(cropRequests.at(-1).details.categoryImageTarget, createImageDraft, "the editor writes only to the unsaved category draft field");
+assert.equal(savedWrites.length, 0, "opening the crop editor does not publish category metadata");
+assert.equal(await sandbox.addOwnerCategory(), false, "a selected raw file cannot bypass the crop confirmation");
+assert.equal(JSON.parse(storage.getItem("shivan_shop_categories")).includes("New model pieces"), false, "the unconfirmed category photo does not create a category");
+createImage.files = [];
+createImageDraft.value = imageUrl;
+createPreview.innerHTML = `<img src="${imageUrl}">`;
+createImageEdit.hidden = false;
+assert.equal(createImageEdit.hidden, false, "a confirmed crop can be reopened before the category is saved");
+createImageEdit.clickListener = () => sandbox.editOwnerCategoryImage(createImageEdit);
+assert.equal(await createImageEdit.click(), true, "the unsaved category crop button reopens the editor");
+assert.equal(fetchedCategoryUrl, imageUrl, "reopening a category crop fetches the current draft from shared storage");
+assert.equal(cropRequests.at(-1).details.kind, "category");
+assert.equal(await sandbox.addOwnerCategory(), true, "Owner category creation succeeds after crop confirmation and cloud metadata confirmation");
 const afterCreate = JSON.parse(storage.getItem("shivan_shop_category_meta"));
 assert.equal(afterCreate["New model pieces"].image, imageUrl, "the created category keeps the shared uploaded image URL");
 assert.equal(afterCreate["New model pieces"].visible, true, "new categories default to visible");
+assert.equal(createImageDraft.value, "", "the confirmed category draft clears only after cloud metadata succeeds");
+assert.equal(createImageEdit.hidden, true, "saving a new category clears its stale crop action");
 assert.ok(savedWrites.some(keys => keys.includes("shivan_shop_category_meta")), "category creation waits for shared metadata confirmation");
 
-const editRow = {
-  dataset: { categoryEdit: "Tops" },
-  querySelector(selector) {
-    if (selector === "[data-category-name]") return { value: "Tops" };
-    if (selector === "[data-category-en]") return { value: "Tops" };
-    if (selector === "[data-category-ar]") return { value: "قمصان" };
-    if (selector === "[data-category-image]") return { files: [{ name: "replace.webp", type: "image/webp", size: 420_000 }], closest() { return { querySelector() { return null; } }; } };
-    return null;
-  },
-};
-assert.equal(await sandbox.saveOwnerCategory(editRow), true, "replacing a category photo saves through the same Owner path");
+function makeEditRow({ draft = "", file = null } = {}) {
+  const rowImageDraft = { value: draft }, rowPreview = { innerHTML: "" }, rowStatus = { textContent: "" }, rowEditButton = { hidden: false }, rowSubmit = { disabled: false };
+  const rowForm = { querySelector(selector) { return selector === "button[type=submit]" ? rowSubmit : null; } };
+  const rowHost = {
+    querySelector(selector) {
+      if (selector === "[data-category-image-url]") return rowImageDraft;
+      if (selector === "[data-category-preview]") return rowPreview;
+      if (selector === "[data-category-image-status]") return rowStatus;
+      if (selector === "[data-category-edit-image]") return rowEditButton;
+      if (selector === "[data-category-image]") return rowImage;
+      return null;
+    },
+    closest(selector) { return selector === "form" ? rowForm : null; },
+  };
+  const rowImage = { files: file ? [file] : [], value: "", disabled: false, dataset: { savedImage: imageUrl }, closest(selector) { return selector === ".owner-category-image-control" ? rowHost : selector === "form" ? rowForm : null; } };
+  const row = {
+    dataset: { categoryEdit: "Tops" },
+    querySelector(selector) {
+      if (selector === "[data-category-name]") return { value: "Tops" };
+      if (selector === "[data-category-en]") return { value: "Tops" };
+      if (selector === "[data-category-ar]") return { value: "قمصان" };
+      if (selector === "[data-category-image]") return rowImage;
+      if (selector === "[data-category-image-url]") return rowImageDraft;
+      if (selector === "[data-save-category]") return rowSubmit;
+      return null;
+    },
+  };
+  const button = { closest(selector) { return selector === ".owner-category-image-control" ? rowHost : selector === "[data-category-edit]" ? row : null; } };
+  return { row, button, image: rowImage, draft: rowImageDraft, preview: rowPreview, status: rowStatus, editButton: rowEditButton, submit: rowSubmit };
+}
+const existingImageEdit = makeEditRow();
+assert.equal(await sandbox.editOwnerCategoryImage(existingImageEdit.button), true, "an existing category photo can be reopened for cropping");
+assert.equal(fetchedCategoryUrl, imageUrl, "reopened category images are read from their saved shared-storage URL");
+assert.equal(cropRequests.at(-1).details.kind, "category");
+const replacement = makeEditRow({ file: { name: "replace.webp", type: "image/webp", size: 5 * 1024 * 1024 } });
+assert.equal(await sandbox.previewOwnerCategoryImage(replacement.image), true, "replacement photos use the same crop editor");
+assert.equal(await sandbox.saveOwnerCategory(replacement.row), false, "raw replacement photos cannot bypass crop confirmation");
+replacement.image.files = [];
+replacement.draft.value = replacementImageUrl;
+assert.equal(await sandbox.saveOwnerCategory(replacement.row), true, "replacing a category photo saves through the same Owner path");
 const afterEdit = JSON.parse(storage.getItem("shivan_shop_category_meta"));
 assert.equal(afterEdit.Tops.image, replacementImageUrl, "replacement photos replace only the selected category image");
 assert.equal(afterEdit.Tops.order, 2, "replacing a photo preserves category order");
 assert.equal(afterEdit.Tops.visible, true, "replacing a photo preserves visibility");
+const failedReplacementUrl = "/api/media/shop/" + "C".repeat(43) + ".webp";
+const failedEdit = makeEditRow({ draft: failedReplacementUrl });
+const productsBeforeFailedReplacement = JSON.stringify(products);
+failNextCategorySync = true;
+assert.equal(await sandbox.saveOwnerCategory(failedEdit.row), false, "a failed cloud metadata save is reported as failure");
+assert.equal(JSON.parse(storage.getItem("shivan_shop_category_meta")).Tops.image, replacementImageUrl, "a cloud failure preserves the original shared category image");
+assert.equal(failedEdit.draft.value, failedReplacementUrl, "the unconfirmed edited image remains available in the form for retry");
+assert.equal(JSON.stringify(products), productsBeforeFailedReplacement, "a failed image replacement preserves the product relationships");
 
 const productsBeforeHide = JSON.stringify(products);
 sandbox.currentCategory = "Tops";

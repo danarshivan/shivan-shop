@@ -4917,8 +4917,10 @@ const CLOUD_OUTBOX_KEY = "shivan_shop_cloud_outbox";
 const CLOUD_OWNER_KEYS = new Set([PRODUCTS_KEY,ADS_KEY,SHOP_ONBOARDING_IMAGES_KEY,OWNER_APPEARANCE_KEY,OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_DELETED_KEY,OWNER_SMART_ALERTS_KEY,OWNER_NOTIFICATION_PREFERENCES_KEY]);
 const MAX_CLOUD_IMAGE_BYTES = 1300000;
 const MAX_OWNER_IMAGE_INPUT_BYTES = 15*1024*1024;
-const MAX_CROP_SOURCE_EDGE = 2048;
-const MAX_CROP_SOURCE_PIXELS = 4194304;
+const MAX_CROP_SOURCE_EDGE = 3072;
+
+const MAX_CROP_SOURCE_PIXELS = 9437184;
+
 const MAX_CROP_PREVIEW_EDGE = 1200;
 const MAX_OWNER_PRODUCT_VARIANTS = 120;
 const OWNER_IDENTIFIER = "07502342153";
@@ -6157,7 +6159,8 @@ async function prepareOwnerCropSource(file){
     const sourcePixels=dimensions.width*dimensions.height;
     const resizeScale=Math.min(1,MAX_CROP_SOURCE_EDGE/sourceLongEdge,Math.sqrt(MAX_CROP_SOURCE_PIXELS/sourcePixels));
     const resizeLongEdge=Math.max(1,Math.floor(sourceLongEdge*resizeScale));
-    const resizeOptions={resizeQuality:"high"};
+    const resizeOptions={resizeQuality:"high",imageOrientation:"from-image"};
+
     if(dimensions.width>=dimensions.height)resizeOptions.resizeWidth=resizeLongEdge;
     else resizeOptions.resizeHeight=resizeLongEdge;
     bitmap=await createImageBitmap(file,resizeOptions);
@@ -6258,8 +6261,10 @@ function showImageCrop(source,details){
   const image=document.getElementById("cropImage");
   image.onload=()=>{
     const sourceRatio=source.width/source.height;
-    const defaultRatioMode=details.kind==="ad"?"1.7777778":"0.8";
-    pendingImageCrop={...details,...source,sourceRatio,defaultRatioMode,defaultRatio:details.kind==="ad"?1.7777778:0.8,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:0.8,zoom:1,left:null,top:null,scale:null,drag:null,rotation:0,flipX:false,flipY:false,frameWidth:null,previewBlob:null,previewObjectUrl:"",previewing:false};
+    const defaultRatioMode=details.kind==="ad"?"1.7777778":details.kind==="category"?"1":"0.8";
+
+    pendingImageCrop={...details,...source,sourceRatio,defaultRatioMode,defaultRatio:details.kind==="ad"?1.7777778:details.kind==="category"?1:0.8,ratioMode:defaultRatioMode,ratio:details.kind==="ad"?1.7777778:details.kind==="category"?1:0.8,zoom:1,left:null,top:null,scale:null,drag:null,rotation:0,flipX:false,flipY:false,frameWidth:null,previewBlob:null,previewObjectUrl:"",previewing:false};
+
     const modal=document.getElementById("imageCropModal");
     modal.classList.add("show");
     modal.setAttribute("aria-hidden","false");
@@ -6504,10 +6509,11 @@ async function finishImageCrop(apply){
   if(!apply){
     state.cancelled=true;state.abortController?.abort();state.uploading=false;setImageCropBusy(false);
     if(state.queue){const queue=ownerProductImageQueue;ownerProductImageQueue=null;closeImageCrop();releaseCropForm(queue);setOwnerImageStatus("Photo selection canceled. Existing product photos are unchanged.");showToast("هەڵوەشایەوە.");}
-    else closeImageCrop();
+    else{closeImageCrop();if(state.kind==="category"&&state.categoryHost){const draft=state.categoryImageTarget?.value||state.categoryInput?.dataset?.savedImage||"";const preview=state.categoryHost.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryPreviewMarkup(draft);const categoryStatus=state.categoryHost.querySelector("[data-category-image-status]");if(categoryStatus)categoryStatus.textContent=ownerDashboardText("Image selection canceled. The saved category image is unchanged.","هەڵبژاردنا وێنە هاتە ڤەگوهاستن؛ وێنەیا جۆرێ نەگوهۆڕا.","تم إلغاء اختيار الصورة. صورة الفئة المحفوظة لم تتغير.");}}
     if(String(state.hiddenId||"").startsWith("shopPromoImageData")){const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");if(ownerStatus)ownerStatus.textContent="Image selection canceled. The previous slide image is unchanged.";}
     return;
   }
+
   if(state.uploading)return;
   state.uploading=true;state.cancelled=false;state.abortController=typeof AbortController==="function"?new AbortController():null;
   const status=document.getElementById("cropStatus");if(status)status.textContent="Preparing the confirmed crop…";
@@ -6525,7 +6531,12 @@ async function finishImageCrop(apply){
       const selectedColor=document.getElementById("cropImageColor")?.value||"";
       const photos=readOwnerProductPhotos();photos.push({src:imageUrl,color:normalizeHexColor(selectedColor)||""});writeOwnerProductPhotos(photos);renderOwnerProductPhotoList();
       closeImageCrop();ownerProductImageQueue.index++;startNextQueuedProductImage();
+    }else if(state.kind==="category"){
+      const target=state.categoryImageTarget||document.getElementById(state.hiddenId),host=state.categoryHost||state.categoryInput?.closest?.(".owner-category-image-control"),preview=host?.querySelector("[data-category-preview]");if(!target||!preview)throw new Error("The category image form was not found.");
+      target.value=imageUrl;preview.innerHTML=categoryPreviewMarkup(imageUrl);const editButton=host.querySelector("[data-category-edit-image]");if(editButton)editButton.hidden=false;
+      closeImageCrop();const categoryStatus=host.querySelector("[data-category-image-status]");if(categoryStatus)categoryStatus.textContent=ownerDashboardText("Crop uploaded. Save the category to publish this image.","وێنە هاتە بارکرن؛ بۆ نیشاندانا وێ جۆرێ پاشەکەفت بکە.","تم رفع القص. احفظي الفئة لنشر الصورة.");showToast(ownerDashboardText("The cropped image is ready. Save the category to apply it.","وێنەیا بڕدرا ئامادەیە؛ بۆ گۆڕینا جۆرێ پاشەکەفت بکە.","الصورة المقصوصة جاهزة. احفظي الفئة لتطبيقها."));
     }else if(state.kind==="product"&&Number.isInteger(state.photoIndex)){
+
       const photos=readOwnerProductPhotos();if(!photos[state.photoIndex])throw new Error("The original product photo is no longer in this draft.");
       const selectedColor=document.getElementById("cropImageColor")?.value??photos[state.photoIndex].color;
       photos[state.photoIndex]={src:imageUrl,color:normalizeHexColor(selectedColor)||""};writeOwnerProductPhotos(photos);renderOwnerProductPhotoList();
@@ -6620,21 +6631,22 @@ async function renderOwnerCropBlob(state){
   const sourceScaleX=rotated?rawHeight/previewHeight:rawWidth/previewWidth;
   const sourceScaleY=rotated?rawWidth/previewWidth:rawHeight/previewHeight;
   const cropX=previewX*sourceScaleX,cropY=previewY*sourceScaleY,cropWidth=previewCropWidth*sourceScaleX,cropHeight=previewCropHeight*sourceScaleY;
-  const ratio=cropWidth/cropHeight,maxOutput=1000,outputWidth=Math.max(1,Math.round(ratio>=1?maxOutput:maxOutput*ratio)),outputHeight=Math.max(1,Math.round(ratio>=1?maxOutput/ratio:maxOutput));
-  const canvas=document.createElement("canvas"),context=canvas.getContext("2d");if(!context)throw new Error("Crop image could not be prepared.");
-  let blob=null;
+  const ratio=cropWidth/cropHeight,canvas=document.createElement("canvas"),context=canvas.getContext("2d");if(!context)throw new Error("Crop image could not be prepared.");
+  let blob=null,actualWidth=0,actualHeight=0;
   try{
-    for(const limit of [1000,760]){
+    for(const limit of [1600,1200,900]){
       if(blob)break;const w=Math.max(1,Math.round(ratio>=1?limit:limit*ratio)),h=Math.max(1,Math.round(ratio>=1?limit/ratio:limit));canvas.width=w;canvas.height=h;
+      if(context.imageSmoothingEnabled!==undefined)context.imageSmoothingEnabled=true;if(context.imageSmoothingQuality!==undefined)context.imageSmoothingQuality="high";
       if(context.setTransform)context.setTransform(...ownerCropDrawMatrix(rawWidth,rawHeight,rotation,Boolean(state.flipX),Boolean(state.flipY),cropX,cropY,cropWidth,cropHeight,w,h));
       context.drawImage(source,0,0,rawWidth,rawHeight);
-      for(const [type,quality] of [["image/webp",.76],["image/jpeg",.7]]){const candidate=await canvasBlob(canvas,type,quality,{signal:state.abortController?.signal});if(state.cancelled||pendingImageCrop!==state)return null;if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;break;}}
+      for(const [type,quality] of [["image/webp",.9],["image/jpeg",.86]]){const candidate=await canvasBlob(canvas,type,quality,{signal:state.abortController?.signal});if(state.cancelled||pendingImageCrop!==state)return null;if(candidate&&candidate.type===type&&candidate.size<=MAX_CLOUD_IMAGE_BYTES){blob=candidate;actualWidth=w;actualHeight=h;break;}}
     }
   }finally{canvas.width=0;canvas.height=0;}
   if(!blob)throw new Error("The crop could not be compressed below the shared-storage limit. Choose a smaller crop.");
-  try{Object.defineProperties(blob,{width:{value:outputWidth},height:{value:outputHeight}});}catch{}
+  try{Object.defineProperties(blob,{width:{value:actualWidth},height:{value:actualHeight}});}catch{}
   return blob;
 }
+
 
 function getCartKey(){
   return currentUser?`${CART_KEY}_${currentUser.id}`:`${CART_KEY}_guest`;
@@ -6949,22 +6961,40 @@ function bindCategoryStripDrag(container){
 }
 function validateOwnerCategoryImageFile(file){
   if(!file)return "";
-  if(!/^image\/(?:jpeg|png|webp|gif)$/i.test(String(file.type||"")))return "Choose a JPEG, PNG, WebP, or GIF category photo.";
-  if(Number(file.size)>MAX_CLOUD_IMAGE_BYTES)return "Category photos must be 1.3 MB or smaller.";
+  if(!/^image\/(?:jpeg|png|webp|gif)$/i.test(String(file.type||"")))return ownerDashboardText("Choose a JPEG, PNG, WebP, or GIF category photo.","وێنەیەکا JPEG، PNG، WebP یان GIF هەڵبژێرە.","اختاري صورة JPEG أو PNG أو WebP أو GIF.");
+  if(Number(file.size)>MAX_OWNER_IMAGE_INPUT_BYTES)return ownerDashboardText("Category photos must be smaller than 15 MB.","قەبارا وێنەیا جۆرێ دڤێت کێمتر ژ ١٥ مێگابایت بیت.","يجب أن تكون صورة الفئة أصغر من 15 ميغابايت.");
   return "";
 }
 function previewOwnerCategoryImage(input){
   const host=input?.closest?.(".owner-category-image-control");if(!host)return false;
   const preview=host.querySelector("[data-category-preview]"),status=host.querySelector("[data-category-image-status]"),file=input.files?.[0];
-  const prior=input.dataset.previewObjectUrl;if(prior){URL.revokeObjectURL(prior);delete input.dataset.previewObjectUrl;}
-  if(!file){if(preview)preview.innerHTML=categoryPreviewMarkup(input.dataset.savedImage||"");if(status)status.textContent="";return true;}
-  const error=validateOwnerCategoryImageFile(file);if(error){input.value="";if(preview)preview.innerHTML=categoryPreviewMarkup(input.dataset.savedImage||"");if(status)status.textContent=error;return false;}
-  const objectUrl=URL.createObjectURL(file);input.dataset.previewObjectUrl=objectUrl;if(preview)preview.innerHTML=categoryPreviewMarkup(objectUrl);if(status)status.textContent=ownerDashboardText("Preview only. Save the category to upload this image.","تەنێ پێشبینینە. بۆ بارکرنا وێنەیێ، جۆرێ پاشەکەفت بکە.","معاينة فقط. احفظي الفئة لرفع الصورة.");return true;
+  if(!file){if(preview)preview.innerHTML=categoryPreviewMarkup(host.querySelector("[data-category-image-url]")?.value||input.dataset.savedImage||"");return true;}
+  const error=validateOwnerCategoryImageFile(file);if(error){input.value="";if(preview)preview.innerHTML=categoryPreviewMarkup(host.querySelector("[data-category-image-url]")?.value||input.dataset.savedImage||"");if(status)status.textContent=error;showToast(error);return false;}
+  const form=input.closest("form"),submit=form?.querySelector('[type="submit"]');input.disabled=true;if(submit)submit.disabled=true;
+  if(status)status.textContent=ownerDashboardText("Adjust the crop, then press Done to upload it.","بڕینێ ڕێکبخە، پاشان تەواو بکە بۆ بارکرنێ.","اضبطي القص ثم اضغطي تم لرفعه.");
+  return openOwnerImageCrop(file,{input,submit,kind:"category",categoryHost:host,categoryInput:input,categoryImageTarget:host.querySelector("[data-category-image-url]"),requestId:createOwnerSaveRequestId()});
 }
 function releaseOwnerCategoryPreview(input){
   const prior=input?.dataset?.previewObjectUrl;if(prior)URL.revokeObjectURL(prior);
   if(input){delete input.dataset.previewObjectUrl;input.value="";}
 }
+async function openSavedOwnerImageCrop(imageUrl,details={}){
+  const url=safeImageUrl(imageUrl);if(!url)throw new Error("Choose or save an image before editing its crop.");
+  const response=await fetch(url,{credentials:"same-origin"});if(!response.ok)throw new Error("The saved image could not be opened for editing.");
+  const blob=await response.blob();if(!blob.type.startsWith("image/")||blob.size>MAX_OWNER_IMAGE_INPUT_BYTES)throw new Error("This image cannot be edited safely. Choose a smaller image.");
+  return openOwnerImageCrop(blob,details);
+}
+async function editOwnerCategoryImage(button){
+  if(!isOwner())return false;
+  const host=button?.closest?.(".owner-category-image-control"),input=host?.querySelector("[data-category-image]"),target=host?.querySelector("[data-category-image-url]"),row=button?.closest?.("[data-category-edit]"),submit=row?.querySelector("[data-save-category]")||host?.closest?.("form")?.querySelector("button[type=submit]"),url=safeImageUrl(target?.value||input?.dataset?.savedImage||"");
+  if(!host||!input||!target||!url){showToast(ownerDashboardText("Choose a category photo first.","سەرەتا وێنەیەکا جۆرێ هەڵبژێرە.","اختاري صورة للفئة أولاً."));return false;}
+  input.disabled=true;if(submit)submit.disabled=true;
+  const status=host.querySelector("[data-category-image-status]");if(status)status.textContent=ownerDashboardText("Opening the saved image editor…","دەستکاریا وێنەیا پاشەکەفتکری ڤەدبیت…","جارٍ فتح محرر الصورة المحفوظة…");
+  try{return await openSavedOwnerImageCrop(url,{kind:"category",input,submit,categoryHost:host,categoryInput:input,categoryImageTarget:target,requestId:createOwnerSaveRequestId()});}
+  catch(error){input.disabled=false;if(submit)submit.disabled=false;if(status)status.textContent=error.message||"The saved category image is unchanged.";showToast(error.message||"The saved category image is unchanged.");return false;}
+}
+
+
 function getSavedOwnerCategories(){
   try{const saved=JSON.parse(localStorage.getItem(OWNER_CATEGORIES_KEY)||"[]");return Array.isArray(saved)?saved.map(item=>String(item||"").trim()).filter(Boolean):[];}catch(error){return [];}
 }
@@ -7006,7 +7036,7 @@ function renderOwnerCategoryManager(){
           <label>${escapeHtml(ownerDashboardText("Category name","ناڤێ جۆرێ","اسم الفئة"))}<input data-category-name aria-label="${escapeHtml(ownerDashboardText("Category name","ناڤێ جۆرێ","اسم الفئة"))}" value="${escapeHtml(category)}" maxlength="40"></label>
           <div class="owner-category-edit-languages"><label>${escapeHtml(ownerDashboardText("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية"))}<input data-category-en value="${escapeHtml(values.en||"")}" maxlength="40"></label><label>${escapeHtml(ownerDashboardText("Arabic name","ناڤێ عەرەبی","الاسم بالعربية"))}<input data-category-ar value="${escapeHtml(values.ar||"")}" maxlength="40"></label></div>
           <label class="owner-category-visibility"><input data-category-visible type="checkbox" ${visible?"checked":""}>${escapeHtml(ownerDashboardText("Show category to customers","جۆرێ بۆ کڕیاران نیشان بدە","إظهار الفئة للعملاء"))}</label>
-          <div class="owner-category-image-control"><label class="owner-category-image-label">${escapeHtml(ownerDashboardText("Upload or replace image","وێنە بار بکە یان بگۆڕە","رفع الصورة أو استبدالها"))}<input data-category-image data-saved-image="${escapeHtml(image)}" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><p data-category-image-status role="status" aria-live="polite">${image?escapeHtml(ownerDashboardText("Image saved to shared storage.","وێنە ل شوێنێ هاوبەش هاتە پاشەکەفتکرن.","الصورة محفوظة في التخزين المشترك.")):escapeHtml(ownerDashboardText("No image uploaded yet.","هێشتا وێنە نەهاتییە بارکرن.","لم يتم رفع صورة بعد."))}</p></div>
+          <div class="owner-category-image-control"><input type="hidden" data-category-image-url value=""><label class="owner-category-image-label">${escapeHtml(ownerDashboardText("Upload or replace image","وێنە بار بکە یان بگۆڕە","رفع الصورة أو استبدالها"))}<input data-category-image data-saved-image="${escapeHtml(image)}" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><button type="button" data-category-edit-image hidden>${escapeHtml(ownerDashboardText("Edit crop","بڕینێ دەستکاری بکە","تعديل القص"))}</button><p data-category-image-status role="status" aria-live="polite">${image?escapeHtml(ownerDashboardText("Image saved to shared storage.","وێنە ل شوێنێ هاوبەش هاتە پاشەکەفتکرن.","الصورة محفوظة في التخزين المشترك.")):escapeHtml(ownerDashboardText("No image uploaded yet.","هێشتا وێنە نەهاتییە بارکرن.","لم يتم رفع صورة بعد."))}</p></div>
         </div>
         <div class="owner-category-order-actions" aria-label="${escapeHtml(ownerDashboardText("Category order","ڕیزا جۆرێ","ترتيب الفئات"))}"><button type="button" data-category-move="-1" aria-label="${escapeHtml(ownerDashboardText("Move category up","جۆرێ بۆ سەرەوە بگوازە","نقل الفئة للأعلى"))}" ${index===0?"disabled":""}>↑</button><button type="button" data-category-move="1" aria-label="${escapeHtml(ownerDashboardText("Move category down","جۆرێ بۆ خوارێ بگوازە","نقل الفئة للأسفل"))}" ${index===categories.length-1?"disabled":""}>↓</button></div>
       </div>
@@ -7026,18 +7056,19 @@ function bindOwnerCategoryManager(){
   document.querySelectorAll("#ownerCategoryManager [data-delete-category]").forEach(button=>button.addEventListener("click",()=>deleteOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"")));
   document.querySelectorAll("#ownerCategoryManager [data-category-move]").forEach(button=>button.addEventListener("click",()=>moveOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"",Number(button.dataset.categoryMove))));
   document.querySelectorAll("#ownerCategoryManager [data-category-visible]").forEach(input=>input.addEventListener("change",()=>setOwnerCategoryVisibility(input.closest("[data-category-edit]")?.dataset.categoryEdit||"",input.checked)));
+  document.querySelectorAll("#ownerCategoryManager [data-category-edit-image],#ownerCategoryAddRow [data-category-edit-image]").forEach(button=>{const host=button.closest(".owner-category-image-control"),input=host?.querySelector("[data-category-image]"),draft=host?.querySelector("[data-category-image-url]")?.value||input?.dataset?.savedImage||"";button.hidden=!safeImageUrl(draft);if(button.dataset.categoryCropEditBound==="true")return;button.dataset.categoryCropEditBound="true";button.addEventListener("click",()=>editOwnerCategoryImage(button));});
+
 }
 async function saveOwnerCategory(row){
   if(!isOwner()||!row)return false;
   const oldName=String(row.dataset.categoryEdit||""),selectedProductCategory=document.getElementById("ownerProductCategory")?.value||"";
   const name=String(row.querySelector("[data-category-name]")?.value||"").trim().replace(/\s+/g," ");
   const en=String(row.querySelector("[data-category-en]")?.value||"").trim(),ar=String(row.querySelector("[data-category-ar]")?.value||"").trim();
-  const imageInput=row.querySelector("[data-category-image]"),file=imageInput?.files?.[0]||null;
+  const imageInput=row.querySelector("[data-category-image]"),imageDraft=row.querySelector("[data-category-image-url]"),file=imageInput?.files?.[0]||null;
   if(!name||name.length>40){showToast(ownerDashboardText("Enter a valid category name.","ناڤێ جۆرێ دروست بنڤیسە.","أدخلي اسماً صالحاً للفئة."));return false;}
   const duplicate=getAllCategories().find(item=>item!==oldName&&item.toLocaleLowerCase()===name.toLocaleLowerCase());if(duplicate){showToast(ownerDashboardText("That category name already exists.","ئەم ناڤێ جۆرێ پێشتر هەیە.","اسم الفئة موجود بالفعل."));return false;}
-  const imageError=validateOwnerCategoryImageFile(file);if(imageError){showToast(imageError);return false;}
-  const requestId=createOwnerSaveRequestId();let uploadedImage="";
-  if(file){try{uploadedImage=await uploadOwnerImageToCloud(file,requestId);}catch(error){const status=imageInput?.closest(".owner-category-image-control")?.querySelector("[data-category-image-status]");if(status)status.textContent=error.message||ownerDashboardText("The category image could not be uploaded.","وێنەیا جۆرێ نەهاتییە بارکرن.","تعذر رفع صورة الفئة.");showToast(error.message||ownerDashboardText("The category image could not be uploaded.","وێنەیا جۆرێ نەهاتییە بارکرن.","تعذر رفع صورة الفئة."));return false;}}
+  if(file){showToast(ownerDashboardText("Finish cropping the selected image before saving the category.","پێش پاشەکەفتکرنا جۆرێ بڕینا وێنەیێ تەمام بکە.","أكملي قص الصورة قبل حفظ الفئة."));return false;}
+  const uploadedImage=safeImageUrl(imageDraft?.value||imageInput?.dataset?.savedImage||""),requestId=createOwnerSaveRequestId();
   const categories=getSavedOwnerCategories().map(item=>item===oldName?name:item).filter((item,index,list)=>list.indexOf(item)===index);if(!categories.includes(name))categories.push(name);
   const renames=getOwnerCategoryRenames();if(oldName!==name){Object.keys(renames).forEach(key=>{if(renames[key]===oldName)renames[key]=name;});renames[oldName]=name;}
   const meta=getOwnerCategoryMeta(),oldMeta=meta[oldName]||meta[name]||{};if(oldName!==name)delete meta[oldName];
@@ -7051,7 +7082,13 @@ async function saveOwnerCategory(row){
   catch(error){products.forEach((product,index)=>product.category=oldProducts[index]);if(oldName!==name)saveProducts();[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_RENAMES_KEY,previousStorage.renames],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});showToast(ownerDashboardText("The category could not be saved on this device.","جۆرەکە ل ڤی ئامێری نەهاتە پاشەکەفتکرن.","تعذر حفظ الفئة على هذا الجهاز."));return false;}
   if(currentCategory===oldName)currentCategory=name;renderCategoryButtons();renderProducts(currentCategory==="هەموو"?products:products.filter(product=>resolveCategoryName(product.category)===resolveCategoryName(currentCategory)));populateOwnerCategorySelect(selectedProductCategory===oldName?name:selectedProductCategory);
   try{const keys=[OWNER_CATEGORIES_KEY,OWNER_CATEGORY_RENAMES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY];if(oldName!==name)keys.push(PRODUCTS_KEY);if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites(keys,requestId);}
-  catch(error){ownerSaveDiagnostic("owner.category.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});showToast(ownerDashboardText(`Category changes are on this device, but shared storage did not confirm them. Reference: ${error?.requestId||requestId}`,`گۆڕانکاری ل ڤی ئامێری ما، لێ هەڵگرتنا هاوبەش نەهاتییە پشتڕاستکرن. ژمارا پەیوەندی: ${error?.requestId||requestId}`,`بقيت التغييرات على هذا الجهاز، لكن التخزين المشترك لم يؤكدها. المرجع: ${error?.requestId||requestId}`));return false;}
+  catch(error){
+    products.forEach((product,index)=>product.category=oldProducts[index]);if(oldName!==name)saveProducts();
+    [[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_RENAMES_KEY,previousStorage.renames],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});
+    if(currentCategory===name&&oldName!==name)currentCategory=oldName;renderCategoryButtons();renderProducts(currentCategory==="هەموو"?products:products.filter(product=>resolveCategoryName(product.category)===resolveCategoryName(currentCategory)));populateOwnerCategorySelect(selectedProductCategory);
+    ownerSaveDiagnostic("owner.category.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
+    showToast(ownerDashboardText("Shared storage did not confirm the category update. The saved category and image remain unchanged. Reference: "+(error?.requestId||requestId),"هەڵگرتنا هاوبەش نووکرنا جۆرێ پشتڕاست نەکر؛ جۆر و وێنەیا پاشەکەفتکری نەگوهۆڕین. ژمارا پەیوەندی: "+(error?.requestId||requestId),"لم يؤكد التخزين المشترك تحديث الفئة. بقيت الفئة وصورتها المحفوظة كما هي. المرجع: "+(error?.requestId||requestId)));return false;
+  }
   refreshOwnerCategoryManager();scrollOwnerTo("ownerCategoryManager");showToast(cloudMode?ownerDashboardText("Category saved and synchronized.","جۆر هاتە پاشەکەفتکرن و هاوکاتکرن.","تم حفظ الفئة ومزامنتها."):ownerDashboardText("Category saved on this device.","جۆر ل ڤی ئامێری هاتە پاشەکەفتکرن.","تم حفظ الفئة على هذا الجهاز."));return true;
 }
 async function persistOwnerCategoryMeta(meta,requestId){
@@ -7194,25 +7231,22 @@ async function addOwnerCategory(){
   if(!isOwner())return false;
   const input=document.getElementById("ownerNewCategory"),category=String(input?.value||"").trim().replace(/\s+/g," ");
   const enInput=document.getElementById("ownerNewCategoryEn"),arInput=document.getElementById("ownerNewCategoryAr"),en=String(enInput?.value||"").trim(),ar=String(arInput?.value||"").trim();
-  const imageInput=document.getElementById("ownerNewCategoryImage"),file=imageInput?.files?.[0]||null;
+  const imageInput=document.getElementById("ownerNewCategoryImage"),imageDraft=document.getElementById("ownerNewCategoryImageDraft"),file=imageInput?.files?.[0]||null;
   if(!category||category.length>40){showToast(ownerDashboardText("Enter a valid category name.","ناڤێ جۆرێ دروست بنڤیسە.","أدخلي اسماً صالحاً للفئة."));input?.focus();return false;}
   const imageError=validateOwnerCategoryImageFile(file);if(imageError){showToast(imageError);return false;}
-  const categories=getSavedOwnerCategories(),existing=getAllCategories().find(item=>item.toLocaleLowerCase()===category.toLocaleLowerCase());
-  if(existing&&file){showToast(ownerDashboardText("This category already exists. Replace its image in Manage Categories.","ئەڤ جۆرە هەیە؛ وێنەیا وێ ژ بەشی بەڕێڤەبرنێ بگۆڕە.","الفئة موجودة. استبدلي صورتها من إدارة الفئات."));return false;}
-  const selected=existing||category,requestId=createOwnerSaveRequestId();let uploadedImage="";
-  if(file){try{uploadedImage=await uploadOwnerImageToCloud(file,requestId);}catch(error){const status=imageInput?.closest(".owner-category-image-control")?.querySelector("[data-category-image-status]");if(status)status.textContent=error.message||ownerDashboardText("The category image could not be uploaded.","وێنەیا جۆرێ نەهاتییە بارکرن.","تعذر رفع صورة الفئة.");showToast(error.message||ownerDashboardText("The category image could not be uploaded.","وێنەیا جۆرێ نەهاتییە بارکرن.","تعذر رفع صورة الفئة."));return false;}}
-  const nextCategories=[...categories];if(!existing)nextCategories.push(category);
+  if(file){showToast(ownerDashboardText("Finish cropping the selected image before saving the category.","پێش پاشەکەفتکرنا جۆرێ بڕینا وێنەیێ تەمام بکە.","أكملي قص الصورة قبل حفظ الفئة."));return false;}
+  const uploadedImage=safeImageUrl(imageDraft?.value||""),categories=getSavedOwnerCategories(),existing=getAllCategories().find(item=>item.toLocaleLowerCase()===category.toLocaleLowerCase());
+  if(existing&&uploadedImage){showToast(ownerDashboardText("This category already exists. Replace its image in Manage Categories.","ئەڤ جۆرە هەیە؛ وێنەیا وێ ژ بەشی بەڕێڤەبرنێ بگۆڕە.","الفئة موجودة. استبدلي صورتها من إدارة الفئات."));return false;}
+  const selected=existing||category,requestId=createOwnerSaveRequestId(),nextCategories=[...categories];if(!existing)nextCategories.push(category);
   const meta=getOwnerCategoryMeta(),previousMeta=meta[selected]||{};
   meta[selected]={...previousMeta,...(en?{en}:{}),...(ar?{ar}:{}),visible:previousMeta.visible!==false,order:Number.isSafeInteger(previousMeta.order)?previousMeta.order:getAllCategories().length,...(uploadedImage?{image:uploadedImage}:{})};
-  const deleted=getDeletedOwnerCategories().filter(item=>resolveCategoryName(item)!==selected);
-  const previousStorage={categories:localStorage.getItem(OWNER_CATEGORIES_KEY),meta:localStorage.getItem(OWNER_CATEGORY_META_KEY),deleted:localStorage.getItem(OWNER_CATEGORY_DELETED_KEY)};
+  const deleted=getDeletedOwnerCategories().filter(item=>resolveCategoryName(item)!==selected),previousStorage={categories:localStorage.getItem(OWNER_CATEGORIES_KEY),meta:localStorage.getItem(OWNER_CATEGORY_META_KEY),deleted:localStorage.getItem(OWNER_CATEGORY_DELETED_KEY)};
   try{localStorage.setItem(OWNER_CATEGORIES_KEY,JSON.stringify(nextCategories));localStorage.setItem(OWNER_CATEGORY_META_KEY,JSON.stringify(meta));localStorage.setItem(OWNER_CATEGORY_DELETED_KEY,JSON.stringify(deleted));}
   catch(error){[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});showToast(ownerDashboardText("The category could not be saved on this device.","جۆرەکە ل ڤی ئامێری نەهاتە پاشەکەفتکرن.","تعذر حفظ الفئة على هذا الجهاز."));return false;}
   try{if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites([OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY],requestId);}
-  catch(error){[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});ownerSaveDiagnostic("owner.category.add_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});showToast(ownerDashboardText(`The category was not confirmed in shared storage. Reference: ${error?.requestId||requestId}`,`جۆر ل هەڵگرتنا هاوبەش نەهاتییە پشتڕاستکرن. ژمارا پەیوەندی: ${error?.requestId||requestId}`,`لم يتم تأكيد الفئة في التخزين المشترك. المرجع: ${error?.requestId||requestId}`));return false;}
+  catch(error){[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});ownerSaveDiagnostic("owner.category.add_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});showToast(ownerDashboardText("The category was not confirmed in shared storage. Reference: "+(error?.requestId||requestId),"جۆر ل هەڵگرتنا هاوبەش نەهاتییە پشتڕاستکرن. ژمارا پەیوەندی: "+(error?.requestId||requestId),"لم يتم تأكيد الفئة في التخزين المشترك. المرجع: "+(error?.requestId||requestId)));return false;}
   renderCategoryButtons();populateOwnerCategorySelect(selected);refreshOwnerCategoryManager();
-  if(input)input.value="";if(enInput)enInput.value="";if(arInput)arInput.value="";
-  if(imageInput){releaseOwnerCategoryPreview(imageInput);const preview=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryPreviewMarkup("");const status=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-image-status]");if(status)status.textContent="";}
+  if(input)input.value="";if(enInput)enInput.value="";if(arInput)arInput.value="";if(imageInput){releaseOwnerCategoryPreview(imageInput);const preview=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryPreviewMarkup("");const status=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-image-status]");if(status)status.textContent="";}if(imageDraft)imageDraft.value="";const editButton=imageInput?.closest(".owner-category-image-control")?.querySelector("[data-category-edit-image]");if(editButton)editButton.hidden=true;
   showToast(cloudMode?ownerDashboardText(existing?"Category updated and synchronized.":"Category created and synchronized.",existing?"جۆر هاتە نووکرن و هاوکاتکرن.":"جۆرا نوو هاتە دروستکرن و هاوکاتکرن.",existing?"تم تحديث الفئة ومزامنتها.":"تم إنشاء الفئة ومزامنتها."):ownerDashboardText(existing?"Category updated on this device.":"Category created on this device.",existing?"جۆر ل ڤی ئامێری هاتە نووکرن.":"جۆرا نوو ل ڤی ئامێری هاتە دروستکرن.",existing?"تم تحديث الفئة على هذا الجهاز.":"تم إنشاء الفئة على هذا الجهاز."));return true;
 }
 function getAdvertisements(){
@@ -12266,7 +12300,7 @@ function renderOwnerProducts(box){
       <form class="owner-form" id="ownerCategoryAddRow" onsubmit="event.preventDefault();addOwnerCategory()">
         <h3>${t("Add category","جۆری نوێ زیاد بکە","أضف فئة")}</h3>
         <div class="owner-category-create-fields"><label>${t("Category name","ناڤێ جۆرێ","اسم الفئة")}<input id="ownerNewCategory" maxlength="40" required></label><label>${t("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية")}<input id="ownerNewCategoryEn" maxlength="40"></label><label>${t("Arabic name","ناڤێ عەرەبی","الاسم بالعربية")}<input id="ownerNewCategoryAr" maxlength="40"></label></div>
-        <div class="owner-category-create-actions"><div class="owner-category-image-control"><div class="owner-category-preview" data-category-preview>${categoryPreviewMarkup("")}<span>${t("Card preview","پێشبینیا کارتی","معاينة البطاقة")}</span></div><label class="owner-category-image-label">${t("Upload category photo","وێنەیا جۆرێ بار بکە","ارفعي صورة الفئة")}<input id="ownerNewCategoryImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><p data-category-image-status id="ownerNewCategoryImageStatus" role="status" aria-live="polite"></p></div><button type="submit">${t("Create category","جۆری دروست بکە","إنشاء فئة")}</button></div>
+        <div class="owner-category-create-actions"><div class="owner-category-image-control"><input id="ownerNewCategoryImageDraft" data-category-image-url type="hidden" value=""><div class="owner-category-preview" data-category-preview>${categoryPreviewMarkup("")}<span>${t("Card preview","پێشبینیا کارتی","معاينة البطاقة")}</span></div><label class="owner-category-image-label">${t("Upload category photo","وێنەیا جۆرێ بار بکە","ارفعي صورة الفئة")}<input id="ownerNewCategoryImage" data-category-image type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><button type="button" data-category-edit-image hidden>${t("Edit crop","بڕینێ دەستکاری بکە","تعديل القص")}</button><p data-category-image-status id="ownerNewCategoryImageStatus" role="status" aria-live="polite"></p></div><button type="submit">${t("Create category","جۆری دروست بکە","إنشاء فئة")}</button></div>
       </form>
       <div class="owner-category-title"><h3>${t("Manage categories","دەستکاری جۆرەکان","إدارة الفئات")}</h3></div>
       <div id="ownerCategoryManager" class="owner-category-manager">${renderOwnerCategoryManager()}</div>
@@ -12633,6 +12667,7 @@ function renderOwnerAds(box){
         <input id="ownerAdImageData" type="hidden" value="${escapeHtml(safeImageUrl(ad?.image))}">
         <img id="ownerAdImagePreview" class="owner-image-preview ${ad?.image?"has-image":""}" src="${escapeHtml(safeImageUrl(ad?.image))}" alt="پێشبینینی وێنەی ڕیکلام">
       </div>
+      <button type="button" data-edit-ad-image onclick="editOwnerAdImage(this)">${escapeHtml(ownerDashboardText("Crop current image","وێنەیێ ئێستا ببڕە","قص الصورة الحالية"))}</button>
       <input id="ownerAdEyebrow" placeholder="سەردێرا بچووک" value="${escapeHtml(ad?.eyebrow||"SHIVAN SHOP")}">
       <input id="ownerAdTitle" required placeholder="سەردێرا ڕیکلامێ" value="${escapeHtml(ad?.title||"")}">
       <textarea id="ownerAdDescription" placeholder="کورتە پەیام">${escapeHtml(ad?.description||"")}</textarea>
@@ -12644,6 +12679,14 @@ function renderOwnerAds(box){
   `;
 }
 
+async function editOwnerAdImage(button){
+  if(!isOwner())return false;
+  const form=button?.closest?.("form"),target=document.getElementById("ownerAdImageData"),preview=document.getElementById("ownerAdImagePreview"),input=document.getElementById("ownerAdImageFile"),submit=form?.querySelector("button[type=submit]"),url=safeImageUrl(target?.value||"");
+  if(!url||!preview){showToast("Choose an advertisement image first.");return false;}
+  if(input)input.disabled=true;if(submit)submit.disabled=true;
+  try{return await openSavedOwnerImageCrop(url,{kind:"ad",input,submit,hiddenId:"ownerAdImageData",previewId:"ownerAdImagePreview",requestId:ownerAdWorkflowId||createOwnerSaveRequestId()});}
+  catch(error){if(input)input.disabled=false;if(submit)submit.disabled=false;showToast(error.message||"The saved advertisement image is unchanged.");return false;}
+}
 async function saveOwnerAd(event){
   event.preventDefault();
   if(!isOwner()) return;
@@ -12671,12 +12714,10 @@ async function saveOwnerAd(event){
   try{
     if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrite(ADS_KEY,requestId);
   }catch(error){
-    editingAdIndex=index;
+    advertisements=previous;saveAdvertisements();
     ownerSaveDiagnostic("owner.banner.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
-    renderOwnerPanel("ads",{replaceHistory:true});
-    const retryForm=document.querySelector("#ownerPanelContent form");if(retryForm)retryForm.dataset.shivanDraftDirty="true";
-    showToast(`ڕیکلام ل ئامێرێ تە ما؛ داتابەیسی هاوبەش پەسەندی نەکرد. Reference: ${error?.requestId||requestId}`);
-    return;
+    if(form)form.dataset.shivanDraftDirty="true";
+    showToast("Shared storage did not confirm this advertisement. The previous banner remains active. Reference: "+(error?.requestId||requestId));return;
   }finally{if(form){form.dataset.saving="false";if(submitButton)submitButton.disabled=false;}}
   editingAdIndex=null;
   ownerAdWorkflowId="";

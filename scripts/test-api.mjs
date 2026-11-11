@@ -71,8 +71,8 @@ assert.match(inventoryRendererSource, /type="number" min="0" step="1" inputmode=
 assert.doesNotMatch(inventoryRendererSource, /<select|<option/, "the stock matrix must not generate large option lists");
 assert.match(inventoryRendererSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "the inventory table must stop rendering above the variant limit");
 assert.match(productSaveSource, /combinationCount>MAX_OWNER_PRODUCT_VARIANTS/, "the save handler must reject over-limit variants before building product data");
-assert.match(renderOwnerCropBlobSource, /for\(const limit of \[1000,760\]\)/, "crop compression should use two bounded output sizes");
-assert.match(renderOwnerCropBlobSource, /\[\["image\/webp",\.76\],\["image\/jpeg",\.7\]\]/, "crop compression should make at most one attempt per format and output size");
+assert.match(renderOwnerCropBlobSource, /for\(const limit of \[1600,1200,900\]\)/, "crop compression preserves detail while falling back through bounded output sizes");
+assert.match(renderOwnerCropBlobSource, /\[\["image\/webp",\.9\],\["image\/jpeg",\.86\]\]/, "crop compression uses high-quality WebP and JPEG fallbacks per bounded output size");
 const cloudFailureBranch = productSaveSource.indexOf("if(cloudSyncRequired&&!cloudSaved)");
 const productSuccessExit = productSaveSource.indexOf("editingProductId=null");
 assert.ok(cloudFailureBranch >= 0 && cloudFailureBranch < productSuccessExit, "a failed shared save must keep the Owner form open before the success navigation");
@@ -1024,7 +1024,7 @@ let previewCanvasSize;
 let previewDrawSource;
 let createdPreviewUrl = "";
 let revokedPreviewUrl = "";
-const resizedTestBitmap = { width: 2048, height: 1536, closed: false, close() { this.closed = true; } };
+const resizedTestBitmap = { width: 3072, height: 2304, closed: false, close() { this.closed = true; } };
 const testPngHeader = new Uint8Array(24);
 testPngHeader.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 testPngHeader[16] = 0; testPngHeader[17] = 0; testPngHeader[18] = 0x0f; testPngHeader[19] = 0xa0;
@@ -1038,8 +1038,8 @@ const resizeSandbox = {
     revokeObjectURL(url) { revokedPreviewUrl = url; },
   },
   MAX_OWNER_IMAGE_INPUT_BYTES: 15 * 1024 * 1024,
-  MAX_CROP_SOURCE_EDGE: 2048,
-  MAX_CROP_SOURCE_PIXELS: 4_194_304,
+  MAX_CROP_SOURCE_EDGE: 3072,
+  MAX_CROP_SOURCE_PIXELS: 9_437_184,
   MAX_CROP_PREVIEW_EDGE: 1200,
   async createImageBitmap(file, options) { requestedBitmapOptions = options; return resizedTestBitmap; },
   document: {
@@ -1056,14 +1056,15 @@ const resizeSandbox = {
 };
 const prepareResizeCode = `${canvasBlobSource}\n${readOwnerImageDimensionsSource}\n${prepareOwnerCropSourceSource}\nprepareOwnerCropSource({ size: 8 * 1024 * 1024, slice: () => ({ arrayBuffer: async () => testPngHeader.buffer }) })`;
 const preparedCropSource = await runInNewContext(prepareResizeCode, { ...resizeSandbox, testPngHeader });
-assert.equal(requestedBitmapOptions.resizeWidth, 2048, "the browser decoder must bound the source width before crop preview creation");
+assert.equal(requestedBitmapOptions.resizeWidth, 3072, "the browser decoder must retain high-resolution source detail within the safe edge limit");
 assert.equal(requestedBitmapOptions.resizeHeight, undefined, "the browser decoder must leave the other axis proportional to avoid distortion");
 assert.equal(requestedBitmapOptions.resizeQuality, "high", "the browser decoder should use high-quality downsampling");
 assert.equal(previewDrawSource, resizedTestBitmap, "the preview must be drawn only from the bounded bitmap");
 assert.equal(previewCanvasSize.width, 0, "the temporary preview canvas width must be released after encoding");
 assert.equal(previewCanvasSize.height, 0, "the temporary preview canvas height must be released after encoding");
-assert.equal(preparedCropSource.width, 2048);
-assert.equal(preparedCropSource.height, 1536);
+assert.equal(requestedBitmapOptions.imageOrientation, "from-image", "EXIF orientation must be applied before the crop preview is shown");
+assert.equal(preparedCropSource.width, 3072);
+assert.equal(preparedCropSource.height, 2304);
 assert.equal(preparedCropSource.objectUrl, createdPreviewUrl);
 const releaseCropSource = runInNewContext(`${releasePreparedCropSourceSource}\nreleasePreparedCropSource`, resizeSandbox);
 releaseCropSource(preparedCropSource);
@@ -1074,17 +1075,18 @@ const portraitPngHeader = new Uint8Array(24);
 portraitPngHeader.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 portraitPngHeader[16] = 0; portraitPngHeader[17] = 0; portraitPngHeader[18] = 0x0b; portraitPngHeader[19] = 0xd8;
 portraitPngHeader[20] = 0; portraitPngHeader[21] = 0; portraitPngHeader[22] = 0x0f; portraitPngHeader[23] = 0xa0;
-const portraitBitmap = { width: 1536, height: 2048, close() {} };
+const portraitBitmap = { width: 2304, height: 3072, close() {} };
 requestedBitmapOptions = null;
 const portraitPrepared = await runInNewContext(`${canvasBlobSource}\n${readOwnerImageDimensionsSource}\n${prepareOwnerCropSourceSource}\nprepareOwnerCropSource({ size: 8 * 1024 * 1024, slice: () => ({ arrayBuffer: async () => portraitPngHeader.buffer }) })`, {
   ...resizeSandbox,
   portraitPngHeader,
   async createImageBitmap(file, options) { requestedBitmapOptions = options; return portraitBitmap; },
 });
-assert.equal(requestedBitmapOptions.resizeHeight, 2048, "portrait photos must be resized by height while preserving their aspect ratio");
+assert.equal(requestedBitmapOptions.resizeHeight, 3072, "portrait photos retain detail while staying within the safe edge limit");
 assert.equal(requestedBitmapOptions.resizeWidth, undefined, "portrait downsampling must not stretch the width");
-assert.equal(portraitPrepared.width, 1536);
-assert.equal(portraitPrepared.height, 2048);
+assert.equal(requestedBitmapOptions.imageOrientation, "from-image", "portrait photos also honor their stored orientation");
+assert.equal(portraitPrepared.width, 2304);
+assert.equal(portraitPrepared.height, 3072);
 
 let oversizedPhotoDecoded = false;
 let oversizedPhotoError = "";
@@ -1216,14 +1218,14 @@ assert.equal(croppedPhotos.length, 1, "the completed crop should be attached to 
 assert.match(croppedPhotos[0].src, /^\/api\/media\/shop\//);
 assert.equal(croppedPhotos[0].color, "#ff0000");
 assert.equal(cropDrawSource, cropSourceBitmap, "final crop rendering should use the bounded bitmap rather than the preview image");
-assert.deepEqual(normalizeCropTransform(cropTransformArgs), [7.6, 0, 0, 7.6, 0, 0], "crop coordinates should map the preview rectangle to the resized source at the successful bounded output size");
+assert.deepEqual(normalizeCropTransform(cropTransformArgs), [12, 0, 0, 12, 0, 0], "crop coordinates map to the actual 1200-pixel fallback output");
 assert.equal(cropDrawArgs[3], 80, "crop coordinates should map from the smaller preview back to the resized source width");
 assert.equal(cropDrawArgs[4], 100, "crop coordinates should map from the smaller preview back to the resized source height");
 assert.equal(cropBitmapClosed, true, "successful crop should release its decoded image resources");
 assert.deepEqual(cropObjectUrlsRevoked, ["blob:crop-source"], "successful crop should release its temporary preview URL");
 assert.equal(cropSubmitButton.disabled, false, "the crop flow should re-enable the Owner form after upload");
 assert.equal(cropToast, "", "successful cropping should not leave the image flow in an error state");
-assert.equal(cropEncodeAttempts, 3, "crop compression should finish after three tries instead of looping through many quality levels");
+assert.equal(cropEncodeAttempts, 3, "crop compression retries only when needed and stops on the first output below the shared limit");
 
 const failedCropCancelButton = { disabled: false, dataset: { cropAction: "cancel" } };
 const failedCropApplyButton = { disabled: false, dataset: { cropAction: "apply" } };
