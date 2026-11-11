@@ -94,13 +94,16 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.burgundy)
   primary: "#f17ba9", secondary: "#ffd0df", background: "#1b0610", card: "#340d20", text: "#fff8fb", secondaryText: "#d9bac7", button: "#d94784",
 }, "Burgundy matches the new Shivan Shop redesign palette");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.OWNER_THEME_PRESETS.purple)), {
-  primary: "#c65d8a", secondary: "#e8a5bc", background: "#200916", card: "#3a102a", text: "#fff5f9", secondaryText: "#d9bac7", button: "#9e315c",
-}, "the retained Plum preset stays within the burgundy fashion palette");
+  primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff",
+}, "the Purple preset restores the original navy and violet palette");
+const appearanceDefault = runtime.normalizeOwnerAppearance({});
+assert.equal(appearanceDefault.theme, "purple", "new stores default to the restored Purple theme");
+assert.equal(appearanceDefault.background, runtime.OWNER_THEME_PRESETS.purple.background, "the default storefront background uses the restored navy palette");
 const legacyPurpleSaved = { theme: "purple", primary: "#8966ff", secondary: "#b49aff", background: "#03050d", card: "#0b0e18", text: "#ffffff", secondaryText: "#a8a3b5", button: "#7045ff", storeName: "Saved Store" };
 const migratedLegacyPurple = runtime.normalizeOwnerAppearance(legacyPurpleSaved);
-assert.equal(migratedLegacyPurple.theme, "purple", "the saved theme choice remains recognizable after visual migration");
-assert.equal(migratedLegacyPurple.primary, runtime.OWNER_THEME_PRESETS.purple.primary, "legacy saved purple accents render in the new Plum palette");
-assert.equal(migratedLegacyPurple.background, runtime.OWNER_THEME_PRESETS.purple.background, "legacy saved purple backgrounds render in the new Plum palette");
+assert.equal(migratedLegacyPurple.theme, "purple", "the saved Purple theme choice remains recognizable");
+assert.equal(migratedLegacyPurple.primary, runtime.OWNER_THEME_PRESETS.purple.primary, "legacy saved purple accents stay in the original Purple palette");
+assert.equal(migratedLegacyPurple.background, runtime.OWNER_THEME_PRESETS.purple.background, "legacy saved purple backgrounds stay in the original navy palette");
 assert.equal(migratedLegacyPurple.storeName, "Saved Store", "legacy theme migration preserves store branding");
 assert.equal(legacyPurpleSaved.primary, "#8966ff", "normalizing the legacy theme does not mutate saved source data");
 assert.equal(runtime.isValidAppearanceHex("#12aBcD"), true, "six-digit HEX accepts mixed-case digits");
@@ -129,9 +132,10 @@ const globalCss = runtime.ownerAppearanceGlobalCss({ ...runtime.OWNER_THEME_PRES
 for (const value of Object.values(runtime.OWNER_THEME_PRESETS.pink)) assert.ok(globalCss.includes(value), `global theme applies ${value}`);
 assert.match(globalCss, /Poppins/);
 assert.match(globalCss, /--shop-primary:#ff63a7;/, "the saved primary color is exposed as a centralized document token");
+assert.doesNotMatch(globalCss, /\.shop-startup-(?:splash|logo|sweep)/, "Owner appearance cannot recolor the exact brand splash image");
 assert.match(globalCss, /body,body \*,button,input,select,textarea\{font-family:"Poppins"/, "the selected font applies to all document content and controls");
 for (const selector of [
-  ".shop-startup-splash{", ".shop-promo-onboarding{", ".shop-promo-onboarding-media{", ".shop-promo-onboarding-next",
+  ".shop-promo-onboarding{", ".shop-promo-onboarding-media{", ".shop-promo-onboarding-choice",
   "#authPage", ".auth-ad,.hero", ".nav-item.active", ".product", ".detail-box", ".cart-item",
   ".profile-card", ".owner-form", ".owner-dashboard-banner", ".owner-orders-heading", ".owner-qr-product-hero",
   ".owner-stat-card", ".owner-customer-card", ".owner-sidebar", ".owner-analytics-bar-fill",
@@ -152,7 +156,7 @@ assert.match(lowContrastCss, /--shop-button-text:#111111;/, "button foreground i
 const rendered = { innerHTML: "" };
 runtime.renderOwnerAppearance(rendered);
 assert.match(rendered.innerHTML, /owner-theme-presets/);
-assert.equal((rendered.innerHTML.match(/data-owner-theme=/g) || []).length, 6, "the editor renders Burgundy and all five existing theme choices");
+assert.equal((rendered.innerHTML.match(/data-owner-theme=/g) || []).length, 6, "the editor renders all six existing theme choices, including Burgundy");
 assert.equal((rendered.innerHTML.match(/type="color"/g) || []).length, 7, "each custom color has a native color picker");
 assert.equal((rendered.innerHTML.match(/type="text"[^>]*pattern=/g) || []).length, 7, "each custom color has an editable validated HEX field");
 for (const font of ["Poppins", "Roboto", "Inter", "Montserrat", "Tahoma"]) assert.ok(rendered.innerHTML.includes(font), `${font} is offered`);
@@ -169,8 +173,11 @@ context.activeLanguage = "ar"; runtime.renderOwnerAppearance(rendered);
 assert.match(rendered.innerHTML, /الألوان والخط/, "the Appearance section has Arabic translations");
 assert.match(rendered.innerHTML, /احفظ التغييرات/, "Arabic theme controls are translated");
 assert.match(rendered.innerHTML, /لون التمييز الأساسي/, "Arabic color field labels are translated");
-context.activeLanguage = "en"; runtime.renderOwnerAppearance(rendered);
+context.activeLanguage = "en";
+runtime.setAppearance({ ...runtime.getAppearance(), ...runtime.OWNER_THEME_PRESETS.burgundy, theme: "burgundy" });
+runtime.renderOwnerAppearance(rendered);
 assert.match(rendered.innerHTML, /owner-theme-button-text:#111111/, "the Burgundy live preview selects dark button text for readable contrast");
+runtime.setAppearance({ ...runtime.getAppearance(), ...runtime.OWNER_THEME_PRESETS.purple, theme: "purple" });
 assert.doesNotMatch(rendered.innerHTML, /ownerBackupSync/, "backup controls have their own Store Settings section rather than being mixed into Appearance");
 const contrastPreview = runtime.ownerAppearancePreviewMarkup({ text: "#111111", secondaryText: "#222222", background: "#000000", card: "#080808", primary: "#333333", secondary: "#444444" });
 assert.match(contrastPreview, /owner-theme-contrast-note/, "the live preview explains low-contrast custom selections");
@@ -198,7 +205,7 @@ assert.equal(elements.get("ownerThemePrimaryHex").value, "#FF63A7", "preset sele
 assert.equal(elements.get("ownerThemePrimaryPicker").value, "#ff63a7", "preset selection updates color pickers");
 assert.equal(presets.find(button => button.dataset.ownerTheme === "pink").attributes["aria-pressed"], "true", "selected preset is accessible and clearly indicated");
 assert.match(elements.get("ownerThemePreviewMount").innerHTML, /--owner-theme-primary:#ff63a7/);
-assert.equal(runtime.getAppearance().theme, "burgundy", "unsaved preview changes do not alter the published global theme");
+assert.equal(runtime.getAppearance().theme, "purple", "unsaved preview changes do not alter the published Purple default theme");
 
 elements.get("ownerThemeSecondaryHex").value = "#12GG56";
 assert.throws(() => runtime.readOwnerAppearanceForm(), /six-digit HEX color/, "invalid custom HEX values block saving");
@@ -245,7 +252,7 @@ const savedStoreInformation = { ...oldTheme, storeName: "Shivan Shop Test", cont
 runtime.setAppearance(savedStoreInformation);
 localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(savedStoreInformation));
 await runtime.resetOwnerAppearance();
-assert.equal(runtime.getAppearance().theme, "burgundy", "reset restores the Burgundy design theme");
+assert.equal(runtime.getAppearance().theme, "purple", "reset restores the original Purple theme while preserving store settings");
 assert.equal(runtime.getAppearance().storeName, "Shivan Shop Test", "reset preserves the store name");
 assert.equal(runtime.getAppearance().contactEmail, "shop@example.test", "reset preserves store contact details");
 assert.equal(runtime.getAppearance().deliveryAreas, "Owner-entered coverage", "reset preserves delivery information");
@@ -256,7 +263,7 @@ runtime.setAppearance(oldTheme);
 localStorage.setItem("shivan_shop_owner_appearance", JSON.stringify(oldTheme));
 await runtime.resetOwnerAppearance();
 assert.equal(localStorage.getItem("shivan_shop_owner_appearance"), null, "confirmed reset removes only the existing Owner appearance key");
-assert.equal(runtime.getAppearance().theme, "burgundy");
+assert.equal(runtime.getAppearance().theme, "purple");
 assert.equal(context.confirmedWrites.at(-1).key, "shivan_shop_owner_appearance", "reset uses the same shared Owner setting");
 
 context.isOwner = () => false;

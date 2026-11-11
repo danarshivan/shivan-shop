@@ -8,9 +8,8 @@ assert.ok(motionBlock, "the website should include the shared motion layer");
 for (const [pattern, message] of [
   [/button:not\(:disabled\):active/, "buttons should provide gentle press feedback"],
   [/\.shop-promo-onboarding-image\{transition:/, "onboarding slides should cross-fade and scale smoothly"],
-  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="forward"\].*shopMotionOnboardingForward 300ms/, "forward onboarding steps should use a smooth horizontal transition"],
-  [/\.shop-promo-onboarding\.is-transitioning\[data-direction="backward"\].*shopMotionOnboardingBackward 300ms/, "backward onboarding steps should use the matching reverse transition"],
-  [/\.shop-promo-onboarding\[data-screen="3"\].*shopMotionChoiceIn/, "the final onboarding choices should enter smoothly"],
+  [/\.shop-promo-onboarding\.is-handoff-exiting\{[^}]*animation:shopMotionOnboardingHandoff 260ms/, "the current Welcome actions should hand off smoothly into their destination"],
+  [/@keyframes shopMotionOnboardingHandoff\{from\{opacity:1;transform:translate3d\(0,0,0\)\}to\{opacity:0;transform:translate3d\(-14px,0,0\)\}\}/, "Welcome exits with a subtle fade and short horizontal movement"],
   [/\.view\.active\{animation:shopMotionViewIn/, "screen navigation should animate when a view opens"],
   [/#productsGrid>\.product:nth-child\(-n\+8\)/, "the visible product cards should use a short stagger"],
   [/\.hero-slide\.active img/, "banner images should transition gently"],
@@ -61,4 +60,4 @@ const handoff = html.match(/function beginShopOnboardingPageHandoff\([^\n]*\)\{[
 assert.match(handoff, /prepareDestination\(\)[\s\S]*?prefersReducedShopOnboardingMotion\(\)[\s\S]*?SHOP_ONBOARDING_HANDOFF_MS/, "the route should be ready before the overlay exits, with immediate reduced-motion support");
 assert.match(html, /shopOnboardingHandoffLocked=true[\s\S]*?setTimeout\(\(\)=>hideShopOnboarding\(\),SHOP_ONBOARDING_HANDOFF_MS\)/, "the onboarding handoff should guard double taps and keep its overlay until the transition ends");
 
-console.log("Website motion checks passed: screen and list entrances, directional onboarding and banner transitions, button feedback, modal motion, reduced-motion support, and 260ms Explore Models / Create Account handoffs.");
+console.log("Website motion checks passed: screen and list entrances, Welcome handoff and banner transitions, button feedback, modal motion, reduced-motion support, and 260ms Explore Models / Create Account handoffs.");

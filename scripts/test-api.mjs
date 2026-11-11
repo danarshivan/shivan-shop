@@ -10,6 +10,20 @@ const apiSource = await readFile(new URL("../functions/api/[[path]].js", import.
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
 const { onRequest } = await import(apiUrl);
 const htmlSource = await readFile(new URL("../index.html", import.meta.url), "utf8");
+function assertPublicInventoryRedacted(productsValue, source) {
+  const products = JSON.parse(productsValue);
+  assert.ok(Array.isArray(products), `${source} should return a product list`);
+  for (const product of products) {
+    assert.equal(Object.hasOwn(product, "stock"), false, `${source} must not expose exact product stock`);
+    assert.equal(typeof product.inStock, "boolean", `${source} should expose only product availability`);
+    assert.equal(product.inventoryAvailabilityOnly, true, `${source} should mark inventory as availability-only`);
+    for (const variant of product.variants || []) {
+      assert.equal(Object.hasOwn(variant, "stock"), false, `${source} must not expose exact variant stock`);
+      assert.equal(typeof variant.inStock, "boolean", `${source} should expose only variant availability`);
+    }
+  }
+  assert.doesNotMatch(JSON.stringify(products), /\"stock\"\s*:/, `${source} must not contain a nested stock quantity`);
+}
 const inlineScripts = [...htmlSource.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(script => script.trim());
 assert.ok(inlineScripts.length, "the storefront should contain its application script");
 for (const [index, script] of inlineScripts.entries()) {
@@ -17,7 +31,7 @@ for (const [index, script] of inlineScripts.entries()) {
   catch (exception) { throw new Error(`Storefront script ${index + 1} has a syntax error: ${exception.message}`); }
 }
 const productSaveSource = htmlSource.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
-const productPricingSource = htmlSource.match(/function getProductPricing\(product\)\{[\s\S]*?\n\}/)?.[0] || "";
+const productPricingSource = htmlSource.match(/function getProductPricing\(product[^\n]*\)\{[\s\S]*?\n\}/)?.[0] || "";
 const renderPriceBreakdownSource = htmlSource.match(/function renderPriceBreakdown\(originalPrice,finalPrice,discountPercent,\{badge=false\}=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
 const renderProductPricingSource = htmlSource.match(/function renderProductPricing\(product,options=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
 const ownerDiscountPreviewSource = htmlSource.match(/function updateOwnerDiscountPreview\(\)\{[\s\S]*?\n\}/)?.[0] || "";
@@ -86,7 +100,10 @@ assert.match(confirmCloudShopWritesSource, /persistOwnerShopValue\(key,latestVal
 assert.match(confirmCloudShopWritesSource, /persistOwnerShopDelete\(key,requestId\)/, "a missing or stale delete marker must fall back to an explicit shared delete request");
 assert.match(cloudRequestSource, /AbortController/, "owner cloud requests need a timeout so the UI cannot wait forever");
 assert.match(resetPasswordSource, /if\(cloudMode\)[\s\S]*?cloud passwords can only be changed after signing in/i, "the hosted forgot-password flow must not bypass account verification");
-assert.match(htmlSource, /stock-line \$\{\(Number\(p\.stock\)\|\|0\)<=0\?"out-of-stock":""\}/, "zero-stock products should receive the out-of-stock status style");
+assert.match(htmlSource, /function productHasAvailableInventory\(product\)/, "customer product cards should render availability without exposing inventory quantities");
+assert.match(htmlSource, /stock-line \$\{productHasAvailableInventory\(p\)\?"":"out-of-stock"\}/, "customer product card status depends only on availability");
+assert.match(htmlSource, /detailStock"\)\.textContent=translateText\(variantStock\(currentProduct,selectedColor,selectedSize\)>0\?"بەردەست:"/, "Product Details shows availability without an exact stock count");
+assert.doesNotMatch(htmlSource, /بەردەست: \$\{Math\.max\(0,Number\(p\.stock\)\|\|0\)\}/, "customer product cards must not print exact stock quantities");
 assert.match(htmlSource, /بەردەست نەماوە/, "the storefront should show a localized out-of-stock label");
 assert.ok(productPricingSource, "the storefront should calculate a shared product price breakdown");
 assert.match(productSaveSource, /ownerProductDiscount/, "Owner product saves should include the optional discount field");
@@ -644,9 +661,13 @@ assert.equal(reloadedProducts[0].id, productId, "the product ID must survive a s
 assert.equal(reloadedProducts[0].price, 12000, "the product price must survive a server reload");
 assert.equal(reloadedProducts[0].variants[1].stock, 0, "the out-of-stock quantity must survive a server reload");
 assert.equal(reloadedProducts[0].images[0].src, imageUrl, "the cropped image reference must survive a server reload");
+assert.equal(typeof reloadedProducts[0].variants[1].stock, "number", "the Main Owner retains exact variant inventory through shared sync");
 const secondDevice = await context(new Request("https://shop.test/api/sync"));
 assert.equal(secondDevice.status, 200, "a separate device can load the public shop data from shared D1");
-assert.equal(JSON.parse((await secondDevice.json()).shop.shivan_shop_products)[0].images[0].src, imageUrl, "the product and cropped image URL must be shared across devices");
+const secondDeviceData = await secondDevice.json();
+const secondDeviceProducts = JSON.parse(secondDeviceData.shop.shivan_shop_products);
+assert.equal(secondDeviceProducts[0].images[0].src, imageUrl, "the product and cropped image URL must be shared across devices");
+assertPublicInventoryRedacted(secondDeviceData.shop.shivan_shop_products, "anonymous shop sync");
 const reloadedProductImage = await context(new Request(`https://shop.test${reloadedProducts[0].images[0].src}`));
 assert.equal(reloadedProductImage.status, 200, "the product's cropped image must remain readable after a D1 reload");
 assert.deepEqual(new Uint8Array(await reloadedProductImage.arrayBuffer()), imageBytes);
@@ -669,6 +690,34 @@ const categorySave = await context(new Request("https://shop.test/api/sync", {
 assert.equal(categorySave.status, 200, "owner categories should save to shared D1");
 assert.equal((await categorySave.json()).persisted, true, "category save should include D1 acknowledgement");
 assert.equal(DB.shop.get(categoryKey), categoryValue, "category names should persist in D1");
+const categoryMetaKey = "shivan_shop_category_meta";
+const categoryMetaValue = JSON.stringify({ Jackets: { en: "Jackets", ar: "جاكيتات", visible: true, order: 0, image: inlineImage } });
+const categoryMetaSave = await context(new Request("https://shop.test/api/sync", {
+  method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie, "X-Client-Request-ID": "category-image-save-001" },
+  body: JSON.stringify({ key: categoryMetaKey, value: categoryMetaValue }),
+}));
+assert.equal(categoryMetaSave.status, 200, "Owner category images and settings should save to shared D1 after R2 persistence");
+assert.equal((await categoryMetaSave.json()).persisted, true, "category image metadata saves require D1 confirmation");
+const storedCategoryMeta = JSON.parse(DB.shop.get(categoryMetaKey));
+assert.equal(storedCategoryMeta.Jackets.visible, true, "category visibility persists in the shared metadata");
+assert.equal(storedCategoryMeta.Jackets.order, 0, "category order persists in the shared metadata");
+assert.match(storedCategoryMeta.Jackets.image, /^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.webp$/, "category images become shared R2 URLs before D1 persistence");
+assert.equal(DB.shop.get(categoryMetaKey).includes("data:image/"), false, "D1 category metadata contains no image bytes");
+const categoryImageKey = storedCategoryMeta.Jackets.image.replace(/^\/api\/media\//, "");
+assert.equal(MEDIA.objects.has(categoryImageKey), true, "category image bytes are stored in the shared R2 bucket");
+const priorCategoryMetaValue = DB.shop.get(categoryMetaKey);
+const invalidCategoryMeta = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: ownerLoginCookie }, body: JSON.stringify({ key: categoryMetaKey, value: JSON.stringify({ Jackets: { image: "https://untrusted.example/category.jpg" } }) }) }));
+assert.equal(invalidCategoryMeta.status, 400, "category images must use validated shared storage addresses");
+assert.equal((await invalidCategoryMeta.json()).code, "INVALID_CATEGORY_DATA");
+assert.equal(DB.shop.get(categoryMetaKey), priorCategoryMetaValue, "invalid category image data leaves saved metadata unchanged");
+const categoryStaffId = "staff-category-permission-test";
+const categoryStaffToken = "staff-category-test-session-token";
+const categoryStaffHash = Buffer.from(await webcrypto.subtle.digest("SHA-256", new TextEncoder().encode(categoryStaffToken))).toString("base64url");
+DB.accounts.set(categoryStaffId, { id: categoryStaffId, identifier: "category-staff@example.test", name: "Category Staff", role: "staff" });
+DB.sessions.set(categoryStaffHash, { accountId: categoryStaffId, expiresAt: Math.floor(Date.now() / 1000) + 3600 });
+const categoryStaffWrite = await context(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: `shivan_session=${categoryStaffToken}` }, body: JSON.stringify({ key: categoryMetaKey, value: JSON.stringify({ Jackets: { visible: false } }) }) }));
+assert.equal(categoryStaffWrite.status, 403, "staff sessions cannot bypass Main Owner-only category management");
+assert.equal(DB.shop.get(categoryMetaKey), priorCategoryMetaValue, "unauthorized category changes leave shared metadata untouched");
 const bannerImageBytes = Uint8Array.from([...imageBytes, 4]);
 const inlineBannerImage = `data:image/webp;base64,${Buffer.from(bannerImageBytes).toString("base64")}`;
 const bannerSave = await context(new Request("https://shop.test/api/sync", {
@@ -680,7 +729,9 @@ assert.equal(bannerSave.status, 200, "owner banner data and inline photos should
 assert.deepEqual(await bannerSave.json(), { ok: true, key: "shivan_shop_ads", persisted: true, requestId: bannerSave.headers.get("X-Request-ID") });
 assert.equal(JSON.parse(DB.shop.get("shivan_shop_ads"))[0].title, "Test banner", "banner text should persist with its image URL");
 const categorySecondDevice = await context(new Request("https://shop.test/api/sync"));
-assert.equal(JSON.parse((await categorySecondDevice.json()).shop[categoryKey])[1], "Tops", "category data should load for another device");
+const categorySecondDeviceData = await categorySecondDevice.json();
+assert.equal(JSON.parse(categorySecondDeviceData.shop[categoryKey])[1], "Tops", "category data should load for another device");
+assert.equal(JSON.parse(categorySecondDeviceData.shop[categoryMetaKey]).Jackets.image, storedCategoryMeta.Jackets.image, "category image URLs synchronize to another device after refresh");
 const bannerStored = JSON.parse(DB.shop.get("shivan_shop_ads"));
 assert.match(bannerStored[0].image, /^\/api\/media\/shop\//, "banner records should reference their shared R2 image");
 assert.doesNotMatch(DB.shop.get("shivan_shop_ads"), /data:image\//, "D1 should persist banner text and image URL, not the image bytes");
@@ -786,6 +837,7 @@ const bootstrap = await context(new Request("https://shop.test/api/bootstrap"));
 assert.equal(bootstrap.status, 200);
 const bootstrapData = await bootstrap.json();
 assert.equal(Object.keys(bootstrapData.shop).some(key => key.startsWith("media:")), false, "image bytes should not be sent in bootstrap data");
+assertPublicInventoryRedacted(bootstrapData.shop.shivan_shop_products, "public bootstrap");
 
 const oversized = new Uint8Array(1_300_001);
 oversized.set(imageBytes);
@@ -810,6 +862,9 @@ const signup = await context(new Request("https://shop.test/api/auth/signup", {
 }));
 assert.equal(signup.status, 201, "customer sign-up should work with the shared account API");
 const customerCookie = signup.headers.get("Set-Cookie").split(";")[0];
+const customerSync = await context(new Request("https://shop.test/api/sync", { headers: { Cookie: customerCookie } }));
+assert.equal(customerSync.status, 200, "customers can still refresh shared shop data");
+assertPublicInventoryRedacted((await customerSync.json()).shop.shivan_shop_products, "authenticated customer sync");
 const customerAccount = [...DB.accounts.values()].find(account => account.identifier === "customer@example.test");
 assert.ok(customerAccount, "the simulated customer account should exist for offline checkout tests");
 const customerOrderForAuthorization = { id: "customer-status-owner-only-test", userId: customerAccount.id, status: "لە چاوەڕوانی", total: 1000, items: [] };
@@ -1293,6 +1348,7 @@ const productFields = new Map([
   ["ownerProductDiscountEndsAt", { value: "2030-01-02T03:04" }],
   ["ownerProductImagesData", cropTarget],
   ["ownerProductCategory", { value: "جلوبەرگ" }],
+  ["ownerProductStoreAvailability", { value: "shop1" }],
   ["ownerProductSizes", { value: "M" }],
   ["ownerProductColors", { value: "Red:#ff0000" }],
   ["ownerProductDescription", { value: "Local regression test product" }],
@@ -1371,6 +1427,13 @@ const productSandbox = {
     return response;
   },
 };
+productFields.get("ownerProductStoreAvailability").value = "";
+const writesBeforeMissingStore = productApiResults.length;
+await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
+assert.equal(productApiResults.length, writesBeforeMissingStore, "the Owner form rejects a missing Store Availability before cloud save");
+assert.equal(productSandbox.products.length, 0, "a missing store assignment does not create a product");
+assert.equal(focusedProductFieldId, "ownerProductStoreAvailability", "the required Store Availability field receives focus");
+productFields.get("ownerProductStoreAvailability").value = "shop1";
 uiDB.failNextProductWrite = true;
 await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
 assert.equal(productApiResults[0]?.status, 503, "the simulated production-like D1 failure should reach the product API");
@@ -1395,6 +1458,7 @@ assert.equal(uiStoredProducts[0].id, 20261012001);
 assert.equal(uiStoredProducts[0].price, 12000, "the Owner form should save the entered product price");
 assert.equal(uiStoredProducts[0].discount, 30, "the Owner form should save the optional discount percentage");
 assert.equal(uiStoredProducts[0].discountTimerEnabled, true, "the Owner form should persist the limited-time toggle in the shared product record");
+assert.equal(uiStoredProducts[0].storeAvailability, "shop1", "Owner product creation persists Store Availability through the API");
 assert.equal(uiStoredProducts[0].discountEndsAt, "2030-01-02T03:04:00.000Z", "the exact Owner-selected end time should persist through the shared API");
 const invalidTimerProduct = { ...uiStoredProducts[0], discountEndsAt: "not a date" };
 const invalidTimerResponse = await uiContext(new Request("https://shop.test/api/sync", {
@@ -1410,9 +1474,11 @@ assert.equal(uiStoredProducts[0].variants[0].stock, 3, "the Owner form should sa
 assert.equal(uiStoredProducts[0].category, "جلوبەرگ", "the Owner form should save the selected category");
 assert.equal(uiStoredProducts[0].images[0].src, croppedPhotos[0].src, "the cropped image URL should be stored with the product");
 const uiReload = await uiContext(new Request("https://shop.test/api/sync", { headers: { Cookie: uiCookie } }));
+assert.equal(JSON.parse((await uiReload.clone().json()).shop.shivan_shop_products)[0].storeAvailability, "shop1", "Store Availability survives reload from shared storage");
 assert.equal(JSON.parse((await uiReload.json()).shop.shivan_shop_products)[0].images[0].src, croppedPhotos[0].src, "the cropped product should survive reload through D1");
 const uiSecondDevice = await uiContext(new Request("https://shop.test/api/sync"));
 const uiSecondDeviceProduct = JSON.parse((await uiSecondDevice.json()).shop.shivan_shop_products)[0];
+assert.equal(uiSecondDeviceProduct.storeAvailability, "shop1", "a second device receives the saved store assignment");
 assert.equal(uiSecondDeviceProduct.price, 12000, "a second device should receive product fields saved through the Owner form");
 assert.equal(uiSecondDeviceProduct.images[0].src, croppedPhotos[0].src, "a second device should receive the cropped image URL");
 const uiImageReload = await uiContext(new Request(`https://shop.test${croppedPhotos[0].src}`));
@@ -1424,18 +1490,29 @@ productFields.get("ownerProductDiscountTimerEnabled").checked = false;
 productFields.get("ownerProductPrice").value = "13500";
 productFields.get("ownerProductDiscount").value = "";
 productFields.get("ownerProductDescription").value = "Edited product details";
+productFields.get("ownerProductStoreAvailability").value = "both";
 productSandbox.readOwnerInventoryDraft = () => new Map([[JSON.stringify(["#ff0000", "M"]), "4"]]);
 await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);
 assert.equal(productApiResults[2]?.status, 200, "editing a product in the Owner form should be acknowledged by D1");
 const uiEditedProduct = JSON.parse(uiDB.shop.get("shivan_shop_products"))[0];
 assert.equal(uiEditedProduct.id, 20261012001, "editing an Owner product must retain the existing ID");
 assert.equal(uiEditedProduct.price, 13500, "editing an Owner product should persist its new price");
+assert.equal(uiEditedProduct.storeAvailability, "both", "the Owner can change a saved product to Both Shops");
 assert.equal(Object.hasOwn(uiEditedProduct, "discount"), false, "leaving the optional discount blank should remove it on edit");
 assert.equal(Object.hasOwn(uiEditedProduct, "discountTimerEnabled"), false, "disabling a timed discount should remove its timer from the updated product record");
 assert.equal(uiEditedProduct.stock, 4, "editing an Owner product should persist its new stock");
 assert.equal(uiEditedProduct.images[0].src, croppedPhotos[0].src, "editing product details must preserve its saved crop");
 
 const productCountBeforeInvalidDiscount = productSandbox.products.length;
+const storeAssignmentAfterEdit = JSON.parse(uiDB.shop.get("shivan_shop_products"))[0];
+const legacyClientProduct = { ...storeAssignmentAfterEdit }; delete legacyClientProduct.storeAvailability;
+const legacyClientSave = await uiContext(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: uiCookie, Origin: "https://shop.test" }, body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([legacyClientProduct]) }) }));
+assert.equal(legacyClientSave.status, 200, "older clients may update product data without omitting a saved store assignment");
+assert.equal(JSON.parse(uiDB.shop.get("shivan_shop_products"))[0].storeAvailability, "both", "the API preserves the existing assignment when an older client omits the field");
+const invalidStoreProduct = { ...JSON.parse(uiDB.shop.get("shivan_shop_products"))[0], storeAvailability: "all stores" };
+const invalidStoreSave = await uiContext(new Request("https://shop.test/api/sync", { method: "PUT", headers: { "Content-Type": "application/json", Cookie: uiCookie, Origin: "https://shop.test" }, body: JSON.stringify({ key: "shivan_shop_products", value: JSON.stringify([invalidStoreProduct]) }) }));
+assert.equal(invalidStoreSave.status, 400, "the shared API rejects an unsupported store assignment");
+assert.equal((await invalidStoreSave.json()).code, "INVALID_PRODUCT_STORE_AVAILABILITY");
 const writesBeforeInvalidDiscount = productApiResults.length;
 productFields.get("ownerProductDiscount").value = "100";
 await runInNewContext(`${cloudRequestSource}\n${clearAcknowledgedCloudWriteSource}\n${persistOwnerShopValueSource}\n${confirmCloudShopWritesSource}\n${confirmCloudShopWriteSource}\n${productSaveSource}\nsaveOwnerProduct(testEvent)`, productSandbox);

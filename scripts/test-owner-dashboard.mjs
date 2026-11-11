@@ -13,7 +13,7 @@ const functionSource = name => {
 const requiredFunctions = [
   "ownerDashboardText", "ownerPanelRoute", "ownerDashboardNavItems", "ownerDashboardShellMarkup",
   "ownerCancelledOrder", "ownerConfirmedSalesOrder", "ownerPendingOrder", "ownerDashboardStats", "ownerActiveTimedOfferCount",
-  "renderOwnerDashboard", "renderOwnerCustomers",
+  "renderOwnerDashboard", "renderOwnerCustomers", "customerBroadcastStatusLabel",
 ];
 const sources = requiredFunctions.map(functionSource).join("\n");
 const now = Date.parse("2026-11-02T18:00:00.000Z");
@@ -39,6 +39,7 @@ const sourceData = {
 const baseline = JSON.stringify(sourceData);
 const context = {
   activeLanguage: "en",
+  customerUiText: en => en,
   ownerAnalyticsSelection: { period: "daily", date: "", month: "", year: "" },
   ownerReportSelection: { preset: "month", start: "", end: "" },
   OWNER_IDENTIFIER: "owner@example.test",
@@ -62,6 +63,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerDashboardStats())), {
   orders: 3, products: 4, categories: 3, customers: 2, sales: 1400, confirmedOrders: 2,
 }, "dashboard statistics are calculated from saved orders, products, categories, and customer accounts");
 assert.equal(runtime.ownerActiveTimedOfferCount(now), 1, "only discounted offers with a future end time are counted as active");
+assert.equal(runtime.customerBroadcastStatusLabel("no_subscribers"), "No customer devices subscribed", "the notification history describes a global subscription count rather than obsolete per-topic preferences");
 assert.equal(runtime.ownerConfirmedSalesOrder({ status: "لە چاوەڕوانی", total: 100 }), false, "pending orders are not counted as confirmed sales");
 assert.equal(runtime.ownerConfirmedSalesOrder({ paymentStatus: "PAID", total: 100 }), true, "paid orders count as confirmed sales");
 
@@ -70,6 +72,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("colors"))), 
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("store-settings"))), { panel: "settings", nav: "store-settings" }, "Store Settings opens the six-section settings hub");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("analytics"))), { panel: "analytics", nav: "analytics" }, "Analytics opens its owner-only report view");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("alerts"))), { panel: "alerts", nav: "alerts" }, "Smart Alerts opens its Owner-only section");
+assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("customer-notifications"))), { panel: "customer-notifications", nav: "customer-notifications" }, "Customer Notifications opens the existing Owner monitoring and broadcast section");
 assert.deepEqual(JSON.parse(JSON.stringify(runtime.ownerPanelRoute("discounts"))), { panel: "products", nav: "discounts" }, "Discounts reuse the existing product editor and stored settings");
 
 const dashboard = { innerHTML: "" };
@@ -80,6 +83,7 @@ assert.match(dashboard.innerHTML, /Create Discount/);
 assert.match(dashboard.innerHTML, /Create Ad/);
 assert.match(dashboard.innerHTML, /owner-smart-alert-summary/);
 assert.match(dashboard.innerHTML, /Smart Alerts/);
+assert.match(dashboard.innerHTML, /owner-management-card owner-mobile-customer-notifications[\s\S]*?renderOwnerPanel\('customer-notifications'\)/, "the mobile dashboard exposes the existing Customer Notifications route");
 assert.match(dashboard.innerHTML, /Limited-Time Discount/);
 assert.match(dashboard.innerHTML, /Create Offer/);
 assert.match(dashboard.innerHTML, /1 active timed offer/);
@@ -96,11 +100,13 @@ assert.match(shell, /class="owner-sidebar"/);
 assert.doesNotMatch(shell, /ownerMobileNavigation|ownerMobileToolbar|owner-mobile-toolbar/, "the Product List section dropdown and wrapper are absent on every screen");
 assert.doesNotMatch(shell, /owner-visit-mobile/, "the redundant mobile Visit Store button is removed");
 assert.match(shell, /Visit Store/);
-for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Smart Alerts", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
+for (const label of ["Dashboard", "Product List", "Categories", "Discounts &amp; Offers", "Orders", "Smart Alerts", "Customer Notifications", "Customers", "Colors &amp; Font", "QR Code", "Analytics", "Reports", "Backup &amp; Sync", "Store Settings"]) {
   assert.ok(shell.includes(label), `desktop and mobile navigation should expose ${label}`);
 }
 
 assert.match(html, /@media\(max-width:760px\)\{\.owner-admin-shell\{display:block\}/, "the dashboard keeps its responsive mobile layout after removing the section dropdown");
+assert.ok(html.includes(".owner-mobile-customer-notifications{display:none}"), "the dashboard card avoids duplicating the desktop sidebar link");
+assert.ok(html.includes(".owner-sidebar{display:none}.owner-mobile-customer-notifications{display:flex}"), "the Customer Notifications dashboard card appears when the mobile sidebar is hidden");
 assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{\.owner-dashboard-nav-item/, "dashboard controls respect reduced motion");
 const ownerViewMarkup = html.match(/<!-- OWNER -->([\s\S]*?)<!-- PRODUCT DETAIL -->/)?.[1];
 assert.ok(ownerViewMarkup, "the Owner view markup is present");

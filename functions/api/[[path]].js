@@ -22,6 +22,7 @@ const SHOP_KEYS = new Set([
   "shivan_shop_deleted_categories",
 ]);
 const USER_KEYS = new Set(["cart", "favorites", "settings", "support"]);
+const OWNER_CATEGORY_KEYS = new Set(["shivan_shop_categories", "shivan_shop_category_meta", "shivan_shop_category_renames", "shivan_shop_deleted_categories"]);
 const PRODUCTS_KEY = "shivan_shop_products";
 const INVENTORY_OPERATION_PREFIX = "inventory-op:";
 // D1's row limit is 2,000,000 bytes. Base64 adds roughly one third, so leave
@@ -129,6 +130,13 @@ function productPriceDetails(product) {
 
 function validateProductPriceDetails(products) {
   for (const product of products) productPriceDetails(product);
+}
+function validateProductStoreAvailability(products) {
+  const allowed = new Set(["shop1", "shop2", "both"]);
+  for (const product of products) {
+    if (!product || typeof product !== "object" || Array.isArray(product) || !Object.hasOwn(product, "storeAvailability")) continue;
+    if (typeof product.storeAvailability !== "string" || !allowed.has(product.storeAvailability)) throw shopValidationError("INVALID_PRODUCT_STORE_AVAILABILITY", "Store availability must be Shivan Shop 1, Shivan Shop 2, or Both Shops.");
+  }
 }
 
 function createVariantQrId(used = new Set()) {
@@ -668,6 +676,21 @@ function staffOrderView(order, includeCustomerInformation = false) {
   return safe;
 }
 
+function staffAlertView(value, includeExactInventory = false) {
+  if (includeExactInventory) return value;
+  const state = asJson(value, {});
+  if (!state || typeof state !== "object" || Array.isArray(state)) return JSON.stringify({});
+  return JSON.stringify({
+    ...state,
+    alerts: (Array.isArray(state.alerts) ? state.alerts : []).map(alert => {
+      if (!alert || typeof alert !== "object" || !["low_stock", "out_of_stock"].includes(alert.type)) return alert;
+      const safe = { ...alert };
+      delete safe.quantity;
+      return safe;
+    }),
+  });
+}
+
 function cookieValue(request, name) {
   const header = request.headers.get("Cookie") || "";
   const entry = header.split(";").map(value => value.trim()).find(value => value.startsWith(`${name}=`));
@@ -726,11 +749,37 @@ async function ownerExists(env) {
   return Boolean(row);
 }
 
-async function getShopState(env, includeOwnerPrivate = false) {
+function customerProductInventoryView(rawProduct) {
+  const product = completeProductVariants(rawProduct && typeof rawProduct === "object" && !Array.isArray(rawProduct) ? rawProduct : {});
+  const totalStock = product.variants.reduce((sum, variant) => sum + Math.max(0, Number(variant.stock) || 0), 0);
+  const safeProduct = {
+    ...product,
+    inventoryAvailabilityOnly: true,
+    inStock: totalStock > 0,
+    variants: product.variants.map(({ stock, ...variant }) => ({ ...variant, inStock: Number(stock) > 0 })),
+  };
+  delete safeProduct.stock;
+  return safeProduct;
+}
+
+function customerProductsValue(value) {
+  try {
+    const products = JSON.parse(value);
+    return JSON.stringify(Array.isArray(products) ? products.map(customerProductInventoryView) : []);
+  } catch {
+    return "[]";
+  }
+}
+
+async function getShopState(env, account = null) {
   // Legacy D1 media rows stay out of bootstrap/realtime responses; current
   // catalog records reference R2-backed URLs instead of embedding image bytes.
   const result = await env.DB.prepare("SELECT key, value FROM shop_state WHERE key < 'media:' OR key >= 'media;'").all();
-  return Object.fromEntries((result.results || []).filter(row => includeOwnerPrivate || !["shivan_shop_owner_alerts", OWNER_NOTIFICATION_PREFERENCES_KEY].includes(row.key)).map(row => [row.key, row.value]));
+  const includeOwnerPrivate = account?.role === "owner";
+  const canSeeExactInventory = staffHasPermission(account, "inventory");
+  return Object.fromEntries((result.results || [])
+    .filter(row => includeOwnerPrivate || !["shivan_shop_owner_alerts", OWNER_NOTIFICATION_PREFERENCES_KEY].includes(row.key))
+    .map(row => [row.key, row.key === PRODUCTS_KEY && !canSeeExactInventory ? customerProductsValue(row.value) : row.value]));
 }
 
 function mediaExtension(type) {
@@ -1119,6 +1168,37 @@ async function readDeliverySelection(env,requestedZoneId){
   catch{return{ok:false,message:"The store delivery settings could not be verified. Try again."};}
 }
 
+function validateOwnerCategoryMetadata(value) {
+  const invalid = message => shopValidationError("INVALID_CATEGORY_DATA", message);
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw invalid("Category metadata must be an object.");
+  const entries = Object.entries(value);
+  if (entries.length > 250) throw invalid("A maximum of 250 category entries is supported.");
+  for (const [name, category] of entries) {
+    if (!name.trim() || name.length > 40 || !category || typeof category !== "object" || Array.isArray(category)) throw invalid("Category metadata is invalid.");
+    if (category.en !== undefined && (typeof category.en !== "string" || category.en.trim().length > 40)) throw invalid("Category English names must be 40 characters or fewer.");
+    if (category.ar !== undefined && (typeof category.ar !== "string" || category.ar.trim().length > 40)) throw invalid("Category Arabic names must be 40 characters or fewer.");
+    if (category.visible !== undefined && typeof category.visible !== "boolean") throw invalid("Category visibility must be true or false.");
+    if (category.order !== undefined && (!Number.isSafeInteger(category.order) || category.order < 0 || category.order > 10000)) throw invalid("Category order is invalid.");
+    if (category.emoji !== undefined && (typeof category.emoji !== "string" || category.emoji.length > 8)) throw invalid("Legacy category metadata is invalid.");
+    if (category.image !== undefined && category.image !== "") {
+      if (typeof category.image !== "string") throw invalid("Category images must use a shared image address.");
+      const sharedImage = /^\/api\/media\/shop\/[A-Za-z0-9_-]{43}\.(?:jpg|png|webp|gif)$/i.test(category.image);
+      const inlineImage = /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(category.image);
+      if (!sharedImage && !inlineImage) throw invalid("Category images must be uploaded to the shared image storage.");
+    }
+  }
+}
+
+function validateOwnerCategoryNames(value) {
+  if (!Array.isArray(value) || value.length > 250) throw shopValidationError("INVALID_CATEGORY_DATA", "Category names must be a list.");
+  const seen = new Set();
+  for (const category of value) {
+    if (typeof category !== "string" || !category.trim() || category.trim().length > 40) throw shopValidationError("INVALID_CATEGORY_DATA", "Category names must be 40 characters or fewer.");
+    const key = category.trim().toLocaleLowerCase();
+    if (seen.has(key)) throw shopValidationError("INVALID_CATEGORY_DATA", "Category names must be unique.");
+    seen.add(key);
+  }
+}
 async function saveShopValue(env, key, rawValue, requestId = "") {
   if (!SHOP_KEYS.has(key)) throw new Error("Unsupported shop data key.");
   let value = String(rawValue ?? "");
@@ -1127,6 +1207,18 @@ async function saveShopValue(env, key, rawValue, requestId = "") {
     const parsed = asJson(value, null);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw shopValidationError("INVALID_DELIVERY_SETTINGS", "Store settings must be an object.");
     value = JSON.stringify({ ...parsed, ...normalizeOwnerDeliveryConfiguration(parsed) });
+  }
+  if (key === "shivan_shop_categories") {
+    const categories = asJson(value, null);
+    validateOwnerCategoryNames(categories);
+    value = JSON.stringify(categories.map(category => category.trim()));
+  }
+  if (key === "shivan_shop_category_meta") {
+    const metadata = asJson(value, null);
+    validateOwnerCategoryMetadata(metadata);
+    const mediaWrites = new Map();
+    value = JSON.stringify(await persistImages(metadata, env, mediaWrites));
+    await persistShopImages(env, mediaWrites, requestId);
   }
   if (key === "shivan_shop_ios_onboarding_images") {
     const images = asJson(value, null);
@@ -1142,9 +1234,18 @@ async function saveShopValue(env, key, rawValue, requestId = "") {
     if (!Array.isArray(parsed)) throw new Error("Shop data must be a list.");
     if (key === PRODUCTS_KEY) {
       validateProductPriceDetails(parsed);
+      validateProductStoreAvailability(parsed);
+      if (parsed.some(product => product && Object.hasOwn(product, "isNewModel") && typeof product.isNewModel !== "boolean")) throw shopValidationError("INVALID_NEW_MODEL_STATE", "New model membership must be true or false.");
       const previousRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
       const previousProducts = asJson(previousRow?.value, []);
-      value = JSON.stringify(normalizeProductQrIds(parsed, Array.isArray(previousProducts) ? previousProducts : []));
+      const previousProductList = Array.isArray(previousProducts) ? previousProducts : [];
+      const previousById = new Map(previousProductList.map(product => [String(product?.id ?? ""), product]));
+      const assignmentsPreserved = parsed.map(product => {
+        if (!product || typeof product !== "object" || Array.isArray(product) || Object.hasOwn(product, "storeAvailability")) return product;
+        const previous = previousById.get(String(product.id ?? ""));
+        return ["shop1", "shop2", "both"].includes(previous?.storeAvailability) ? { ...product, storeAvailability: previous.storeAvailability } : product;
+      });
+      value = JSON.stringify(normalizeProductQrIds(assignmentsPreserved, previousProductList));
     }
     const normalized = asJson(value, parsed);
     const mediaWrites = new Map();
@@ -1578,8 +1679,38 @@ async function prepareStaffProductWrite(env, rawValue, account) {
   const previousRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
   const previous = asJson(previousRow?.value, []);
   if (!Array.isArray(previous)) return { response: error("Saved product data is invalid.", 409) };
-  const normalizedIncoming = normalizeProductQrIds(incoming, previous);
   const previousById = new Map(previous.map(product => [String(product?.id ?? ""), product]));
+  const writeProducts = incoming.map(rawProduct => {
+    if (!rawProduct || typeof rawProduct !== "object" || Array.isArray(rawProduct)) return rawProduct;
+    const product = { ...rawProduct };
+    const hasExactStock = Object.hasOwn(product, "stock") || (Array.isArray(product.variants) && product.variants.some(variant => Object.hasOwn(variant || {}, "stock")));
+    const oldProduct = previousById.get(String(product.id ?? ""));
+    if (account?.role === "staff") {
+      if (oldProduct && Object.hasOwn(oldProduct, "isNewModel")) product.isNewModel = oldProduct.isNewModel;
+      else delete product.isNewModel;
+      if (oldProduct && Object.hasOwn(oldProduct, "storeAvailability")) product.storeAvailability = oldProduct.storeAvailability;
+      else delete product.storeAvailability;
+    }
+    if (product.inventoryAvailabilityOnly === true && account?.role === "staff" && !staffHasPermission(account, "inventory") && oldProduct && !hasExactStock) {
+      product.stock = oldProduct.stock;
+      const oldVariants = Array.isArray(oldProduct.variants) ? oldProduct.variants : [];
+      product.variants = (Array.isArray(product.variants) ? product.variants : oldVariants).map(variant => {
+        const saved = oldVariants.find(item => normalizeVariantColor(item?.color) === normalizeVariantColor(variant?.color) && String(item?.size || "") === String(variant?.size || ""));
+        const restored = { ...variant, stock: Math.max(0, Math.floor(Number(saved?.stock) || 0)) };
+        if (saved?.qrId) restored.qrId = saved.qrId;
+        return restored;
+      });
+    }
+    delete product.inventoryAvailabilityOnly;
+    delete product.inStock;
+    if (Array.isArray(product.variants)) product.variants = product.variants.map(variant => {
+      const clean = { ...variant };
+      delete clean.inStock;
+      return clean;
+    });
+    return product;
+  });
+  const normalizedIncoming = normalizeProductQrIds(writeProducts, previous);
   const seen = new Set(), merged = [];
   for (const product of normalizedIncoming) {
     const id = String(product?.id ?? "");
@@ -1621,10 +1752,10 @@ function staffPermissionForShopKey(key) {
 
 async function handleSync(request, env, account) {
   if (request.method === "GET") {
-    const shop = await getShopState(env, account?.role === "owner");
+    const shop = await getShopState(env, account);
     if (account?.role === "staff" && staffHasPermission(account, "notifications")) {
       const alerts = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(OWNER_SMART_ALERTS_KEY).first();
-      if (typeof alerts?.value === "string") shop[OWNER_SMART_ALERTS_KEY] = alerts.value;
+      if (typeof alerts?.value === "string") shop[OWNER_SMART_ALERTS_KEY] = staffAlertView(alerts.value, staffHasPermission(account, "inventory"));
     }
     if (!account) return json({ shop, user: null, account: null });
     const result = await env.DB.prepare("SELECT key, value FROM user_state WHERE account_id=? AND key NOT LIKE 'inventory-op:%'").bind(account.id).all();
@@ -1697,6 +1828,7 @@ async function handleSync(request, env, account) {
     const isProductSave = key === "shivan_shop_products";
     let valueToSave = value;
     if (account.role === "staff") {
+      if (OWNER_CATEGORY_KEYS.has(key)) return tracedError("Only the Main Owner can manage product categories.", 403, requestId, "MAIN_OWNER_REQUIRED", "category.sync.auth");
       if (key === OWNER_APPEARANCE_KEY || key === OWNER_NOTIFICATION_PREFERENCES_KEY) return tracedError("Only the Main Owner can change protected store settings.", 403, requestId, "MAIN_OWNER_REQUIRED", "shop.sync.auth");
       if (isProductSave) {
         const prepared = await prepareStaffProductWrite(env, value, account);
@@ -1736,7 +1868,7 @@ async function handleSync(request, env, account) {
       if (exception?.code === "INVALID_PRODUCT_PRICING") {
         return tracedError("Product price or discount is invalid. Use a whole nonnegative IQD price and a discount from 1% to 99%.", 400, requestId, exception.code, "shop.sync.validate");
       }
-      if (exception?.code === "INVALID_NOTIFICATION_PREFERENCES" || exception?.code === "INVALID_DELIVERY_SETTINGS") {
+      if (exception?.code === "INVALID_NOTIFICATION_PREFERENCES" || exception?.code === "INVALID_DELIVERY_SETTINGS" || exception?.code === "INVALID_PRODUCT_STORE_AVAILABILITY" || exception?.code === "INVALID_CATEGORY_DATA") {
         return tracedError(exception.message, 400, requestId, exception.code, "shop.sync.validate");
       }
       if (exception?.code === "INVALID_PRODUCT_DISCOUNT_TIMER") {

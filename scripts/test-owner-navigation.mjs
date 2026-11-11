@@ -172,7 +172,7 @@ function createOwnerNavigationRuntime(){
     addEventListener(name, handler){ if(name === "scroll")scrollListeners.push(handler); },
   };
   const context = {
-    window, document, activeLanguage: "en", ownerPanel: "dashboard", ownerDashboardNavKey: "dashboard",
+    window, document, activeLanguage: "en", customerUiText: en => en, ownerPanel: "dashboard", ownerDashboardNavKey: "dashboard",
     ownerProductMode: "menu", editingProductId: null, editingAdIndex: null,
     ownerAnalyticsSelection: { period: "daily", date: "", month: "", year: "" },
     ownerReportSelection: { preset: "month", start: "", end: "" },

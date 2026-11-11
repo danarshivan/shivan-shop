@@ -23,12 +23,12 @@ assert.match(storageListener, /if\(productsChanged\|\|favoritesChanged\)renderVi
 assert.match(apply, /if\(changedKeys\.has\(ORDERS_KEY\)\)renderOrders\(\)/, "only changed order data should replace the order list");
 assert.match(searchRenderer, /renderProducts\(result,forceTarget\|\|\(searchIsOpen\?"searchGrid":"productsGrid"\)\)/, "a detail view opened from Search must keep refreshing the hidden Search grid");
 
-const gridCalls = { searches: [], lists: [] };
+const gridCalls = { searches: [], lists: [], detailFavorites: 0 };
 const gridSandbox = {
   previousView: "home", currentCategory: "All",
   products: [{ id: "dress", category: "Dresses" }, { id: "coat", category: "Coats" }],
   document: { getElementById: id => id === "searchPageInput" ? { value: "silk" } : null },
-  getActiveShopView: () => "search",
+  getActiveShopView: () => "search", renderDetailFavoriteButton: () => { gridCalls.detailFavorites++; },
   searchProducts: (query, target) => gridCalls.searches.push({ query, target }),
   resolveCategoryName: value => value,
   getAllCategories: () => ["Dresses", "Coats"],
@@ -41,6 +41,7 @@ gridSandbox.getActiveShopView = () => "detail";
 gridSandbox.previousView = "search";
 gridSandbox.refreshGrid();
 assert.deepEqual(gridCalls.searches[1], { query: "silk", target: "searchGrid" }, "product details retain Search as their underlying browsing state");
+assert.equal(gridCalls.detailFavorites, 1, 'a synced change refreshes the visible detail favorite heart');
 gridSandbox.getActiveShopView = () => "home";
 gridSandbox.currentCategory = "Dresses";
 gridSandbox.refreshGrid();

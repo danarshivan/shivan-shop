@@ -19,7 +19,7 @@ function extractFunction(name) {
 
 const dedupeSandbox = {};
 runInNewContext(
-  `${extractFunction("uniqueRecommendationProducts")}\nglobalThis.dedupeRecommendations = uniqueRecommendationProducts;`,
+  `${extractFunction("productHasAvailableInventory")}\n${extractFunction("uniqueRecommendationProducts")}\nglobalThis.dedupeRecommendations = uniqueRecommendationProducts;`,
   dedupeSandbox
 );
 

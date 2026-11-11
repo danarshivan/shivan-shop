@@ -3,7 +3,12 @@ import { readFile } from "node:fs/promises";
 import { runInNewContext } from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const css = await readFile(new URL("../luxury-theme.css", import.meta.url), "utf8");
+const buildScript = await readFile(new URL("./build.mjs", import.meta.url), "utf8");
+const splashOriginal = await readFile(new URL("../assets/branding/shivan-shop-cinematic-original.jpg", import.meta.url));
+const splashLayers = new Map();
+for (const name of ["base", "mark", "wordmark", "wave"]) {
+  splashLayers.set(name, await readFile(new URL(`../assets/branding/shivan-shop-cinematic-${name}.png`, import.meta.url)));
+}
 const sourceOf = (pattern, label) => {
   const match = html.match(pattern)?.[0] || "";
   assert.ok(match, "Could not find " + label + ".");
@@ -17,32 +22,50 @@ const finishSplash = sourceOf(/function finishShopStartupSplash\(\)\{[\s\S]*?\n\
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
 const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "animated brand startup screen");
 
-assert.match(html, /SHOP_BRANDED_SPLASH_MS=2800/, "the branded logo should cover exactly 2.8 seconds");
-assert.match(html, /window\.__SHIVAN_STARTUP_STARTED_AT=performance\.now\(\)/, "startup timing should begin in the document head, before cloud requests");
-assert.match(splashMarkup, /<span class="shop-startup-logo" role="img" aria-label="Shivan Shop crown and shopping bag"><svg viewBox="0 0 64 72" aria-hidden="true">[\s\S]*?<text x="32" y="55" text-anchor="middle">S<\/text><\/svg><\/span>/, "the startup screen should use the Shivan crown and shopping bag mark");
-assert.match(splashMarkup, /<strong class="shop-startup-brand">SHIVAN SHOP<\/strong>/, "the startup screen should show the Shivan Shop wordmark");
-assert.doesNotMatch(splashMarkup, /loading|preparing|spinner/i, "the startup screen should not show loading copy or a spinner");
-assert.ok(html.indexOf('<body>') < html.indexOf('id="shopStartupSplash"') && html.indexOf('id="shopStartupSplash"') < html.indexOf('class="language-switcher"'), "the splash should paint before the rest of the page markup");
-assert.match(html, /\.shop-startup-splash\{[^}]*place-items:center/, "the logo should be centered in the dark splash");
-assert.match(css, /\.shop-startup-splash\{[\s\S]*?linear-gradient\(155deg,#3a0a20,#19050f 57%,#10030a\)/, "the splash should use the burgundy and plum palette");
-assert.match(css, /\.shop-startup-logo\{[\s\S]*?background:linear-gradient\(145deg,#6b1235,#250714\)/, "the crown and shopping bag mark should sit on a burgundy surface");
-assert.match(css, /\.shop-startup-logo svg\{width:54px;height:61px/, "the startup brand mark remains legible on mobile screens");
-assert.match(html, /shop-startup-aura[^}]*animation:shopStartupAuraIn/, "a soft burgundy glow should appear first");
-assert.match(html, /\.shop-startup-lockup\{position:absolute;inset:0/, "logo and wordmark should animate independently across the splash screen");
-assert.match(html, /\.shop-startup-logo\{[^}]*top:calc\(50% - 60px\)[^}]*left:50%[^}]*margin-left:-41px[^}]*animation:shopStartupLogoIn 1\.8s/, "the brand mark keeps its centered fade-and-scale entrance");
-assert.match(html, /@keyframes shopStartupLogoIn\{from\{opacity:0;transform:translate3d\(0,12px,0\) scale\(\.74\)/, "the centered logo should fade and scale in gently over its existing duration");
-assert.match(html, /\.shop-startup-brand\{[^}]*top:calc\(50% \+ 45px\)[^}]*left:50%[^}]*animation:shopStartupBrandIn 1\.55s/, "the wordmark should remain centered directly below the logo while entering from the right");
-assert.match(html, /@keyframes shopStartupBrandIn\{from\{opacity:0;transform:translate3d\(calc\(50vw \+ 50%\),-50%,0\)/, "the wordmark should settle centered after entering from the right");
-assert.match(html, /\.shop-startup-logo::after\{[^}]*animation:shopStartupLogoTrail 1\.45s/, "the logo should leave a soft rose trail as it moves");
-assert.match(html, /\.shop-startup-brand::after\{[^}]*animation:shopStartupBrandTrail 1\.35s/, "the moving wordmark should have a soft rose light trail");
-assert.match(html, /@media\(max-width:560px\)\{\.shop-startup-logo::after/, "the logo trail should adjust on small screens");
-assert.match(css, /\.shop-startup-brand\{font-family:var\(--shivan-display\);letter-spacing:\.04em\}/, "the startup wordmark uses the refined Shivan display typeface");
-assert.match(html, /animation:shopStartupSparkle 1\.35s ease-out \.55s 1 both/, "any sparkle should remain faint and slow rather than flash");
-assert.match(html, /animation:shopStartupSplashOut \.55s ease-in-out/, "the splash should transition smoothly after its timed display");
-assert.ok(html.includes("SHOP_BRANDED_SPLASH_MS=2800") && html.includes("},550);"), "the 2.8-second splash should transition smoothly into Shop");
-assert.ok(.12 + 1.8 < 2.8 && .15 + 2.2 < 2.8 && .45 + 1.55 < 2.8 && .55 + 1.35 < 2.8, "the logo and light-trail motion should settle before the 2.8-second transition");
-assert.doesNotMatch(html, /shopStartupLightSweep|shopStartupLogoReveal/, "the splash should not use the superseded sweeping or logo-only animation");
-assert.match(html, /@keyframes shopStartupShopIn/, "the shop should use a fade-and-slide entrance");
+assert.match(html, /SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion\?300:2100/, "the supplied splash remains visible through a 2.1-second hold");
+assert.match(html, /SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion\?0:400/, "the reduced-motion handoff is immediate");
+assert.ok(splashOriginal.subarray(0,3).equals(Buffer.from([0xff,0xd8,0xff])), "the supplied original splash image is preserved byte-for-byte as a JPEG source");
+const pngSignature = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+for (const [name, asset] of splashLayers) {
+  assert.ok(asset.subarray(0,8).equals(pngSignature), `${name} splash artwork is a PNG layer`);
+  assert.equal(asset.readUInt32BE(16), 720, `${name} layer keeps the source width for exact alignment`);
+  assert.equal(asset.readUInt32BE(20), 1280, `${name} layer keeps the source height for exact alignment`);
+}
+assert.equal(splashLayers.get("base")[25], 2, "the inpainted base is opaque artwork without the separately revealed logo layers");
+for (const name of ["mark", "wordmark", "wave"]) assert.equal(splashLayers.get(name)[25], 6, `${name} is an alpha-masked visual layer`);
+assert.match(splashMarkup, /<img class="shop-startup-layer shop-startup-background" src="\/assets\/branding\/shivan-shop-cinematic-base\.png" alt="" aria-hidden="true" width="720" height="1280" fetchpriority="high"/, "the splash uses the source-aligned full-screen base artwork");
+assert.match(splashMarkup, /<img class="shop-startup-layer shop-startup-mark" src="\/assets\/branding\/shivan-shop-cinematic-mark\.png"/, "the original silver S is an independently revealed transparent layer");
+assert.match(splashMarkup, /<img class="shop-startup-layer shop-startup-wordmark" src="\/assets\/branding\/shivan-shop-cinematic-wordmark\.png"/, "the original SHIVAN SHOP text fades in as its own aligned layer");
+assert.match(splashMarkup, /<img class="shop-startup-layer shop-startup-wave" src="\/assets\/branding\/shivan-shop-cinematic-wave\.png"/, "the original blue wave is preserved on a subtle motion layer");
+assert.match(splashMarkup, /<span class="shop-startup-light-sweep" aria-hidden="true"><\/span>/, "the underline highlight is decorative and separate from the original artwork");
+assert.equal((splashMarkup.match(/<img\b/g) || []).length, 4, "only the four source-aligned artwork layers are rendered");
+assert.doesNotMatch(splashMarkup, /<strong|<svg|shop-startup-ring|spinner|Loading|Create Account|Explore Models/, "no extra logo, text, model, or loading indicator is added");
+for (const file of ["shivan-shop-cinematic-original.jpg", "shivan-shop-cinematic-base.png", "shivan-shop-cinematic-mark.png", "shivan-shop-cinematic-wordmark.png", "shivan-shop-cinematic-wave.png"]) {
+  assert.ok(buildScript.includes(`"${file}"`), `${file} is preserved in future production builds`);
+}
+for (const name of ["base", "mark", "wordmark", "wave"]) {
+  assert.ok(html.includes(`<link rel="preload" as="image" href="/assets/branding/shivan-shop-cinematic-${name}.png"`), `${name} starts loading before the splash paints`);
+}
+const splashCss = html.match(/\.shop-startup-splash\{[^}]*\}/)?.[0] || "";
+for (const declaration of ["position:fixed", "inset:0", "background:#02030e", "overflow:hidden", "container-type:size"]) {
+  assert.ok(splashCss.includes(declaration), `the splash viewport rule includes ${declaration}`);
+}
+assert.match(html, /\.shop-startup-layer\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:cover[^}]*object-position:center/, "all artwork layers share the same undistorted cover alignment");
+assert.match(html, /\.shop-startup-background\{[^}]*animation:shopStartupBackgroundReveal 500ms ease-out both/, "the navy image composition fades in over the first half second");
+assert.match(html, /\.shop-startup-mark\{[^}]*animation:shopStartupMarkReveal 900ms cubic-bezier\(\.2,\.7,\.2,1\) 300ms both/, "the silver S appears gently from 0.3 to 1.2 seconds");
+assert.match(html, /\.shop-startup-wordmark\{[^}]*animation:shopStartupWordmarkReveal 900ms ease-out 700ms both/, "the SHIVAN SHOP text fades in from 0.7 to 1.6 seconds");
+assert.ok(html.includes("@keyframes shopStartupMarkReveal{0%{opacity:0;filter:drop-shadow(0 0 0 rgba(220,236,255,0))}65%{opacity:1;filter:drop-shadow(0 0 10px rgba(220,236,255,.24))}100%{opacity:1;filter:drop-shadow(0 0 3px rgba(220,236,255,.08))}}"), "the silver mark receives only a soft, restrained metallic glow");
+assert.match(html, /\.shop-startup-light-sweep\{[^}]*animation:shopStartupLightSweep 1100ms ease-in-out 1000ms both/, "the cyan light travels beneath the wordmark from 1.0 to 2.1 seconds");
+assert.match(html, /@keyframes shopStartupLightSweep\{0%\{opacity:0;transform:translate3d\(-85%,0,0\)\}18%\{opacity:\.9\}78%\{opacity:\.92\}100%\{opacity:0;transform:translate3d\(165%,0,0\)\}\}/, "the light sweep crosses smoothly without pulsing or changing size");
+assert.match(html, /\.shop-startup-wave\{[^}]*animation:shopStartupWaveDrift 5000ms ease-in-out infinite alternate/, "the blue wave has only a very slow, subtle motion");
+assert.match(html, /@keyframes shopStartupWaveDrift\{from\{transform:translate3d\(0,0,0\)\}to\{transform:translate3d\(1\.5px,-1px,0\)\}\}/, "the wave drift is limited to a one-pixel translation, with no background zoom");
+assert.doesNotMatch(html, /shopStartupRingSpin|shop-startup-ring-spinner/, "the previous loading indicator is fully removed from the splash implementation");
+assert.match(html, /@media\(min-width:700px\)\{\.shop-startup-splash\{inset:50% auto auto 50%;width:min\(430px,calc\(100vw - 48px\)\);height:min\(932px,calc\(100dvh - 48px\)\);transform:translate\(-50%,-50%\)/, "Windows desktop places the splash inside the centered iPhone preview");
+assert.match(html, /@media\(max-width:699px\)\{\.shop-startup-splash\{inset:0;width:100vw;height:100dvh/, "iPhone displays the splash edge-to-edge including safe areas");
+assert.match(html, /\.shop-startup-splash\.is-exiting\{[^}]*shopStartupSplashOut 400ms/, "the splash fades smoothly into the next screen");
+assert.match(html, /#mainApp\.shop-startup-enter\{animation:shopStartupShopIn 400ms/, "Shop enters as the splash exits");
+assert.equal(2100 + 400, 2500, "the complete splash and handoff take approximately 2.5 seconds");
+assert.match(html, /@media\(prefers-reduced-motion:reduce\)\{\.shop-startup-layer\{animation:none!important;opacity:1!important/, "reduced-motion settings remove artwork animation and show a static brand image");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
 assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded/, "the branded splash should lead directly to Shop / Models");
 assert.ok(startup.indexOf('cloudRequest("/api/bootstrap"') < startup.indexOf('cloudRequest("/api/auth/me"'), "both startup requests should begin together");
@@ -72,7 +95,8 @@ const splashNode = { hidden: false, classList: { add: name => splashClasses.add(
 const mainNode = { style: { display: "none" }, classList: { add: name => mainClasses.add(name), remove: name => mainClasses.delete(name) } };
 const openedWith = [];
 const splashSandbox = {
-  SHOP_BRANDED_SPLASH_MS: 2800,
+  SHOP_BRANDED_SPLASH_MS: 2100,
+  SHOP_BRANDED_SPLASH_EXIT_MS: 400,
   shopStartupStartedAt: 1000,
   shopStartupSplashTimer: null,
   shopStartupHideTimer: null,
@@ -86,18 +110,18 @@ const splashSandbox = {
 };
 runInNewContext(finishSplash + "\nglobalThis.finishSplash=finishShopStartupSplash;", splashSandbox);
 splashSandbox.finishSplash();
-assert.equal(splashNode.hidden, false, "the logo remains visible until its branded interval ends");
-assert.equal(splashEvents[0]?.ms, 2800, "the splash timer should be measured from startup, not data completion");
-now = 3800;
+assert.equal(splashNode.hidden, false, "the brand artwork remains visible until its branded interval ends");
+assert.equal(splashEvents[0]?.ms, 2100, "the splash timer should be measured from startup, not data completion");
+now = 3100;
 splashEvents[0].callback();
-assert.equal(openedWith.length, 1, "the 2.8-second timer should open Shop once");
+assert.equal(openedWith.length, 1, "the 2.1-second splash hold should open Shop once");
 assert.equal(openedWith[0]?.resumeIntent, false, "the startup transition should not resume an unverified purchase");
 assert.equal(onboardingShown, 1, "the first onboarding slide should show as the splash hands off to the shop");
-assert.equal(splashNode.hidden, false, "the logo should fade away smoothly after the 2.8-second mark");
+assert.equal(splashNode.hidden, false, "the supplied splash should fade away smoothly after its hold");
 assert.ok(splashClasses.has("is-exiting"), "the splash should fade out as the shop enters");
 assert.ok(mainClasses.has("shop-startup-enter"), "the shop should fade and slide into view");
-assert.equal(splashEvents[1]?.ms, 550, "the visual handoff should use the smooth exit animation");
-now = 4350;
+assert.equal(splashEvents[1]?.ms, 400, "the visual handoff should use the smooth exit animation");
+now = 3500;
 splashEvents[1].callback();
 assert.equal(splashNode.hidden, true, "the splash should be removed after its transition completes");
 assert.equal(splashSandbox.shopStartupCompleted, true, "the startup handoff should run only once");
@@ -217,4 +241,4 @@ syncResponse.resolve({ shop: {}, user: {} });
 await Promise.all([refreshOne, refreshTwo]);
 assert.equal(refreshSandbox.cloudRefreshPromise, null, "the refresh lock should clear after completion");
 
-console.log("Website startup checks passed: cached first render, parallel startup requests, exactly 2.8-second branded splash timing, nonblocking background sync, banner refresh without product-image rebuilds, and single-flight refresh.");
+console.log("Website startup checks passed: layered cinematic splash timing and motion, reduced-motion handoff, cached first render, parallel startup requests, and nonblocking background sync.");

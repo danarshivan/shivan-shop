@@ -5,6 +5,20 @@ import { webcrypto } from "node:crypto";
 
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
+function assertPublicInventoryRedacted(productsValue, source) {
+  const products = typeof productsValue === "string" ? JSON.parse(productsValue) : productsValue;
+  if (!Array.isArray(products)) throw new TypeError(`${source} should return a product list`);
+  for (const product of products) {
+    assert.equal(Object.hasOwn(product, "stock"), false, `${source} must not expose exact product stock`);
+    assert.equal(typeof product.inStock, "boolean", `${source} should expose only product availability`);
+    for (const variant of product.variants || []) {
+      assert.equal(Object.hasOwn(variant, "stock"), false, `${source} must not expose exact variant stock`);
+      assert.equal(typeof variant.inStock, "boolean", `${source} should expose only variant availability`);
+    }
+  }
+  assert.doesNotMatch(JSON.stringify(products), /\"stock\"\s*:/, `${source} must not contain a nested stock quantity`);
+}
+
 const migration = async name => readFile(new URL(`../migrations/${name}`, import.meta.url), "utf8");
 const db = new DatabaseSync(":memory:");
 db.exec("PRAGMA foreign_keys=ON");
@@ -25,6 +39,7 @@ const product = {
   colors: ["#000000"],
   colorNames: ["Black"],
   category: "shirts",
+  storeAvailability: "shop1",
   image: "",
   images: [],
   description: "Original product description",
@@ -138,6 +153,10 @@ const ownerLogin = await request("auth/login", {
 });
 assert.equal(ownerLogin.response.status, 200, "the Main Owner can still sign in with the primary credentials");
 const ownerSession = sessionFrom(ownerLogin.response);
+const ownerProductSync = await request("sync", { cookie: ownerSession });
+const ownerProducts = JSON.parse(ownerProductSync.data.shop.shivan_shop_products);
+assert.equal(ownerProducts[0].stock, 4, "the Main Owner receives exact aggregate inventory quantities");
+assert.equal(ownerProducts[0].variants[0].stock, 4, "the Main Owner receives exact variant inventory quantities");
 
 async function createStaff(name, identifier, permissions, password = "staff-secure-password-123") {
   const result = await request("staff-accounts", {
@@ -181,6 +200,13 @@ const productCookie = sessionFrom(staffLogin.response);
 const productMe = await request("auth/me", { cookie: productCookie });
 assert.equal(productMe.data.account.role, "staff");
 assert.deepEqual(productMe.data.account.permissions, ["products"]);
+const productOnlySync = await request("sync", { cookie: productCookie });
+const productOnlyProducts = JSON.parse(productOnlySync.data.shop.shivan_shop_products);
+assert.equal(Object.hasOwn(productOnlyProducts[0], "stock"), false, "staff without inventory permission receive no exact product quantity");
+assert.equal(productOnlyProducts[0].inStock, true, "staff without inventory permission can still see product availability");
+assert.equal(Object.hasOwn(productOnlyProducts[0].variants[0], "stock"), false, "staff without inventory permission receive no exact variant quantity");
+assert.equal(productOnlyProducts[0].variants[0].inStock, true, "staff without inventory permission can still see variant availability");
+assert.doesNotMatch(JSON.stringify(productOnlyProducts), /\"stock\"\s*:/, "the product-only staff API response contains no exact stock fields");
 
 const ownerStaffList = await request("staff-accounts", { cookie: ownerSession });
 assert.equal(ownerStaffList.response.status, 200);
@@ -206,10 +232,14 @@ assert.equal((await request("profile", { method: "PUT", cookie: productCookie, b
 
 const productsRead = await request("sync", { cookie: productCookie });
 const productsPayload = JSON.parse(productsRead.data.shop.shivan_shop_products);
+assert.equal(productsPayload[0].inventoryAvailabilityOnly, true, "product-only staff receive a write-safe availability marker");
 productsPayload[0].description = "Updated by Product Staff";
+productsPayload[0].storeAvailability = "shop2";
 const productMetadataSave = await request("sync", { method: "PUT", cookie: productCookie, body: { key: "shivan_shop_products", value: JSON.stringify(productsPayload) } });
 assert.equal(productMetadataSave.response.status, 200, "products permission allows product detail edits");
 assert.equal(JSON.parse(db.prepare("SELECT value FROM shop_state WHERE key='shivan_shop_products'").get().value)[0].price, 12000, "product detail edits preserve the protected price");
+assert.equal(JSON.parse(db.prepare("SELECT value FROM shop_state WHERE key='shivan_shop_products'").get().value)[0].storeAvailability, "shop1", "staff product edits cannot change the Main Owner store assignment");
+assert.equal(JSON.parse(db.prepare("SELECT value FROM shop_state WHERE key='shivan_shop_products'").get().value)[0].variants[0].stock, 4, "product detail edits preserve exact inventory when staff lack inventory permission");
 
 const latestProducts = JSON.parse(db.prepare("SELECT value FROM shop_state WHERE key='shivan_shop_products'").get().value);
 const priceChangeWithoutPermission = structuredClone(latestProducts);
@@ -236,6 +266,10 @@ assert.equal((await request("sync", { method: "PUT", cookie: priceCookie, body: 
 
 const inventoryLogin = await request("auth/login", { method: "POST", body: { identifier: "07501112222", password: "staff-secure-password-123" } });
 const inventoryCookie = sessionFrom(inventoryLogin.response);
+const inventoryStaffSync = await request("sync", { cookie: inventoryCookie });
+const inventoryStaffProducts = JSON.parse(inventoryStaffSync.data.shop.shivan_shop_products);
+assert.equal(inventoryStaffProducts[0].stock, 4, "inventory-authorized staff receive exact aggregate quantities");
+assert.equal(inventoryStaffProducts[0].variants[0].stock, 4, "inventory-authorized staff receive exact variant quantities");
 assert.equal((await request(`inventory/variant?qr=${encodeURIComponent(variantQrId)}`, { cookie: inventoryCookie })).response.status, 200, "inventory permission allows shared variant reads");
 assert.equal((await request("push/config", { cookie: inventoryCookie })).response.status, 403, "inventory permission does not grant Owner push access");
 assert.equal((await request("customer-push/config", { cookie: inventoryCookie })).response.status, 403, "staff cannot use customer notification endpoints");
@@ -246,6 +280,10 @@ const inventoryAdjustment = await request("inventory/adjust", {
 });
 assert.equal(inventoryAdjustment.response.status, 200, "inventory permission allows validated stock adjustments");
 assert.equal(inventoryAdjustment.data.variant.stock, 6);
+const inventoryStaffSyncAfterAdjustment = await request("sync", { cookie: inventoryCookie });
+const inventoryStaffProductsAfterAdjustment = JSON.parse(inventoryStaffSyncAfterAdjustment.data.shop.shivan_shop_products);
+assert.equal(inventoryStaffProductsAfterAdjustment[0].stock, 6, "inventory-authorized staff can still view the updated aggregate quantity");
+assert.equal(inventoryStaffProductsAfterAdjustment[0].variants[0].stock, 6, "inventory-authorized staff can still view the updated variant quantity");
 assert.equal(db.prepare("SELECT COUNT(*) AS count FROM staff_state WHERE staff_id=?").get(inventoryStaff.id).count, 1, "inventory idempotency state is stored separately from customer state");
 
 const orderLogin = await request("auth/login", { method: "POST", body: { identifier: "orders@example.com", password: "staff-secure-password-123" } });
@@ -273,8 +311,13 @@ assert.equal(Object.hasOwn(customerInfoSync.data.user, "shivan_shop_orders"), fa
 
 const notificationLogin = await request("auth/login", { method: "POST", body: { identifier: "notifications@example.com", password: "staff-secure-password-123" } });
 const notificationCookie = sessionFrom(notificationLogin.response);
+const ownerAlertFixture = { version: 1, initialized: true, stockInitialized: true, seenOrderIds: [], stockState: {}, discountState: {}, clearedIds: [], alerts: [{ id: "stock:test:low", type: "low_stock", entityId: "101", quantity: 4 }] };
+db.prepare("UPDATE shop_state SET value=? WHERE key='shivan_shop_owner_alerts'").run(JSON.stringify(ownerAlertFixture));
+const ownerAlertSync = await request("sync", { cookie: ownerSession });
+assert.equal(JSON.parse(ownerAlertSync.data.shop.shivan_shop_owner_alerts).alerts[0].quantity, 4, "the Main Owner retains exact stock alert details");
 const notificationSync = await request("sync", { cookie: notificationCookie });
 assert.ok(notificationSync.data.shop.shivan_shop_owner_alerts, "notifications permission allows in-app Smart Alerts");
+assert.equal(Object.hasOwn(JSON.parse(notificationSync.data.shop.shivan_shop_owner_alerts).alerts[0], "quantity"), false, "notifications-only staff do not receive exact stock quantities in alert responses");
 assert.equal(Object.hasOwn(notificationSync.data.shop, "shivan_shop_owner_notification_preferences"), false, "staff cannot read Main Owner push preferences");
 assert.equal((await request("sync", { method: "PUT", cookie: notificationCookie, body: { key: "shivan_shop_owner_alerts", value: JSON.stringify({ initialized: true, alerts: [] }) } })).response.status, 200, "notifications permission allows Smart Alert state updates");
 assert.equal((await request("sync", { method: "PUT", cookie: notificationCookie, body: { key: "shivan_shop_owner_notification_preferences", value: JSON.stringify({}) } })).response.status, 403, "notifications permission does not grant Main Owner or Customer Push preferences");
@@ -284,6 +327,7 @@ const noPermissionLogin = await request("auth/login", { method: "POST", body: { 
 const noPermissionCookie = sessionFrom(noPermissionLogin.response);
 const noPermissionSync = await request("sync", { cookie: noPermissionCookie });
 assert.equal(Object.hasOwn(noPermissionSync.data.user, "shivan_shop_orders"), false, "unprivileged staff receive no order data");
+assertPublicInventoryRedacted(noPermissionSync.data.shop.shivan_shop_products, "unprivileged staff sync");
 assert.equal((await request(`inventory/variant?qr=${encodeURIComponent(variantQrId)}`, { cookie: noPermissionCookie })).response.status, 403, "unprivileged staff cannot access inventory endpoints");
 assert.equal((await request("sync", { method: "PUT", cookie: noPermissionCookie, body: { key: "shivan_shop_owner_appearance", value: "{}" } })).response.status, 403, "staff cannot change Owner store settings");
 assert.equal((await request("sync", { method: "PUT", cookie: noPermissionCookie, body: { key: "shivan_shop_support", value: "[]" } })).response.status, 403, "staff cannot change customer support data");

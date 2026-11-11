@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-assert.match(html, /<div class="product \$\{productDiscountPercent\(p\)\?"has-discount":""\}" onclick="openProduct\(\$\{p\.id\}\)">/, "discount presentation classes must preserve the shared product opener");
+assert.ok(html.includes('<div class="product ${productDiscountPercent(p)?"has-discount":""} ${target==="newModelProductsGrid"&&p.isNewModel===true?"new-model-product-card":""}" onclick="openProduct(${p.id})">'), "discount and New model cards preserve the shared product opener");
 assert.match(html, /\.product\.has-discount \.discount-price-layout\{display:flex;width:100%;justify-content:flex-start;text-align:left;direction:ltr\}/, "discounted card prices should fill and align at the left edge");
 assert.match(html, /\.product\.has-discount \.discounted-price\{color:inherit\}/, "discounted card prices should use the same purple accent as the card price");
 assert.match(html, /\.product\.has-discount \.stock-line\{text-align:left;direction:ltr\}/, "discounted card stock text should remain left aligned");
@@ -20,6 +20,13 @@ assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "t
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
 assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should keep its accessible iPhone-style Back button");
 assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY\)/, "each detail entry should carry a browser-history product target");
+assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","newModel","discount","favorites","owner"\]\)/, "dedicated customer routes should participate in saved Shop navigation");
+assert.match(html, /id="newModelView" class="view page shop-menu-collection-view"[\s\S]*?id="newModelProductsGrid" class="products/, "New model should own a dedicated page and reuse the Shop product grid");
+assert.match(html, /id="discountView" class="view page shop-menu-collection-view"[\s\S]*?id="discountProductsGrid" class="products/, "Discount should own a separate page and reuse the Shop product grid");
+assert.match(html, /function openHomeMenuCollection\(mode\)[\s\S]*?if\(mode==="discount"\|\|mode==="newModel"\)\{\s*openView\(mode\);\s*renderHomeMenuProductCollection\(mode\);/, "Discount and New model menu actions should open their own routes");
+assert.match(html, /function renderHomeMenuProductCollection\(mode\)[\s\S]*?const matching=filterHomeMenuProducts\(products,mode\);[\s\S]*?sortHomeMenuProducts\(matching,mode,sortMode\),target,false,true/, "each dedicated route filters its own matching product set, sorts it, and preserves the selected order");
+assert.match(html, /function goBackFromShopCollection\(\)[\s\S]*?window\.history\.back\(\)/, "dedicated collection Back buttons should use the originating Shop history entry");
+assert.match(html, /\.products\{\s*direction:ltr;\s*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, "dedicated collection grids should inherit the three-column mobile Shop layout");
 assert.match(html, /function snapshotProductDetail\(\)[\s\S]*?detailScrollTop:[\s\S]*?galleryIndex:[\s\S]*?quantity:/, "nested navigation should remember the full prior detail context");
 assert.match(html, /function ensureProductHistoryListener\(\)[\s\S]*?addEventListener\?\.\("popstate"/, "browser Back and Forward should use the product history handler");
 assert.match(html, /product-detail-history-preview/, "a previous detail snapshot should be revealed under the outgoing product");
@@ -36,7 +43,7 @@ function classListFor(classes) {
   };
 }
 
-function createHarness({ reducedMotion = false, width = 390, height = 844, initialHistoryState = { page: "shop" } } = {}) {
+function createHarness({ reducedMotion = false, width = 390, height = 844, initialView = "home", initialHistoryState = { page: "shop" } } = {}) {
   const state = { openedViews: [], scrollY: 421, scrollCalls: [], timers: new Map(), nextTimer: 1, now: 10, transitionHandler: null, popHandler: null, backCalls: 0, forwardCalls: 0, cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }] };
   const makeView = initial => {
     const classes = new Set(initial);
@@ -52,23 +59,34 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     return element;
   };
   const detailView = makeView([]);
-  const homeView = makeView(["active"]);
-  const searchView = makeView([]);
+  const homeView = makeView(initialView === "home" ? ["active"] : []);
+  const searchView = makeView(initialView === "search" ? ["active"] : []);
+  const newModelView = makeView(initialView === "newModel" ? ["active"] : []);
+  const discountView = makeView(initialView === "discount" ? ["active"] : []);
+  const favoritesView = makeView(initialView === "favorites" ? ["active"] : []);
   const app = makeView([]);
   const root = { scrollTop: 0, style: { scrollBehavior: "smooth" } };
   const body = { scrollTop: 0, classList: classListFor(new Set()) };
   root.classList = classListFor(new Set());
   const edge = { style: {}, setPointerCapture() {}, releasePointerCapture() {} };
-  const mainApp = { children: [homeView, searchView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
+  const mainApp = { children: [homeView, searchView, newModelView, discountView, favoritesView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
   detailView.parentNode = mainApp;
   homeView.parentNode = mainApp;
   searchView.parentNode = mainApp;
+  newModelView.parentNode = mainApp;
+  discountView.parentNode = mainApp;
+  favoritesView.parentNode = mainApp;
   const navItems = Array.from({ length: 5 }, () => makeView([]));
-  const elements = new Map([["detailView", detailView], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["homeView", homeView], ["searchView", searchView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
+  const detailFavoriteButton = makeView([]);
+  detailFavoriteButton.textContent = "♡";
+  detailFavoriteButton.title = "";
+  detailFavoriteButton.attributes = new Map();
+  detailFavoriteButton.setAttribute = (name, value) => detailFavoriteButton.attributes.set(name, value);
+  const elements = new Map([["detailView", detailView], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["detailFavoriteButton", detailFavoriteButton], ["homeView", homeView], ["searchView", searchView], ["newModelView", newModelView], ["discountView", discountView], ["favoritesView", favoritesView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
   const document = {
     getElementById: id => elements.get(id),
     querySelector: selector => selector === ".app" ? app : null,
-    querySelectorAll: selector => selector === ".nav-item" ? navItems : selector === ".product-backdrop-revealed" ? [homeView, searchView].filter(view => view.classes.has("product-backdrop-revealed")) : [],
+    querySelectorAll: selector => selector === ".nav-item" ? navItems : selector === ".product-backdrop-revealed" ? [homeView, searchView, newModelView, discountView, favoritesView].filter(view => view.classes.has("product-backdrop-revealed")) : [],
     documentElement: root,
     body,
   };
@@ -96,16 +114,20 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     performance: { now: () => state.now },
     console,
     products: [product, secondProduct, thirdProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", currentGalleryImages: ["photo-1", "photo-2"], currentGalleryIndex: 0, previousView: "home", previousViewScrollY: 0,
+    cloudMode: false, cloudAccount: null, currentUser: null, FAVORITES_KEY: "shivan_shop_favorites", localStorage: { getItem: () => "[]" }, customerUiText: english => english,
     productDetailCloseTimer: 0, productDetailClosing: false, productBackSwipe: null, productBackSwipeSnapTimer: 0, productBackTransitionHandler: null, productBackScrollBehavior: "", productBackPrepared: false, productBackPreparedView: "", productBackPreparedPreview: null,
     productDetailHistoryStack: [], productHistoryBackPending: false, productHistoryBackFromSwipe: false, productHistoryPopHandler: null,
     getProductName: item => item.name, formatPrice: price => String(price), renderProductPricing: item => String(item.price), renderDetailGallery() {}, refreshDiscountCountdownBadges() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {}, syncDetailPhotoTracks() {},
     openView(view, options = {}) {
       state.openedViews.push({ view, options });
-      if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); }
-      detailView.classList.remove("active"); homeView.classList.remove("active"); searchView.classList.remove("active");
+      if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); newModelView.classList.remove("product-backdrop-revealed"); discountView.classList.remove("product-backdrop-revealed"); favoritesView.classList.remove("product-backdrop-revealed"); }
+      detailView.classList.remove("active"); homeView.classList.remove("active"); searchView.classList.remove("active"); newModelView.classList.remove("active"); discountView.classList.remove("active"); favoritesView.classList.remove("active");
       if (view === "detail") detailView.classList.add("active");
       if (view === "home") homeView.classList.add("active");
       if (view === "search") searchView.classList.add("active");
+      if (view === "newModel") newModelView.classList.add("active");
+      if (view === "discount") discountView.classList.add("active");
+      if (view === "favorites") favoritesView.classList.add("active");
       app.classList.toggle("detail-mode", view === "detail");
       root.classList.toggle("detail-view-open", view === "detail"); body.classList.toggle("detail-view-open", view === "detail");
       state.scrollCalls.push([0, 0]); state.scrollY = 0; root.scrollTop = 0; body.scrollTop = 0;
@@ -113,25 +135,38 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     },
     setTimeout(callback, delay) { const id = state.nextTimer++; state.timers.set(id, { callback, delay }); state.lastTimer = id; return id; },
     clearTimeout(id) { state.timers.delete(id); },
-    activateSearch() { homeView.classList.remove("active"); searchView.classList.add("active"); },
-    state, edge, homeView, searchView, detailView, app, mainApp, historyEntries: entries,
+    activateSearch() { homeView.classList.remove("active"); newModelView.classList.remove("active"); discountView.classList.remove("active"); favoritesView.classList.remove("active"); searchView.classList.add("active"); },
+    state, edge, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, mainApp, historyEntries: entries,
   };
   vm.createContext(context);
   const helperStart = html.indexOf("function prefersReducedProductMotion(){");
   const openStart = html.indexOf("function openProduct(id,options={}){", helperStart);
   const navigationStart = html.indexOf("function productBackTarget(historyTargetProductId=");
+  const detailFavoriteStart = html.indexOf("function renderDetailFavoriteButton(){");
+  const detailFavoriteEnd = html.indexOf("\n}", detailFavoriteStart) + 2;
   const navigationEnd = html.indexOf("function isFavorite(id){", navigationStart);
+  const favoriteEnd = html.indexOf("\n}", navigationEnd) + 2;
   const openEnd = html.indexOf("function detailPhotosForProduct(){", openStart);
-  assert.ok(helperStart >= 0 && openStart > helperStart && navigationStart > openStart && navigationEnd > navigationStart && openEnd > openStart, "product open and Back functions should remain extractable for the offline harness");
+  assert.ok(helperStart >= 0 && openStart > helperStart && detailFavoriteStart > 0 && detailFavoriteEnd > detailFavoriteStart && navigationStart > openStart && navigationEnd > navigationStart && favoriteEnd > navigationEnd && openEnd > openStart, "product open and Back functions should remain extractable for the offline harness");
   const helpers = html.slice(helperStart, openStart).trim();
   const openProductSource = html.slice(openStart, openEnd).trim();
   const navigationSource = html.slice(navigationStart, navigationEnd).trim();
+  const detailFavoriteSource = html.slice(detailFavoriteStart, detailFavoriteEnd).trim();
+  const favoriteSource = html.slice(navigationEnd, favoriteEnd).trim();
+  const productAvailabilityStart = html.indexOf("function variantStock(");
+  const productAvailabilityEnd = html.indexOf("function productHasAvailableInventory(", productAvailabilityStart);
+  const ownerPermissionStart = html.indexOf("function isOwner(){");
+  const ownerPermissionEnd = html.indexOf("function canAccessOwnerRoute(", ownerPermissionStart);
+  assert.ok(productAvailabilityStart >= 0 && productAvailabilityEnd > productAvailabilityStart, "the real product availability helper should remain extractable");
+  assert.ok(ownerPermissionStart >= 0 && ownerPermissionEnd > ownerPermissionStart, "the real inventory permission helpers should remain extractable");
+  vm.runInContext(html.slice(ownerPermissionStart, ownerPermissionEnd), context);
+  vm.runInContext(html.slice(productAvailabilityStart, productAvailabilityEnd), context);
   vm.runInContext(helpers, context);
-  vm.runInContext(navigationSource, context);
+  vm.runInContext(detailFavoriteSource + "\n" + navigationSource + "\n" + favoriteSource, context);
   vm.runInContext(openProductSource, context);
   const openProduct = context.openProduct;
   return {
-    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, detailView, app, edge, openProduct, historyEntries: entries,
+    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, edge, openProduct, historyEntries: entries,
     closeProductDetails: context.closeProductDetails,
     finishTransition() { assert.ok(state.transitionHandler, "the animated detail view should register its completion handler"); state.transitionHandler({ target: detailView, propertyName: "transform" }); },
     runTimer(id = state.lastTimer) { const timer = state.timers.get(id); assert.ok(timer, "the expected cleanup timer should be scheduled"); state.timers.delete(id); timer.callback(); },
@@ -148,7 +183,7 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.deepEqual(harness.state.cart, [{ productId: 77, size: "M", color: "#112233", qty: 2 }], "opening must preserve the cart");
 
   harness.context.goBack();
-  const destination = route === "home" ? harness.homeView : harness.searchView;
+  const destination = ({home:harness.homeView,search:harness.searchView,newModel:harness.newModelView,discount:harness.discountView,favorites:harness.favoritesView})[route];
   assert.equal(harness.context.productDetailClosing, true, "the detail view should stay mounted during the slide");
   assert.equal(destination.classList.contains("active"), true, "the exact prior list should be revealed underneath details");
   assert.equal(destination.classList.contains("product-backdrop-revealed"), true, "the revealed list should avoid re-render and entry animation");
@@ -186,6 +221,13 @@ mobileSearch.openProduct(2);
 mobileSearch.closeProductDetails();
 mobileSearch.finishTransition();
 assert.equal(mobileSearch.state.scrollY, 910, "repeated Search product open/Back cycles should preserve each scroll location");
+
+const mobileNewModel = createHarness({ initialView: "newModel" });
+assertAnimatedReturn(mobileNewModel, "newModel", 702);
+const mobileDiscount = createHarness({ initialView: "discount" });
+assertAnimatedReturn(mobileDiscount, "discount", 531);
+const mobileFavorites = createHarness({ initialView: "favorites" });
+assertAnimatedReturn(mobileFavorites, "favorites", 483);
 
 const nested = createHarness();
 nested.state.scrollY = 444;
@@ -328,4 +370,4 @@ invalidRoute.context.closeProductDetails({ fromHistory: true });
 assert.equal(invalidRoute.context.productDetailClosing, false, "an unexpected source route should not trigger fallback navigation");
 assert.equal(invalidRoute.state.openedViews.length, 1, "Back must not unexpectedly send the user to Home or another page");
 
-console.log("Product Back navigation tests passed: Home/Search restoration; nested A→B→Back→A and A→B→C sequences; browser Back/Forward; exact product, variant, gallery, detail scroll and list scroll restoration; mobile and desktop; edge-swipe; reduced motion; cart preservation; and transition fallback.");
+console.log("Product Back navigation tests passed: Home/Search/New model/Discount/Favorites restoration; nested A→B→Back→A and A→B→C sequences; browser Back/Forward; exact product, variant, gallery, detail scroll and list scroll restoration; mobile and desktop; edge-swipe; reduced motion; cart preservation; and transition fallback.");

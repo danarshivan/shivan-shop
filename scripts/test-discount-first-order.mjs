@@ -46,9 +46,10 @@ assert.deepEqual(products.map(product => product.id), originalOrder, "sorting do
 assert.equal(sandbox.sortDiscountedFirst(null).length, 0, "missing lists are safe");
 
 const renderProducts = extractFunction("renderProducts");
-assert.match(renderProducts, /const displayList=prioritizeDiscountedProducts\(list\)/, "all shared customer product grids use the stable display ordering");
+assert.match(renderProducts, /const displayList=preserveOrder\|\|target==="searchGrid"\?list:prioritizeDiscountedProducts\(list\)/, "ordinary grids prioritize discounts while Search and explicitly ordered grids preserve their chosen order");
 assert.match(renderProducts, /displayList\.map\(p=>/, "ordered items are what the shared grid renders");
 assert.match(extractFunction("searchProducts"), /renderProducts\(result,forceTarget/, "search continues through the shared grid renderer");
+assert.match(extractFunction("searchProducts"), /sortSearchProducts\(filtered,document\.getElementById\("searchSortControl"\)\?\.value\|\|"newest"\)/, "Search applies its selected sort before rendering results");
 assert.match(extractFunction("filterCategory"), /renderProducts\(result\)/, "category results continue through the shared grid renderer");
 assert.match(extractFunction("renderVisibleProductGrid"), /renderProducts\(/, "Home refreshes continue through the shared grid renderer");
 

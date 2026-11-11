@@ -4,6 +4,7 @@ import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const productRenderer = html.match(/function renderOwnerProducts\(box\)\{[\s\S]*?\n\}/)?.[0] || "";
+const productOpen = html.match(/function openProduct\(id,options=\{\}\)\{[\s\S]*?\n\}/)?.[0] || "";
 const saveProduct = html.match(/async function saveOwnerProduct\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
 const photoList = html.match(/function renderOwnerProductPhotoList\(\)\{[\s\S]*?\n\}/)?.[0] || "";
 const editPhoto = html.match(/async function editOwnerProductPhoto\(index\)\{[\s\S]*?\n\}/)?.[0] || "";
@@ -15,9 +16,14 @@ const createOwnerNavigationLedger = html.match(/function createOwnerNavigationLe
 const cropMatrix = html.match(/function ownerCropDrawMatrix\(width,height,rotation,flipX,flipY,cropX,cropY,cropWidth,cropHeight,outputWidth,outputHeight\)\{[\s\S]*?\n\}/)?.[0] || "";
 const normalizeCropTransform = values => Array.from(values, value => Object.is(value, -0) ? 0 : value);
 
-for (const [name, source] of Object.entries({ productRenderer, saveProduct, photoList, editPhoto, cropFinish, inventory, tabSwitch, ownerNavigationIdentity, createOwnerNavigationLedger, cropMatrix })) {
+for (const [name, source] of Object.entries({ productRenderer, saveProduct, productOpen, photoList, editPhoto, cropFinish, inventory, tabSwitch, ownerNavigationIdentity, createOwnerNavigationLedger, cropMatrix })) {
   assert.ok(source, `Expected ${name} implementation to exist`);
 }
+assert.match(productRenderer, /id="ownerProductStoreAvailability"[^>]*required/, "the Owner product form requires Store Availability");
+for (const value of ["shop1", "shop2", "both"]) assert.ok(productRenderer.includes(`value="${value}"`), `the Owner form provides the ${value} store choice`);
+assert.match(saveProduct, /validStoreAvailability[\s\S]*record\.storeAvailability=storeAvailability/, "Owner product saves validate and persist Store Availability");
+assert.match(html, /id="detailStoreAvailability"/, "Product Details has a customer-facing store availability row");
+assert.match(productOpen, /productStoreAvailabilityLabel\(p\)/, "Product Details shows the saved store assignment");
 for (const label of ["Basic Info", "Photos", "Colors & Stock", "Discounts & Offers"]) {
   assert.ok(productRenderer.includes(label), `the Owner editor exposes ${label}`);
 }

@@ -67,6 +67,9 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   const navNodes = [el("navHome", "nav-item"), el("navSearch", "nav-item"), el("navCart", "nav-item"), el("navOrders", "nav-item"), el("navProfile", "nav-item"), el("ownerPanelButton", "nav-item"), el("navAnalytics", "nav-item")];
   const navCartBadge = el("navCartBadge");
   const homeView = el("homeView", "view");
+  el("newModelView", "view");
+  el("discountView", "view");
+  el("favoritesView", "view");
   const searchView = el("searchView", "view");
   const cartView = el("cartView", "view");
   const ordersView = el("ordersView", "view");
@@ -117,7 +120,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     OWNER_PASSWORD: "owner-password",
     ORDERS_KEY: "orders_test",
     shopViewScrollPositions: new Map(),
-    SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "owner"]),
+    SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "newModel", "discount", "favorites", "owner"]),
     shopViewNavigationPopHandler: null,
     shopViewNavigationScrollHandler: null,
     ownerPanel: "products",
@@ -238,7 +241,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   context.signupConfirmPass.value = "new-password-123";
   context.signupTerms.checked = true;
 
-  const names = ["getProductPricing", "cartPriceSnapshot", "getCartKey", "getCart", "saveCart", "updateCartBadge", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
+  const names = ["getProductPricing", "cartPriceSnapshot", "getCartKey", "getCart", "saveCart", "updateCartBadge", "updateHomeHeaderCountBadges", "normalizeHexColor", "variantStock", "cartVariantCount", "canAddToCart", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "restoreProfileAuthCard", "showAuth", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "requireAuthentication", "resumeAuthenticationIntent", "openMain", "openView", "updateDetailAvailability", "addDetailToCart", "quickAdd", "login", "signup"];
   const functions = names.map(source).join("\n");
   const vmContext = {
     ...context,

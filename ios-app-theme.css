@@ -1,0 +1,146 @@
+/* SHIVAN SHOP — app viewport and scroll geometry only.
+   Brand colors, cards, controls, and page styling come from the existing app CSS. */
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* The app shell is the visible device viewport. The navigation is anchored here. */
+.app,
+.app.auth-mode,
+.app:not(.auth-mode) {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(100%, 430px) !important;
+  max-width: 430px !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+/* #mainApp alone scrolls; bottom padding keeps its final controls above the nav. */
+#mainApp {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+#mainApp::-webkit-scrollbar { display: none; }
+#mainApp > .view { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; margin-inline: auto; }
+
+/* This node is a sibling of the scrolling region and stays at the app viewport edge. */
+.app > .bottom-nav {
+  position: absolute !important;
+  z-index: 80 !important;
+  top: auto !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: calc(68px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom) !important;
+  transform: none !important;
+}
+
+.app.auth-mode > .bottom-nav { display: none !important; }
+.app.detail-mode > .bottom-nav { display: none !important; }
+.app.detail-mode #mainApp { padding-bottom: 0 !important; }
+.app.detail-mode.product-back-navigation #mainApp {
+  padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Bound overlays to the device canvas in the desktop preview. */
+.app .modal,
+.app #shopPromoOnboarding,
+.app #homeMenuBackdrop,
+.app .shop-auth-modal-backdrop,
+.app .owner-confirm-modal {
+  position: absolute !important;
+  inset: 0 !important;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.app .owner-confirm-modal {
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+}
+
+.app.auth-mode > #authPage.auth {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (min-width: 700px) {
+  body { padding: 24px; }
+
+  .app,
+  .app.auth-mode,
+  .app:not(.auth-mode) {
+    width: min(430px, calc(100vw - 48px)) !important;
+    height: min(932px, calc(100dvh - 48px)) !important;
+    min-height: 0 !important;
+    border: 1px solid #28263b;
+    border-radius: 46px;
+    box-shadow: 0 0 0 7px rgba(27, 26, 42, .78), 0 35px 100px rgba(0, 0, 0, .62);
+  }
+
+  .app > .bottom-nav { border-radius: 18px 18px 42px 42px; }
+}
+
+@media (max-width: 699px) {
+  body { padding: 0; }
+
+  .app,
+  .app.auth-mode,
+  .app:not(.auth-mode) {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

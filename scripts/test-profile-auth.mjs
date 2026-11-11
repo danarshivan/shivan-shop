@@ -62,7 +62,7 @@ for (const [id, cls] of [
   ["loginForm", "auth-form active"], ["signupForm", "auth-form"], ["loginTab", "active"], ["signupTab", ""],
   ["authPage", ""], ["authHeroEyebrow", ""], ["authHeroTitle", ""], ["authHeroDescription", ""],
   ["shopAuthModalClose", ""], ["languageSwitcher", "language-switcher"],
-  ["profileView", "view page"], ["homeView", "view active"], ["searchView", "view"], ["cartView", "view"], ["ordersView", "view page"],
+  ["profileView", "view page"], ["homeView", "view active"], ["newModelView", "view page"], ["discountView", "view page"], ["favoritesView", "view page"], ["searchView", "view"], ["cartView", "view"], ["ordersView", "view page"],
   ["detailView", "view"], ["ownerView", "view"], ["profileGuestAccess", ""], ["profileGuestAuthMount", ""],
   ["authenticatedProfileCard", "profile-card"], ["profileAuthBack", ""], ["loginId", ""], ["signupName", ""],
   ["navHome", ""], ["navSearch", ""], ["navCart", ""], ["navOrders", ""], ["navProfile", ""], ["ownerPanelButton", ""], ["navAnalytics", ""],
@@ -92,7 +92,7 @@ const sessionSession = makeStorage();
 
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
-  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain",
+  "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain", "updateHomeHeaderCountBadges",
 ];
 const functionSources = functionNames.map(name => {
   const source = html.match(new RegExp(`function ${name}\\([\\s\\S]*?\\n\\}`))?.[0];
@@ -112,7 +112,7 @@ const context = {
   cloudMode: false,
   ownerPanel: "products",
   shopViewScrollPositions: new Map(),
-  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "owner"]),
+  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "newModel", "discount", "favorites", "owner"]),
   shopViewNavigationPopHandler: null,
   shopViewNavigationScrollHandler: null,
   ownerPanelHasPendingWork: () => false,

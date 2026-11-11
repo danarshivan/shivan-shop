@@ -30,7 +30,7 @@ const shopContext = {
     addEventListener(name, handler) { shopWindowListeners[name] = handler; },
   },
   document: { addEventListener() {} },
-  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "profile", "owner"]),
+  SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "newModel", "discount", "favorites", "owner"]),
   getActiveShopView: () => activeShopView,
   readShopViewPosition: view => shopPositions[view] || { windowY: 0, viewTop: 0, authTop: 0 },
   isOwner: () => true,
