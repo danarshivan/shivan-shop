@@ -20,6 +20,7 @@ const mainClose = html.lastIndexOf("</section>", html.indexOf("<!-- ============
 const navClose = html.indexOf("</nav>", navOpen);
 assert.ok(navOpen > mainClose, "the navigation is a sibling after the scrolling #mainApp section");
 assert.ok(navClose > navOpen, "the customer and authorized Owner navigation remains in the document");
+assert.match(css, /#mainApp\s*\{[\s\S]*?padding-top:\s*env\(safe-area-inset-top,\s*0px\)\s*!important/, "the scrollable app content reserves the iPhone top safe area before its header and page content");
 assert.match(css, /#mainApp\s*\{[\s\S]*?overflow-y:\s*auto[\s\S]*?padding-bottom:\s*calc\(82px \+ env\(safe-area-inset-bottom\)\)/, "the scrollable content reserves room for the bottom navigation and safe area");
 assert.match(css, /\.app\s*>\s*\.bottom-nav\s*\{[\s\S]*?position:\s*absolute !important[\s\S]*?bottom:\s*0 !important[\s\S]*?env\(safe-area-inset-bottom\)/, "the navigation stays anchored to the app viewport rather than the browser or scroll content");
 assert.match(css, /\.app\.auth-mode\s*>\s*\.bottom-nav\s*\{\s*display:\s*none !important/, "navigation remains hidden on authentication screens");

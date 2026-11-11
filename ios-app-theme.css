@@ -41,6 +41,7 @@ body {
   height: auto !important;
   min-height: 0 !important;
   max-height: 100%;
+  padding-top: env(safe-area-inset-top, 0px) !important;
   box-sizing: border-box;
   overflow-x: hidden !important;
   overflow-y: auto !important;
