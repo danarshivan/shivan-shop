@@ -9,6 +9,10 @@ function functionSource(name) {
   return match[0];
 }
 
+const categoryCssStart = html.indexOf("/* HOME IMAGE-FIRST CATEGORY CARDS */");
+const categoryCssEnd = html.indexOf("/* Compact Product Details", categoryCssStart);
+assert.ok(categoryCssStart >= 0 && categoryCssEnd > categoryCssStart, "Home category layout has a final scoped stylesheet block");
+const homeCategoryStyles = html.slice(categoryCssStart, categoryCssEnd);
 const customerRenderers = functionSource("homeCategoryArtworkMarkup") + "\n" + functionSource("renderCategoryButtons") + "\n" + functionSource("renderSearchCategoryCards");
 assert.match(customerRenderers, /homeCategoryArtworkMarkup\(category\)/, "Home category cards use Owner-managed full-card images");
 assert.doesNotMatch(functionSource("homeCategoryArtworkMarkup"), /<svg|emoji/i, "Home category placeholders contain no icon or emoji artwork");
@@ -27,13 +31,16 @@ assert.match(functionSource("bindOwnerCategoryManager"), /#ownerCategoryAddRow \
 assert.match(functionSource("editOwnerAdImage"), /openSavedOwnerImageCrop/, "saved banner images can be reopened in the shared editor");
 assert.match(html, /\.categories\{[\s\S]*?overflow-x:auto/);
 assert.match(html, /\.categories\{cursor:grab;[\s\S]*?touch-action:pan-x pan-y/);
-assert.match(html, /#homeView \.category\{[^}]*min-height:88px/, "Home category cards retain enough height for their image and label");
-assert.match(html, /#homeView \.category>span:last-child\{(?=[^}]*white-space:normal)(?=[^}]*text-overflow:clip)[^}]*\}/, "full category names wrap instead of being clipped or ellipsized");
-assert.match(html, /#homeView \.categories\{[^}]*margin:0 0 12px/, "the category row has clear separation from New Arrivals");
-assert.match(html, /#homeView \.category \.cat-icon\{[^}]*width:100%[^}]*aspect-ratio:4\/5[^}]*border:0/, "the category photo fills a rounded card with no inner frame");
-assert.match(html, /#homeView \.category \.cat-icon img\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:cover/, "category photos cover the card without distortion");
-assert.match(html, /#homeView \.category \.category-image-placeholder\{[^}]*radial-gradient/, "categories without photos receive a full-card decorative fallback");
-assert.match(html, /@media\(max-width:380px\)\{#homeView \.categories/, "the category strip adapts at narrow mobile widths");
+assert.match(homeCategoryStyles, /#homeView \.category\{[^}]*flex:0 0 calc\(25% - 5.25px\)/, "mobile Home categories size four equal cards across the row");
+assert.match(homeCategoryStyles, /#homeView \.category>span:last-child\{(?=[^}]*white-space:normal)(?=[^}]*text-overflow:clip)[^}]*\}/, "full category names wrap instead of being clipped or ellipsized");
+assert.match(homeCategoryStyles, /#homeView \.category\.active>span:last-child\{[^}]*background:linear-gradient\(135deg,#8350ff,#6337df\)[^}]*box-shadow:/, "the selected category label receives the purple highlight");
+assert.match(homeCategoryStyles, /#homeView \.category\.active\{[^}]*box-shadow:[^}]*rgba\(112,67,255,.34\)/, "the selected category card receives a subtle purple glow");
+assert.match(homeCategoryStyles, /#homeView \.categories\{[^}]*margin:0 0 12px/, "the category row has clear separation from New Arrivals");
+assert.match(homeCategoryStyles, /#homeView \.category \.cat-icon\{[^}]*width:100%[^}]*aspect-ratio:1\/1[^}]*border:0/, "the category photo is a complete square inside its card");
+assert.match(homeCategoryStyles, /#homeView \.category \.cat-icon img\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:cover/, "square category photos cover the image area without distortion");
+assert.match(homeCategoryStyles, /#homeView \.category \.category-image-placeholder\{[^}]*radial-gradient/, "categories without photos receive a full-card decorative fallback");
+assert.match(homeCategoryStyles, /@media\(max-width:380px\)\{#homeView \.categories\{gap:6px[^}]*\}#homeView \.category\{flex-basis:calc\(25% - 4.5px\)/, "four category cards fit narrow iPhone widths with horizontal scrolling for the rest");
+assert.match(homeCategoryStyles, /@media\(min-width:700px\)\{#homeView \.categories\{gap:12px[^}]*\}#homeView \.category\{flex:0 0 112px/, "desktop Home categories retain consistent card dimensions");
 assert.match(html, /@media\(min-width:700px\)\{#homeView \.hero\{max-width:1100px/, "Home banner and categories have desktop sizing rules");
 assert.match(html, /@media\(max-width:420px\)\{\.owner-category-create-fields/);
 assert.match(html, /@media\(min-width:700px\)\{\.owner-category-manager/);
