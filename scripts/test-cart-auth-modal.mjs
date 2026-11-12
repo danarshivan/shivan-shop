@@ -67,6 +67,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   const navNodes = [el("navHome", "nav-item"), el("navSearch", "nav-item"), el("navCart", "nav-item"), el("navOrders", "nav-item"), el("navProfile", "nav-item"), el("ownerPanelButton", "nav-item"), el("navAnalytics", "nav-item")];
   const navCartBadge = el("navCartBadge");
   const homeView = el("homeView", "view");
+  el("storeView", "view");
   el("newModelView", "view");
   el("discountView", "view");
   el("favoritesView", "view");
@@ -120,7 +121,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     OWNER_PASSWORD: "owner-password",
     ORDERS_KEY: "orders_test",
     shopViewScrollPositions: new Map(),
-    SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "newModel", "discount", "favorites", "owner"]),
+    SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "store", "newModel", "discount", "favorites", "owner"]),
     shopViewNavigationPopHandler: null,
     shopViewNavigationScrollHandler: null,
     ownerPanel: "products",

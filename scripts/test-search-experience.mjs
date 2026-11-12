@@ -9,7 +9,7 @@ const source = (name) => {
   return match[0];
 };
 
-assert.match(html, /body\.search-page-open #mainApp>\.topbar\{display:none!important\}/, "Search hides the legacy logo header");
+assert.match(html, /body\.search-page-open #mainApp>\.topbar,body\.store-page-open #mainApp>\.topbar\{display:none!important\}/, "Search and store pages hide the legacy logo header");
 assert.match(html, /body\.search-page-open>\.language-switcher\{display:none!important\}/, "Search hides the global language selector");
 assert.match(html, /id="searchPageInput"[^>]*placeholder="Search women’s fashion…"/, "Search uses the approved women’s fashion placeholder");
 assert.match(html, /class="search-page-brand"[^>]*>Shivan Shop<\/div>/, "Search has a centered Shivan Shop wordmark");

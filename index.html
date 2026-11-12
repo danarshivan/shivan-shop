@@ -1024,6 +1024,76 @@ button{
 .shop-collection-title .shop-eyebrow{margin:0 0 3px;color:#a9a9c2;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
 .shop-collection-title .page-title{margin:0;color:#fff;font-size:clamp(20px,5vw,27px);line-height:1.2}
 .shop-collection-products{padding-bottom:18px}
+/* Shared responsive Shop 1 / Shop 2 page */
+.store-page-view{padding-top:12px}
+.store-page-header{position:relative;isolation:isolate;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;grid-template-rows:64px auto auto;align-items:center;gap:5px;min-height:190px;margin:-12px -15px 14px;padding:17px 15px 16px;overflow:hidden;border-bottom:1px solid rgba(143,111,255,.28);border-radius:0 0 30px 30px;background:radial-gradient(ellipse at 50% 12%,rgba(117,73,255,.34),transparent 45%),radial-gradient(ellipse at 14% 72%,rgba(95,61,218,.19),transparent 44%),linear-gradient(155deg,#0d1022,#080a17 70%,#111027)}
+.store-page-header:before,.store-page-header:after{position:absolute;z-index:-1;right:-15%;bottom:-43px;width:115%;height:91px;border:1px solid rgba(153,122,255,.26);border-radius:50%;content:"";transform:rotate(-7deg);pointer-events:none}
+.store-page-header:after{right:-22%;bottom:-59px;width:126%;height:100px;border-color:rgba(125,94,236,.18);transform:rotate(-9deg)}
+.store-page-back{grid-column:1;grid-row:1;z-index:1;display:grid;width:44px;height:44px;place-items:center;padding:0;border:1px solid rgba(153,127,235,.5);border-radius:15px;background:rgba(14,16,35,.78);color:#fff;cursor:pointer;transition:background-color .18s ease,transform .18s ease}
+.store-page-back svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.store-page-back:active{transform:scale(.96)}
+.store-page-brand{grid-column:2;grid-row:1;display:grid;justify-items:center;gap:5px;min-width:0}
+.store-page-icon{display:grid;width:58px;height:58px;place-items:center;border:1px solid rgba(172,143,255,.75);border-radius:20px;background:linear-gradient(145deg,#8150fb,#4d2eaa);color:#fff;box-shadow:0 0 24px rgba(126,77,255,.5),inset 0 1px rgba(255,255,255,.2)}
+.store-page-icon svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.store-page-title{grid-column:1/4;grid-row:2;position:relative;z-index:1;margin:2px 0 0;color:#fff;font-size:clamp(22px,6vw,30px);font-weight:850;line-height:1.14;text-align:center;text-shadow:0 3px 16px rgba(0,0,0,.34)}
+.store-page-subtitle{grid-column:1/4;grid-row:3;position:relative;z-index:1;margin:-2px 0 0;color:#c6c1e2;font-size:13px;line-height:1.4;text-align:center}
+.store-page-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 13px}
+.store-page-product-count{display:inline-flex;align-items:center;gap:8px;min-width:0;padding:8px 12px;border:1px solid rgba(147,120,232,.4);border-radius:999px;background:linear-gradient(125deg,rgba(38,31,71,.84),rgba(13,16,32,.94));color:#eeeaff;font-size:12px;white-space:nowrap}
+.store-page-product-count svg{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:#c4aaff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.store-page-view-toggle{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid rgba(145,117,226,.45);border-radius:15px;background:#0b0e1d}
+.store-page-view-toggle button{display:grid;width:37px;height:34px;place-items:center;padding:0;border:0;border-radius:11px;background:transparent;color:#aaa5c4;cursor:pointer}
+.store-page-view-toggle button[aria-pressed="true"]{background:linear-gradient(135deg,#8c52ff,#5c35d1);color:#fff;box-shadow:0 3px 12px rgba(104,65,224,.4)}
+.store-page-view-toggle svg,.store-page-sort svg,.store-page-filter-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.store-page-category-filters{display:flex;align-items:center;gap:8px;min-width:0;margin:0 -2px 13px;padding:1px 2px 5px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+.store-page-category-filters::-webkit-scrollbar{display:none}
+.store-page-category-filter{flex:0 0 auto;min-height:39px;padding:0 16px;border:1px solid rgba(148,125,222,.42);border-radius:999px;background:linear-gradient(145deg,#111427,#0a0d19);color:#f2efff;font-size:12px;font-weight:650;white-space:nowrap;cursor:pointer;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}
+.store-page-category-filter[aria-pressed="true"]{border-color:#a77aff;background:linear-gradient(130deg,#8652ff,#6437de);box-shadow:0 0 15px rgba(121,75,255,.45);color:#fff}
+.store-page-controls{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0 2px 12px}
+.store-page-sort{display:flex;align-items:center;gap:7px;min-width:0;color:#c5bfdc}
+.store-page-sort select{min-width:0;max-width:170px;min-height:40px;padding:0 10px;border:1px solid rgba(145,122,219,.4);border-radius:13px;outline:none;background:linear-gradient(145deg,#111427,#0a0d19);color:#f2efff;font:inherit;font-size:11px}
+.store-page-sort select:focus-visible,.store-page-filter-button:focus-visible,.store-page-category-filter:focus-visible{outline:2px solid #b49aff;outline-offset:2px}
+.store-page-filter-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border:1px solid rgba(145,122,219,.42);border-radius:14px;background:linear-gradient(145deg,#111427,#0a0d19);color:#eeeaff;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+.store-page-filter-button[aria-expanded="true"]{border-color:#a77aff;background:linear-gradient(130deg,rgba(100,58,210,.46),rgba(20,17,43,.9))}
+.store-page-filter-panel{display:flex;flex-wrap:wrap;gap:10px 18px;margin:0 2px 13px;padding:12px;border:1px solid rgba(145,117,226,.3);border-radius:15px;background:rgba(15,17,34,.92)}
+.store-page-filter-panel[hidden]{display:none!important}
+.store-page-filter-option{display:flex;align-items:center;gap:8px;color:#e9e5f8;font-size:12px;cursor:pointer}
+.store-page-filter-option input{width:17px;height:17px;margin:0;accent-color:#8150f5}
+.products.store-page-products{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:10px;padding:0 1px 22px}
+.store-page-products .product{min-width:0;border:1px solid rgba(153,127,235,.48);border-radius:19px;background:linear-gradient(155deg,#111427,#090c18 75%);box-shadow:0 7px 20px rgba(0,0,0,.24);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.store-page-products .product:active{transform:scale(.985)}
+.store-page-products .product-image-frame{width:100%;aspect-ratio:1/1;background:#101223}
+.store-page-products .product-img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;background:#101223}
+.store-page-products .heart{top:8px;right:8px;width:34px;height:34px;border-color:rgba(255,255,255,.42);background:rgba(23,16,48,.78);font-size:20px;backdrop-filter:blur(5px)}
+.store-page-products .product-discount-badge{top:9px;left:9px;min-height:24px;padding:4px 8px;font-size:11px}
+.store-page-products .product-info{gap:3px;padding:9px 9px 10px;direction:ltr;text-align:left}
+.store-page-products .product-name{min-height:1.35em;font-size:13px;line-height:1.3;white-space:nowrap}
+.store-page-products .price{margin-top:2px;color:#fff;font-size:12px;line-height:1.4}
+.store-page-products .discount-price-layout{gap:3px 7px}
+.store-page-products .original-price{color:#aaa7b8;font-size:10px}
+.store-page-products .discounted-price{color:#fff;font-size:13px}
+.store-page-products .product-store-location{min-height:15px;margin-top:3px;color:#aaa6c4;font-size:9px;line-height:1.25}
+.store-product-options{display:grid;gap:6px;margin:6px 0 1px;color:#c7c3d7;font-size:10px}
+.store-product-size-row{display:flex;align-items:flex-start;gap:5px;min-width:0}
+.store-product-size-label{flex:0 0 auto;color:#c7c3d7}
+.store-product-size-values{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.store-product-size-chip{display:inline-flex;align-items:center;min-height:20px;padding:2px 6px;border:1px solid rgba(150,127,226,.32);border-radius:999px;background:rgba(39,32,71,.68);color:#eeeaff;font-size:9px;line-height:1.1}
+.store-product-color-row{display:flex;align-items:center;gap:4px;min-width:0;min-height:16px}
+.store-product-color-row .color-dot{width:14px;height:14px;flex-basis:14px;border-color:rgba(255,255,255,.7)}
+.store-product-color-more{display:inline-flex;min-height:17px;align-items:center;padding:1px 5px;border-radius:999px;background:rgba(42,35,73,.88);color:#eeeaff;font-size:9px}
+.store-page-products .store-add-to-cart{display:flex;width:100%;min-height:39px;align-items:center;justify-content:center;gap:7px;margin-top:9px;padding:6px 8px;border:1px solid rgba(191,164,255,.55);border-radius:15px;background:linear-gradient(135deg,#8650ff,#6635df);color:#fff;font-size:11px;font-weight:800;box-shadow:0 5px 14px rgba(97,58,218,.3);cursor:pointer}
+.store-page-products .store-add-to-cart svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.store-page-products .store-add-to-cart:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
+.store-page-products.is-list{grid-template-columns:minmax(0,1fr)}
+.store-page-products.is-list .product{display:grid;grid-template-columns:minmax(105px,36%) minmax(0,1fr);align-items:stretch}
+.store-page-products.is-list .product-image-frame{grid-column:1;grid-row:1;align-self:start;aspect-ratio:1/1}
+.store-page-products.is-list .product-info{grid-column:2;grid-row:1;min-width:0;padding:10px}
+.store-page-empty{grid-column:1/-1;display:grid;min-height:180px;place-content:center;justify-items:center;gap:9px;padding:24px;border:1px dashed rgba(147,119,231,.45);border-radius:20px;background:radial-gradient(ellipse at 50% 0%,rgba(110,70,225,.13),transparent 64%),rgba(13,16,31,.62);color:#eeeaff;text-align:center}
+.store-page-empty svg{width:40px;height:40px;fill:none;stroke:#a985ff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.store-page-empty strong{font-size:15px}
+.store-page-empty p{max-width:30ch;margin:0;color:#aaa6c4;font-size:12px;line-height:1.5}
+@media(max-width:350px){.store-page-header{min-height:178px;padding-inline:12px}.store-page-back{width:40px;height:40px}.store-page-icon{width:53px;height:53px}.store-page-product-count{gap:6px;padding:7px 9px;font-size:11px}.store-page-view-toggle button{width:33px;height:32px}.store-page-category-filters{gap:6px}.store-page-category-filter{min-height:37px;padding-inline:12px;font-size:11px}.store-page-sort{gap:5px}.store-page-sort select{max-width:140px;padding-inline:7px}.store-page-filter-button{gap:5px;padding-inline:10px}.products.store-page-products{gap:7px}.store-page-products .product-info{padding:7px 7px 8px}.store-page-products .product-name{font-size:11px}.store-page-products .store-add-to-cart{min-height:36px;padding-inline:5px;font-size:10px}}
+@media(min-width:700px){.store-page-view{max-width:1100px;margin-inline:auto}.store-page-header{min-height:225px;margin-inline:-15px;padding-top:24px}.store-page-icon{width:65px;height:65px}.store-page-title{font-size:32px}.store-page-subtitle{font-size:14px}.store-page-toolbar,.store-page-controls,.store-page-filter-panel,.store-page-category-filters{max-width:1010px;margin-inline:auto}.products.store-page-products{gap:14px;padding-inline:18px}.store-page-products .product-info{padding:12px}.store-page-products .product-name{font-size:15px}.store-page-products .price{font-size:14px}.store-product-options{font-size:11px}.store-page-products .store-add-to-cart{min-height:44px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.store-page-back,.store-page-category-filter,.store-page-products .product,.store-page-products .store-add-to-cart{transition:none!important}}
 .shop-collection-view .shop-collection-header{grid-template-columns:42px minmax(0,1fr) 42px;gap:8px;margin:0 14px 13px;direction:ltr}
 .shop-collection-brand{display:flex;min-width:0;align-items:center;justify-content:center;gap:7px;color:#fff;font-family:Georgia,"Times New Roman",serif;font-size:clamp(18px,5vw,23px);font-weight:700;letter-spacing:-.04em;white-space:nowrap}
 .shop-collection-brand svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:#b69aff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(154,119,255,.55))}
@@ -3289,7 +3359,7 @@ html.home-menu-open,html.home-menu-open body{overflow:hidden!important}
 .home-header-count-badge{position:absolute;top:-6px;right:-6px;z-index:5;display:inline-flex;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #0a0d19;border-radius:999px;background:linear-gradient(145deg,#b58cff,#805cff);color:#fff;font:800 10px/1 system-ui,sans-serif;box-shadow:0 0 12px rgba(142,103,255,.58);pointer-events:none}
 .home-header-count-badge[hidden]{display:none!important}
 body.search-page-open>.language-switcher{display:none!important}
-body.search-page-open #mainApp>.topbar{display:none!important}
+body.search-page-open #mainApp>.topbar,body.store-page-open #mainApp>.topbar{display:none!important}
 .search-page{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden;padding:12px 0 calc(96px + env(safe-area-inset-bottom));color:#f6f4ff}
 .search-page-header{position:relative;grid-template-columns:42px minmax(0,1fr) 42px;direction:ltr;margin:0 14px 14px}
 .search-page-brand{grid-column:2;grid-row:1;justify-self:center;position:relative;padding:0 0 6px;color:#fff;font:700 clamp(19px,5vw,23px)/1 Georgia,"Times New Roman",serif;letter-spacing:-.04em;white-space:nowrap;text-shadow:0 2px 14px rgba(140,111,255,.18)}
@@ -3788,6 +3858,32 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
 
   </div>
 
+  <div id="storeView" class="view page shop-menu-collection-view store-page-view">
+    <header class="store-page-header" aria-labelledby="storePageTitle">
+      <button class="store-page-back" type="button" onclick="goBackFromShopCollection()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
+      <div class="store-page-brand"><span class="store-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10 5 4h14l2 6v10H3z"/><path d="M3 10h18M8 10v2a4 4 0 0 0 8 0v-2M10 20v-5h4v5"/></svg></span></div>
+      <span aria-hidden="true"></span>
+      <h1 id="storePageTitle" class="store-page-title">Shivan Shop 1</h1>
+      <p id="storePageSubtitle" class="store-page-subtitle">Premium Fashion Collection</p>
+    </header>
+    <section class="store-page-toolbar" aria-label="Store products">
+      <div id="storePageProductCount" class="store-page-product-count" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z"/><path d="M8 8a4 4 0 0 1 8 0"/></svg><span>0 Products</span></div>
+      <div class="store-page-view-toggle" role="group" aria-label="Product layout">
+        <button id="storePageGridButton" type="button" aria-label="Grid view" title="Grid view" aria-pressed="true" onclick="setStorePageViewMode('grid')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+        <button id="storePageListButton" type="button" aria-label="List view" title="List view" aria-pressed="false" onclick="setStorePageViewMode('list')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12"/><circle cx="4" cy="5" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="19" r="1"/></svg></button>
+      </div>
+    </section>
+    <div id="storePageCategoryFilters" class="store-page-category-filters" role="group" aria-label="Categories"></div>
+    <div class="store-page-controls">
+      <label class="store-page-sort" for="storePageSortControl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10m-7 6h4"/><path d="m7 3-3 3 3 3M17 15l3 3-3 3"/></svg><select id="storePageSortControl" aria-label="Sort products" onchange="setStorePageSort(this.value)"></select></label>
+      <button id="storePageFilterButton" class="store-page-filter-button" type="button" aria-expanded="false" aria-controls="storePageFilterPanel" onclick="toggleStorePageFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.5V19l-3 1v-7.5L4 5Z"/></svg><span id="storePageFilterLabel">Filter</span></button>
+    </div>
+    <div id="storePageFilterPanel" class="store-page-filter-panel" hidden>
+      <label class="store-page-filter-option"><input id="storePageDiscountedOnly" type="checkbox" onchange="setStorePageFilter('discounted',this.checked)"><span id="storePageDiscountFilterLabel">Discounted products</span></label>
+      <label class="store-page-filter-option"><input id="storePageAvailableOnly" type="checkbox" onchange="setStorePageFilter('available',this.checked)"><span id="storePageAvailableFilterLabel">Available products</span></label>
+    </div>
+    <div id="storePageProductsGrid" class="products store-page-products" aria-live="polite"></div>
+  </div>
   <div id="newModelView" class="view page shop-menu-collection-view">
 <header class="shop-collection-header">
   <button id="newModelBackButton" class="shop-collection-back" type="button" onclick="goBackFromShopCollection()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
@@ -4848,13 +4944,14 @@ function renderHomeLabels(){
   for(const [id,en,ku,ar] of menuLabels){const element=document.getElementById(id);if(element)element.textContent=customerUiText(en,ku,ar);}
   const menuLanguageSelect=document.getElementById("languageSelect");if(menuLanguageSelect){const label=customerUiText("Language","زمان","اللغة");menuLanguageSelect.setAttribute("aria-label",label);menuLanguageSelect.title=label;}
   const activeView=getActiveShopView();
-  const activeMenuFilter=activeView==="newModel"||activeView==="discount"?activeView:homeMenuFilterMode==="all"?"":homeMenuFilterMode;
+  const activeMenuFilter=activeView==="newModel"||activeView==="discount"?activeView:activeView==="store"?(storePageStore==="shop1"?"collection1":"collection2"):homeMenuFilterMode==="all"?"":homeMenuFilterMode;
   for(const [id,mode] of [["homeMenuCollection1","collection1"],["homeMenuCollection2","collection2"],["homeMenuDiscount","discount"],["homeMenuNewModel","newModel"]]){const element=document.getElementById(id);if(element){const selected=activeMenuFilter===mode;element.classList.toggle("is-active",selected);element.setAttribute("aria-pressed",String(selected));}}
   const profileOrdersLabel=document.getElementById("profileOrdersLabel");if(profileOrdersLabel)profileOrdersLabel.textContent=customerUiText("My Orders","داخوازیێن من","طلباتي");
   const profileOwnerLabel=document.getElementById("profileOwnerDashboardLabel");if(profileOwnerLabel)profileOwnerLabel.textContent=customerUiText("Owner Dashboard","داشبۆردا خاوەن","لوحة المالك");
   const categoryList=document.getElementById("categoryButtons");if(categoryList)categoryList.setAttribute("aria-label",customerUiText("Categories","جۆرێن بەرهەمان","الفئات"));
   if(typeof renderSearchLabels==="function")renderSearchLabels();
   if(typeof updateHomeHeaderCountBadges==="function")updateHomeHeaderCountBadges();
+  if(getActiveShopView()==="store"&&typeof renderStorePage==="function")renderStorePage();
 }
 function getProductName(product,language=activeLanguage){
   if(!product)return "";
@@ -5078,7 +5175,7 @@ const shopViewScrollPositions=new Map();
 let shopSearchReturnView="home";
 let shopViewNavigationPopHandler=null;
 let shopViewNavigationScrollHandler=null;
-const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","orders","profile","newModel","discount","favorites","owner"]);
+const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","orders","profile","store","newModel","discount","favorites","owner"]);
 let ownerPanelRefreshPending=false;
 let ownerProductWorkflowId="";
 let ownerAdWorkflowId="";
@@ -5828,6 +5925,7 @@ let productHistoryBackFromSwipe=false;
 let productHistoryPopHandler=null;
 let currentCategory = "هەموو";
 let homeMenuFilterMode="all";
+let storePageStore="shop1",storePageCategory="",storePageSortMode="newest",storePageViewMode="grid",storePageDiscountedOnly=false,storePageAvailableOnly=false,storePageFiltersOpen=false,storePageDiscountExpiryTimer=0;
 let homeMenuScrollY=0;
 let homeMenuBodyStyleSnapshot=null;
 let homeMenuCloseTimer=0;
@@ -7535,7 +7633,7 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
 }
 
 function getActiveShopView(){
-  return ["detail","home","search","cart","orders","profile","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
+  return ["detail","home","store","search","cart","orders","profile","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
 }
 
 function shopViewHistoryState(view,position=readShopViewPosition(view)){
@@ -8390,6 +8488,7 @@ function openView(view,options={}){
   if(view==="detail")ensureProductDetailOverlay();
   const views = [
     "homeView",
+    "storeView",
     "newModelView",
     "discountView",
     "favoritesView",
@@ -8408,11 +8507,13 @@ function openView(view,options={}){
   });
 
   document.getElementById(view+"View").classList.add("active");
+  if(view==="store"&&typeof renderStorePage==="function")renderStorePage();
   const bottomNavigation=document.querySelector(".bottom-nav");
   bottomNavigation?.classList.toggle("owner-mode",view==="owner"&&(isOwner()||isStaffSession()));
   bottomNavigation?.classList.toggle("owner-customer-mode",view!=="owner"&&(isOwner()||isStaffSession()));
   document.querySelector(".app")?.classList.toggle("detail-mode",view==="detail");
   document.body?.classList.toggle("search-page-open",view==="search");
+  document.body?.classList.toggle("store-page-open",view==="store");
   document.documentElement.classList.toggle("detail-view-open",view==="detail");
   document.body.classList.toggle("detail-view-open",view==="detail");
   if(view==="detail"){
@@ -8422,7 +8523,7 @@ function openView(view,options={}){
 
   if(!(view==="detail"&&preserveReturnView))document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
 
-  if(view==="home"||view==="newModel"||view==="discount"||view==="favorites")
+  if(view==="home"||view==="store"||view==="newModel"||view==="discount"||view==="favorites")
     document.getElementById("navHome").classList.add("active");
 
   if(view==="search")
@@ -8473,7 +8574,7 @@ function openView(view,options={}){
       const mainApp=document.getElementById("mainApp");
       const viewElement=document.getElementById(`${view}View`);
       if(viewElement)viewElement.scrollTop=Math.max(0,Number(position.viewTop)||0);
-      if(mainApp&&options.preserveProductReturn&&options.restorePosition?.appTop!==undefined)mainApp.scrollTop=Math.max(0,Number(position.appTop??position.windowY)||0);
+      if(mainApp&&(options.preserveProductReturn||options.historyRestore)&&options.restorePosition?.appTop!==undefined)mainApp.scrollTop=Math.max(0,Number(position.appTop??position.windowY)||0);
       else window.scrollTo(0,Math.max(0,Number(position.windowY)||0));
     }else document.getElementById("detailView").scrollTop=Math.max(0,Number(options.restorePosition?.viewTop)||0);
   }finally{root.style.scrollBehavior=previousScrollBehavior;}
@@ -8621,6 +8722,10 @@ function renderVisibleProductGrid(){
     searchProducts(input?.value||"","searchGrid");
     return;
   }
+  if(browseView==="store"){
+    renderStorePage();
+    return;
+  }
   if(browseView==="newModel"||browseView==="discount"){
     renderHomeMenuProductCollection(browseView);
     return;
@@ -8752,12 +8857,12 @@ function openProduct(id,options={}){
     productDetailHistoryStack.push(snapshotProductDetail());
   }else if(!openingFromDetail&&!options.fromHistory){
     productDetailHistoryStack=[];
-    previousView=["favorites","newModel","discount","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
+    previousView=["favorites","newModel","discount","store","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
     previousViewPosition=typeof readShopViewPosition==="function"?readShopViewPosition(previousView):{windowY:Math.max(0,Number(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0)),viewTop:0,appTop:Math.max(0,Number(document.getElementById("mainApp")?.scrollTop)||0),authTop:0};
     previousViewScrollY=Math.max(0,Number(previousViewPosition.appTop??previousViewPosition.windowY)||0);
   }else if(!openingFromDetail&&options.fromHistory){
     const state=window.history?.state||{};
-    previousView=["home","search","newModel","discount","favorites"].includes(state.__shivanProductReturnView)?state.__shivanProductReturnView:["favorites","newModel","discount","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
+    previousView=["home","search","store","newModel","discount","favorites"].includes(state.__shivanProductReturnView)?state.__shivanProductReturnView:["favorites","newModel","discount","store","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
     previousViewPosition=state.__shivanProductReturnPosition||{windowY:Math.max(0,Number(window.scrollY)||0),viewTop:0,appTop:Math.max(0,Number(state.__shivanProductReturnScrollY??window.scrollY??0)),authTop:0};
     previousViewScrollY=Math.max(0,Number(state.__shivanProductReturnScrollY??previousViewPosition.appTop??window.scrollY??0));
   }
@@ -9391,6 +9496,21 @@ function renderHomeMenuProductCollection(mode){
   renderProducts(sortHomeMenuProducts(matching,mode,sortMode),target,false,true);
   return true;
 }
+function filterStorePageProducts(list,store=storePageStore,options={}){if(!["shop1","shop2"].includes(store))return [];const o=options&&typeof options==="object"?options:{},cat=String(o.category??"").trim().toLocaleLowerCase();return (Array.isArray(list)?list:[]).filter(p=>homeMenuProductIsPublished(p)&&(p?.storeAvailability===store||p?.storeAvailability==="both")&&(!cat||String(resolveCategoryName(p?.category||"")).trim().toLocaleLowerCase()===cat)&&(o.discountedOnly!==true||homeMenuProductHasActiveDiscount(p))&&(o.availableOnly!==true||productHasAvailableInventory(p)));}
+function storePageSortProducts(list,mode=storePageSortMode){const rows=Array.isArray(list)?list:[];if(["newest","price-low","price-high"].includes(mode))return sortSearchProducts(rows,mode);if(mode==="name")return sortHomeMenuProducts(rows,"store","name");return rows;}
+function renderStoreProductCards(list){
+ const grid=document.getElementById("storePageProductsGrid");if(!grid)return false;const rows=Array.isArray(list)?list:[];
+ if(!rows.length){const title=customerUiText("No products in this store yet","هێشتا بەرهەم ل ڤێ فرۆگەهێ نینن","لا توجد منتجات في هذا المتجر بعد"),hint=customerUiText("Products assigned to this store will appear here.","بەرهەمێن تەرخانکری بۆ ڤێ فرۆگەهێ ل ڤێرە دێ دیار بن.","ستظهر هنا المنتجات المعيّنة لهذا المتجر.");grid.innerHTML=`<section class="store-page-empty" role="status"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 17h32l-3 25H11L8 17Z"/><path d="M16 17a8 8 0 0 1 16 0"/><path d="m19 29 10 0M24 24v10"/></svg><strong>${escapeHtml(title)}</strong><p>${escapeHtml(hint)}</p></section>`;return true;}
+ grid.innerHTML=rows.map(p=>{const id=Number(p.id);if(!Number.isSafeInteger(id))return "";const n=getProductName(p),d=productDiscountPercent(p),fav=isFavorite(p.id),avail=productHasAvailableInventory(p),sizes=searchProductSizes(p),colors=searchProductColors(p),visibleSizes=sizes.slice(0,5),visibleColors=colors.slice(0,5),sizeMore=Math.max(0,sizes.length-visibleSizes.length),colorMore=Math.max(0,colors.length-visibleColors.length),favText=customerUiText(fav?"Remove from Favorites":"Add to Favorites",fav?"ژ دڵخوازان دەربێخە":"بە دڵخوازان زیاد بکە",fav?"إزالة من المفضلة":"أضف إلى المفضلة"),cartText=customerUiText("Add to cart","زیاد بکە بۆ سەبەت","أضيفي إلى السلة"),sizeText=customerUiText("Size:","قیاس:","المقاس:"),unspecified=customerUiText("Not specified","نەهاتییە دیارکرن","غير محدد"),colorMarkup=visibleColors.map(c=>{const raw=String(c?.value||""),safe=/^(?:#[0-9a-f]{3,8}|[a-z]{3,24})$/i.test(raw)?raw:"transparent";return `<span class="color-dot" style="background:${escapeHtml(safe)}" title="${escapeHtml(c?.label||raw)}" aria-label="${escapeHtml(c?.label||raw)}"></span>`;}).join("");return `<article class="product store-product-card${d?" has-discount":""}" data-store-product-id="${escapeHtml(p.id)}" onclick="openProduct(${id})"><button type="button" class="heart${fav?" liked":""}" aria-label="${escapeHtml(favText)}" aria-pressed="${fav}" title="${escapeHtml(favText)}" onclick="event.stopPropagation();toggleFavorite(${id})">${fav?"♥":"♡"}</button><div class="product-image-frame">${d?`<span class="product-discount-badge" aria-label="${d} percent off">-${d}%</span>`:""}${renderTimedDiscountBadge(p)}<img class="product-img" data-i18n-preserve src="${escapeHtml(safeImageUrl(p.image))}" alt="${escapeHtml(n)}" data-product-name-id="${escapeHtml(p.id)}" loading="lazy"></div><div class="product-info"><div class="product-name" data-product-name-id="${escapeHtml(p.id)}" data-i18n-preserve>${escapeHtml(n)}</div><div class="price">${renderProductPricing(p)}</div><div class="product-store-location" aria-label="${escapeHtml(customerUiText("Store availability","بەردەستبوونا فرۆگەه","توفر المتجر"))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>${escapeHtml(productStoreAvailabilityLabel(p))}</span></div><div class="store-product-options"><div class="store-product-size-row"><span class="store-product-size-label">${escapeHtml(sizeText)}</span><span class="store-product-size-values">${visibleSizes.map(s=>`<span class="store-product-size-chip">${escapeHtml(s)}</span>`).join("")||`<span class="store-product-size-chip">${escapeHtml(unspecified)}</span>`}${sizeMore?`<span class="store-product-size-chip">+${sizeMore}</span>`:""}</span></div><div class="store-product-color-row" aria-label="${escapeHtml(customerUiText("Available colors","ڕەنگێن هەین","الألوان المتاحة"))}">${colorMarkup}${colorMore?`<span class="store-product-color-more">+${colorMore}</span>`:""}</div></div><button type="button" class="store-add-to-cart" ${avail?"":"disabled"} onclick="event.stopPropagation();quickAdd(${id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg><span>${escapeHtml(cartText)}</span></button></div></article>`;}).join("");refreshDiscountCountdownBadges();return true;
+}
+function renderStorePage(){if(!["shop1","shop2"].includes(storePageStore))return false;const t=storePageStore==="shop1"?"Shivan Shop 1":"Shivan Shop 2",title=document.getElementById("storePageTitle"),subtitle=document.getElementById("storePageSubtitle");if(title)title.textContent=t;if(subtitle)subtitle.textContent=customerUiText("Premium Fashion Collection","کۆمبەستەکا جلوبەرگێن تایبەت","مجموعة أزياء مميزة");const cats=typeof getAllCategories==="function"?getAllCategories({visibleOnly:true}):[],host=document.getElementById("storePageCategoryFilters");if(storePageCategory&&!cats.includes(storePageCategory))storePageCategory="";if(host){const all=customerUiText("All","هەمی","الكل");host.innerHTML=["",...cats].map(c=>`<button type="button" class="store-page-category-filter" data-store-category="${escapeHtml(c)}" aria-pressed="${storePageCategory===c}" onclick="setStorePageCategory(this.dataset.storeCategory)">${escapeHtml(c?categoryLabel(c):all)}</button>`).join("");}const sort=document.getElementById("storePageSortControl");if(sort){const opts=[["newest","Sort: Newest","ڕیز: نووترین","الترتيب: الأحدث"],["price-low","Price: Low to High","بها: ژ کێم بۆ زێدە","السعر: من الأقل للأعلى"],["price-high","Price: High to Low","بها: ژ زێدە بۆ کێم","السعر: من الأعلى للأقل"],["name","Name: A to Z","ناڤ: A بۆ Z","الاسم: أ إلى ي"]];sort.innerHTML=opts.map(x=>`<option value="${x[0]}">${escapeHtml(customerUiText(x[1],x[2],x[3]))}</option>`).join("");sort.value=storePageSortMode;if(sort.value!==storePageSortMode){storePageSortMode="newest";sort.value="newest";}}const labels=[["storePageFilterLabel","Filter","فلتەر","تصفية"],["storePageDiscountFilterLabel","Discounted products","بەرهەمێن داشکاندی","المنتجات المخفضة"],["storePageAvailableFilterLabel","Available products","بەرهەمێن بەردەست","المنتجات المتاحة"]];for(const [id,en,ku,ar] of labels){const e=document.getElementById(id);if(e)e.textContent=customerUiText(en,ku,ar);}const dc=document.getElementById("storePageDiscountedOnly"),ac=document.getElementById("storePageAvailableOnly"),panel=document.getElementById("storePageFilterPanel"),fb=document.getElementById("storePageFilterButton"),grid=document.getElementById("storePageProductsGrid"),gb=document.getElementById("storePageGridButton"),lb=document.getElementById("storePageListButton");if(dc)dc.checked=storePageDiscountedOnly;if(ac)ac.checked=storePageAvailableOnly;if(panel)panel.hidden=!storePageFiltersOpen;if(fb)fb.setAttribute("aria-expanded",String(storePageFiltersOpen));if(grid)grid.classList.toggle("is-list",storePageViewMode==="list");if(gb)gb.setAttribute("aria-pressed",String(storePageViewMode==="grid"));if(lb)lb.setAttribute("aria-pressed",String(storePageViewMode==="list"));const filtered=filterStorePageProducts(products,storePageStore,{category:storePageCategory,discountedOnly:storePageDiscountedOnly,availableOnly:storePageAvailableOnly}),sorted=storePageSortProducts(filtered,storePageSortMode),count=document.getElementById("storePageProductCount");if(count){const c=count.querySelector("span");if(c)c.textContent=String(sorted.length.toLocaleString())+" "+customerUiText(sorted.length===1?"Product":"Products",sorted.length===1?"بەرهەم":"بەرهەم","منتج");}renderStoreProductCards(sorted);scheduleStorePageDiscountRefresh();return sorted.length;}
+function scheduleStorePageDiscountRefresh(){if(storePageDiscountExpiryTimer){window.clearTimeout(storePageDiscountExpiryTimer);storePageDiscountExpiryTimer=0;}if(typeof window==="undefined"||typeof window.setTimeout!=="function")return false;const now=Date.now(),items=filterStorePageProducts(products,storePageStore),next=items.flatMap(p=>[p?.discountTimerEnabled===true?Date.parse(String(p.discountEndsAt||"")):NaN,p?.discountStartsAt||p?.discount_starts_at?Date.parse(String(p.discountStartsAt||p.discount_starts_at)):NaN]).filter(x=>Number.isFinite(x)&&x>now).sort((a,b)=>a-b)[0];if(!next)return false;storePageDiscountExpiryTimer=window.setTimeout(()=>{storePageDiscountExpiryTimer=0;if(getActiveShopView()==="store")renderStorePage();},Math.max(25,Math.min(2147480000,next-now+20)));return true;}
+function setStorePageCategory(category){const c=String(category||""),valid=c===""||(typeof getAllCategories==="function"&&getAllCategories({visibleOnly:true}).includes(c));if(!valid)return false;storePageCategory=c;renderStorePage();return true;}
+function setStorePageSort(value){if(!["newest","price-low","price-high","name"].includes(value))return false;storePageSortMode=value;renderStorePage();return true;}
+function setStorePageFilter(filter,value){if(filter==="discounted")storePageDiscountedOnly=Boolean(value);else if(filter==="available")storePageAvailableOnly=Boolean(value);else return false;renderStorePage();return true;}
+function setStorePageViewMode(mode){if(mode!=="grid"&&mode!=="list")return false;storePageViewMode=mode;renderStorePage();return true;}
+function toggleStorePageFilters(){storePageFiltersOpen=!storePageFiltersOpen;renderStorePage();return storePageFiltersOpen;}
+function openStorePage(store){if(!["shop1","shop2"].includes(store))return false;storePageStore=store;storePageCategory="";storePageSortMode="newest";storePageViewMode="grid";storePageDiscountedOnly=false;storePageAvailableOnly=false;storePageFiltersOpen=false;openView("store");return true;}
 function renderVisibleHomeMenuProductCollection(){
   const activeView=getActiveShopView();
   const browseView=activeView==="detail"?previousView:activeView;
@@ -9465,19 +9585,12 @@ function handleHomeMenuKeydown(event){
 function openHomeMenuCollection(mode){
   if(!["collection1","collection2","discount","newModel"].includes(mode))return false;
   closeHomeMenu(false);
-  if(mode==="discount"||mode==="newModel"){
-    openView(mode);
-    renderHomeMenuProductCollection(mode);
-    return true;
-  }
-  homeMenuFilterMode=mode;currentCategory="هەموو";
-  renderCategoryButtons();renderHomeLabels();renderProducts(products,"productsGrid");
-  requestAnimationFrame(()=>scrollProducts());
-  return true;
+  if(mode==="collection1"||mode==="collection2")return openStorePage(mode==="collection1"?"shop1":"shop2");
+  openView(mode);renderHomeMenuProductCollection(mode);return true;
 }
 function goBackFromShopCollection(){
   const current=getActiveShopView();
-  if(!["newModel","discount"].includes(current))return false;
+  if(!["newModel","discount","store"].includes(current))return false;
   const state=window.history?.state;
   if(state?.__shivanShopView===current&&Number(window.history?.length||0)>1){
     window.history.back();
@@ -9617,7 +9730,7 @@ function prepareProductBackNavigation(destinationView,detailView=document.getEle
     detailView.parentNode.appendChild(preview);
     productBackPreparedPreview=preview;
   }else{
-    if(!["home","search","newModel","discount","favorites"].includes(destinationView))return false;
+    if(!["home","search","store","newModel","discount","favorites"].includes(destinationView))return false;
     const destination=document.getElementById(`${destinationView}View`);
     if(!destination)return false;
     destination.classList.add("active","product-backdrop-revealed");
@@ -9773,7 +9886,7 @@ function closeProductDetails({fromSwipe=false,fromHistory=false,historyTargetPro
   const target=productBackTarget(historyTargetProductId);
   const destinationView=target.view;
   const destination=document.getElementById(`${destinationView}View`);
-  if((!destination&&destinationView!=="detail")||(!["home","search","newModel","discount","favorites","detail"].includes(destinationView)))return;
+  if((!destination&&destinationView!=="detail")||(!["home","search","store","newModel","discount","favorites","detail"].includes(destinationView)))return;
 
   if(productBackSwipeSnapTimer)clearTimeout(productBackSwipeSnapTimer);
   productBackSwipeSnapTimer=0;

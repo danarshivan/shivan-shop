@@ -21,10 +21,11 @@ assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "t
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
 assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should keep its accessible iPhone-style Back button");
 assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY,returnPosition=previousViewPosition\)/, "each detail entry should carry its full browser-history return position");
-assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","newModel","discount","favorites","owner"\]\)/, "dedicated customer routes should participate in saved Shop navigation");
+assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","store","newModel","discount","favorites","owner"\]\)/, "dedicated customer routes should participate in saved Shop navigation");
 assert.match(html, /id="newModelView" class="view page shop-menu-collection-view"[\s\S]*?id="newModelProductsGrid" class="products/, "New model should own a dedicated page and reuse the Shop product grid");
 assert.match(html, /id="discountView" class="view page shop-menu-collection-view"[\s\S]*?id="discountProductsGrid" class="products/, "Discount should own a separate page and reuse the Shop product grid");
-assert.match(html, /function openHomeMenuCollection\(mode\)[\s\S]*?if\(mode==="discount"\|\|mode==="newModel"\)\{\s*openView\(mode\);\s*renderHomeMenuProductCollection\(mode\);/, "Discount and New model menu actions should open their own routes");
+assert.match(html, /function openHomeMenuCollection\(mode\)[\s\S]*?if\(mode==="collection1"\|\|mode==="collection2"\)return openStorePage\(mode==="collection1"\?"shop1":"shop2"\)/, "Shop Menu store entries should open the reusable assigned-store page");
+assert.match(html, /function openHomeMenuCollection\(mode\)\{[\s\S]*?if\(!\["collection1","collection2","discount","newModel"\]\.includes\(mode\)\)return false;[\s\S]*?if\(mode==="collection1"\|\|mode==="collection2"\)return openStorePage\(mode==="collection1"\?"shop1":"shop2"\);[\s\S]*?openView\(mode\);renderHomeMenuProductCollection\(mode\);/, "Store menu entries use dedicated pages while Discount and New model retain their existing routes");
 assert.match(html, /function renderHomeMenuProductCollection\(mode\)[\s\S]*?const matching=filterHomeMenuProducts\(products,mode\);[\s\S]*?sortHomeMenuProducts\(matching,mode,sortMode\),target,false,true/, "each dedicated route filters its own matching product set, sorts it, and preserves the selected order");
 assert.match(html, /function goBackFromShopCollection\(\)[\s\S]*?window\.history\.back\(\)/, "dedicated collection Back buttons should use the originating Shop history entry");
 assert.match(html, /\.products\{\s*direction:ltr;\s*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, "dedicated collection grids should inherit the three-column mobile Shop layout");
@@ -74,12 +75,13 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   const newModelView = makeView(initialView === "newModel" ? ["active"] : []);
   const discountView = makeView(initialView === "discount" ? ["active"] : []);
   const favoritesView = makeView(initialView === "favorites" ? ["active"] : []);
+  const storeView = makeView(initialView === "store" ? ["active"] : []);
   const app = makeView([]);
   const root = { scrollTop: 0, style: { scrollBehavior: "smooth" } };
   const body = { scrollTop: 0, classList: classListFor(new Set()) };
   root.classList = classListFor(new Set());
   const edge = { style: {}, setPointerCapture() {}, releasePointerCapture() {} };
-  const mainApp = { scrollTop: state.scrollY, children: [homeView, searchView, newModelView, discountView, favoritesView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
+  const mainApp = { scrollTop: state.scrollY, children: [homeView, searchView, newModelView, discountView, favoritesView, storeView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
   Object.defineProperty(state, "scrollY", { configurable: true, get() { return mainApp.scrollTop; }, set(value) { mainApp.scrollTop = Math.max(0, Number(value) || 0); } });
   detailView.parentNode = mainApp;
   homeView.parentNode = mainApp;
@@ -87,17 +89,18 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   newModelView.parentNode = mainApp;
   discountView.parentNode = mainApp;
   favoritesView.parentNode = mainApp;
+  storeView.parentNode = mainApp;
   const navItems = Array.from({ length: 5 }, () => makeView([]));
   const detailFavoriteButton = makeView([]);
   detailFavoriteButton.textContent = "♡";
   detailFavoriteButton.title = "";
   detailFavoriteButton.attributes = new Map();
   detailFavoriteButton.setAttribute = (name, value) => detailFavoriteButton.attributes.set(name, value);
-  const elements = new Map([["detailView", detailView], ["mainApp", mainApp], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["detailFavoriteButton", detailFavoriteButton], ["homeView", homeView], ["searchView", searchView], ["newModelView", newModelView], ["discountView", discountView], ["favoritesView", favoritesView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
+  const elements = new Map([["detailView", detailView], ["mainApp", mainApp], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["detailFavoriteButton", detailFavoriteButton], ["homeView", homeView], ["searchView", searchView], ["newModelView", newModelView], ["discountView", discountView], ["favoritesView", favoritesView], ["storeView", storeView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
   const document = {
     getElementById: id => elements.get(id),
     querySelector: selector => selector === ".app" ? app : null,
-    querySelectorAll: selector => selector === ".nav-item" ? navItems : selector === ".product-backdrop-revealed" ? [homeView, searchView, newModelView, discountView, favoritesView].filter(view => view.classes.has("product-backdrop-revealed")) : [],
+    querySelectorAll: selector => selector === ".nav-item" ? navItems : selector === ".product-backdrop-revealed" ? [homeView, searchView, newModelView, discountView, favoritesView, storeView].filter(view => view.classes.has("product-backdrop-revealed")) : [],
     documentElement: root,
     body,
   };
@@ -132,10 +135,10 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     getProductName: item => item.name, formatPrice: price => String(price), renderProductPricing: item => String(item.price), renderDetailGallery() {}, refreshDiscountCountdownBadges() {}, renderSizeOptions() {}, renderColorOptions() {}, updateDetailAvailability() {}, renderDetailReviews() {}, resetDetailRecommendations() {}, syncDetailPhotoTracks() {},
     openView(view, options = {}) {
       state.openedViews.push({ view, options });
-      if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); newModelView.classList.remove("product-backdrop-revealed"); discountView.classList.remove("product-backdrop-revealed"); favoritesView.classList.remove("product-backdrop-revealed"); }
-      const sourceView = [homeView, searchView, newModelView, discountView, favoritesView].find(item => item.classList.contains("active"));
+      if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); newModelView.classList.remove("product-backdrop-revealed"); discountView.classList.remove("product-backdrop-revealed"); favoritesView.classList.remove("product-backdrop-revealed"); storeView.classList.remove("product-backdrop-revealed"); }
+      const sourceView = [homeView, searchView, newModelView, discountView, favoritesView, storeView].find(item => item.classList.contains("active"));
       const preserveSource = view === "detail" && options.preserveUnderlyingView ? sourceView : null;
-      for (const candidate of [homeView, searchView, newModelView, discountView, favoritesView, detailView]) {
+      for (const candidate of [homeView, searchView, newModelView, discountView, favoritesView, storeView, detailView]) {
         if (candidate === preserveSource) candidate.classList.add("active", "product-detail-underlay");
         else candidate.classList.remove("active", "product-detail-underlay");
       }
@@ -145,6 +148,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
       if (view === "newModel") newModelView.classList.add("active");
       if (view === "discount") discountView.classList.add("active");
       if (view === "favorites") favoritesView.classList.add("active");
+      if (view === "store") storeView.classList.add("active");
       app.classList.toggle("detail-mode", view === "detail");
       root.classList.toggle("detail-view-open", view === "detail"); body.classList.toggle("detail-view-open", view === "detail");
       if (view === "detail") detailView.scrollTop = Math.max(0, Number(options.restorePosition?.viewTop) || 0);
@@ -152,8 +156,8 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     },
     setTimeout(callback, delay) { const id = state.nextTimer++; state.timers.set(id, { callback, delay }); state.lastTimer = id; return id; },
     clearTimeout(id) { state.timers.delete(id); },
-    activateSearch() { homeView.classList.remove("active"); newModelView.classList.remove("active"); discountView.classList.remove("active"); favoritesView.classList.remove("active"); searchView.classList.add("active"); },
-    state, edge, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, mainApp, historyEntries: entries,
+    activateSearch() { homeView.classList.remove("active"); newModelView.classList.remove("active"); discountView.classList.remove("active"); favoritesView.classList.remove("active"); storeView.classList.remove("active"); searchView.classList.add("active"); },
+    state, edge, homeView, searchView, newModelView, discountView, favoritesView, storeView, detailView, app, mainApp, historyEntries: entries,
   };
   vm.createContext(context);
   const helperStart = html.indexOf("function prefersReducedProductMotion(){");
@@ -183,7 +187,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   vm.runInContext(openProductSource, context);
   const openProduct = context.openProduct;
   return {
-    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, mainApp, edge, openProduct, historyEntries: entries,
+    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, newModelView, discountView, favoritesView, storeView, detailView, app, mainApp, edge, openProduct, historyEntries: entries,
     closeProductDetails: context.closeProductDetails,
     finishTransition() { assert.ok(state.transitionHandler, "the animated detail view should register its completion handler"); state.transitionHandler({ target: detailView, propertyName: "transform" }); },
     runTimer(id = state.lastTimer) { const timer = state.timers.get(id); assert.ok(timer, "the expected cleanup timer should be scheduled"); state.timers.delete(id); timer.callback(); },
@@ -204,7 +208,7 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.deepEqual(harness.state.cart, [{ productId: 77, size: "M", color: "#112233", qty: 2 }], "opening must preserve the cart");
 
   harness.context.goBack();
-  const destination = ({home:harness.homeView,search:harness.searchView,newModel:harness.newModelView,discount:harness.discountView,favorites:harness.favoritesView})[route];
+  const destination = ({home:harness.homeView,search:harness.searchView,newModel:harness.newModelView,discount:harness.discountView,favorites:harness.favoritesView,store:harness.storeView})[route];
   assert.equal(harness.context.productDetailClosing, true, "the detail view should stay mounted during the slide");
   assert.equal(destination.classList.contains("active"), true, "the exact prior list should be revealed underneath details");
   assert.equal(destination.classList.contains("product-backdrop-revealed"), true, "the revealed list should avoid re-render and entry animation");
@@ -228,7 +232,7 @@ function assertAnimatedReturn(harness, route, scrollY) {
 }
 
 function destinationFor(harness, route) {
-  return ({ home: harness.homeView, search: harness.searchView, newModel: harness.newModelView, discount: harness.discountView, favorites: harness.favoritesView })[route];
+  return ({ home: harness.homeView, search: harness.searchView, newModel: harness.newModelView, discount: harness.discountView, favorites: harness.favoritesView, store: harness.storeView })[route];
 }
 
 const mobileHome = createHarness();
@@ -258,6 +262,8 @@ const mobileDiscount = createHarness({ initialView: "discount" });
 assertAnimatedReturn(mobileDiscount, "discount", 531);
 const mobileFavorites = createHarness({ initialView: "favorites" });
 assertAnimatedReturn(mobileFavorites, "favorites", 483);
+const mobileStore = createHarness({ initialView: "store" });
+assertAnimatedReturn(mobileStore, "store", 917);
 
 const nested = createHarness();
 nested.state.scrollY = 444;
