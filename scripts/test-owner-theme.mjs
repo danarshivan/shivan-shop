@@ -135,7 +135,7 @@ assert.match(globalCss, /--shop-primary:#ff63a7;/, "the saved primary color is e
 assert.doesNotMatch(globalCss, /\.shop-startup-(?:splash|logo|sweep)/, "Owner appearance cannot recolor the exact brand splash image");
 assert.match(globalCss, /body,body \*,button,input,select,textarea\{font-family:"Poppins"/, "the selected font applies to all document content and controls");
 for (const selector of [
-  ".shop-promo-onboarding{", ".shop-promo-onboarding-media{", ".shop-promo-onboarding-choice",
+  ".shop-promo-onboarding{", ".shop-promo-onboarding-brand-art{", ".shop-promo-onboarding-choice",
   "#authPage", ".auth-ad,.hero", ".nav-item.active", ".product", ".detail-box", ".cart-item",
   ".profile-card", ".owner-form", ".owner-dashboard-banner", ".owner-orders-heading", ".owner-qr-product-hero",
   ".owner-stat-card", ".owner-customer-card", ".owner-sidebar", ".owner-analytics-bar-fill",

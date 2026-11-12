@@ -109,6 +109,7 @@ const context = {
   pendingAuthenticationIntent: null,
   shopOnboardingActive: false,
   SESSION_KEY: "offline-test-session",
+  SHOP_ONBOARDING_COMPLETED_KEY: "shivan_shop_startup_choice_completed",
   cloudMode: false,
   ownerPanel: "products",
   shopViewScrollPositions: new Map(),
@@ -135,6 +136,8 @@ const context = {
   updateDetailAvailability() {},
   stopCloudSync() {},
   resetShopOnboardingCompletion() {},
+  replayShopStartupFlow() { context.startupFlowReplayed = (context.startupFlowReplayed || 0) + 1; },
+  customerUiText(english) { return english; },
   showShopOnboarding() {},
   showToast() {},
   document: {
@@ -272,10 +275,13 @@ context.testApi.openView("profile");
 assert.equal(get("profileView").classList.contains("active"), true, "authenticated customers can open Profile directly");
 assert.equal(get("authenticatedProfileCard").hidden, false, "authenticated navigation shows the customer's Profile");
 
+localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
 await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout clears the active account");
 assert.equal(localSession.getItem(context.SESSION_KEY), null, "Logout clears the persistent session");
 assert.equal(sessionSession.getItem(context.SESSION_KEY), null, "Logout clears the temporary session");
+assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"Logout clears the saved Welcome choice so the two destinations return");
+assert.equal(context.startupFlowReplayed,1,"Logout replays the animated splash and first-visit choices");
 assert.equal(context.pendingAuthenticationIntent, null, "Logout clears any pending redirect intent");
 assert.equal(context.cart, preservedCart, "Logout does not discard the cart");
 
@@ -306,8 +312,38 @@ context.testApi.resumeAuthenticationIntent();
 assert.equal(context.mergedGuestCart, checkoutCart, "checkout merges the guest cart after authentication");
 assert.equal(context.checkoutOpened, true, "checkout resumes after authentication");
 
+localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
 await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
 assert.equal(context.pendingAuthenticationIntent, null);
+assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"Logout after Sign Up also resets startup choices");
+assert.equal(context.startupFlowReplayed,2,"each confirmed Logout restarts the splash flow");
 
+context.cloudMode=true;
+context.flushCloudWrites=async()=>{};
+context.currentUser={id:"cloud-logout-customer",role:"customer"};
+context.cloudAccount={id:"cloud-logout-customer"};
+localSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:"cloud-logout-customer"}));
+sessionSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:"cloud-logout-customer"}));
+localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
+context.cloudRequest=async path=>{assert.equal(path,"/api/auth/logout");return {ok:true};};
+assert.equal(await context.testApi.logout(),true,"confirmed cloud logout completes");
+assert.equal(context.currentUser,null,"confirmed cloud logout clears the local account");
+assert.equal(localSession.getItem(context.SESSION_KEY),null,"confirmed cloud logout clears the saved session");
+assert.equal(sessionSession.getItem(context.SESSION_KEY),null,"confirmed cloud logout clears the temporary session");
+assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"confirmed cloud logout resets startup choices");
+assert.equal(context.startupFlowReplayed,3,"confirmed cloud logout replays the splash flow");
+const unconfirmedAccount={id:"cloud-logout-offline",role:"customer"};
+context.currentUser=unconfirmedAccount;
+context.cloudAccount={id:"cloud-logout-offline"};
+localSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:unconfirmedAccount.id}));
+sessionSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:unconfirmedAccount.id}));
+localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
+context.cloudRequest=async()=>{throw new Error("test network unavailable");};
+assert.equal(await context.testApi.logout(),false,"unconfirmed cloud logout must not report success");
+assert.equal(context.currentUser,unconfirmedAccount,"an unconfirmed logout preserves the active session");
+assert.ok(localSession.getItem(context.SESSION_KEY),"an unconfirmed logout preserves the saved session");
+assert.ok(sessionSession.getItem(context.SESSION_KEY),"an unconfirmed logout preserves the temporary session");
+assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),"1","an unconfirmed logout does not clear the selected startup choice");
+assert.equal(context.startupFlowReplayed,3,"an unconfirmed logout does not replay the splash or disturb the current flow");
 console.log("Offline authentication checks passed: guest Cart/Orders/Profile modal behavior, background-hydration race protection, exact page/scroll restoration, repeated-tap protection, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");

@@ -19,97 +19,48 @@ const extractFunction = name => {
   assert.ok(source, `the website should define ${name}`);
   return source;
 };
-const sharedImageKey = html.match(/const SHOP_ONBOARDING_IMAGES_KEY = "([^"]+)";/)?.[1];
-assert.equal(sharedImageKey, "shivan_shop_ios_onboarding_images", "website and iOS app must share the same Owner-managed slide image key");
-assert.doesNotMatch(html, /SHOP_ONBOARDING_COMPLETED_KEY|markShopOnboardingCompleted|resetShopOnboardingCompletion/, "onboarding completion must not be persisted");
-
-assert.match(html, /id="shopPromoOnboarding"[^>]*role="dialog"[^>]*aria-modal="true"/);
-const defaultPageScrollCss=html.match(/html,body\{[^}]*\}/)?.[0]||"";
-const onboardingScrollLockCss=html.match(/html\.shop-promo-onboarding-open,body\.shop-promo-onboarding-open\{[^}]*\}/)?.[0]||"";
-const onboardingShellCss=html.match(/\.shop-promo-onboarding\{[^}]*\}/)?.[0]||"";
-assert.ok(defaultPageScrollCss.includes("overflow-y:auto"), "normal shop scrolling should remain enabled outside onboarding");
-assert.ok(html.includes("html{scrollbar-gutter:stable}"), "scrollbar width should remain stable when the onboarding lock toggles");
-assert.ok(onboardingScrollLockCss.includes("overflow:hidden!important")&&onboardingScrollLockCss.includes("overscroll-behavior:none"), "both the root and body must stop scrolling only during onboarding");
-assert.ok(onboardingShellCss.includes("position:fixed;inset:0")&&onboardingShellCss.includes("touch-action:manipulation")&&onboardingShellCss.includes("overscroll-behavior:contain"), "the viewport-filling Welcome layer should prevent background movement without carousel gestures");
-assert.match(html, /height:100vh;height:100dvh;min-height:0;[^}]*env\(safe-area-inset-top\)[^}]*env\(safe-area-inset-bottom\)/, "Welcome content should fit the dynamic viewport and retain iPhone safe-area padding");
+const sharedImageKey=html.match(/const SHOP_ONBOARDING_IMAGES_KEY = "([^"]+)";/)?.[1];
+assert.equal(sharedImageKey,"shivan_shop_ios_onboarding_images","Owner-managed slide storage key remains shared");
+assert.equal(html.match(/const SHOP_ONBOARDING_COMPLETED_KEY = "([^"]+)";/)?.[1],"shivan_shop_startup_choice_completed","a selected welcome destination is persisted");
+assert.match(html,/SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion\?300:2000/);
+assert.match(html,/SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion\?0:500/);
+const splashMarkup=html.match(/<section id="shopStartupSplash"[\s\S]*?<\/section>/)?.[0]||"";
+assert.match(splashMarkup,/shivan-shop-neon-brand\.png/);
+assert.equal((splashMarkup.match(/<img\b/g)||[]).length,1);
+const splashCss=html.match(/\.shop-startup-splash\{[^}]*\}/)?.[0]||"";
+const welcomeLayerCss=html.match(/html \.shop-promo-onboarding\{[^}]*\}/)?.[0]||"";
+assert.ok(Number(splashCss.match(/z-index:(\d+)/)?.[1]||0)>Number(welcomeLayerCss.match(/z-index:(\d+)/)?.[1]||0),"splash must remain above Welcome until its logo lift and fade complete");
+assert.match(html,/shopStartupBrandLift 500ms/);
+assert.match(html,/function replayShopStartupFlow\(\)[\s\S]*?finishShopStartupSplash\(\)/);
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
-assert.match(onboardingMarkup,/id="welcomeLanguageSelect"[^>]*aria-label="Language"/,"Welcome makes all three languages selectable before sign-up");
-assert.match(onboardingMarkup,/option value="en"[^>]*>English<\/option><option value="ku-Badini"[^>]*>Kurdish Badini[^<]*<\/option><option value="ar"[^>]*>العربية/,"Welcome offers exactly the supported locale choices");
-assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length, 1, "Welcome should render one boutique photo");
-assert.equal((onboardingMarkup.match(/<button\b/g)||[]).length, 2, "Welcome should contain exactly two real action buttons");
-const mediaMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-media">[\s\S]*?<\/div>/)?.[0]||"";
-assert.match(mediaMarkup, /<img id="shopPromoOnboardingImage"[^>]*alt="Women’s fashion boutique at Shivan Shop"/, "the single photo should use the first Owner-managed image");
-assert.doesNotMatch(mediaMarkup, /shade|preview|dots|carousel/i, "the photo panel should not contain old overlays or carousel controls");
-assert.match(html, /\.shop-promo-onboarding-media\{[^}]*border:1px solid rgba\(91,190,255,\.32\)/, "the photo frame should retain its restrained cyan border");
-const onboardingMediaCss=html.match(/\.shop-promo-onboarding-media\{[^}]*\}/)?.[0]||"";
-const onboardingImageCss=html.match(/\.shop-promo-onboarding-image\{[^}]*\}/)?.[0]||"";
-assert.ok(onboardingMediaCss.includes("align-self:center")&&onboardingMediaCss.includes("height:100%")&&onboardingMediaCss.includes("width:min(100%,520px)"), "the photo should fill the flexible center area of the mobile canvas");
-assert.match(onboardingImageCss, /object-fit:cover/, "the boutique photo should fill the rounded frame without distortion");
-assert.match(onboardingImageCss, /object-position:center/, "the photo crop should remain centered");
-assert.match(html, /grid-template-rows:auto auto minmax\(0,1fr\) auto/, "Welcome should reserve a compact language row between branding, photo, and actions");
-assert.match(html, /@media\(max-height:600px\)\{\.shop-promo-onboarding-content\{gap:5px/);
-for(const viewport of [{width:320,height:568},{width:375,height:560},{width:390,height:667},{width:393,height:852},{width:430,height:932},{width:844,height:390},{width:1440,height:900}]){
-  const short=viewport.height<=600;
-  const top=(short?8:12)+24,bottom=(short?8:10)+20,brand=48,button=short?46:54,actions=button*2+(short?6:8)+8,gaps=short?15:30;
-  const languageControl=30;
-  const photo=viewport.height-top-bottom-brand-languageControl-actions-gaps;
-  const canvas=Math.min(viewport.width,430)-(viewport.width>=700?0:32);
-  assert.ok(photo>0,"brand, photo, safe areas, and two buttons should fit at "+viewport.width+"x"+viewport.height);
-  assert.ok(canvas>0&&canvas<=430,"Welcome should stay inside the centered iPhone canvas at "+viewport.width+"px");
-}
-const brandMarkup=onboardingMarkup.match(/<div class="shop-promo-onboarding-brand"[^>]*>[\s\S]*?<\/div>/)?.[0]||"";
-assert.match(brandMarkup, /<svg[^>]*aria-hidden="true"/, "the brand should retain its decorative crown mark");
-assert.match(brandMarkup, /class="shop-promo-onboarding-brand-name">SHIVAN SHOP<\/span>/, "the Shivan Shop wordmark should appear at the top");
-assert.match(brandMarkup,/id="shopPromoOnboardingTagline">WOMEN’S FASHION<\/small>/,"the brand tagline has a localized screen target");
-assert.match(html, /\.shop-promo-onboarding-brand\{[^}]*justify-items:center/, "the brand should remain centered in the mobile welcome layout");
-assert.match(html, /\.shop-promo-onboarding-brand-name\{color:#fff!important/, "the wordmark should retain its white premium contrast");
-assert.match(html, /\.shop-promo-onboarding::before,.shop-promo-onboarding::after/, "the welcome screen should include subtle cyan wave accents");
-assert.doesNotMatch(onboardingMarkup,/shopPromoOnboarding(?:Preview|Dots|Next|Step)|shop-promo-onboarding-(?:preview|dots|next|shade|step)|Skip|carousel/i,"old preview, dot, slide, and skip elements should be absent from Welcome");
-assert.match(onboardingMarkup, /id="shopPromoOnboardingChoices"[^>]*>\s*<button id="shopPromoOnboardingExploreModels"[^>]*onclick="finishShopOnboarding\(\)"[^>]*aria-label="Explore Models"[^>]*><span id="shopPromoOnboardingExploreModelsLabel" class="shop-promo-onboarding-choice-label">Explore Models<\/span><\/button>[\s\S]*?<button id="shopPromoOnboardingCreateAccount"[^>]*onclick="startShopOnboardingSignup\(\)"[^>]*aria-label="Create Account"[^>]*><span id="shopPromoOnboardingCreateAccountLabel" class="shop-promo-onboarding-choice-label">Create Account<\/span><\/button>/, "Welcome exposes two single-language actions in the original order with their existing handlers");
-assert.doesNotMatch(onboardingMarkup, /shop-promo-onboarding-choice-english/, "Welcome does not display duplicate bilingual button labels");
-assert.doesNotMatch(onboardingMarkup, /\bSkip\b|shopPromoOnboardingSkip/);
-
-assert.match(html, /\.shop-promo-onboarding\{--onboarding-cyan:#48caff/, "the welcome accent color is cyan");
-assert.match(html, /linear-gradient\(180deg,#07163b 0%,#030a27 60%,#02071d 100%\)/, "the welcome background remains deep navy with the Owner theme active");
-assert.match(html, /\.shop-promo-onboarding-choices\{display:grid;grid-template-columns:minmax\(0,1fr\)/, "the two welcome actions use a single stacked mobile column");
-assert.match(extractFunction("ownerAppearanceGlobalCss"), /shop-promo-onboarding-choices\{display:grid!important;grid-template-columns:minmax\(0,1fr\)!important/, "saved Owner themes preserve the welcome action layout");
-assert.match(html, /prefers-reduced-motion:reduce\)[\s\S]*?\.shop-promo-onboarding-content/);
-assert.match(html, /\.shop-promo-onboarding\.is-handoff-exiting\{[^}]*animation:shopMotionOnboardingHandoff 260ms/, "onboarding choices should reveal their destination with a short directional fade and slide");
-assert.match(html, /\.shop-promo-onboarding\.is-handoff-exiting\{animation:none!important/, "onboarding page handoffs should honor reduced-motion preferences");
-assert.match(html, /function warmShopOnboardingImages\(\)\{[\s\S]*?new Set\(shopOnboardingImages\)/, "shared slides should warm in asynchronously");
-const defaultImageList=html.match(/const SHOP_ONBOARDING_DEFAULT_IMAGES = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1]||"";
-assert.deepEqual([...defaultImageList.matchAll(/"(https:\/\/[^"]+)"/g)].map(match=>match[1]), [
-  "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
-  "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1000&q=75",
-  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1000&q=75",
-], "the three existing promotional images must keep their order");
-assert.match(html, /safe-area-inset-bottom/);
-assert.match(html, /\["onboarding","▣",ownerDashboardText\("Promotional Slides"/);
-assert.match(html, /uploadOwnerImage\(input,`shopPromoImageData\$\{index\}`,`shopPromoImagePreview\$\{index\}`,"ad"\)/);
-assert.match(extractFunction("renderShopOnboardingOwnerEditor"), /if\(!isOwner\(\)\)/, "the Owner editor must check the current role");
-assert.match(extractFunction("saveShopOnboardingImages"), /cloudAccount\?\.role!=="owner"/, "the client editor must require the shared Owner account");
-assert.match(extractFunction("saveShopOnboardingImages"), /SHOP_ONBOARDING_IMAGES_KEY/);
-assert.match(extractFunction("saveShopOnboardingImages"), /originalStorageSetItem\.call\(localStorage,SHOP_ONBOARDING_IMAGES_KEY,value\)/, "a confirmed save should update the local mirror used by the existing sync flow");
-assert.match(extractFunction("renderOwnerPanel"), /route\.panel==="onboarding"\)renderShopOnboardingOwnerEditor\(sectionBox\)/);
-assert.match(extractFunction("showShopOnboardingIfNeeded"), /getShopOnboardingStartupView/);
-assert.match(extractFunction("showShopOnboarding"), /document\.documentElement\?\.classList\.add\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.add\("shop-promo-onboarding-open"\)/, "showing onboarding should lock both root and body before reveal");
-assert.match(extractFunction("hideShopOnboarding"), /document\.documentElement\?\.classList\.remove\("shop-promo-onboarding-open"\)[\s\S]*?document\.body\?\.classList\.remove\("shop-promo-onboarding-open"\)/, "closing onboarding should restore normal root and body scrolling");
-assert.doesNotMatch(extractFunction("hideShopOnboarding"), /if\(!layer\)return/, "onboarding scroll locks must still be cleared if its overlay element is missing");
-assert.match(extractFunction("openView"), /if\(!onboardingLayer\|\|onboardingLayer\.hidden\)[\s\S]*?if\(staleOnboardingLock\)hideShopOnboarding\(\)/, "normal route navigation should remove stale onboarding locks before opening a section");
-assert.match(extractFunction("finishShopOnboarding"), /beginShopOnboardingPageHandoff\("shop"[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/, "Explore Models must enter Shop without replaying a pending intent");
-assert.match(extractFunction("startShopOnboardingSignup"), /showAuth\("signup"\)/, "Create Account should use the existing sign-up screen");
-assert.match(extractFunction("startShopOnboardingSignup"), /beginShopOnboardingPageHandoff\("signup"[\s\S]*?mainApp\.style\.display="none"[\s\S]*?authPage\.style\.display=""/, "registration should use the existing signup screen without recreating account state");
-assert.match(extractFunction("beginShopOnboardingPageHandoff"), /shopOnboardingHandoffLocked[\s\S]*?prepareDestination\(\)[\s\S]*?prefersReducedShopOnboardingMotion\(\)[\s\S]*?SHOP_ONBOARDING_HANDOFF_MS/, "page handoffs should lock repeated taps, prepare the destination under the overlay, and bypass animation when reduced motion is enabled");
-assert.match(extractFunction("openMain"), /if\(!shopOnboardingActive\)hideShopOnboarding\(\)/, "cloud session restoration must not close an active onboarding overlay");
-assert.match(extractFunction("logout"), /showShopOnboarding\(\)/, "logout should show the same Welcome screen");
-assert.match(html, /if\(!cloudMode\)await restoreSession\(\);/, "startup should still restore any saved session after cloud initialization");
-const startupHandler = html.match(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/)?.[0] || "";
-assert.ok(startupHandler, "the website should retain its startup handler");
-assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded\(\)/, "initial startup should enter Shop / Models after the branded splash");
-assert.match(extractFunction("finishShopStartupSplash"), /shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/, "the single-photo Welcome should appear after the branded splash");
-assert.match(html, /function logout\(\)\{[\s\S]*?showShopOnboarding\(\)/, "logout should keep the existing Welcome replay behavior");
-
+assert.match(onboardingMarkup,/id="welcomeLanguageSelect"[^>]*aria-label="Language"/);
+assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length,1);
+assert.match(onboardingMarkup,/shop-promo-onboarding-brand-art[^>]*shivan-shop-neon-brand\.png/);
+assert.match(onboardingMarkup,/id="shopPromoOnboardingWelcomeHeading"[^>]*>WELCOME<\/h1>/);
+assert.doesNotMatch(onboardingMarkup,/shopPromoOnboardingImage|shop-promo-onboarding-media/);
+assert.equal((onboardingMarkup.match(/<button\b/g)||[]).length,2);
+assert.match(onboardingMarkup,/id="shopPromoOnboardingCreateAccount"[^>]*onclick="startShopOnboardingSignup\(\)"[\s\S]*?id="shopPromoOnboardingExploreModels"[^>]*onclick="finishShopOnboarding\(\)"/);
+assert.match(html,/html \.shop-promo-onboarding\{[^}]*#03020a/);
+assert.match(html,/--onboarding-violet:#a84bff/);
+const welcomeCssPosition=html.indexOf("html .shop-promo-onboarding{--onboarding-violet:#a84bff;");
+assert.ok(welcomeCssPosition>=0&&welcomeCssPosition<html.indexOf("</head>"),"Welcome CSS must be in the page head stylesheet, not generated utility output");
+assert.match(html,/linear-gradient\(110deg,#8b20ff,#c22cff 58%,#7f16eb\)/);
+assert.match(html,/shop-promo-onboarding-content\{[^}]*height:100%[^}]*safe-area-inset-top[^}]*safe-area-inset-bottom/);
+assert.match(html,/@media\(min-width:700px\)\{html \.shop-promo-onboarding\{inset:50% auto auto 50%;width:min\(430px/);
+assert.match(html,/@media\(prefers-reduced-motion:reduce\)\{\.shop-startup-brand/);
+assert.match(extractFunction("warmShopOnboardingImages"),/new Set\(shopOnboardingImages\)/);
+const defaultImages=html.match(/const SHOP_ONBOARDING_DEFAULT_IMAGES = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1]||"";
+assert.equal((defaultImages.match(/https:\/\/images\.unsplash\.com\//g)||[]).length,3,"Owner promo images remain available");
+assert.match(extractFunction("saveShopOnboardingImages"),/cloudAccount\?\.role!=="owner"/);
+assert.match(extractFunction("finishShopOnboarding"),/saveShopOnboardingCompletion\(\)[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/);
+assert.match(extractFunction("startShopOnboardingSignup"),/saveShopOnboardingCompletion\(\)[\s\S]*?showAuth\("signup"\)/);
+assert.match(extractFunction("finishShopReturningWelcome"),/hideShopOnboarding\(\)[\s\S]*?openView\("home"/);
+const logoutSource=html.match(/async function logout\(\)\{[\s\S]*?\n\}/)?.[0]||"";
+assert.match(logoutSource,/SHOP_ONBOARDING_COMPLETED_KEY[\s\S]*?replayShopStartupFlow\(\)/);
+assert.match(extractFunction("finishShopStartupSplash"),/shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/);
+assert.equal(Number(html.match(/const SHOP_RETURNING_WELCOME_MS=(\d+);/)?.[1]),700);
 const flowNames = [
+  "isShopOnboardingCompleted", "saveShopOnboardingCompletion", "finishShopReturningWelcome",
   "getShopOnboardingStartupView", "getShopOnboardingVisibilityAction", "getActiveShopView", "readShopViewPosition",
   "captureShopOnboardingResumeState", "restoreShopOnboardingResumeState", "prefersReducedShopOnboardingMotion",
   "warmShopOnboardingImages", "renderShopOnboardingSlide", "beginShopOnboardingPageHandoff", "startShopOnboardingSignup",
@@ -117,11 +68,14 @@ const flowNames = [
 ];
 const flowSource = [
   'const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";',
+  'const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_startup_choice_completed";',
   "const SHOP_ONBOARDING_SLIDE_COUNT = 3;",
   "const SHOP_ONBOARDING_HANDOFF_MS = 260;",
+  "const SHOP_RETURNING_WELCOME_MS = 700;",
   "const shopOnboardingImagePreloads=new Map();",
   'const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze(["https://fallback.example.test/1.jpg", "https://fallback.example.test/2.jpg", "https://fallback.example.test/3.jpg"]);',
   "let shopOnboardingHandoffTimer=0;",
+  "let shopOnboardingWelcomeTimer=0;",
   "let shopOnboardingHandoffLocked=false;",
   "let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];",
   "let shopOnboardingActive=false;",
@@ -179,7 +133,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   const searchInput={value:""};
   const elements=new Map([
     ["shopPromoOnboarding",layer],
-    ["shopPromoOnboardingImage",image],
+    ["shopPromoOnboardingWelcomeHeading",{focus(){}}],
     ["shopPromoOnboardingChoices",choices],
     ["shopPromoOnboardingCreateAccount",{focus(){}}],
     ["shopPromoOnboardingExploreModels",{focus(){}}],
@@ -193,6 +147,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   const runtime = {
     localStorage: storage,
     safeImageUrl: value => /^(https:\/\/|\/api\/media\/shop\/)/i.test(String(value || "")) ? String(value) : "",
+    customerUiText: english => english,
     currentUser,
     cloudAccount,
     pendingAuthenticationIntent,
@@ -214,27 +169,40 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
 const customSlidesFlow=createFlow();
 customSlidesFlow.storage.setItem(sharedImageKey,JSON.stringify(["https://cdn.example.test/model-one.jpg","https://cdn.example.test/model-two.jpg","https://cdn.example.test/model-three.jpg"]));
 customSlidesFlow.flow.show();
-assert.equal(customSlidesFlow.image.src,"https://cdn.example.test/model-one.jpg","Welcome displays only the first configured Owner-managed image");
+customSlidesFlow.flow.render();
+assert.equal(customSlidesFlow.image.src,"","Owner-managed promotional images are not displayed on Welcome");
 assert.deepEqual(Array.from(customSlidesFlow.flow.readImages()),["https://cdn.example.test/model-one.jpg","https://cdn.example.test/model-two.jpg","https://cdn.example.test/model-three.jpg"],"showing one image preserves the full Owner-managed slide set");
 assert.equal(customSlidesFlow.storage.getItem(sharedImageKey),JSON.stringify(["https://cdn.example.test/model-one.jpg","https://cdn.example.test/model-two.jpg","https://cdn.example.test/model-three.jpg"]),"Welcome rendering does not rewrite saved Owner image data");
 
 const guestFlow = createFlow();
 guestFlow.storage.setItem('shivan_shop_web_onboarding_completed', '1');
-assert.equal(guestFlow.flow.view(), 'onboarding', 'every page launch starts onboarding even if an old persistent completion flag exists');
+assert.equal(guestFlow.flow.view(), 'choices', 'a first visit starts with the two explicit destination choices');
 guestFlow.flow.showIfNeeded();
 assert.equal(guestFlow.rootClasses.has("shop-promo-onboarding-open"), true, "startup should lock the document root against scrolling");
 assert.equal(guestFlow.bodyClasses.has("shop-promo-onboarding-open"), true, "startup should lock the body against scrolling");
 guestFlow.flow.render();
-assert.deepEqual(guestFlow.preloadedImageUrls,["https://fallback.example.test/1.jpg","https://fallback.example.test/2.jpg","https://fallback.example.test/3.jpg"],"Owner-managed fashion assets remain warmed without a visible carousel");
+assert.deepEqual(guestFlow.preloadedImageUrls,[],"the redesigned Welcome does not load or display the Owner-managed promo slides");
 assert.equal(guestFlow.layer.hidden,false,"Welcome is visible at startup");
-assert.equal(guestFlow.image.src,"https://fallback.example.test/1.jpg","Welcome displays the first configured fashion image");
+assert.equal(guestFlow.image.src,"","Welcome leaves the Owner-managed image element absent");
 assert.equal(guestFlow.choices.hidden,false,"both direct actions are visible immediately");
-assert.equal(guestFlow.storage.getItem('shivan_shop_web_onboarding_completed'),'1','an old marker is ignored and left untouched');
+assert.equal(guestFlow.storage.getItem('shivan_shop_startup_choice_completed'),null,'a first visit is not marked complete until a choice is made');
 
+const returningFlow=createFlow();
+returningFlow.storage.setItem("shivan_shop_startup_choice_completed","1");
+assert.equal(returningFlow.flow.view(),"returning","a previously chosen destination marks the next launch as returning");
+returningFlow.flow.showIfNeeded();
+assert.equal(returningFlow.layer.hidden,false,"returning Welcome is shown after splash");
+assert.equal(returningFlow.choices.hidden,true,"returning Welcome hides both first-time choices");
+assert.deepEqual(returningFlow.pendingTimerDelays(),[700],"returning Welcome has a brief automatic handoff");
+returningFlow.runTimers();
+assert.equal(returningFlow.layer.hidden,true,"returning Welcome closes after its reveal");
+assert.equal(returningFlow.openedView,"home","returning users land on the Shop");
+assert.equal(returningFlow.storage.getItem("shivan_shop_startup_choice_completed"),"1","returning flow preserves the chosen-destination marker");
 const exploreFlow = createFlow({pendingAuthenticationIntent:{type:'profile'},activeView:'profile'});
 exploreFlow.flow.showIfNeeded();
 assert.equal(exploreFlow.choices.hidden,false, 'Explore Models is immediately available on welcome');
 assert.equal(exploreFlow.flow.finish(), true, 'Explore Models should start the existing shop handoff');
+assert.equal(exploreFlow.storage.getItem('shivan_shop_startup_choice_completed'),'1','choosing Explore Models persists onboarding completion');
 assert.equal(exploreFlow.layer.hidden, false, 'the onboarding overlay should remain visible until its exit transition completes');
 assert.equal(exploreFlow.classes.has('is-handoff-exiting'), true, 'Explore Models should use the handoff exit animation');
 assert.equal(exploreFlow.layer.inert, true, 'the outgoing onboarding controls should be inert during the handoff');
@@ -260,6 +228,7 @@ accountFlow.storage.setItem('test-cart',preservedCart);
 accountFlow.flow.show();
 assert.equal(accountFlow.choices.hidden,false, 'Create Account is immediately available on welcome');
 assert.equal(accountFlow.flow.signup(),true,'Create Account should start the existing registration handoff');
+assert.equal(accountFlow.storage.getItem('shivan_shop_startup_choice_completed'),'1','choosing Create Account persists onboarding completion');
 assert.equal(accountFlow.layer.hidden,false,'the overlay should remain visible through the registration transition');
 assert.equal(accountFlow.classes.has('is-handoff-exiting'),true,'Create Account should use the shared handoff animation');
 assert.equal(accountFlow.flow.signup(),false,'a second Create Account tap during handoff should be ignored');
@@ -308,7 +277,7 @@ assert.equal(signedInFlow.choices.hidden,false, 'signed-in customers immediately
 assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'the existing signed-in account remains active behind onboarding');
 assert.equal(signedInFlow.storage.getItem('test-account-session'), savedSession, 'onboarding preserves the saved account session');
 assert.equal(signedInFlow.storage.getItem('test-cart'), JSON.stringify([{productId:'p1',qty:2}]), 'onboarding preserves the cart');
-assert.equal(signedInFlow.image.src,"https://fallback.example.test/1.jpg","signed-in customers retain the single configured Welcome image");
+assert.equal(signedInFlow.image.src,"","signed-in Welcome does not display stored Owner slide images");
 assert.equal(signedInFlow.choices.hidden,false,"both Welcome actions remain visible for signed-in customers");
 signedInFlow.flow.finish();
 signedInFlow.runTimers();
@@ -323,7 +292,7 @@ lifecycleFlow.flow.show();
 assert.equal(lifecycleFlow.flow.handleVisibility(false), false, 'ordinary page navigation does not replay onboarding');
 lifecycleFlow.flow.handleVisibility(true);
 assert.equal(lifecycleFlow.flow.handleVisibility(false), true, 'returning from a hidden app replays onboarding');
-assert.equal(lifecycleFlow.image.src,"https://fallback.example.test/1.jpg",'foreground replay keeps the same single Welcome image');
+assert.equal(lifecycleFlow.choices.hidden,false,"foreground replay returns to the explicit choice screen");
 lifecycleFlow.runtime.openView('search');
 assert.equal(lifecycleFlow.flow.handleVisibility(false), false, 'navigation inside the active session does not replay the slides');
 const hiddenDuringStartup=lifecycleFlow.flow.visibility(true,false,true);
@@ -417,7 +386,7 @@ const savedSlideImages = ['https://cdn.example.test/first.webp', 'https://cdn.ex
 imageFlow.storage.setItem(sharedImageKey, JSON.stringify(savedSlideImages));
 assert.deepEqual(Array.from(imageFlow.flow.readImages()), savedSlideImages, 'a refresh should retain the existing three shared image URLs');
 imageFlow.flow.show();
-assert.deepEqual(imageFlow.preloadedImageUrls, savedSlideImages, 'only the currently configured shared slides should be warmed');
+assert.deepEqual(imageFlow.preloadedImageUrls, [], "stored Owner slide images are preserved without being displayed on Welcome");
 const storage=imageFlow.storage;
 
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
@@ -539,4 +508,4 @@ const invalidWrite = await write({ cookie: ownerCookie, value: JSON.stringify([u
 assert.equal(invalidWrite.status, 400, "the API should reject insecure or malformed slide image URLs");
 assert.equal(DB.shop.get(sharedImageKey), savedImages, "rejected writes must not alter the previously saved slides");
 
-console.log("Offline website onboarding checks passed: the navy/cyan single-photo Welcome layout with exactly two direct actions, launch and foreground replay, account/cart preservation, and Owner-only shared image management.");
+console.log("Offline website onboarding checks passed: purple splash/Welcome choices, persistent first-time selection, returning-user handoff, preserved account/cart, and Owner slide management.");

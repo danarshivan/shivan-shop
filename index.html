@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#050509">
-<link rel="preload" as="image" href="/assets/branding/shivan-shop-cinematic-base.png" fetchpriority="high">
-<link rel="preload" as="image" href="/assets/branding/shivan-shop-cinematic-mark.png">
-<link rel="preload" as="image" href="/assets/branding/shivan-shop-cinematic-wordmark.png">
-<link rel="preload" as="image" href="/assets/branding/shivan-shop-cinematic-wave.png">
+<link rel="preload" as="image" href="/assets/branding/shivan-shop-neon-brand.png" fetchpriority="high">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -3072,26 +3069,18 @@ html.detail-image-fullscreen-open,body.detail-image-fullscreen-open{overflow:hid
 }
 html.shop-promo-onboarding-open,body.shop-promo-onboarding-open{overflow:hidden!important;overscroll-behavior:none}
 html.shop-auth-modal-open,body.shop-auth-modal-open{overflow:hidden!important;overscroll-behavior:none}
- .shop-startup-splash{position:fixed;inset:0;z-index:9999;display:block;overflow:hidden;isolation:isolate;container-type:size;background:#02030e;opacity:1;overscroll-behavior:none;touch-action:none}
- .shop-startup-splash[hidden]{display:none!important}
- .shop-startup-layer{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center;pointer-events:none;user-select:none;backface-visibility:hidden}
- .shop-startup-background{z-index:0;opacity:0;will-change:opacity;animation:shopStartupBackgroundReveal 500ms ease-out both}
- .shop-startup-mark{z-index:2;opacity:0;will-change:opacity,filter;animation:shopStartupMarkReveal 900ms cubic-bezier(.2,.7,.2,1) 300ms both}
- .shop-startup-wordmark{z-index:3;opacity:0;will-change:opacity;animation:shopStartupWordmarkReveal 900ms ease-out 700ms both}
- .shop-startup-wave{z-index:1;opacity:1;transform:translate3d(0,0,0);will-change:transform;animation:shopStartupWaveDrift 5000ms ease-in-out infinite alternate}
- .shop-startup-light-sweep{position:absolute;top:54.72%;left:24%;z-index:4;width:52%;height:2px;transform:translate3d(-85%,0,0);border-radius:50%;background:linear-gradient(90deg,transparent 0%,rgba(103,202,255,.12) 30%,rgba(188,237,255,.98) 50%,rgba(83,183,255,.48) 68%,transparent 100%);box-shadow:0 0 8px rgba(83,190,255,.5),0 0 19px rgba(58,153,255,.24);mix-blend-mode:screen;opacity:0;pointer-events:none;will-change:transform,opacity;animation:shopStartupLightSweep 1100ms ease-in-out 1000ms both}
- @keyframes shopStartupBackgroundReveal{from{opacity:0}to{opacity:1}}
- @keyframes shopStartupMarkReveal{0%{opacity:0;filter:drop-shadow(0 0 0 rgba(220,236,255,0))}65%{opacity:1;filter:drop-shadow(0 0 10px rgba(220,236,255,.24))}100%{opacity:1;filter:drop-shadow(0 0 3px rgba(220,236,255,.08))}}
- @keyframes shopStartupWordmarkReveal{0%{opacity:0;filter:brightness(.98)}100%{opacity:1;filter:brightness(1)}}
- @keyframes shopStartupLightSweep{0%{opacity:0;transform:translate3d(-85%,0,0)}18%{opacity:.9}78%{opacity:.92}100%{opacity:0;transform:translate3d(165%,0,0)}}
- @keyframes shopStartupWaveDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(1.5px,-1px,0)}}
- .shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut 400ms ease-in both}
- #mainApp.shop-startup-enter{animation:shopStartupShopIn 400ms cubic-bezier(.2,.72,.24,1) both}
- @keyframes shopStartupSplashOut{to{opacity:0}}
- @keyframes shopStartupShopIn{from{opacity:.94}to{opacity:1}}
- @media(min-width:700px){.shop-startup-splash{inset:50% auto auto 50%;width:min(430px,calc(100vw - 48px));height:min(932px,calc(100dvh - 48px));transform:translate(-50%,-50%);border:1px solid #28263b;border-radius:46px;box-shadow:0 0 0 7px rgba(27,26,42,.78),0 35px 100px rgba(0,0,0,.62)}.shop-startup-layer{border-radius:inherit}}
- @media(max-width:699px){.shop-startup-splash{inset:0;width:100vw;height:100dvh;border:0;border-radius:0}}
- @media(prefers-reduced-motion:reduce){.shop-startup-layer{animation:none!important;opacity:1!important;transform:none!important;filter:none!important;will-change:auto!important}.shop-startup-light-sweep{display:none!important;animation:none!important}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}#mainApp.shop-startup-enter{animation:none!important}}
+ .shop-startup-splash{position:fixed;inset:0;z-index:10001;display:grid;place-items:center;overflow:hidden;isolation:isolate;background:#030009;opacity:1;overscroll-behavior:none;touch-action:none}
+.shop-startup-splash[hidden]{display:none!important}
+.shop-startup-splash::before,.shop-startup-splash::after{position:absolute;left:-18%;z-index:0;width:136%;height:22%;border-top:1px solid rgba(174,75,255,.6);border-radius:50%;content:"";pointer-events:none;filter:drop-shadow(0 0 12px rgba(143,35,255,.55))}
+.shop-startup-splash::before{bottom:7%;transform:rotate(-8deg);box-shadow:0 -8px 26px rgba(142,43,255,.25)}.shop-startup-splash::after{bottom:2%;transform:rotate(7deg);opacity:.55;filter:blur(1px) drop-shadow(0 0 10px rgba(166,43,255,.48))}
+.shop-startup-brand{position:relative;z-index:1;display:block;width:min(78vw,366px);height:auto;max-height:72vh;object-fit:contain;opacity:0;transform:translate3d(0,10px,0) scale(.975);filter:drop-shadow(0 0 22px rgba(141,38,255,.2));animation:shopStartupBrandReveal 850ms cubic-bezier(.2,.72,.24,1) 120ms both;will-change:opacity,transform,filter;pointer-events:none;user-select:none}
+@keyframes shopStartupBrandReveal{0%{opacity:0;transform:translate3d(0,10px,0) scale(.975);filter:drop-shadow(0 0 4px rgba(141,38,255,.06))}75%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:drop-shadow(0 0 18px rgba(141,38,255,.18))}100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:drop-shadow(0 0 10px rgba(141,38,255,.12))}}
+.shop-startup-splash.is-exiting{pointer-events:none;animation:shopStartupSplashOut 500ms ease-in both}.shop-startup-splash.is-exiting .shop-startup-brand{animation:shopStartupBrandLift 500ms cubic-bezier(.3,0,.7,1) both}
+@keyframes shopStartupBrandLift{to{opacity:.22;transform:translate3d(0,-8vh,0) scale(.94)}}@keyframes shopStartupSplashOut{to{opacity:0}}@keyframes shopStartupShopIn{from{opacity:.94}to{opacity:1}}
+#mainApp.shop-startup-enter{animation:shopStartupShopIn 500ms cubic-bezier(.2,.72,.24,1) both}
+@media(min-width:700px){.shop-startup-splash{inset:50% auto auto 50%;width:min(430px,calc(100vw - 48px));height:min(932px,calc(100dvh - 48px));transform:translate(-50%,-50%);border:1px solid #28263b;border-radius:46px;box-shadow:0 0 0 7px rgba(27,26,42,.78),0 35px 100px rgba(0,0,0,.62)}}
+@media(max-width:699px){.shop-startup-splash{inset:0;width:100vw;width:100dvw;height:100vh;height:100dvh;border:0;border-radius:0;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}}
+@media(prefers-reduced-motion:reduce){.shop-startup-brand{animation:none!important;opacity:1!important;transform:none!important;filter:none!important;will-change:auto!important}.shop-startup-splash.is-exiting{animation:none!important;opacity:0}.shop-startup-splash.is-exiting .shop-startup-brand{animation:none!important}#mainApp.shop-startup-enter{animation:none!important}}
 .shop-promo-onboarding{--onboarding-cyan:#48caff;--onboarding-navy:#030a27;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;box-sizing:border-box;background:radial-gradient(ellipse at 50% 12%,rgba(38,112,216,.24),transparent 43%),radial-gradient(ellipse at 50% 82%,rgba(30,143,255,.12),transparent 42%),linear-gradient(180deg,#07163b 0%,#030a27 60%,#02071d 100%);color:#fff;isolation:isolate;touch-action:manipulation;overscroll-behavior:contain}
 .shop-promo-onboarding::before,.shop-promo-onboarding::after{position:absolute;left:-20%;z-index:0;width:140%;height:18%;border-top:1px solid rgba(82,194,255,.62);border-radius:50%;content:"";pointer-events:none}
 .shop-promo-onboarding::before{bottom:12%;transform:rotate(-7deg);box-shadow:0 -7px 24px rgba(39,152,255,.2)}
@@ -3131,6 +3120,27 @@ html.shop-auth-modal-open,body.shop-auth-modal-open{overflow:hidden!important;ov
 .owner-promo-status{min-height:22px;color:#d8cbff;font-size:13px;line-height:1.5}
 @media(max-height:600px){.shop-promo-onboarding-content{gap:5px;padding-top:calc(env(safe-area-inset-top) + 8px);padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}.shop-promo-onboarding-brand{font-size:18px}.shop-promo-onboarding-media{max-height:100%}.shop-promo-onboarding-choice{min-height:46px;padding-block:5px}.shop-promo-onboarding-actions{gap:6px}}
 
+html .shop-promo-onboarding{--onboarding-violet:#a84bff;--onboarding-pink:#ed65ff;position:fixed;inset:0;z-index:10000;display:grid;overflow:hidden;box-sizing:border-box;background:radial-gradient(ellipse at 50% 16%,rgba(106,28,187,.23),transparent 42%),radial-gradient(ellipse at 4% 92%,rgba(123,31,207,.16),transparent 36%),linear-gradient(180deg,#080414 0%,#03020a 62%,#06020e 100%);color:#fff;isolation:isolate;touch-action:manipulation;overscroll-behavior:contain}
+.shop-promo-onboarding::before,.shop-promo-onboarding::after{position:absolute;left:-18%;z-index:0;width:136%;height:17%;border-top:1px solid rgba(174,75,255,.76);border-radius:50%;content:"";pointer-events:none;filter:drop-shadow(0 0 12px rgba(143,35,255,.55))}
+.shop-promo-onboarding::before{bottom:8%;transform:rotate(-7deg);box-shadow:0 -8px 26px rgba(142,43,255,.28)}.shop-promo-onboarding::after{bottom:2%;transform:rotate(6deg);opacity:.56;filter:blur(1px) drop-shadow(0 0 10px rgba(166,43,255,.5))}
+.shop-promo-onboarding[hidden],.shop-promo-onboarding-choices[hidden]{display:none!important}
+.shop-promo-onboarding-content{position:relative;z-index:1;box-sizing:border-box;display:grid;grid-template-rows:minmax(0,1fr) auto auto;align-items:center;justify-items:center;width:100%;height:100%;min-height:0;gap:clamp(12px,2.6dvh,24px);padding:calc(env(safe-area-inset-top) + clamp(20px,5dvh,48px)) clamp(22px,7vw,42px) calc(env(safe-area-inset-bottom) + clamp(22px,5dvh,46px));text-align:center}
+.shop-promo-onboarding-language-control{position:absolute;top:calc(env(safe-area-inset-top) + 10px);right:max(18px,env(safe-area-inset-right));z-index:3;display:flex;align-items:center;gap:6px;min-height:30px;padding:3px 9px;border:1px solid rgba(169,84,255,.48);border-radius:999px;background:rgba(12,6,25,.78);color:#eee1ff;font:600 10px Arial,sans-serif;direction:ltr;backdrop-filter:blur(10px)}.shop-promo-onboarding-language-control select{max-width:150px;min-height:25px;border:0;background:transparent;color:#fff;font:700 11px Arial,sans-serif;outline:none}.shop-promo-onboarding-language-control option{background:#10071d;color:#fff}
+.shop-promo-onboarding-brand-art-wrap{display:grid;place-items:center;align-self:center;width:100%;height:100%;min-height:0;animation:shopWelcomeBrandIn 620ms cubic-bezier(.2,.72,.24,1) both}
+.shop-promo-onboarding-brand-art{display:block;width:min(78vw,310px);max-width:100%;max-height:100%;height:auto;object-fit:contain;filter:drop-shadow(0 0 17px rgba(151,47,255,.16));user-select:none;pointer-events:none}
+.shop-promo-onboarding-welcome{margin:0;color:#fff;font:800 clamp(30px,8vw,46px)/1.08 Arial,sans-serif;letter-spacing:.12em;text-shadow:0 0 24px rgba(160,61,255,.7);animation:shopWelcomeHeadingIn 540ms ease-out 90ms both}
+.shop-promo-onboarding-choices{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;width:min(100%,480px);animation:shopWelcomeChoicesIn 620ms cubic-bezier(.2,.72,.24,1) 160ms both}
+.shop-promo-onboarding-choice{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr) 28px;align-items:center;justify-items:center;gap:10px;width:100%;min-width:0;min-height:72px;padding:11px 18px;border:1.5px solid rgba(182,100,255,.92);border-radius:999px;background:#05030c;color:#fff;font:inherit;font-size:clamp(15px,4.5vw,19px);font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 0 18px rgba(142,43,255,.2);transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease}
+.shop-promo-onboarding-choice.primary{border-color:#e5a0ff;background:linear-gradient(110deg,#8b20ff,#c22cff 58%,#7f16eb);color:#fff;box-shadow:0 0 24px rgba(158,45,255,.58),inset 0 0 14px rgba(255,255,255,.12)}.shop-promo-onboarding-choice.secondary{background:rgba(5,3,12,.9);color:#fff;border-color:#a93cff;box-shadow:0 0 16px rgba(151,40,255,.3)}
+.shop-promo-onboarding-choice svg{display:block;width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.shop-promo-onboarding-choice-label{font-size:clamp(15px,4.7vw,20px);font-weight:800;line-height:1.15;text-align:center}.shop-promo-onboarding-arrow{font-size:30px;font-weight:400;line-height:1}
+.shop-promo-onboarding-choice:focus-visible{outline:3px solid #d7a2ff;outline-offset:3px}.shop-promo-onboarding-choice:active{transform:scale(.985);box-shadow:0 0 28px rgba(177,75,255,.64)}
+@keyframes shopWelcomeBrandIn{from{opacity:0;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}@keyframes shopWelcomeHeadingIn{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}@keyframes shopWelcomeChoicesIn{from{opacity:0;transform:translate3d(0,24px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.shop-promo-onboarding.is-startup-reveal .shop-promo-onboarding-brand-art-wrap{animation:shopWelcomeBrandIn 620ms cubic-bezier(.2,.72,.24,1) both}
+.shop-promo-onboarding.is-handoff-exiting{animation:shopOnboardingExit 260ms ease-in both}.shop-promo-onboarding.is-handoff-exiting .shop-promo-onboarding-content{opacity:0;transform:translate3d(0,12px,0)}@keyframes shopOnboardingExit{to{opacity:0}}
+@media(min-width:700px){html .shop-promo-onboarding{inset:50% auto auto 50%;width:min(430px,calc(100vw - 48px));height:min(932px,calc(100dvh - 48px));transform:translate(-50%,-50%);border:1px solid #28263b;border-radius:46px;box-shadow:0 0 0 7px rgba(27,26,42,.78),0 35px 100px rgba(0,0,0,.62)}.shop-promo-onboarding-content{padding-top:42px;padding-bottom:34px}.shop-promo-onboarding-brand-art{width:min(72%,310px)}}
+@media(max-height:650px){.shop-promo-onboarding-content{gap:10px;padding-top:calc(env(safe-area-inset-top) + 14px);padding-bottom:calc(env(safe-area-inset-bottom) + 14px)}.shop-promo-onboarding-brand-art{width:min(64vw,245px)}.shop-promo-onboarding-choice{min-height:58px}}
+@media(max-width:360px){.shop-promo-onboarding-content{padding-left:18px;padding-right:18px}.shop-promo-onboarding-choice{min-height:64px;padding-inline:12px}.shop-promo-onboarding-choice-label{font-size:15px}}
+@media(prefers-reduced-motion:reduce){.shop-startup-brand,.shop-promo-onboarding-brand-art-wrap,.shop-promo-onboarding-welcome,.shop-promo-onboarding-choices,.shop-promo-onboarding.is-handoff-exiting{animation:none!important}.shop-startup-brand{opacity:1!important;transform:none!important;filter:none!important}.shop-promo-onboarding.is-handoff-exiting{opacity:0!important}.shop-promo-onboarding-choice{transition:none!important}}
 /* SHIVAN_SITE_MOTION_V1: short, compositor-friendly movement that keeps the existing visual design intact. */
 :root{--shop-motion-ease:cubic-bezier(.22,.61,.36,1);--shop-motion-fast:160ms;--shop-motion-base:360ms}
 button:not(:disabled),a[href],[role="button"]:not([aria-disabled="true"]){transition-property:transform,filter,border-color,background-color,box-shadow,color,opacity;transition-duration:180ms;transition-timing-function:var(--shop-motion-ease);-webkit-tap-highlight-color:transparent}
@@ -3576,11 +3586,7 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
 <body>
 
 <section id="shopStartupSplash" class="shop-startup-splash" aria-label="Shivan Shop brand intro">
-  <img class="shop-startup-layer shop-startup-background" src="/assets/branding/shivan-shop-cinematic-base.png" alt="" aria-hidden="true" width="720" height="1280" fetchpriority="high" decoding="sync">
-  <img class="shop-startup-layer shop-startup-wave" src="/assets/branding/shivan-shop-cinematic-wave.png" alt="" aria-hidden="true" width="720" height="1280" decoding="sync">
-  <img class="shop-startup-layer shop-startup-mark" src="/assets/branding/shivan-shop-cinematic-mark.png" alt="" aria-hidden="true" width="720" height="1280" decoding="sync">
-  <img class="shop-startup-layer shop-startup-wordmark" src="/assets/branding/shivan-shop-cinematic-wordmark.png" alt="" aria-hidden="true" width="720" height="1280" decoding="sync">
-  <span class="shop-startup-light-sweep" aria-hidden="true"></span>
+  <img class="shop-startup-brand" src="/assets/branding/shivan-shop-neon-brand.png" alt="SHIVAN SHOP — Women’s Fashion" width="366" height="338" fetchpriority="high" decoding="sync">
 </section>
 
 
@@ -3753,20 +3759,12 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
 
 <section id="shopPromoOnboarding" class="shop-promo-onboarding" role="dialog" aria-modal="true" aria-label="Shivan Shop introduction" aria-hidden="true" hidden>
   <div class="shop-promo-onboarding-content">
-    <div class="shop-promo-onboarding-brand" aria-label="Shivan Shop">
-      <svg viewBox="0 0 24 20" aria-hidden="true" focusable="false"><path d="M3 16.5h18M5 15l1.2-6 5.8 4.2L18 9l1 6M8.2 7.2l.5-2.4 3.3 2.4 3.3-2.4.5 2.4"/><path d="M6.2 9 4.3 6.5M18 9l1.8-2.5"/></svg>
-      <span class="shop-promo-onboarding-brand-name">SHIVAN SHOP</span>
-      <small id="shopPromoOnboardingTagline">WOMEN’S FASHION</small>
-    </div>
     <label class="shop-promo-onboarding-language-control" for="welcomeLanguageSelect"><span id="welcomeLanguageLabel">Language</span><select id="welcomeLanguageSelect" aria-label="Language" title="Language"><option value="en" data-i18n-preserve>English</option><option value="ku-Badini" data-i18n-preserve>Kurdish Badini · کوردی بادینی</option><option value="ar" data-i18n-preserve>العربية</option></select></label>
-    <div class="shop-promo-onboarding-media">
-      <img id="shopPromoOnboardingImage" class="shop-promo-onboarding-image" src="" alt="Women’s fashion boutique at Shivan Shop">
-    </div>
-    <div class="shop-promo-onboarding-actions">
-      <div id="shopPromoOnboardingChoices" class="shop-promo-onboarding-choices">
-        <button id="shopPromoOnboardingExploreModels" class="shop-promo-onboarding-choice primary" type="button" onclick="finishShopOnboarding()" aria-label="Explore Models"><span id="shopPromoOnboardingExploreModelsLabel" class="shop-promo-onboarding-choice-label">Explore Models</span></button>
-        <button id="shopPromoOnboardingCreateAccount" class="shop-promo-onboarding-choice secondary" type="button" onclick="startShopOnboardingSignup()" aria-label="Create Account"><span id="shopPromoOnboardingCreateAccountLabel" class="shop-promo-onboarding-choice-label">Create Account</span></button>
-      </div>
+    <div class="shop-promo-onboarding-brand-art-wrap"><img class="shop-promo-onboarding-brand-art" src="/assets/branding/shivan-shop-neon-brand.png" alt="SHIVAN SHOP — Women’s Fashion" width="366" height="338" decoding="async"></div>
+    <h1 id="shopPromoOnboardingWelcomeHeading" class="shop-promo-onboarding-welcome" tabindex="-1">WELCOME</h1>
+    <div id="shopPromoOnboardingChoices" class="shop-promo-onboarding-choices">
+      <button id="shopPromoOnboardingCreateAccount" class="shop-promo-onboarding-choice primary" type="button" onclick="startShopOnboardingSignup()" aria-label="Create Account"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 3 18.5V20M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm11-3v6m-3-3h6M16 18h5m-2.5-2.5v5"/></svg><span id="shopPromoOnboardingCreateAccountLabel" class="shop-promo-onboarding-choice-label">Create Account</span><span class="shop-promo-onboarding-arrow" aria-hidden="true">→</span></button>
+      <button id="shopPromoOnboardingExploreModels" class="shop-promo-onboarding-choice secondary" type="button" onclick="finishShopOnboarding()" aria-label="Explore Models"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v2.5m0 0a2 2 0 1 0-2-2m2 2 8 5.5-8 4.5-8-4.5L12 5.5Zm-8 5.5v3m16-3v3c0 1-3.6 4.5-8 4.5s-8-3.5-8-4.5v-3"/></svg><span id="shopPromoOnboardingExploreModelsLabel" class="shop-promo-onboarding-choice-label">Explore Models</span><span class="shop-promo-onboarding-arrow" aria-hidden="true">→</span></button>
     </div>
   </div>
 </section>
@@ -4892,6 +4890,7 @@ function translationContentIsPreserved(node){
 function renderHomeLabels(){
   const setText=(id,value)=>{const element=document.getElementById(id);if(element)element.textContent=value;};
   setText("shopPromoOnboardingTagline",customerUiText("WOMEN’S FASHION","جلوبەرگێن ژنان","أزياء نسائية"));
+  setText("shopPromoOnboardingWelcomeHeading",customerUiText("WELCOME","بەخێرهاتی","مرحباً"));
   const welcomeImage=document.getElementById("shopPromoOnboardingImage");if(welcomeImage)welcomeImage.alt=customerUiText("Women’s fashion boutique at Shivan Shop","بوتیکا جلوبەرگێن ژنان ل Shivan Shop","بوتيك أزياء نسائية في Shivan Shop");
   setText("shopPromoOnboardingExploreModelsLabel",customerUiText("Explore Models","سەحکە تە مۆدێلان","استكشفي الموديلات"));
   setText("shopPromoOnboardingCreateAccountLabel",customerUiText("Create Account","حسابی دروست بکە","إنشاء حساب"));
@@ -5070,6 +5069,7 @@ const ORDERS_KEY = "shivan_shop_orders";
 const PRODUCTS_KEY = "shivan_shop_products";
 const ADS_KEY = "shivan_shop_ads";
 const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";
+const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_startup_choice_completed";
 const SHOP_ONBOARDING_SLIDE_COUNT = 3;
 const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze([
   "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
@@ -5117,12 +5117,13 @@ const LEGACY_OWNER_IDENTIFIER = "owner@shivanshop.com";
 let cloudMode=false;
 let cloudInitializationComplete=false;
 const shopStartupPrefersReducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches===true;
-const SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion?300:2100;
-const SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion?0:400;
+const SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion?300:2000;
+const SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion?0:500;
 const SHOP_STARTUP_REQUEST_TIMEOUT_MS=10000;
 const recordedShopStartupAt=Number(window.__SHIVAN_STARTUP_STARTED_AT);
-const shopStartupStartedAt=Number.isFinite(recordedShopStartupAt)?recordedShopStartupAt:performance.now();
+let shopStartupStartedAt=Number.isFinite(recordedShopStartupAt)?recordedShopStartupAt:performance.now();
 let shopStartupSplashTimer=null;
+let shopStartupSplashHideTimer=null;
 let shopStartupCompleted=false;
 let cloudRefreshPromise=null;
 function finishShopStartupSplash(){
@@ -5144,7 +5145,9 @@ function finishShopStartupSplash(){
   showShopOnboardingIfNeeded();
   mainApp?.classList.add("shop-startup-enter");
   splash.classList.add("is-exiting");
-  setTimeout(()=>{
+  if(shopStartupSplashHideTimer)clearTimeout(shopStartupSplashHideTimer);
+  shopStartupSplashHideTimer=setTimeout(()=>{
+    shopStartupSplashHideTimer=null;
     splash.hidden=true;
     splash.classList.remove("is-exiting");
     mainApp?.classList.remove("shop-startup-enter");
@@ -5165,7 +5168,9 @@ let cloudSyncRetryTimer=null;
 let cloudSyncRetryDelay=1000;
 let cloudWriteFailureNoticeShown=false;
 const SHOP_ONBOARDING_HANDOFF_MS=260;
+const SHOP_RETURNING_WELCOME_MS=700;
 let shopOnboardingHandoffTimer=0;
+let shopOnboardingWelcomeTimer=0;
 let shopOnboardingHandoffLocked=false;
 let shopOnboardingImages=[...SHOP_ONBOARDING_DEFAULT_IMAGES];
 let shopOnboardingActive=false;
@@ -6139,8 +6144,8 @@ function ownerAppearanceGlobalCss(appearance={}){
     ".shop-promo-onboarding .shop-promo-onboarding-brand,.shop-promo-onboarding .shop-promo-onboarding-brand-name,.shop-promo-onboarding .shop-promo-onboarding-copy{font-family:Georgia,\"Times New Roman\",serif!important}",
     ".shop-promo-onboarding .shop-promo-onboarding-actions button{font-family:Arial,sans-serif!important}",
     ".shop-promo-onboarding-choices{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}",
-    ".shop-promo-onboarding-choice.primary{background:linear-gradient(115deg,#54d8ff,#35adff 58%,#397dff)!important;border-color:#a3e5ff!important;color:#03112d!important}",
-    ".shop-promo-onboarding-choice.secondary{background:linear-gradient(145deg,rgba(11,28,62,.92),rgba(5,15,38,.92))!important;color:#fff!important}",
+    ".shop-promo-onboarding-choice.primary{background:linear-gradient(110deg,#8b20ff,#c22cff 58%,#7f16eb)!important;border-color:#e5a0ff!important;color:#fff!important}",
+    ".shop-promo-onboarding-choice.secondary{background:rgba(5,3,12,.9)!important;border-color:#a93cff!important;color:#fff!important}",
     "html,body{background-color:"+background+"!important;color:"+readableBackgroundText+"!important}",
     "body{background:"+background+"!important;color:"+readableBackgroundText+"!important}",
     ".app{background:radial-gradient(circle at 50% -10%,color-mix(in srgb,"+primary+" 16%,transparent),transparent 30%),"+background+"!important;color:"+readableBackgroundText+"!important}",
@@ -6155,13 +6160,13 @@ function ownerAppearanceGlobalCss(appearance={}){
     "input[type=\"checkbox\"],input[type=\"radio\"],input[type=\"range\"],.owner-crop-zoom input{accent-color:"+primary+"!important}",
     "a[href]:not(.danger),.link-btn,.auth-switch a{color:"+readablePrimary+"!important}",
     ".brand-small span,.auth-tagline,.hero-copy p,.owner-dashboard-banner p,.owner-dashboard-section-head p{color:"+(ownerAppearanceContrastRatio(secondaryText,background)>=4.5?secondaryText:readableBackgroundText)+"!important}",
-".shop-promo-onboarding{background:radial-gradient(ellipse at 50% 10%,rgba(27,117,222,.22),transparent 46%),linear-gradient(180deg,#07163b,#030a27 60%,#02071d)!important;color:#fff!important}",
-".shop-promo-onboarding-media{border-color:rgba(91,190,255,.32)!important;box-shadow:0 18px 52px rgba(0,0,0,.42),0 0 30px rgba(47,158,255,.16)!important}",
-".shop-promo-onboarding-brand span{color:#fff!important;text-shadow:0 0 18px rgba(72,202,255,.28)!important}",
-".shop-promo-onboarding-choice{border-color:rgba(130,211,255,.72)!important;color:#fff!important}",
-".shop-promo-onboarding-choice.primary{background:linear-gradient(115deg,#54d8ff,#35adff 58%,#397dff)!important;border-color:#a3e5ff!important;color:#03112d!important;box-shadow:0 10px 28px rgba(41,163,255,.34)!important}",
-".shop-promo-onboarding-choice.secondary{background:linear-gradient(145deg,rgba(11,28,62,.92),rgba(5,15,38,.92))!important;color:#fff!important}",
-".shop-promo-onboarding-choice:focus-visible{outline-color:#8bddff!important}",
+".shop-promo-onboarding{background:radial-gradient(ellipse at 50% 16%,rgba(106,28,187,.23),transparent 42%),linear-gradient(180deg,#080414,#03020a 62%,#06020e)!important;color:#fff!important}",
+".shop-promo-onboarding-brand-art{filter:drop-shadow(0 0 17px rgba(151,47,255,.16))!important}",
+".shop-promo-onboarding-welcome{color:#fff!important;text-shadow:0 0 24px rgba(160,61,255,.7)!important}",
+".shop-promo-onboarding-choice{border-color:rgba(182,100,255,.92)!important;color:#fff!important}",
+".shop-promo-onboarding-choice.primary{background:linear-gradient(110deg,#8b20ff,#c22cff 58%,#7f16eb)!important;border-color:#e5a0ff!important;color:#fff!important;box-shadow:0 0 24px rgba(158,45,255,.58)!important}",
+".shop-promo-onboarding-choice.secondary{background:rgba(5,3,12,.9)!important;border-color:#a93cff!important;color:#fff!important}",
+".shop-promo-onboarding-choice:focus-visible{outline-color:#d7a2ff!important}",
     ".auth-ad,.hero{border-color:color-mix(in srgb,"+secondary+" 42%,transparent)!important}",
     ".ad-text small,.auth-tagline span,.auth-wordmark-shop,.auth-copy h2 span,.auth-eyebrow,.auth-handwritten,.ad-dots span.active,.hero-dots span.active,.hero-copy small,.hero-copy h2 span,.category .cat-icon,.section-head button,.nav-item.active,.status,.owner-orders-kicker,.owner-order-total,.owner-order-product-copy .owner-order-more,.owner-order-detail-item-price,.owner-dashboard-kicker,.owner-dashboard-section-head h3,.owner-dashboard-nav-icon,.owner-stat-card strong,.owner-analytics-metric strong,.owner-report-card h4,.owner-quick-action .owner-dashboard-nav-icon,.owner-product-home-card .home-count,.owner-product-home-card .home-icon,.owner-inventory-color-total,.owner-qr-color-heading,.owner-qr-variant-id,.owner-inventory-status,.favorite-btn.active,.favorite.active{color:"+readablePrimary+"!important}",
     ".logo{border-color:"+secondary+"!important;color:"+readablePrimary+"!important;box-shadow:0 0 30px color-mix(in srgb,"+button+" 28%,transparent)!important}",
@@ -7623,8 +7628,16 @@ function renderHomeAdvertisements(){
   positionHomeAdvertisementSlides(hero,{animate:false});
 }
 
+function isShopOnboardingCompleted(){
+  try{return localStorage.getItem(SHOP_ONBOARDING_COMPLETED_KEY)==="1";}catch(error){return false;}
+}
+
+function saveShopOnboardingCompletion(){
+  try{localStorage.setItem(SHOP_ONBOARDING_COMPLETED_KEY,"1");return true;}catch(error){return false;}
+}
+
 function getShopOnboardingStartupView(){
-  return "onboarding";
+  return isShopOnboardingCompleted()?"returning":"choices";
 }
 
 function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
@@ -7731,7 +7744,7 @@ function handleShopOnboardingVisibilityChange(hidden=document.hidden){
   shopAppWasHidden=action.wasHidden;
   if(action.show){
     shopOnboardingResumeState=captureShopOnboardingResumeState();
-    showShopOnboarding();
+    showShopOnboarding("choices");
   }
   return action.show;
 }
@@ -7772,11 +7785,13 @@ function renderShopOnboardingSlide(){
 function hideShopOnboarding(){
   shopOnboardingActive=false;
   if(shopOnboardingHandoffTimer)clearTimeout(shopOnboardingHandoffTimer);
+  if(shopOnboardingWelcomeTimer)clearTimeout(shopOnboardingWelcomeTimer);
   shopOnboardingHandoffTimer=0;
+  shopOnboardingWelcomeTimer=0;
   shopOnboardingHandoffLocked=false;
   const layer=document.getElementById("shopPromoOnboarding");
   if(layer){
-    layer.classList.remove("is-handoff-exiting");
+    layer.classList.remove("is-handoff-exiting","is-startup-reveal");
     delete layer.dataset.handoff;
     layer.inert=false;
     layer.hidden=true;
@@ -7790,32 +7805,65 @@ function hideShopOnboarding(){
   if(mainApp)mainApp.inert=false;
 }
 
-function showShopOnboarding(){
+function showShopOnboarding(startupView=getShopOnboardingStartupView()){
   const layer=document.getElementById("shopPromoOnboarding");
   if(!layer)return false;
   if(shopOnboardingHandoffTimer)clearTimeout(shopOnboardingHandoffTimer);
+  if(shopOnboardingWelcomeTimer)clearTimeout(shopOnboardingWelcomeTimer);
   shopOnboardingHandoffTimer=0;
+  shopOnboardingWelcomeTimer=0;
   shopOnboardingHandoffLocked=false;
   layer.classList.remove("is-handoff-exiting");
+  layer.classList.add("is-startup-reveal");
   delete layer.dataset.handoff;
+  const returning=startupView==="returning";
+  layer.dataset.startupView=returning?"returning":"choices";
   layer.inert=false;
   shopOnboardingActive=true;
-  shopOnboardingImages=readShopOnboardingImages();
   document.documentElement?.classList.add("shop-promo-onboarding-open");
   document.body?.classList.add("shop-promo-onboarding-open");
   layer.hidden=false;
   layer.setAttribute("aria-hidden","false");
+  layer.setAttribute("aria-label",returning?customerUiText("Welcome to Shivan Shop","بەخێرهاتی ل Shivan Shop","مرحباً بك في Shivan Shop"):customerUiText("Shivan Shop introduction","پێشەنگا Shivan Shop","مقدمة Shivan Shop"));
+  const choices=document.getElementById("shopPromoOnboardingChoices");
+  if(choices)choices.hidden=returning;
   const authPage=document.getElementById("authPage");
   const mainApp=document.getElementById("mainApp");
   if(authPage)authPage.inert=true;
   if(mainApp)mainApp.inert=true;
-  renderShopOnboardingSlide();
-requestAnimationFrame(()=>document.getElementById("shopPromoOnboardingExploreModels")?.focus({preventScroll:true}));
+  if(returning)shopOnboardingWelcomeTimer=setTimeout(finishShopReturningWelcome,SHOP_RETURNING_WELCOME_MS);
+  requestAnimationFrame(()=>document.getElementById(returning?"shopPromoOnboardingWelcomeHeading":"shopPromoOnboardingCreateAccount")?.focus?.({preventScroll:true}));
   return true;
 }
 
 function showShopOnboardingIfNeeded(){
-  return getShopOnboardingStartupView()==="onboarding"?showShopOnboarding():false;
+  return showShopOnboarding(getShopOnboardingStartupView());
+}
+
+function finishShopReturningWelcome(){
+  const layer=document.getElementById("shopPromoOnboarding");
+  if(!shopOnboardingActive||layer?.dataset.startupView!=="returning")return false;
+  hideShopOnboarding();
+  if(document.getElementById("mainApp")?.style.display!=="block")openMain({resumeIntent:false});
+  openView("home",{historyRestore:true});
+  return true;
+}
+
+function replayShopStartupFlow(){
+  if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
+  if(shopStartupSplashHideTimer){clearTimeout(shopStartupSplashHideTimer);shopStartupSplashHideTimer=null;}
+  hideShopOnboarding();
+  const splash=document.getElementById("shopStartupSplash");
+  if(!splash)return showShopOnboarding("choices");
+  splash.hidden=false;
+  splash.classList.remove("is-exiting");
+  const brand=splash.querySelector(".shop-startup-brand");
+  if(brand){brand.style.animation="none";void brand.offsetWidth;brand.style.animation="";}
+  document.querySelector(".app")?.classList.remove("shop-startup-enter");
+  shopStartupCompleted=false;
+  shopStartupStartedAt=performance.now();
+  finishShopStartupSplash();
+  return true;
 }
 
 function beginShopOnboardingPageHandoff(destination,prepareDestination){
@@ -7842,7 +7890,7 @@ function beginShopOnboardingPageHandoff(destination,prepareDestination){
 
 function startShopOnboardingSignup(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden)return false;
+  if(!layer||layer.hidden||!saveShopOnboardingCompletion())return false;
   return beginShopOnboardingPageHandoff("signup",()=>{
     shopOnboardingResumeState=null;
     document.querySelector(".app")?.classList.add("auth-mode");
@@ -7856,7 +7904,7 @@ function startShopOnboardingSignup(){
 
 function finishShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||shopOnboardingHandoffLocked)return false;
+  if(!layer||layer.hidden||shopOnboardingHandoffLocked||!saveShopOnboardingCompletion())return false;
   const resumeState=shopOnboardingResumeState;
   shopOnboardingResumeState=null;
   return beginShopOnboardingPageHandoff("shop",()=>{
@@ -8308,30 +8356,26 @@ function restoreSession(){
 
 
 async function logout(){
-
   if(cloudMode){
-    await flushCloudWrites();
-    await cloudRequest("/api/auth/logout",{method:"POST"}).catch(()=>{});
+    try{await flushCloudWrites();}catch(error){console.warn("Pending shop changes could not be synchronized before logout.",error);}
+    try{await cloudRequest("/api/auth/logout",{method:"POST"});}
+    catch(error){showToast(error?.message||"Logout could not be confirmed. Check your connection and try again.");return false;}
   }
   stopCloudSync();
   cloudAccount=null;
-
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY);
-
-  currentUser = null;
+  localStorage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);
+  currentUser=null;
   pendingAuthenticationIntent=null;
   shopOnboardingResumeState=null;
-
   document.querySelector(".app")?.classList.add("auth-mode");
   document.getElementById("mainApp").style.display="none";
   document.getElementById("authPage").style.display="";
-
   showAuth("login");
-  showShopOnboarding();
-
-  showToast("دەرکەفتی.");
-
+  replayShopStartupFlow();
+  showToast(customerUiText("You have logged out.","تۆ ژ دەرکەفتی.","لقد سجلت الخروج."));
+  return true;
 }
 
 

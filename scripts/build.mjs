@@ -23,7 +23,7 @@ await mkdir(brandOutput,{recursive:true});
 await copyFile(resolve(root,"assets","branding","shivan-shop-splash.jpg"),resolve(brandOutput,"shivan-shop-splash.jpg"));
 await copyFile(resolve(root,"assets","branding","shivan-shop-launch.jpg"),resolve(brandOutput,"shivan-shop-launch.jpg"));
 await copyFile(resolve(root,"assets","branding","shivan-shop-ring-patch.png"),resolve(brandOutput,"shivan-shop-ring-patch.png"));
-for (const file of ["shivan-shop-cinematic-original.jpg", "shivan-shop-cinematic-base.png", "shivan-shop-cinematic-mark.png", "shivan-shop-cinematic-wordmark.png", "shivan-shop-cinematic-wave.png"]) {
+for (const file of ["shivan-shop-cinematic-original.jpg", "shivan-shop-cinematic-base.png", "shivan-shop-cinematic-mark.png", "shivan-shop-cinematic-wordmark.png", "shivan-shop-cinematic-wave.png", "shivan-shop-neon-brand.png"]) {
   await copyFile(resolve(root,"assets","branding",file),resolve(brandOutput,file));
 }
 console.log("Built Shivan Shop into dist/ with local QR tools and splash artwork.");
