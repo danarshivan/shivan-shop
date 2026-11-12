@@ -145,3 +145,60 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+/* Dynamic Safari viewport sizing and single-owner safe areas. */
+html,
+body {
+  height: 100vh;
+  height: var(--shivan-visible-viewport-height, 100dvh);
+  min-height: 100vh;
+  min-height: var(--shivan-visible-viewport-height, 100dvh);
+}
+
+.app,
+.app.auth-mode,
+.app:not(.auth-mode) {
+  height: 100dvh !important;
+  height: var(--shivan-visible-viewport-height, 100dvh) !important;
+}
+
+@media (min-width: 700px) {
+  .app,
+  .app.auth-mode,
+  .app:not(.auth-mode) {
+    height: min(932px, calc(100dvh - 48px)) !important;
+    height: min(932px, calc(var(--shivan-visible-viewport-height, 100dvh) - 48px)) !important;
+  }
+}
+
+@media (max-width: 699px) {
+  .app,
+  .app.auth-mode,
+  .app:not(.auth-mode) {
+    height: 100dvh !important;
+    height: var(--shivan-visible-viewport-height, 100dvh) !important;
+  }
+}
+
+/* Product Details scrolls once inside the safe-area-adjusted app viewport. */
+.app.detail-mode #mainApp {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  padding-bottom: 0 !important;
+}
+
+.app.detail-mode #mainApp > #detailView:not(.product-detail-leaving) {
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 100%;
+}
+
+.app.detail-mode #detailView:not(.product-detail-leaving) .detail {
+  min-height: 0;
+  padding: 8px 12px calc(18px + env(safe-area-inset-bottom, 0px));
+}
