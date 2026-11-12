@@ -218,6 +218,8 @@ const categoryHost = { querySelector(selector) {
 const replacementCategoryUrl = `/api/media/shop/${"b".repeat(43)}.webp`;
 let categoryUploads = 0;
 categoryHarness.context.categoryPreviewMarkup = url => `<img src="${url}">`;
+categoryHarness.context.safeImageUrl = value => String(value || "").startsWith("/api/media/shop/") ? String(value) : "";
+install(categoryHarness.context, "categoryEditorPreviewMarkup");
 categoryHarness.context.ownerDashboardText = english => english;
 categoryHarness.context.uploadOwnerImageToCloud = async blob => { categoryUploads++; assert.equal(blob.type, "image/webp"); return replacementCategoryUrl; };
 categoryHarness.context.pendingImageCrop = {
@@ -229,7 +231,7 @@ await categoryHarness.context.finishImageCrop(true);
 assert.equal(categoryUploads, 1, "Done uploads only the confirmed category crop");
 assert.equal(categoryDraft.value, replacementCategoryUrl, "Done updates the unsaved category image draft");
 assert.equal(categoryInput.dataset.savedImage, validImageUrl, "cropping never replaces the original category image before category Save");
-assert.equal(categoryPreview.innerHTML, `<img src="${replacementCategoryUrl}">`, "the category preview shows the edited crop immediately");
+assert.equal(categoryPreview.innerHTML, `<img src="${replacementCategoryUrl}"><span class="owner-category-image-edit-icon" aria-hidden="true">✎</span>`, "the category preview shows the edited crop and its reopen control immediately");
 assert.equal(categoryEditButton.hidden, false, "the edited category crop can be reopened");
 assert.match(categoryStatus.textContent, /Save the category/, "the Owner is told to save category metadata after the crop upload");
 assert.equal(categoryHarness.context.pendingImageCrop, null, "a confirmed category crop closes the editor");
@@ -244,13 +246,15 @@ const cancelCategoryHost = { querySelector(selector) {
 const cancelCategoryDraft = { value: "" }, cancelCategoryInput = { disabled: true, value: "selected.webp", dataset: { savedImage: validImageUrl } };
 let canceledCategoryUploads = 0;
 categoryCancelHarness.context.categoryPreviewMarkup = url => `<img src="${url}">`;
+categoryCancelHarness.context.safeImageUrl = value => String(value || "").startsWith("/api/media/shop/") ? String(value) : "";
+install(categoryCancelHarness.context, "categoryEditorPreviewMarkup");
 categoryCancelHarness.context.ownerDashboardText = english => english;
 categoryCancelHarness.context.uploadOwnerImageToCloud = async () => { canceledCategoryUploads++; return replacementCategoryUrl; };
 categoryCancelHarness.context.pendingImageCrop = { uploading: false, queue: false, kind: "category", input: cancelCategoryInput, categoryInput: cancelCategoryInput, categoryHost: cancelCategoryHost, categoryImageTarget: cancelCategoryDraft };
 await categoryCancelHarness.context.finishImageCrop(false);
 assert.equal(canceledCategoryUploads, 0, "Cancel never uploads a category crop");
 assert.equal(cancelCategoryDraft.value, "", "Cancel leaves the unsaved category image draft unchanged");
-assert.equal(cancelCategoryPreview.innerHTML, `<img src="${validImageUrl}">`, "Cancel restores the original saved category preview");
+assert.equal(cancelCategoryPreview.innerHTML, `<img src="${validImageUrl}"><span class="owner-category-image-edit-icon" aria-hidden="true">✎</span>`, "Cancel restores the original saved category preview and its edit affordance");
 assert.match(cancelCategoryStatus.textContent, /saved category image is unchanged/i);
 
 const adImageElements = {

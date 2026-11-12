@@ -13,6 +13,10 @@ const categoryCssStart = html.indexOf("/* HOME IMAGE-FIRST CATEGORY CARDS */");
 const categoryCssEnd = html.indexOf("/* Compact Product Details", categoryCssStart);
 assert.ok(categoryCssStart >= 0 && categoryCssEnd > categoryCssStart, "Home category layout has a final scoped stylesheet block");
 const homeCategoryStyles = html.slice(categoryCssStart, categoryCssEnd);
+const ownerCategoryCssStart = html.indexOf("/* OWNER CATEGORY PAGE: reference-matched, collapsed cards with one expanded editor */");
+const ownerCategoryCssEnd = html.indexOf("/* Compact Product Details", ownerCategoryCssStart);
+assert.ok(ownerCategoryCssStart >= 0 && ownerCategoryCssEnd > ownerCategoryCssStart, "Owner Categories has a final scoped responsive style block");
+const ownerCategoryStyles = html.slice(ownerCategoryCssStart, ownerCategoryCssEnd);
 const customerRenderers = functionSource("homeCategoryArtworkMarkup") + "\n" + functionSource("renderCategoryButtons") + "\n" + functionSource("renderSearchCategoryCards");
 assert.match(customerRenderers, /homeCategoryArtworkMarkup\(category\)/, "Home category cards use Owner-managed full-card images");
 assert.doesNotMatch(functionSource("homeCategoryArtworkMarkup"), /<svg|emoji/i, "Home category placeholders contain no icon or emoji artwork");
@@ -25,6 +29,18 @@ assert.match(functionSource("renderOwnerCategoryManager"), /data-category-move/,
 assert.match(functionSource("renderOwnerCategoryManager"), /data-category-preview/, "the Owner sees a category-card preview");
 assert.ok(functionSource("renderOwnerCategoryManager").includes("data-category-image-url"), "the Owner form keeps a draft crop URL separate from the saved category image");
 assert.ok(functionSource("renderOwnerCategoryManager").includes("data-category-edit-image"), "the Owner can reopen an existing category photo");
+const ownerCategoryRenderer = functionSource("renderOwnerCategoryManager");
+assert.match(ownerCategoryRenderer, /owner-category-summary-open[\s\S]*owner-category-visibility-status[\s\S]*owner-category-order-actions/, "collapsed Owner cards show a photo, names, visibility, and order controls");
+assert.match(ownerCategoryRenderer, /owner-category-editor" data-category-editor\$\{expanded\?"":" hidden"\}/, "category editing forms start collapsed unless selected");
+assert.match(ownerCategoryRenderer, /Category name \*|English name|Arabic name|data-category-visible/, "expanded category editors include all localized names and visibility");
+assert.match(ownerCategoryStyles, /owner-category-create-toggle\{[^}]*width:100%/, "Create Category spans the available page width");
+assert.match(ownerCategoryStyles, /\.owner-category-manager\{display:grid;grid-template-columns:minmax\(0,1fr\)/, "category cards remain in a single responsive column");
+assert.match(ownerCategoryStyles, /\.owner-category-edit-image-tools \.owner-category-preview\{[^}]*aspect-ratio:1\/1/, "the expanded image editor uses a square preview");
+assert.match(ownerCategoryStyles, /\.owner-category-editor\[hidden\]\{display:none!important\}/, "collapsed category editors are not visible");
+assert.match(ownerCategoryStyles, /\.owner-category-edit-actions\{display:grid;grid-template-columns:minmax\(0,\.9fr\) minmax\(0,1\.2fr\) minmax\(0,\.9fr\)/, "Edit, Save, and Delete actions share one aligned row");
+assert.ok(html.includes("id=\"ownerCategoryCreateToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"ownerCategoryAddRow\""), "the create button opens its accessible category form");
+assert.ok(html.includes("id=\"ownerCategoryAddRow\" hidden"), "the create form is collapsed by default");
+assert.match(html, /if\(route\.panel!=="dashboard"\)sectionBox\.insertAdjacentHTML\("afterbegin",ownerNavigationHeaderMarkup\(\)\)/, "the Categories route retains the shared Back/title navigation header");
 assert.ok(html.includes("id=\"ownerNewCategoryImageDraft\""), "new categories use a separate image-crop draft field");
 assert.ok(functionSource("editOwnerCategoryImage").includes("openSavedOwnerImageCrop"), "existing category images reopen from shared storage");
 assert.match(functionSource("bindOwnerCategoryManager"), /#ownerCategoryAddRow \[data-category-edit-image\]/, "the new-category form wires its saved crop back into the editor");
@@ -53,7 +69,8 @@ class MemoryStorage {
   removeItem(key) { this.values.delete(key); }
 }
 class FakeNode {
-  constructor() { this.dataset = {}; this.classList = { add() {}, remove() {} }; this.listeners = new Map(); this.scrollLeft = 0; this.innerHTML = ""; this.value = ""; this.hidden = false; }
+  constructor() { this.dataset = {}; this.attributes = new Map(); this.classNames = new Set(); this.classList = { add: name => this.classNames.add(name), remove: name => this.classNames.delete(name), toggle: (name, force) => { const add = force === undefined ? !this.classNames.has(name) : Boolean(force); add ? this.classNames.add(name) : this.classNames.delete(name); return add; }, contains: name => this.classNames.has(name) }; this.listeners = new Map(); this.scrollLeft = 0; this.innerHTML = ""; this.value = ""; this.hidden = false; }
+  setAttribute(name, value) { this.attributes.set(name, String(value)); }
   addEventListener(type, handler) { const list = this.listeners.get(type) || []; list.push(handler); this.listeners.set(type, list); }
   querySelectorAll() { return []; }
   querySelector() { return null; }
@@ -107,6 +124,7 @@ const sandbox = vm.createContext({
 });
 const names = [
   "getOwnerCategoryMeta", "getOwnerCategoryRenames", "getDeletedOwnerCategories", "resolveCategoryName", "categoryLabel",
+  "setOwnerCategoryEditorExpanded", "toggleOwnerCategoryEditor", "toggleOwnerCategoryCreate", "categoryEditorPreviewMarkup",
   "categoryImageUrl", "categoryPreviewMarkup", "categoryArtworkMarkup", "homeCategoryArtworkMarkup", "bindCategoryImageFallbacks", "bindCategoryStripDrag",
   "validateOwnerCategoryImageFile", "previewOwnerCategoryImage", "releaseOwnerCategoryPreview", "openSavedOwnerImageCrop", "editOwnerCategoryImage", "getSavedOwnerCategories",
   "getAllCategories", "renderCategoryButtons", "renderSearchCategoryCards", "filterCategory", "renderOwnerCategoryManager",
@@ -114,6 +132,10 @@ const names = [
   "setOwnerCategoryVisibility", "addOwnerCategory",
 ];
 vm.runInContext(`${html.match(/const DEFAULT_CATEGORIES=[^\n]+;/)?.[0]}\n${names.map(functionSource).join("\n")}`, sandbox);
+ownerManager.dataset.expandedCategory = "";
+const initiallyCollapsedMarkup = sandbox.renderOwnerCategoryManager();
+assert.match(initiallyCollapsedMarkup, /data-category-editor hidden/, "every category editor is collapsed on first render");
+assert.doesNotMatch(initiallyCollapsedMarkup, /class="owner-category-edit-row is-expanded"/, "no category is expanded by default");
 sandbox.renderCategoryButtons();
 assert.ok(categoryButtons.innerHTML.includes(imageUrl), "Home uses the saved category photo");
 assert.ok(searchCards.innerHTML.includes(imageUrl), "Search uses the same saved category photo");
@@ -241,4 +263,21 @@ const reloadedStorage = new MemoryStorage(storage.values);
 const reloadContext = vm.createContext({ ...sandbox, localStorage: reloadedStorage });
 vm.runInContext(`${html.match(/const DEFAULT_CATEGORIES=[^\n]+;/)?.[0]}\n${["getOwnerCategoryMeta", "getOwnerCategoryRenames", "getDeletedOwnerCategories", "resolveCategoryName", "getSavedOwnerCategories", "getAllCategories", "categoryImageUrl"].map(functionSource).join("\n")}`, reloadContext);
 assert.equal(reloadContext.categoryImageUrl("Tops"), replacementImageUrl, "saved category photos survive local refresh hydration");
+const createFormToggle = new FakeNode(), createFormToggleButton = new FakeNode(); createFormToggle.hidden = true; elements.set("ownerCategoryAddRow", createFormToggle); elements.set("ownerCategoryCreateToggle", createFormToggleButton);
+assert.equal(sandbox.toggleOwnerCategoryCreate(), true, "the full-width Create Category action opens its form");
+assert.equal(createFormToggle.hidden, false, "opening the create form makes its existing fields available");
+assert.equal(createFormToggleButton.attributes.get("aria-expanded"), "true", "the create control exposes its expanded state");
+assert.equal(sandbox.toggleOwnerCategoryCreate(), false, "the create action can close its form");
+assert.equal(createFormToggle.hidden, true, "closing the create form hides it again");
+const uiRows = ["Tops", "Coats"].map(name => { const row = new FakeNode(), editor = new FakeNode(), toggle = new FakeNode(); row.dataset.categoryEdit = name; row.dataset.categoryExpanded = "false"; editor.hidden = true; row.querySelector = selector => selector === "[data-category-editor]" ? editor : selector === "[data-category-toggle]" ? toggle : null; return { row, editor, toggle }; });
+ownerManager.querySelectorAll = selector => selector === "[data-category-edit]" ? uiRows.map(item => item.row) : [];
+assert.equal(sandbox.setOwnerCategoryEditorExpanded("Tops", true), true, "opening a category reveals its editor");
+assert.equal(uiRows[0].editor.hidden, false, "the selected category editor is visible");
+assert.equal(uiRows[0].toggle.attributes.get("aria-expanded"), "true", "expanded cards announce their state");
+assert.equal(sandbox.toggleOwnerCategoryEditor("Coats"), true, "opening another card selects it");
+assert.equal(uiRows.filter(item => !item.editor.hidden).length, 1, "only one category editor can be open at a time");
+assert.equal(ownerManager.dataset.expandedCategory, "Coats", "the active category remains identified for later refreshes");
+assert.equal(sandbox.toggleOwnerCategoryEditor("Coats"), true, "tapping the active card collapses it");
+assert.equal(uiRows.every(item => item.editor.hidden), true, "all editors are hidden after collapsing the selected card");
+assert.equal(ownerManager.dataset.expandedCategory, "", "collapsing clears the active category");
 console.log("Category management checks passed: image cards and fallback, live filtering, upload/create/replace, visibility, ordering, refresh persistence, and product preservation.");

@@ -3381,6 +3381,65 @@ body.search-page-open #mainApp>.topbar{display:none!important}
 @media(max-width:380px){#homeView .categories{gap:6px;padding-inline:10px;scroll-padding-inline:10px}#homeView .category{flex-basis:calc(25% - 4.5px);border-radius:13px;padding:3px}#homeView .category .cat-icon{border-radius:9px}#homeView .category>span:last-child{min-height:28px;font-size:9px;line-height:1.2}#homeView .category.active>span:last-child{min-height:28px;border-radius:8px}}
 @media(min-width:700px){#homeView .categories{gap:12px;padding-inline:22px;scroll-padding-inline:22px}#homeView .category{flex:0 0 112px;min-width:112px;padding:5px;border-radius:17px}#homeView .category .cat-icon{border-radius:11px}#homeView .category>span:last-child{min-height:34px;font-size:12px;line-height:1.28}#homeView .category.active>span:last-child{min-height:34px;border-radius:10px}}
 
+/* OWNER CATEGORY PAGE: reference-matched, collapsed cards with one expanded editor */
+.owner-category-page{width:100%;max-width:920px;min-width:0;margin-inline:auto;overflow:visible}
+.owner-category-create-toggle{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin:0 0 13px;padding:10px 14px;border:1px solid #a982ff;border-radius:16px;background:linear-gradient(110deg,#7136ed,#853dff);box-shadow:0 8px 22px rgba(107,55,240,.24);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+.owner-category-create-toggle>span{font-size:27px;line-height:1}
+.owner-category-create-form[hidden]{display:none!important}
+.owner-category-create-form{display:grid;gap:13px;margin:0 0 14px;padding:14px;border-color:rgba(147,111,232,.56);border-radius:18px;background:linear-gradient(145deg,#101321,#080a13)}
+.owner-category-create-form-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.owner-category-create-form-head h3{margin:0;color:#f7f4ff;font-size:16px}
+.owner-category-create-close{min-height:38px!important;border-color:#4b4662!important;background:#11131e!important;color:#eee!important}
+.owner-category-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 12px;padding:12px 4px 0;border-top:1px solid #272638}
+.owner-category-title h3{display:flex;align-items:center;gap:10px;margin:0;color:#f3f1fa;font-size:clamp(16px,4.5vw,20px);font-weight:800}
+.owner-category-heading-icon{width:27px;height:27px;flex:0 0 27px;fill:none;stroke:#a982ff;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.owner-category-count{flex:0 0 auto;padding:6px 11px;border:1px solid #493b6a;border-radius:999px;background:#171427;color:#f5efff;font-size:12px;font-weight:750;white-space:nowrap}
+.owner-category-manager{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:100%;min-width:0;margin:0 0 18px}
+.owner-category-edit-row{display:grid;gap:0;min-width:0;padding:9px;border:1px solid rgba(119,100,169,.54);border-radius:17px;background:linear-gradient(145deg,#0d101c,#080a13);box-shadow:0 4px 15px rgba(0,0,0,.24);transition:border-color .18s ease,box-shadow .18s ease}
+.owner-category-edit-row.is-expanded{gap:0;border-color:rgba(145,107,235,.78);box-shadow:0 0 0 1px rgba(125,83,226,.14),0 8px 22px rgba(0,0,0,.32)}
+.owner-category-summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;min-width:0}
+.owner-category-summary-open{display:grid;grid-template-columns:clamp(58px,21vw,88px) minmax(0,1fr);align-items:center;gap:10px;min-width:0;min-height:0;padding:0;border:0!important;border-radius:11px;background:transparent!important;box-shadow:none!important;color:#f4f1fb!important;text-align:start;white-space:normal;cursor:pointer}
+.owner-category-summary-image{position:relative;display:block;width:100%;aspect-ratio:1/1;overflow:hidden;border:1px solid rgba(168,136,233,.4);border-radius:13px;background:#111421}
+.owner-category-summary-image>.category-artwork{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
+.owner-category-summary-copy{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.owner-category-summary-copy strong{color:#fff;font-size:clamp(14px,4vw,17px);font-weight:800;line-height:1.28}
+.owner-category-summary-copy small{color:#d0cedc;font-size:clamp(12px,3.4vw,14px);font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+.owner-category-visibility-status{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:72px;min-height:30px;padding:4px 8px;border:1px solid #126b45;border-radius:999px;background:linear-gradient(135deg,#0d633b,#073c2b);color:#f4fff8;font-size:11px;font-weight:750;white-space:nowrap}
+.owner-category-visibility-status>span{font-size:13px}
+.owner-category-visibility-status.is-hidden{border-color:#514269;background:#21192e;color:#d8caed}
+.owner-category-order-actions{display:grid;grid-template-rows:repeat(2,38px);align-content:center;gap:5px}
+.owner-category-order-actions button{display:grid;place-items:center;width:38px;min-width:38px!important;height:38px;min-height:38px!important;padding:0!important;border:1px solid #56369a!important;border-radius:11px!important;background:linear-gradient(145deg,#352061,#241444)!important;color:#fff!important;font-size:20px!important;font-weight:700;line-height:1}
+.owner-category-order-actions button:disabled{opacity:.35;cursor:not-allowed}
+.owner-category-editor[hidden]{display:none!important}
+.owner-category-editor:not([hidden]){margin-top:12px;padding-top:12px;border-top:1px solid rgba(130,108,183,.32)}
+.owner-category-edit-main{display:grid;grid-template-columns:minmax(145px,34%) minmax(0,1fr);align-items:start;gap:14px;min-width:0}
+.owner-category-edit-image-tools{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px;width:100%;min-width:0}
+.owner-category-edit-image-tools>[data-category-image-url]{display:none!important}
+.owner-category-edit-image-tools .owner-category-preview{position:relative;display:block;width:100%;height:auto;aspect-ratio:1/1;min-width:0;overflow:hidden;border:1px solid rgba(165,131,232,.46);border-radius:16px;background:linear-gradient(145deg,#15182a,#090c16)}
+.owner-category-edit-image-tools .owner-category-preview>.category-artwork{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
+.owner-category-image-edit-icon{position:absolute;top:8px;right:8px;z-index:2;display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(190,167,246,.72);border-radius:10px;background:rgba(10,12,23,.86);box-shadow:0 2px 8px rgba(0,0,0,.3);color:#fff;font-size:20px;font-weight:800;line-height:1;pointer-events:none}
+.owner-category-edit-image-tools .owner-category-crop-button,.owner-category-edit-image-tools .owner-category-image-label{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-width:0;min-height:43px;padding:7px 8px;border:1px solid #9567e9;border-radius:11px;background:#171329;color:#f8f5ff;font-size:12px;font-weight:700;text-align:center;white-space:normal}
+.owner-category-edit-image-tools .owner-category-crop-button[hidden]{display:none!important}
+.owner-category-edit-image-tools .owner-category-image-label{position:relative;border-color:#72698f;background:#10121e}
+.owner-category-edit-image-tools .owner-category-image-label input[type=file]{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:0;border:0;border-radius:inherit;opacity:0;cursor:pointer}
+.owner-category-image-control [data-category-image-status]{grid-column:1/-1;margin:0;color:#aba8bb;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.owner-category-edit-fields{display:grid;gap:9px;min-width:0}
+.owner-category-edit-fields>label{display:grid;gap:5px;min-width:0;color:#f0edf8;font-size:12px;font-weight:750;line-height:1.25}
+.owner-category-edit-row input:not([type=checkbox]):not([type=file]){box-sizing:border-box;width:100%;min-width:0;min-height:43px;padding:9px 11px;border:1px solid #38334e;border-radius:11px;background:#080a14;color:#f5f3fb;font-size:14px;font-weight:500}
+.owner-category-edit-row input:focus{border-color:#9064e5;box-shadow:0 0 0 3px rgba(132,85,234,.16)}
+.owner-category-visibility{display:flex!important;align-items:center;justify-content:flex-start;gap:8px!important;min-height:34px;margin-top:2px;color:#eeeaf7!important;cursor:pointer}
+.owner-category-visibility input{width:19px!important;height:19px;min-height:19px!important;flex:0 0 19px;accent-color:#8c4cff}
+.owner-category-edit-actions{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr) minmax(0,.9fr);gap:7px;margin-top:13px}
+.owner-category-edit-actions button{min-width:0;min-height:47px;padding:6px 5px;border:1px solid #8152cf;border-radius:12px;background:linear-gradient(135deg,#48267b,#38205f);color:#fff;font-size:clamp(10px,3vw,13px);font-weight:750;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+.owner-category-edit-actions [data-save-category]{border-color:#9a5cff;background:linear-gradient(120deg,#7238ec,#9340ff);box-shadow:0 5px 15px rgba(115,56,236,.2)}
+.owner-category-edit-actions [data-delete-category]{border-color:#8e3d55;background:linear-gradient(135deg,#351320,#54172b);color:#ffe8ef}
+.owner-category-create-form .owner-category-create-fields{grid-template-columns:minmax(0,1fr)}
+.owner-category-create-form .owner-category-create-actions{grid-template-columns:minmax(0,1fr);align-items:stretch}
+.owner-category-create-form .owner-category-create-actions>button{min-height:46px;border:1px solid #9a5cff;border-radius:12px;background:linear-gradient(120deg,#7238ec,#9340ff);color:#fff;font-weight:800}
+@media(max-width:420px){.owner-category-edit-main{grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:8px}.owner-category-edit-fields{gap:8px}.owner-category-edit-fields>label{font-size:11px}.owner-category-edit-row input:not([type=checkbox]):not([type=file]){min-height:41px;padding:8px;font-size:13px}.owner-category-edit-actions{gap:5px}.owner-category-edit-actions button{min-height:44px;padding-inline:3px}.owner-category-summary{gap:6px}.owner-category-summary-open{gap:7px}.owner-category-visibility-status{min-width:64px;padding-inline:6px;font-size:10px}.owner-category-order-actions{grid-template-rows:repeat(2,34px)}.owner-category-order-actions button{width:34px;min-width:34px!important;height:34px;min-height:34px!important}}
+@media(max-width:350px){.owner-category-edit-row{padding:7px}.owner-category-summary{grid-template-columns:minmax(0,1fr) auto}.owner-category-order-actions{grid-column:2;grid-row:1}.owner-category-visibility-status{grid-column:1;grid-row:2;justify-self:start;margin:0 0 2px 65px}.owner-category-summary-open{grid-column:1;grid-row:1 / span 2;grid-template-columns:54px minmax(0,1fr)}.owner-category-edit-main{grid-template-columns:minmax(0,1fr)}.owner-category-edit-image-tools{max-width:190px;margin-inline:auto}}
+@media(min-width:700px){.owner-category-page{max-width:920px}.owner-category-edit-row{padding:12px}.owner-category-summary{gap:12px}.owner-category-summary-open{grid-template-columns:92px minmax(0,1fr)}.owner-category-edit-main{grid-template-columns:minmax(170px,30%) minmax(0,1fr);gap:18px}.owner-category-edit-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.owner-category-edit-fields>label:first-child,.owner-category-edit-fields>.owner-category-visibility{grid-column:1/-1}.owner-category-edit-actions button{font-size:13px}}
+
 /* Compact Product Details wordmark and the single menu language selector */
 html.detail-view-open .language-switcher{display:none!important}
 .detail-toolbar{position:sticky;top:0;left:auto;right:auto;z-index:3200;display:flex;align-items:center;justify-content:space-between;direction:ltr;box-sizing:border-box;width:100%;min-width:0;margin:0;padding:5px max(12px,env(safe-area-inset-right)) 5px max(12px,env(safe-area-inset-left));background:#03050d;border-bottom:1px solid rgba(27,36,56,.72)}
@@ -6509,7 +6568,7 @@ async function finishImageCrop(apply){
   if(!apply){
     state.cancelled=true;state.abortController?.abort();state.uploading=false;setImageCropBusy(false);
     if(state.queue){const queue=ownerProductImageQueue;ownerProductImageQueue=null;closeImageCrop();releaseCropForm(queue);setOwnerImageStatus("Photo selection canceled. Existing product photos are unchanged.");showToast("هەڵوەشایەوە.");}
-    else{closeImageCrop();if(state.kind==="category"&&state.categoryHost){const draft=state.categoryImageTarget?.value||state.categoryInput?.dataset?.savedImage||"";const preview=state.categoryHost.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryPreviewMarkup(draft);const categoryStatus=state.categoryHost.querySelector("[data-category-image-status]");if(categoryStatus)categoryStatus.textContent=ownerDashboardText("Image selection canceled. The saved category image is unchanged.","هەڵبژاردنا وێنە هاتە ڤەگوهاستن؛ وێنەیا جۆرێ نەگوهۆڕا.","تم إلغاء اختيار الصورة. صورة الفئة المحفوظة لم تتغير.");}}
+    else{closeImageCrop();if(state.kind==="category"&&state.categoryHost){const draft=state.categoryImageTarget?.value||state.categoryInput?.dataset?.savedImage||"";const preview=state.categoryHost.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryEditorPreviewMarkup(draft);const categoryStatus=state.categoryHost.querySelector("[data-category-image-status]");if(categoryStatus)categoryStatus.textContent=ownerDashboardText("Image selection canceled. The saved category image is unchanged.","هەڵبژاردنا وێنە هاتە ڤەگوهاستن؛ وێنەیا جۆرێ نەگوهۆڕا.","تم إلغاء اختيار الصورة. صورة الفئة المحفوظة لم تتغير.");}}
     if(String(state.hiddenId||"").startsWith("shopPromoImageData")){const ownerStatus=document.getElementById("shopOnboardingOwnerStatus");if(ownerStatus)ownerStatus.textContent="Image selection canceled. The previous slide image is unchanged.";}
     return;
   }
@@ -6533,7 +6592,7 @@ async function finishImageCrop(apply){
       closeImageCrop();ownerProductImageQueue.index++;startNextQueuedProductImage();
     }else if(state.kind==="category"){
       const target=state.categoryImageTarget||document.getElementById(state.hiddenId),host=state.categoryHost||state.categoryInput?.closest?.(".owner-category-image-control"),preview=host?.querySelector("[data-category-preview]");if(!target||!preview)throw new Error("The category image form was not found.");
-      target.value=imageUrl;preview.innerHTML=categoryPreviewMarkup(imageUrl);const editButton=host.querySelector("[data-category-edit-image]");if(editButton)editButton.hidden=false;
+      target.value=imageUrl;preview.innerHTML=categoryEditorPreviewMarkup(imageUrl);const editButton=host.querySelector("[data-category-edit-image]");if(editButton)editButton.hidden=false;
       closeImageCrop();const categoryStatus=host.querySelector("[data-category-image-status]");if(categoryStatus)categoryStatus.textContent=ownerDashboardText("Crop uploaded. Save the category to publish this image.","وێنە هاتە بارکرن؛ بۆ نیشاندانا وێ جۆرێ پاشەکەفت بکە.","تم رفع القص. احفظي الفئة لنشر الصورة.");showToast(ownerDashboardText("The cropped image is ready. Save the category to apply it.","وێنەیا بڕدرا ئامادەیە؛ بۆ گۆڕینا جۆرێ پاشەکەفت بکە.","الصورة المقصوصة جاهزة. احفظي الفئة لتطبيقها."));
     }else if(state.kind==="product"&&Number.isInteger(state.photoIndex)){
 
@@ -6944,6 +7003,10 @@ function categoryPreviewMarkup(imageUrl=""){
   const rawImage=typeof imageUrl==="string"?imageUrl:"";const image=/^blob:/i.test(rawImage)?rawImage:safeImageUrl(rawImage);
   return `<span class="category-artwork${image?" has-image":""}" aria-hidden="true">${image?`<img data-category-photo src="${escapeHtml(image)}" alt="" loading="lazy">`:""}<svg viewBox="0 0 48 48" focusable="false"><path d="M24 7a4 4 0 0 1 1 7.9v3.4L5 29l19 12 19-12-20-10.7v-3.4A4 4 0 0 1 24 7Z"/><path d="m14 34 10-6 10 6"/></svg></span>`;
 }
+function categoryEditorPreviewMarkup(imageUrl=""){
+  const image=String(imageUrl||""),canEdit=Boolean(safeImageUrl(image)||/^blob:/i.test(image));
+  return `${categoryPreviewMarkup(image)}${canEdit?`<span class="owner-category-image-edit-icon" aria-hidden="true">✎</span>`:""}`;
+}
 function categoryArtworkMarkup(category,className="category-artwork"){
   const image=categoryImageUrl(category);
   return `<span class="${className}${image?" has-image":""}" aria-hidden="true">${image?`<img data-category-photo src="${escapeHtml(image)}" alt="" loading="lazy">`:""}<svg viewBox="0 0 48 48" focusable="false"><path d="M24 7a4 4 0 0 1 1 7.9v3.4L5 29l19 12 19-12-20-10.7v-3.4A4 4 0 0 1 24 7Z"/><path d="m14 34 10-6 10 6"/></svg></span>`;
@@ -7025,40 +7088,70 @@ function ownerCategoryOptions(selected=""){
   return categories.map(category=>`<option value="${escapeHtml(category)}" data-i18n-preserve${category===selected?" selected":""}>${escapeHtml(categoryLabel(category))}</option>`).join("");
 }
 
+function setOwnerCategoryEditorExpanded(category, expanded=true, focus=false){
+  const manager=document.getElementById("ownerCategoryManager");if(!manager)return false;
+  const rows=Array.from(manager.querySelectorAll("[data-category-edit]"));if(expanded&&!rows.some(row=>row.dataset.categoryEdit===category))return false;
+  const current=String(manager.dataset.expandedCategory||""),next=expanded?String(category||""):(current===String(category||"")?"":current);
+  manager.dataset.expandedCategory=next;
+  rows.forEach(row=>{const open=row.dataset.categoryEdit===next;row.dataset.categoryExpanded=String(open);row.classList.toggle("is-expanded",open);const editor=row.querySelector("[data-category-editor]");if(editor)editor.hidden=!open;const toggle=row.querySelector("[data-category-toggle]");if(toggle)toggle.setAttribute("aria-expanded",String(open));});
+  if(expanded&&focus){const row=rows.find(item=>item.dataset.categoryEdit===next);if(row)scrollOwnerTo(row,row.querySelector("[data-category-name]"));}
+  return true;
+}
+function toggleOwnerCategoryEditor(category){
+  if(!isOwner())return false;const manager=document.getElementById("ownerCategoryManager");if(!manager)return false;
+  const open=String(manager.dataset.expandedCategory||"")===String(category||"");return setOwnerCategoryEditorExpanded(category,!open);
+}
+function toggleOwnerCategoryCreate(){
+  if(!isOwner())return false;const form=document.getElementById("ownerCategoryAddRow"),button=document.getElementById("ownerCategoryCreateToggle");if(!form||!button)return false;
+  const opening=Boolean(form.hidden);form.hidden=!opening;button.setAttribute("aria-expanded",String(opening));if(opening)scrollOwnerTo(form,"ownerNewCategory");return opening;
+}
 function renderOwnerCategoryManager(){
-  const meta=getOwnerCategoryMeta();const categories=getAllCategories();
+  const meta=getOwnerCategoryMeta(),categories=getAllCategories(),manager=document.getElementById("ownerCategoryManager"),expandedCategory=String(manager?.dataset?.expandedCategory||"");
   return categories.map((category,index)=>{
-    const values=meta[category]||{},visible=values.visible!==false,image=categoryImageUrl(category);
-    return `<article class="owner-category-edit-row" data-category-edit="${escapeHtml(category)}">
-      <div class="owner-category-edit-main">
-        <div class="owner-category-preview" data-category-preview>${categoryPreviewMarkup(image)}<span>${escapeHtml(ownerDashboardText("Card preview","پێشبینیا کارتی","معاينة البطاقة"))}</span></div>
-        <div class="owner-category-edit-fields">
-          <label>${escapeHtml(ownerDashboardText("Category name","ناڤێ جۆرێ","اسم الفئة"))}<input data-category-name aria-label="${escapeHtml(ownerDashboardText("Category name","ناڤێ جۆرێ","اسم الفئة"))}" value="${escapeHtml(category)}" maxlength="40"></label>
-          <div class="owner-category-edit-languages"><label>${escapeHtml(ownerDashboardText("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية"))}<input data-category-en value="${escapeHtml(values.en||"")}" maxlength="40"></label><label>${escapeHtml(ownerDashboardText("Arabic name","ناڤێ عەرەبی","الاسم بالعربية"))}<input data-category-ar value="${escapeHtml(values.ar||"")}" maxlength="40"></label></div>
-          <label class="owner-category-visibility"><input data-category-visible type="checkbox" ${visible?"checked":""}>${escapeHtml(ownerDashboardText("Show category to customers","جۆرێ بۆ کڕیاران نیشان بدە","إظهار الفئة للعملاء"))}</label>
-          <div class="owner-category-image-control"><input type="hidden" data-category-image-url value=""><label class="owner-category-image-label">${escapeHtml(ownerDashboardText("Upload or replace image","وێنە بار بکە یان بگۆڕە","رفع الصورة أو استبدالها"))}<input data-category-image data-saved-image="${escapeHtml(image)}" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><button type="button" data-category-edit-image hidden>${escapeHtml(ownerDashboardText("Edit crop","بڕینێ دەستکاری بکە","تعديل القص"))}</button><p data-category-image-status role="status" aria-live="polite">${image?escapeHtml(ownerDashboardText("Image saved to shared storage.","وێنە ل شوێنێ هاوبەش هاتە پاشەکەفتکرن.","الصورة محفوظة في التخزين المشترك.")):escapeHtml(ownerDashboardText("No image uploaded yet.","هێشتا وێنە نەهاتییە بارکرن.","لم يتم رفع صورة بعد."))}</p></div>
-        </div>
+    const values=meta[category]||{},visible=values.visible!==false,image=categoryImageUrl(category),expanded=expandedCategory===category,name=categoryLabel(category),english=values.en?String(values.en):ownerDashboardText("English name not set","ناڤێ ئینگلیزی نەهاتییە دانان","لم يُحدد الاسم الإنجليزي"),visibility=visible?ownerDashboardText("Visible","دیار","ظاهر"):ownerDashboardText("Hidden","ڤەشارتی","مخفي");
+    return `<article class="owner-category-edit-row${expanded?" is-expanded":""}" data-category-edit="${escapeHtml(category)}" data-category-expanded="${expanded}">
+      <div class="owner-category-summary">
+        <button class="owner-category-summary-open" type="button" data-category-toggle="${escapeHtml(category)}" aria-expanded="${expanded}" aria-label="${escapeHtml(ownerDashboardText(`Edit category: ${name}`,`جۆرێ دەستکاری بکە: ${name}`,`تعديل الفئة: ${name}`))}">
+          <span class="owner-category-summary-image">${categoryPreviewMarkup(image)}</span>
+          <span class="owner-category-summary-copy"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(english)}</small></span>
+        </button>
+        <span class="owner-category-visibility-status ${visible?"is-visible":"is-hidden"}" aria-label="${escapeHtml(visibility)}"><span aria-hidden="true">◉</span>${escapeHtml(visibility)}</span>
         <div class="owner-category-order-actions" aria-label="${escapeHtml(ownerDashboardText("Category order","ڕیزا جۆرێ","ترتيب الفئات"))}"><button type="button" data-category-move="-1" aria-label="${escapeHtml(ownerDashboardText("Move category up","جۆرێ بۆ سەرەوە بگوازە","نقل الفئة للأعلى"))}" ${index===0?"disabled":""}>↑</button><button type="button" data-category-move="1" aria-label="${escapeHtml(ownerDashboardText("Move category down","جۆرێ بۆ خوارێ بگوازە","نقل الفئة للأسفل"))}" ${index===categories.length-1?"disabled":""}>↓</button></div>
       </div>
-      <div class="owner-category-edit-actions"><button type="button" data-edit-category>${escapeHtml(ownerDashboardText("Edit","دەستکاری","تعديل"))}</button><button type="button" data-save-category>${escapeHtml(ownerDashboardText("Save category","جۆرێ پاشەکەفت بکە","حفظ الفئة"))}</button><button type="button" data-delete-category>${escapeHtml(ownerDashboardText("Delete","سڕینەوە","حذف"))}</button></div>
+      <div class="owner-category-editor" data-category-editor${expanded?"":" hidden"}>
+        <div class="owner-category-edit-main">
+          <div class="owner-category-image-control owner-category-edit-image-tools"><input type="hidden" data-category-image-url value=""><div class="owner-category-preview" data-category-preview>${categoryEditorPreviewMarkup(image)}</div><button class="owner-category-crop-button" type="button" data-category-edit-image hidden>${escapeHtml(ownerDashboardText("Edit Crop","بڕینێ دەستکاری بکە","تعديل القص"))}</button><label class="owner-category-image-label"><span>${escapeHtml(ownerDashboardText("Replace Image","وێنە بگۆڕە","استبدال الصورة"))}</span><input data-category-image data-saved-image="${escapeHtml(image)}" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><p data-category-image-status role="status" aria-live="polite">${image?escapeHtml(ownerDashboardText("Image saved to shared storage.","وێنە ل شوێنێ هاوبەش هاتە پاشەکەفتکرن.","الصورة محفوظة في التخزين المشترك.")):escapeHtml(ownerDashboardText("No image uploaded yet.","هێشتا وێنە نەهاتییە بارکرن.","لم يتم رفع صورة بعد."))}</p></div>
+          <div class="owner-category-edit-fields">
+            <label>${escapeHtml(ownerDashboardText("Category name *","ناڤێ جۆرێ *","اسم الفئة *"))}<input data-category-name aria-label="${escapeHtml(ownerDashboardText("Category name","ناڤێ جۆرێ","اسم الفئة"))}" value="${escapeHtml(category)}" maxlength="40" required></label>
+            <label>${escapeHtml(ownerDashboardText("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية"))}<input data-category-en value="${escapeHtml(values.en||"")}" maxlength="40"></label>
+            <label>${escapeHtml(ownerDashboardText("Arabic name","ناڤێ عەرەبی","الاسم بالعربية"))}<input data-category-ar value="${escapeHtml(values.ar||"")}" maxlength="40"></label>
+            <label class="owner-category-visibility"><input data-category-visible type="checkbox" ${visible?"checked":""}>${escapeHtml(ownerDashboardText("Show category to customers","جۆرێ بۆ کڕیاران نیشان بدە","إظهار الفئة للعملاء"))}</label>
+          </div>
+        </div>
+        <div class="owner-category-edit-actions"><button type="button" data-edit-category>${escapeHtml(ownerDashboardText("Edit","دەستکاری","تعديل"))}</button><button type="button" data-save-category>${escapeHtml(ownerDashboardText("Save Category","جۆرێ پاشەکەفت بکە","حفظ الفئة"))}</button><button type="button" data-delete-category>${escapeHtml(ownerDashboardText("Delete","سڕینەوە","حذف"))}</button></div>
+      </div>
     </article>`;
   }).join("");
 }
+
 function refreshOwnerCategoryManager(){
   const manager=document.getElementById("ownerCategoryManager");if(!manager)return;
   manager.querySelectorAll("[data-category-image]").forEach(releaseOwnerCategoryPreview);
   manager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();
 }
 function bindOwnerCategoryManager(){
-  bindCategoryImageFallbacks(document.getElementById("ownerCategoryManager"));
-  document.querySelectorAll("#ownerCategoryManager [data-edit-category]").forEach(button=>button.addEventListener("click",()=>scrollOwnerTo(button.closest("[data-category-edit]"))));
-  document.querySelectorAll("#ownerCategoryManager [data-save-category]").forEach(button=>button.addEventListener("click",()=>saveOwnerCategory(button.closest("[data-category-edit]"))));
-  document.querySelectorAll("#ownerCategoryManager [data-delete-category]").forEach(button=>button.addEventListener("click",()=>deleteOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"")));
-  document.querySelectorAll("#ownerCategoryManager [data-category-move]").forEach(button=>button.addEventListener("click",()=>moveOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"",Number(button.dataset.categoryMove))));
-  document.querySelectorAll("#ownerCategoryManager [data-category-visible]").forEach(input=>input.addEventListener("change",()=>setOwnerCategoryVisibility(input.closest("[data-category-edit]")?.dataset.categoryEdit||"",input.checked)));
+  const manager=document.getElementById("ownerCategoryManager");if(!manager)return;
+  bindCategoryImageFallbacks(manager);
+  manager.querySelectorAll("[data-category-toggle]").forEach(button=>button.addEventListener("click",()=>toggleOwnerCategoryEditor(button.dataset.categoryToggle||"")));
+  manager.querySelectorAll("[data-category-edit]").forEach(row=>row.addEventListener("click",event=>{if(event.target?.closest?.("button,input,label,select,textarea"))return;if(row.dataset.categoryExpanded!=="true")toggleOwnerCategoryEditor(row.dataset.categoryEdit||"");}));
+  manager.querySelectorAll("[data-edit-category]").forEach(button=>button.addEventListener("click",()=>setOwnerCategoryEditorExpanded(button.closest("[data-category-edit]")?.dataset.categoryEdit||"",true,true)));
+  manager.querySelectorAll("[data-save-category]").forEach(button=>button.addEventListener("click",()=>saveOwnerCategory(button.closest("[data-category-edit]"))));
+  manager.querySelectorAll("[data-delete-category]").forEach(button=>button.addEventListener("click",()=>deleteOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"")));
+  manager.querySelectorAll("[data-category-move]").forEach(button=>button.addEventListener("click",()=>moveOwnerCategory(button.closest("[data-category-edit]")?.dataset.categoryEdit||"",Number(button.dataset.categoryMove))));
+  manager.querySelectorAll("[data-category-visible]").forEach(input=>input.addEventListener("change",()=>setOwnerCategoryVisibility(input.closest("[data-category-edit]")?.dataset.categoryEdit||"",input.checked)));
   document.querySelectorAll("#ownerCategoryManager [data-category-edit-image],#ownerCategoryAddRow [data-category-edit-image]").forEach(button=>{const host=button.closest(".owner-category-image-control"),input=host?.querySelector("[data-category-image]"),draft=host?.querySelector("[data-category-image-url]")?.value||input?.dataset?.savedImage||"";button.hidden=!safeImageUrl(draft);if(button.dataset.categoryCropEditBound==="true")return;button.dataset.categoryCropEditBound="true";button.addEventListener("click",()=>editOwnerCategoryImage(button));});
-
 }
+
 async function saveOwnerCategory(row){
   if(!isOwner()||!row)return false;
   const oldName=String(row.dataset.categoryEdit||""),selectedProductCategory=document.getElementById("ownerProductCategory")?.value||"";
@@ -7089,7 +7182,7 @@ async function saveOwnerCategory(row){
     ownerSaveDiagnostic("owner.category.save_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});
     showToast(ownerDashboardText("Shared storage did not confirm the category update. The saved category and image remain unchanged. Reference: "+(error?.requestId||requestId),"هەڵگرتنا هاوبەش نووکرنا جۆرێ پشتڕاست نەکر؛ جۆر و وێنەیا پاشەکەفتکری نەگوهۆڕین. ژمارا پەیوەندی: "+(error?.requestId||requestId),"لم يؤكد التخزين المشترك تحديث الفئة. بقيت الفئة وصورتها المحفوظة كما هي. المرجع: "+(error?.requestId||requestId)));return false;
   }
-  refreshOwnerCategoryManager();scrollOwnerTo("ownerCategoryManager");showToast(cloudMode?ownerDashboardText("Category saved and synchronized.","جۆر هاتە پاشەکەفتکرن و هاوکاتکرن.","تم حفظ الفئة ومزامنتها."):ownerDashboardText("Category saved on this device.","جۆر ل ڤی ئامێری هاتە پاشەکەفتکرن.","تم حفظ الفئة على هذا الجهاز."));return true;
+  const categoryManager=document.getElementById("ownerCategoryManager");if(categoryManager?.dataset?.expandedCategory===oldName)categoryManager.dataset.expandedCategory=name;refreshOwnerCategoryManager();scrollOwnerTo("ownerCategoryManager");showToast(cloudMode?ownerDashboardText("Category saved and synchronized.","جۆر هاتە پاشەکەفتکرن و هاوکاتکرن.","تم حفظ الفئة ومزامنتها."):ownerDashboardText("Category saved on this device.","جۆر ل ڤی ئامێری هاتە پاشەکەفتکرن.","تم حفظ الفئة على هذا الجهاز."));return true;
 }
 async function persistOwnerCategoryMeta(meta,requestId){
   const previous=localStorage.getItem(OWNER_CATEGORY_META_KEY);
@@ -7215,7 +7308,7 @@ async function deleteOwnerCategory(category){
   const nextSelected=selectedProductCategory===category?replacement:selectedProductCategory;
   populateOwnerCategorySelect(nextSelected||getAllCategories()[0]);
   const manager=document.getElementById("ownerCategoryManager");
-  if(manager){manager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
+  if(manager){if(manager.dataset.expandedCategory===category)manager.dataset.expandedCategory="";manager.innerHTML=renderOwnerCategoryManager();bindOwnerCategoryManager();}
   scrollOwnerTo("ownerCategoryManager");
   showToast("جۆر سڕایەوە.");
 }
@@ -7245,7 +7338,7 @@ async function addOwnerCategory(){
   catch(error){[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});showToast(ownerDashboardText("The category could not be saved on this device.","جۆرەکە ل ڤی ئامێری نەهاتە پاشەکەفتکرن.","تعذر حفظ الفئة على هذا الجهاز."));return false;}
   try{if(cloudMode&&cloudAccount?.role==="owner")await confirmCloudShopWrites([OWNER_CATEGORIES_KEY,OWNER_CATEGORY_META_KEY,OWNER_CATEGORY_DELETED_KEY],requestId);}
   catch(error){[[OWNER_CATEGORIES_KEY,previousStorage.categories],[OWNER_CATEGORY_META_KEY,previousStorage.meta],[OWNER_CATEGORY_DELETED_KEY,previousStorage.deleted]].forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch(restoreError){}});ownerSaveDiagnostic("owner.category.add_failed",{requestId:error?.requestId||requestId,stage:"shop.sync",code:ownerSaveDiagnosticCode(error)});showToast(ownerDashboardText("The category was not confirmed in shared storage. Reference: "+(error?.requestId||requestId),"جۆر ل هەڵگرتنا هاوبەش نەهاتییە پشتڕاستکرن. ژمارا پەیوەندی: "+(error?.requestId||requestId),"لم يتم تأكيد الفئة في التخزين المشترك. المرجع: "+(error?.requestId||requestId)));return false;}
-  renderCategoryButtons();populateOwnerCategorySelect(selected);refreshOwnerCategoryManager();
+  renderCategoryButtons();populateOwnerCategorySelect(selected);const createForm=document.getElementById("ownerCategoryAddRow"),createToggle=document.getElementById("ownerCategoryCreateToggle");if(createForm){createForm.hidden=true;createToggle?.setAttribute("aria-expanded","false");}refreshOwnerCategoryManager();
   if(input)input.value="";if(enInput)enInput.value="";if(arInput)arInput.value="";if(imageInput){releaseOwnerCategoryPreview(imageInput);const preview=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-preview]");if(preview)preview.innerHTML=categoryPreviewMarkup("");const status=imageInput.closest(".owner-category-image-control")?.querySelector("[data-category-image-status]");if(status)status.textContent="";}if(imageDraft)imageDraft.value="";const editButton=imageInput?.closest(".owner-category-image-control")?.querySelector("[data-category-edit-image]");if(editButton)editButton.hidden=true;
   showToast(cloudMode?ownerDashboardText(existing?"Category updated and synchronized.":"Category created and synchronized.",existing?"جۆر هاتە نووکرن و هاوکاتکرن.":"جۆرا نوو هاتە دروستکرن و هاوکاتکرن.",existing?"تم تحديث الفئة ومزامنتها.":"تم إنشاء الفئة ومزامنتها."):ownerDashboardText(existing?"Category updated on this device.":"Category created on this device.",existing?"جۆر ل ڤی ئامێری هاتە نووکرن.":"جۆرا نوو ل ڤی ئامێری هاتە دروستکرن.",existing?"تم تحديث الفئة على هذا الجهاز.":"تم إنشاء الفئة على هذا الجهاز."));return true;
 }
@@ -12295,15 +12388,15 @@ function renderOwnerProducts(box){
       <div class="owner-product-save-actions"><button class="main-btn" type="submit">${product?t("Save changes","پاشەکەفتکرنا گۆڕانکاریان","حفظ التغييرات"):t("Add product","زیادکرنا بەرهەم","إضافة المنتج")}</button><button class="owner-action" type="button" onclick="cancelProductEdit()">${t("Cancel","هەڵوەشاندنەوە","إلغاء")}</button></div>
     </form>`;
   }else if(ownerProductMode==="categories"){
-    content=canManageCategories?`<section class="owner-product-mode-content owner-products-page">
-      <header class="owner-products-heading"><div><h3>${t("Categories","جۆرەکان","الفئات")}</h3><p>${t("Organize the products shown in your store.","بەرهەمێن فرۆشگا ڕێک بخە.","نظّم المنتجات المعروضة في متجرك.")}</p></div></header>
-      <form class="owner-form" id="ownerCategoryAddRow" onsubmit="event.preventDefault();addOwnerCategory()">
-        <h3>${t("Add category","جۆری نوێ زیاد بکە","أضف فئة")}</h3>
+    content=canManageCategories?`<section class="owner-product-mode-content owner-products-page owner-category-page">
+      <button class="owner-category-create-toggle" id="ownerCategoryCreateToggle" type="button" aria-expanded="false" aria-controls="ownerCategoryAddRow" onclick="toggleOwnerCategoryCreate()"><span aria-hidden="true">＋</span>${t("Create Category","جۆرێ دروست بکە","إنشاء فئة")}</button>
+      <form class="owner-form owner-category-create-form" id="ownerCategoryAddRow" hidden onsubmit="event.preventDefault();addOwnerCategory()">
+        <div class="owner-category-create-form-head"><h3>${t("Create Category","جۆرێ دروست بکە","إنشاء فئة")}</h3><button type="button" class="owner-category-create-close" onclick="toggleOwnerCategoryCreate()">${t("Cancel","هەڵوەشاندنەوە","إلغاء")}</button></div>
         <div class="owner-category-create-fields"><label>${t("Category name","ناڤێ جۆرێ","اسم الفئة")}<input id="ownerNewCategory" maxlength="40" required></label><label>${t("English name","ناڤێ ئینگلیزی","الاسم بالإنجليزية")}<input id="ownerNewCategoryEn" maxlength="40"></label><label>${t("Arabic name","ناڤێ عەرەبی","الاسم بالعربية")}<input id="ownerNewCategoryAr" maxlength="40"></label></div>
-        <div class="owner-category-create-actions"><div class="owner-category-image-control"><input id="ownerNewCategoryImageDraft" data-category-image-url type="hidden" value=""><div class="owner-category-preview" data-category-preview>${categoryPreviewMarkup("")}<span>${t("Card preview","پێشبینیا کارتی","معاينة البطاقة")}</span></div><label class="owner-category-image-label">${t("Upload category photo","وێنەیا جۆرێ بار بکە","ارفعي صورة الفئة")}<input id="ownerNewCategoryImage" data-category-image type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><button type="button" data-category-edit-image hidden>${t("Edit crop","بڕینێ دەستکاری بکە","تعديل القص")}</button><p data-category-image-status id="ownerNewCategoryImageStatus" role="status" aria-live="polite"></p></div><button type="submit">${t("Create category","جۆری دروست بکە","إنشاء فئة")}</button></div>
+        <div class="owner-category-create-actions"><div class="owner-category-image-control"><input id="ownerNewCategoryImageDraft" data-category-image-url type="hidden" value=""><div class="owner-category-preview" data-category-preview>${categoryPreviewMarkup("")}</div><label class="owner-category-image-label"><span>${t("Upload category photo","وێنەیا جۆرێ بار بکە","ارفعي صورة الفئة")}</span><input id="ownerNewCategoryImage" data-category-image type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewOwnerCategoryImage(this)"></label><button type="button" data-category-edit-image hidden>${t("Edit Crop","بڕینێ دەستکاری بکە","تعديل القص")}</button><p data-category-image-status id="ownerNewCategoryImageStatus" role="status" aria-live="polite"></p></div><button type="submit">${t("Create Category","جۆرێ دروست بکە","إنشاء فئة")}</button></div>
       </form>
-      <div class="owner-category-title"><h3>${t("Manage categories","دەستکاری جۆرەکان","إدارة الفئات")}</h3></div>
-      <div id="ownerCategoryManager" class="owner-category-manager">${renderOwnerCategoryManager()}</div>
+      <div class="owner-category-title"><h3><svg class="owner-category-heading-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="m16 3 12 6-12 6L4 9l12-6Z"/><path d="m4 16 12 6 12-6M4 23l12 6 12-6"/></svg>${t("Manage Categories","دەستکاری جۆرەکان","إدارة الفئات")}</h3><span class="owner-category-count">${getAllCategories().length} ${ownerDashboardText("Categories","جۆرەکان","الفئات")}</span></div>
+      <div id="ownerCategoryManager" class="owner-category-manager" aria-label="${t("Manage Categories","دەستکاری جۆرەکان","إدارة الفئات")}">${renderOwnerCategoryManager()}</div>
     </section>`:`<section class="owner-product-mode-content owner-products-page"><header class="owner-products-heading"><div><h3>${t("Categories","جۆرەکان","الفئات")}</h3><p>${t("Product categories","جۆرێن بەرهەمێ","فئات المنتجات")}</p></div></header><div class="owner-product-cards">${getAllCategories().map(category=>`<article class="owner-management-card"><span>${escapeHtml(categoryLabel(category))}</span></article>`).join("")}</div></section>`;
   }else{
     const isDiscountView=discountFocus;
