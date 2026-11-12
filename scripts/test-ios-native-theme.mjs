@@ -34,9 +34,15 @@ assert.ok(viewportGeometryStart >= 0, "the dynamic viewport correction is presen
 const viewportGeometry = css.slice(viewportGeometryStart);
 assert.match(viewportGeometry, /html,\s*body\s*\{[^}]*height:\s*100vh;[^}]*height:\s*var\(--shivan-visible-viewport-height,\s*100dvh\)/, "the root and body share the measured visible viewport height instead of a percentage layout height");
 assert.doesNotMatch(viewportGeometry, /html,\s*body\s*\{[^}]*height:\s*100%/, "the root no longer centers a dvh app inside a percentage-height viewport");
-assert.match(viewportGeometry, /\.app\.detail-mode #mainApp\s*\{[^}]*display:\s*flex !important[\s\S]*?padding-top:\s*env\(safe-area-inset-top,\s*0px\) !important/, "Product Details uses the existing app safe-area boundary once");
-assert.match(viewportGeometry, /#mainApp > #detailView:not\(\.product-detail-leaving\)\s*\{[^}]*height:\s*auto !important;[^}]*min-height:\s*0 !important/, "Product Details fills the available app area without a second full-viewport height");
-assert.match(viewportGeometry, /#detailView:not\(\.product-detail-leaving\) \.detail\s*\{[^}]*padding:\s*8px 12px calc\(18px \+ env\(safe-area-inset-bottom,\s*0px\)\)/, "the detail content has compact top spacing and reserves only the bottom home-indicator inset");
+assert.match(viewportGeometry, /\.app\.detail-mode > #detailView\s*\{[^}]*position:\s*absolute !important;[^}]*inset:\s*0 !important;[^}]*width:\s*100% !important;[^}]*height:\s*100% !important;[^}]*min-height:\s*0 !important/, "Product Details is bounded by the visible app shell instead of the browser viewport");
+assert.match(viewportGeometry, /\.app\.detail-mode > #detailView\s*\{[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior-y:\s*contain;/, "Product Details has one app-sized vertical scroll region");
+assert.doesNotMatch(viewportGeometry, /\.app\.detail-mode #mainApp\s*\{[^}]*overflow:\s*hidden !important/, "opening details does not replace or clip the underlying Home scroll container");
+const detailToolbarRules = [...html.matchAll(/\.detail-toolbar\{([^}]*)\}/g)];
+const finalDetailToolbarRule = detailToolbarRules.findLast(rule => rule[1].includes("position:sticky"));
+assert.ok(finalDetailToolbarRule, "the Product Details toolbar has its final sticky mobile styling rule");
+assert.match(finalDetailToolbarRule[1], /padding:\s*max\(8px,env\(safe-area-inset-top,0px\)\)/, "the final Product Details toolbar rule keeps its content below the iPhone status area");
+assert.match(css, /\.app\.detail-mode > \.bottom-nav \{ display: none !important; \}/, "the bottom navigation stays hidden only while the detail overlay is fully open");
+assert.match(html, /function ensureProductDetailOverlay\(\)[\s\S]*?app\.insertBefore\(detailView,app\.querySelector\("\.bottom-nav"\)\|\|null\)/, "the detail overlay is reparented outside the scrolling Home container");
 
 const viewportInstaller = html.match(/function installShivanVisibleViewportSync\(\)\s*\{[\s\S]*?\n\}/)?.[0];
 assert.ok(viewportInstaller, "the visible viewport synchronizer is defined in the page");

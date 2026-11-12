@@ -72,10 +72,6 @@ body {
 
 .app.auth-mode > .bottom-nav { display: none !important; }
 .app.detail-mode > .bottom-nav { display: none !important; }
-.app.detail-mode #mainApp { padding-bottom: 0 !important; }
-.app.detail-mode.product-back-navigation #mainApp {
-  padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
-}
 
 /* Bound overlays to the device canvas in the desktop preview. */
 .app .modal,
@@ -180,25 +176,18 @@ body {
   }
 }
 
-/* Product Details scrolls once inside the safe-area-adjusted app viewport. */
-.app.detail-mode #mainApp {
-  display: flex !important;
-  flex-direction: column;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  padding-top: env(safe-area-inset-top, 0px) !important;
-  padding-bottom: 0 !important;
-}
-
-.app.detail-mode #mainApp > #detailView:not(.product-detail-leaving) {
-  flex: 1 1 auto;
+/* Product Details overlays the app shell; the Home scroll container stays untouched beneath it. */
+.app.detail-mode > #detailView {
+  position: absolute !important;
+  inset: 0 !important;
   box-sizing: border-box;
-  height: auto !important;
+  width: 100% !important;
+  height: 100% !important;
   min-height: 0 !important;
-  max-height: 100%;
-}
-
-.app.detail-mode #detailView:not(.product-detail-leaving) .detail {
-  min-height: 0;
-  padding: 8px 12px calc(18px + env(safe-area-inset-bottom, 0px));
+  max-height: 100% !important;
+  z-index: 100;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }

@@ -2749,8 +2749,9 @@ iframe{
 html.detail-view-open,body.detail-view-open{min-height:100%;overflow:hidden;overscroll-behavior:none}
 body.detail-view-open{display:flex;justify-content:center}
 .app.detail-mode{overflow:visible}
-.app.detail-mode .topbar,.app.detail-mode .bottom-nav{display:none}
-.app.detail-mode #mainApp{padding-bottom:0}
+.app.detail-mode .bottom-nav{display:none}
+#mainApp .view.active.product-detail-underlay{pointer-events:none}
+#mainApp .view.active.product-detail-underlay,#mainApp .view.active.product-detail-underlay *{animation:none!important}
 .app.detail-mode #detailView{
   display:block;
   position:relative;
@@ -2779,22 +2780,19 @@ body.detail-view-open{display:flex;justify-content:center}
 .detail-toolbar{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left),calc((100vw - 430px)/2 + 12px));z-index:3200;display:flex;align-items:center}
 .detail-toolbar .back{display:grid;place-items:center;width:36px;height:36px;margin:0;padding:0;border-radius:11px;background:rgba(8,10,20,.94);touch-action:manipulation}
 .detail-toolbar .back svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#detailBackEdge{display:none}
-.app.detail-mode #detailBackEdge{display:block;position:fixed;inset:0 auto 0 0;width:18px;z-index:3100;touch-action:pan-y;overscroll-behavior:contain;user-select:none;-webkit-user-select:none;cursor:ew-resize}
+#detailBackEdge{display:none!important}
 .app.detail-mode #detailView.product-detail-swipe-dragging{transform:translate3d(var(--product-back-offset,0px),0,0);transition:none!important;will-change:transform}
 .app.detail-mode #detailView.product-detail-swipe-snapback{transform:translate3d(var(--product-back-offset,0px),0,0);transition:transform 180ms cubic-bezier(.22,.72,.18,1)}
-#mainApp #detailView.product-detail-leaving{display:block!important;position:fixed;inset:0 auto auto 50%;width:min(100%,1100px);height:100dvh;min-height:100dvh;margin:0;z-index:10001;transform:translate3d(calc(-50% + var(--product-back-offset,0px)),0,0);transition:none;will-change:transform;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;background:radial-gradient(ellipse at 82% 8%,rgba(98,59,229,.17),transparent 38%),#050710}
-#mainApp #detailView.product-detail-leaving.product-detail-back-ready{transition:transform 200ms cubic-bezier(.22,.72,.18,1)}
-#mainApp #detailView.product-detail-leaving.product-detail-swipe-snapback{transition:transform 180ms cubic-bezier(.22,.72,.18,1)}
-#mainApp #detailView.product-detail-leaving.product-detail-back-sliding{transform:translate3d(calc(-50% + 100vw),0,0)}
-#mainApp #detailView.product-detail-leaving .detail-toolbar{position:absolute;left:max(12px,env(safe-area-inset-left),calc((100% - 430px)/2 + 12px))}
+.app > #detailView.product-detail-leaving{display:block!important;position:absolute;inset:0;width:100%;max-width:100%;height:100%;min-height:0;margin:0;z-index:10001;transform:translate3d(var(--product-back-offset,0px),0,0);transition:none;will-change:transform;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;background:radial-gradient(ellipse at 82% 8%,rgba(98,59,229,.17),transparent 38%),#050710}
+.app > #detailView.product-detail-leaving.product-detail-back-ready{transition:transform 200ms cubic-bezier(.22,.72,.18,1)}
+.app > #detailView.product-detail-leaving.product-detail-swipe-snapback{transition:transform 180ms cubic-bezier(.22,.72,.18,1)}
+.app > #detailView.product-detail-leaving.product-detail-back-sliding{transform:translate3d(100%,0,0)}
 .app.detail-mode.product-back-navigation .topbar{display:flex}
 .app.detail-mode.product-back-navigation .bottom-nav{display:grid;pointer-events:none}
-.app.detail-mode.product-back-navigation #mainApp{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .app.detail-mode.product-back-navigation .view.product-backdrop-revealed{pointer-events:none}
 #mainApp .view.active.product-backdrop-revealed,#mainApp .view.active.product-backdrop-revealed *{animation:none!important}
-#mainApp .product-detail-history-preview,#mainApp .product-detail-history-preview *{animation:none!important}
-@media(prefers-reduced-motion:reduce){#mainApp #detailView.product-detail-leaving,#mainApp #detailView.product-detail-leaving.product-detail-back-ready,#mainApp #detailView.product-detail-leaving.product-detail-swipe-snapback,.app.detail-mode #detailView.product-detail-swipe-snapback{transition:none!important}}
+.app .product-detail-history-preview,.app .product-detail-history-preview *{animation:none!important}
+@media(prefers-reduced-motion:reduce){.app > #detailView.product-detail-leaving,.app > #detailView.product-detail-leaving.product-detail-back-ready,.app > #detailView.product-detail-leaving.product-detail-swipe-snapback,.app.detail-mode #detailView.product-detail-swipe-snapback{transition:none!important}}
 .detail-main{display:grid;grid-template-columns:minmax(104px,35%) minmax(0,1fr);align-items:start;gap:9px;min-width:0;overflow:visible;direction:ltr}
 .detail-gallery{position:relative;width:100%;height:auto;aspect-ratio:4/5;min-width:0;margin:0;overflow:hidden;border:1px solid #30334e;border-radius:13px;background:#080a12}
 .detail-gallery-track{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;direction:ltr;scroll-behavior:auto;touch-action:pan-x pan-y pinch-zoom;user-select:none}
@@ -3128,10 +3126,10 @@ select:focus-visible,input:focus-visible,textarea:focus-visible{box-shadow:0 0 0
 }
 
 /* Product details use one quick, restrained entrance/exit instead of a shared-image effect. */
-#mainApp.detail-mode #detailView.active{animation:none}
-#mainApp.detail-mode #detailView.active.product-detail-entering{animation:shopMotionProductOpen 190ms var(--shop-motion-ease)}
-@media(prefers-reduced-motion:reduce){#mainApp.detail-mode #detailView.active.product-detail-entering{animation:none!important}}
-@keyframes shopMotionProductOpen{from{opacity:0;transform:translate3d(0,5px,0)}to{opacity:1;transform:none}}
+#detailView.active{animation:none}
+#detailView.active.product-detail-entering{animation:shopMotionProductOpen 260ms cubic-bezier(.22,.72,.18,1)}
+@media(prefers-reduced-motion:reduce){#detailView.active.product-detail-entering{animation:none!important}}
+@keyframes shopMotionProductOpen{from{transform:translate3d(100%,0,0)}to{transform:translate3d(0,0,0)}}
 
 /* Owner product workspace refresh */
 .owner-product-nav{display:flex;gap:8px;margin:0 0 16px;padding:8px 0;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none;background:rgba(5,6,13,.96)}
@@ -3442,7 +3440,7 @@ body.search-page-open #mainApp>.topbar{display:none!important}
 
 /* Compact Product Details wordmark and the single menu language selector */
 html.detail-view-open .language-switcher{display:none!important}
-.detail-toolbar{position:sticky;top:0;left:auto;right:auto;z-index:3200;display:flex;align-items:center;justify-content:space-between;direction:ltr;box-sizing:border-box;width:100%;min-width:0;margin:0;padding:5px max(12px,env(safe-area-inset-right)) 5px max(12px,env(safe-area-inset-left));background:#03050d;border-bottom:1px solid rgba(27,36,56,.72)}
+.detail-toolbar{position:sticky;top:0;left:auto;right:auto;z-index:3200;display:flex;align-items:center;justify-content:space-between;direction:ltr;box-sizing:border-box;width:100%;min-width:0;margin:0;padding:max(8px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 5px max(12px,env(safe-area-inset-left,0px));background:#03050d;border-bottom:1px solid rgba(27,36,56,.72)}
 .detail-toolbar .back{flex:0 0 34px;width:34px;height:34px}
 .detail-toolbar .detail-toolbar-wordmark{flex:0 0 auto;max-width:none;min-width:max-content;overflow:visible;padding-bottom:1px;font-size:clamp(17px,4.6vw,19px);letter-spacing:-.35px;line-height:1}
 @media(max-width:350px){.detail-toolbar{padding-right:max(8px,env(safe-area-inset-right));padding-left:max(8px,env(safe-area-inset-left))}.detail-toolbar .back{flex-basis:30px;width:30px;height:30px}.detail-toolbar .detail-toolbar-wordmark{font-size:16px}}
@@ -3992,7 +3990,7 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
 
   <!-- PRODUCT DETAIL -->
 
-  <div id="detailView" class="view shop-detail-view">
+  <div id="detailView" class="view shop-detail-view" onpointerdown="beginProductBackSwipe(event)" onpointermove="moveProductBackSwipe(event)" onpointerup="endProductBackSwipe(event)" onpointercancel="cancelProductBackSwipe(event)">
     <div id="detailBackEdge" aria-hidden="true" onpointerdown="beginProductBackSwipe(event)" onpointermove="moveProductBackSwipe(event)" onpointerup="endProductBackSwipe(event)" onpointercancel="cancelProductBackSwipe(event)"></div>
     <div class="detail">
       <div class="detail-toolbar">
@@ -5836,6 +5834,7 @@ let homeMenuCloseTimer=0;
 let homeMenuDiscountExpiryTimer=0;
 let previousView = "home";
 let previousViewScrollY=0;
+let previousViewPosition={windowY:0,viewTop:0,appTop:0,authTop:0};
 let editingProductId = null;
 let editingAdIndex = null;
 let ownerPanel = "dashboard";
@@ -7536,14 +7535,14 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
 }
 
 function getActiveShopView(){
-  return ["home","search","cart","orders","profile","detail","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
+  return ["detail","home","search","cart","orders","profile","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
 }
 
 function shopViewHistoryState(view,position=readShopViewPosition(view)){
   const existing=window.history?.state&&typeof window.history.state==="object"?window.history.state:{};
   const state={...existing,__shivanShopView:view,__shivanShopViewPosition:{windowY:0,viewTop:0,authTop:0,...(position||{})}};
   delete state.__shivanOwnerNavigation;delete state.__shivanOwnerNavigationId;delete state.__shivanOwnerExitView;
-  delete state.__shivanProductDetail;delete state.__shivanProductId;delete state.__shivanProductDepth;delete state.__shivanProductReturnView;delete state.__shivanProductReturnScrollY;
+  delete state.__shivanProductDetail;delete state.__shivanProductId;delete state.__shivanProductDepth;delete state.__shivanProductReturnView;delete state.__shivanProductReturnScrollY;delete state.__shivanProductReturnPosition;
   return state;
 }
 
@@ -7576,9 +7575,11 @@ function installShopViewNavigation(){
 
 function readShopViewPosition(view=getActiveShopView()){
   const viewElement=document.getElementById(`${view}View`);
+  const mainApp=document.getElementById("mainApp");
   return {
     windowY:Math.max(0,Number(window.scrollY??document.documentElement?.scrollTop??document.body?.scrollTop??0)||0),
     viewTop:Math.max(0,Number(viewElement?.scrollTop)||0),
+    appTop:Math.max(0,Number(mainApp?.scrollTop)||0),
     authTop:Math.max(0,Number(document.getElementById("authPage")?.scrollTop)||0)
   };
 }
@@ -8337,6 +8338,14 @@ function openMain(options={}){
 }
 
 
+function ensureProductDetailOverlay(){
+  const app=document.querySelector(".app");
+  const detailView=document.getElementById("detailView");
+  if(!app||!detailView)return false;
+  if(detailView.parentNode!==app)app.insertBefore(detailView,app.querySelector(".bottom-nav")||null);
+  return detailView.parentNode===app;
+}
+
 function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
@@ -8377,6 +8386,8 @@ function openView(view,options={}){
     return;
   }
 
+  const preserveReturnView=view==="detail"&&options.preserveUnderlyingView&&previousView!=="detail"?previousView:"";
+  if(view==="detail")ensureProductDetailOverlay();
   const views = [
     "homeView",
     "newModelView",
@@ -8391,7 +8402,9 @@ function openView(view,options={}){
   ];
 
   views.forEach(id=>{
-    document.getElementById(id).classList.remove("active");
+    const element=document.getElementById(id);
+    if(preserveReturnView&&id===`${preserveReturnView}View`)element.classList.add("active","product-detail-underlay");
+    else element.classList.remove("active","product-detail-underlay");
   });
 
   document.getElementById(view+"View").classList.add("active");
@@ -8407,8 +8420,7 @@ function openView(view,options={}){
     requestAnimationFrame(()=>syncDetailPhotoTracks(null,"auto"));
   }
 
-  document.querySelectorAll(".nav-item")
-    .forEach(n=>n.classList.remove("active"));
+  if(!(view==="detail"&&preserveReturnView))document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
 
   if(view==="home"||view==="newModel"||view==="discount"||view==="favorites")
     document.getElementById("navHome").classList.add("active");
@@ -8452,13 +8464,18 @@ function openView(view,options={}){
     }else showGuestProfileChoices();
   }
 
-  const position=options.restorePosition||shopViewScrollPositions.get(view)||{windowY:0,viewTop:0,authTop:0};
+  const position=options.restorePosition||shopViewScrollPositions.get(view)||{windowY:0,viewTop:0,appTop:0,authTop:0};
   const root=document.documentElement;
   const previousScrollBehavior=root.style.scrollBehavior;
   root.style.scrollBehavior="auto";
   try{
-    if(view!=="detail")document.getElementById(`${view}View`).scrollTop=Math.max(0,Number(position.viewTop)||0);
-    window.scrollTo(0,Math.max(0,Number(position.windowY)||0));
+    if(view!=="detail"){
+      const mainApp=document.getElementById("mainApp");
+      const viewElement=document.getElementById(`${view}View`);
+      if(viewElement)viewElement.scrollTop=Math.max(0,Number(position.viewTop)||0);
+      if(mainApp&&options.preserveProductReturn&&options.restorePosition?.appTop!==undefined)mainApp.scrollTop=Math.max(0,Number(position.appTop??position.windowY)||0);
+      else window.scrollTo(0,Math.max(0,Number(position.windowY)||0));
+    }else document.getElementById("detailView").scrollTop=Math.max(0,Number(options.restorePosition?.viewTop)||0);
   }finally{root.style.scrollBehavior=previousScrollBehavior;}
 
 }
@@ -8636,7 +8653,7 @@ function clearProductDetailMotion(detailView=document.getElementById("detailView
   detailView?.style.removeProperty("--product-back-offset");
 }
 
-function productHistoryStateFor(productId,depth,returnView,returnScrollY){
+function productHistoryStateFor(productId,depth,returnView,returnScrollY,returnPosition=previousViewPosition){
   const current=window.history?.state;
   return {
     ...(current&&typeof current==="object"?current:{}),
@@ -8644,7 +8661,8 @@ function productHistoryStateFor(productId,depth,returnView,returnScrollY){
     __shivanProductId:String(productId),
     __shivanProductDepth:depth,
     __shivanProductReturnView:returnView,
-    __shivanProductReturnScrollY:returnScrollY
+    __shivanProductReturnScrollY:returnScrollY,
+    __shivanProductReturnPosition:returnPosition
   };
 }
 
@@ -8656,7 +8674,7 @@ function clearStaleProductHistoryState(){
   delete base.__shivanProductId;
   delete base.__shivanProductDepth;
   delete base.__shivanProductReturnView;
-  delete base.__shivanProductReturnScrollY;
+  delete base.__shivanProductReturnScrollY;delete base.__shivanProductReturnPosition;
   try{window.history.replaceState(base,"",window.location.href)}catch(error){console.warn("Stale product history could not be normalized",error)}
 }
 
@@ -8735,16 +8753,18 @@ function openProduct(id,options={}){
   }else if(!openingFromDetail&&!options.fromHistory){
     productDetailHistoryStack=[];
     previousView=["favorites","newModel","discount","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
-    previousViewScrollY=Math.max(0,Number(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0));
+    previousViewPosition=typeof readShopViewPosition==="function"?readShopViewPosition(previousView):{windowY:Math.max(0,Number(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0)),viewTop:0,appTop:Math.max(0,Number(document.getElementById("mainApp")?.scrollTop)||0),authTop:0};
+    previousViewScrollY=Math.max(0,Number(previousViewPosition.appTop??previousViewPosition.windowY)||0);
   }else if(!openingFromDetail&&options.fromHistory){
     const state=window.history?.state||{};
     previousView=["home","search","newModel","discount","favorites"].includes(state.__shivanProductReturnView)?state.__shivanProductReturnView:["favorites","newModel","discount","home","search"].find(view=>document.getElementById(`${view}View`)?.classList.contains("active"))||previousView||"home";
-    previousViewScrollY=Math.max(0,Number(state.__shivanProductReturnScrollY??window.scrollY??0));
+    previousViewPosition=state.__shivanProductReturnPosition||{windowY:Math.max(0,Number(window.scrollY)||0),viewTop:0,appTop:Math.max(0,Number(state.__shivanProductReturnScrollY??window.scrollY??0)),authTop:0};
+    previousViewScrollY=Math.max(0,Number(state.__shivanProductReturnScrollY??previousViewPosition.appTop??window.scrollY??0));
   }
   if(!options.fromHistory){
     const nextDepth=openingFromDetail?productDetailHistoryStack.length+1:1;
     ensureProductHistoryListener();
-    try{window.history?.pushState?.(productHistoryStateFor(p.id,nextDepth,previousView,previousViewScrollY),"",window.location.href)}catch(error){console.warn("Product history could not be saved",error)}
+    try{window.history?.pushState?.(productHistoryStateFor(p.id,nextDepth,previousView,previousViewScrollY,previousViewPosition),"",window.location.href)}catch(error){console.warn("Product history could not be saved",error)}
   }else ensureProductHistoryListener();
   clearProductDetailMotion(detailView);
   currentProduct=p;
@@ -8769,7 +8789,7 @@ function openProduct(id,options={}){
   renderColorOptions();
   updateDetailAvailability();
 
-  openView("detail",{preserveProductReturn:openingFromDetail||options.fromHistory});
+  openView("detail",{preserveProductReturn:openingFromDetail||options.fromHistory,preserveUnderlyingView:!openingFromDetail});
   if(options.restoreSnapshot){
     currentGalleryIndex=Math.max(0,Math.min(currentGalleryImages.length-1,Number(options.restoreSnapshot.galleryIndex)||0));
     detailView.scrollTop=Math.max(0,Number(options.restoreSnapshot.detailScrollTop)||0);
@@ -8778,7 +8798,6 @@ function openProduct(id,options={}){
   if(!prefersReducedProductMotion())detailView.classList.add("product-detail-entering");
   renderDetailReviews();
   resetDetailRecommendations();
-  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function detailPhotosForProduct(){
@@ -9590,8 +9609,8 @@ function prepareProductBackNavigation(destinationView,detailView=document.getEle
     const preview=snapshot?.preview;
     if(!preview||!detailView.parentNode)return false;
     Object.assign(preview.style,{
-      display:"block",position:"fixed",inset:"0 auto auto 50%",width:"min(100%, 1100px)",height:"100dvh",minHeight:"100dvh",margin:"0",zIndex:"10000",
-      transform:"translate3d(-50%,0,0)",overflowX:"hidden",overflowY:"auto",pointerEvents:"none",
+      display:"block",position:"absolute",inset:"0",width:"100%",height:"100%",minHeight:"0",margin:"0",zIndex:"10000",
+      transform:"translate3d(0,0,0)",overflowX:"hidden",overflowY:"auto",pointerEvents:"none",
       background:"radial-gradient(ellipse at 82% 8%,rgba(98,59,229,.17),transparent 38%),#050710"
     });
     preview.scrollTop=Math.max(0,Number(snapshot.detailScrollTop)||0);
@@ -9603,13 +9622,11 @@ function prepareProductBackNavigation(destinationView,detailView=document.getEle
     if(!destination)return false;
     destination.classList.add("active","product-backdrop-revealed");
     document.querySelector(".app")?.classList.add("product-back-navigation");
-    document.querySelectorAll(".nav-item").forEach(item=>item.classList.remove("active"));
-    document.getElementById(destinationView==="search"?"navSearch":"navHome")?.classList.add("active");
   }
   const root=document.documentElement;
   productBackScrollBehavior=root.style.scrollBehavior;
   root.style.scrollBehavior="auto";
-  if(destinationView!=="detail")window.scrollTo(0,previousViewScrollY);
+  if(destinationView!=="detail"){const mainApp=document.getElementById("mainApp");if(mainApp)mainApp.scrollTop=Math.max(0,Number(previousViewPosition.appTop??previousViewScrollY)||0);}
   detailView.classList.add("product-detail-leaving");
   void detailView.offsetWidth;
   productBackPrepared=true;
@@ -9624,13 +9641,13 @@ function restoreProductBackPreview(detailView=document.getElementById("detailVie
   const destination=productBackPreparedView==="detail"?null:document.getElementById(`${productBackPreparedView}View`);
   const root=document.documentElement;
   root.style.scrollBehavior="auto";
-  if(productBackPreparedView!=="detail")window.scrollTo(0,0);
   productBackPreparedPreview?.remove?.();
   productBackPreparedPreview=null;
-  destination?.classList.remove("active","product-backdrop-revealed");
+  const sourceRemainsMounted=destination?.classList.contains("product-detail-underlay");
+  if(!sourceRemainsMounted)destination?.classList.remove("active");
+  destination?.classList.remove("product-backdrop-revealed");
   if(productBackPreparedView!=="detail"){
     document.querySelector(".app")?.classList.remove("product-back-navigation");
-    document.querySelectorAll(".nav-item").forEach(item=>item.classList.remove("active"));
   }
   detailView?.classList.remove("product-detail-leaving","product-detail-back-ready","product-detail-back-sliding","product-detail-swipe-dragging","product-detail-swipe-snapback");
   detailView?.style.removeProperty("--product-back-offset");
@@ -9643,6 +9660,10 @@ function restoreProductBackPreview(detailView=document.getElementById("detailVie
 function beginProductBackSwipe(event){
   const detailView=document.getElementById("detailView");
   if(!detailView?.classList.contains("active")||productDetailClosing||!event.isPrimary||event.button===2)return;
+  if(event.target?.closest?.("button,a,input,select,textarea,[role=\"button\"]"))return;
+  const appBounds=detailView.getBoundingClientRect?.();
+  const edgeWidth=Math.min(28,Math.max(18,(Number(window.innerWidth)||390)*.06));
+  if(Number(event.clientX)>(Number(appBounds?.left)||0)+edgeWidth)return;
   productBackSwipe={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,startTime:Number(event.timeStamp)||performance.now(),lastX:event.clientX,deltaX:0,dragging:false};
   try{event.currentTarget.setPointerCapture(event.pointerId)}catch{}
 }
@@ -9728,8 +9749,8 @@ function finishProductDetailBack(destinationView=previousView,detailView=documen
   const root=document.documentElement;
   root.style.scrollBehavior="auto";
   try{
-    openView(destinationView,{preserveProductReturn:true});
-    window.scrollTo(0,previousViewScrollY);
+    openView(destinationView,{preserveProductReturn:true,restorePosition:previousViewPosition});
+    document.getElementById(`${destinationView}View`)?.classList.remove("product-detail-underlay","product-backdrop-revealed");
     productDetailHistoryStack=[];
     productHistoryBackPending=false;
   }finally{
@@ -9780,8 +9801,8 @@ function closeProductDetails({fromSwipe=false,fromHistory=false,historyTargetPro
       productDetailHistoryStack.pop();
       openProduct(target.snapshot.productId,{fromHistory:true,restoreSnapshot:target.snapshot});
     }else try{
-      openView(destinationView);
-      window.scrollTo(0,previousViewScrollY);
+      openView(destinationView,{preserveProductReturn:true,restorePosition:previousViewPosition});
+      document.getElementById(`${destinationView}View`)?.classList.remove("product-detail-underlay","product-backdrop-revealed");
       productDetailHistoryStack=[];
     }finally{root.style.scrollBehavior=previousScrollBehavior}
     return;

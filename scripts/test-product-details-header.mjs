@@ -41,7 +41,7 @@ assert.ok(menuStart >= 0 && menuLanguageAt > menuStart && menuLanguageAt < menuE
 assert.match(html, /const menuLabels=\[[^\n]*\["homeMenuLanguageLabel","Language","زمان","اللغة"\]/, "the menu language option is translated");
 assert.match(html, /html\.detail-view-open \.language-switcher\{display:none!important\}/, "no language control can appear over Product Details");
 
-assert.match(html, /\.detail-toolbar\{[^}]*justify-content:space-between[^}]*padding:5px max\(12px,env\(safe-area-inset-right\)\) 5px max\(12px,env\(safe-area-inset-left\)\)/, "the toolbar aligns both controls in a compact row");
+assert.match(html, /\.detail-toolbar\{[^}]*justify-content:space-between[^}]*padding:max\(8px,env\(safe-area-inset-top,0px\)\) max\(12px,env\(safe-area-inset-right,0px\)\) 5px max\(12px,env\(safe-area-inset-left,0px\)\)/, "the compact toolbar aligns both controls and stays below the iPhone safe area");
 assert.match(html, /\.detail-toolbar \.detail-toolbar-wordmark\{[^}]*font-size:clamp\(17px,4\.6vw,19px\)/, "the wordmark scales for mobile widths without clipping");
 assert.match(html, /@media\(max-width:350px\)\{\.detail-toolbar\{[^}]*padding-right:max\(8px,env\(safe-area-inset-right\)\)/, "320px screens use narrower safe-area padding");
 assert.match(html, /@media\(min-width:700px\)\{\.detail-toolbar\{[^}]*padding-right:max\(14px,env\(safe-area-inset-right\)\)/, "desktop widths retain balanced toolbar spacing");

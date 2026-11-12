@@ -15,11 +15,12 @@ assert.match(html, /\.colors\{[^}]*flex-wrap:wrap;[^}]*align-content:flex-end;[^
 assert.match(html, /\.color-dot\{[^}]*flex:0 0 13px;/, "color circles should keep a consistent desktop size instead of shrinking");
 assert.match(html, /\.add-mini\{[^}]*flex:0 0 34px;/, "the cart button should reserve a separate fixed-width column beside the colors");
 assert.match(html, /\.product-bottom\{direction:ltr;margin-top:auto;padding-top:6px;gap:3px\}/, "the compact mobile card layout should retain the shared bottom alignment");
-assert.match(html, /#mainApp\.detail-mode #detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 190ms/, "product opening should retain its current 190 ms animation");
+assert.match(html, /#detailView\.active\.product-detail-entering\{animation:shopMotionProductOpen 260ms/, "product opening should use the restrained iOS slide timing");
+assert.match(html, /@keyframes shopMotionProductOpen\{from\{transform:translate3d\(100%,0,0\)\}to\{transform:translate3d\(0,0,0\)\}\}/, "Product Details should enter from the right by its own app-shell width");
 assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "the Back button should avoid tap-gesture delay");
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
 assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should keep its accessible iPhone-style Back button");
-assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY\)/, "each detail entry should carry a browser-history product target");
+assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY,returnPosition=previousViewPosition\)/, "each detail entry should carry its full browser-history return position");
 assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","newModel","discount","favorites","owner"\]\)/, "dedicated customer routes should participate in saved Shop navigation");
 assert.match(html, /id="newModelView" class="view page shop-menu-collection-view"[\s\S]*?id="newModelProductsGrid" class="products/, "New model should own a dedicated page and reuse the Shop product grid");
 assert.match(html, /id="discountView" class="view page shop-menu-collection-view"[\s\S]*?id="discountProductsGrid" class="products/, "Discount should own a separate page and reuse the Shop product grid");
@@ -32,7 +33,15 @@ assert.match(html, /function ensureProductHistoryListener\(\)[\s\S]*?addEventLis
 assert.match(html, /product-detail-history-preview/, "a previous detail snapshot should be revealed under the outgoing product");
 assert.match(html, /function openProduct\(id,options=\{\}\)[\s\S]*?productDetailHistoryStack\.push\(snapshotProductDetail\(\)\)/, "opening a product from another product should save the predecessor");
 assert.match(html, /window\.history\.back\(\)/, "the visible Back action should update browser history");
-assert.match(html, /#mainApp #detailView\.product-detail-leaving\.product-detail-back-ready\{transition:transform 200ms/, "the existing smooth rightward transition should remain 200 ms");
+assert.match(html, /\.app > #detailView\.product-detail-leaving\.product-detail-back-ready\{transition:transform 200ms/, "Back should slide the app-sized detail overlay smoothly to the right");
+assert.match(html, /function ensureProductDetailOverlay\(\)[\s\S]*?app\.insertBefore\(detailView,app\.querySelector\("\.bottom-nav"\)\|\|null\)/, "Product Details is moved outside the Home scrolling container into the app shell");
+assert.match(html, /function readShopViewPosition\([\s\S]*?appTop:Math\.max\(0,Number\(mainApp\?\.scrollTop\)\|\|0\)/, "the saved route position records the actual app scroll container");
+assert.match(html, /__shivanProductReturnPosition:returnPosition/, "browser history preserves the full originating app position");
+assert.match(html, /preserveUnderlyingView:!openingFromDetail/, "opening the first product keeps the originating list mounted underneath");
+assert.doesNotMatch(html, /#mainApp #detailView\.product-detail-leaving\{[^}]*position:fixed|calc\(-50% \+ 100vw\)/, "detail transitions do not use viewport-fixed width or centering offsets");
+const backSwipeSource = html.match(/function beginProductBackSwipe\(event\)\{[\s\S]*?\n\}/)?.[0] || "";
+assert.ok(backSwipeSource.includes("event.target?.closest?.(") && backSwipeSource.includes("[role=") && backSwipeSource.includes(")return;"), "Safari edge-back excludes interactive controls before starting a gesture");
+assert.ok(backSwipeSource.includes("if(Number(event.clientX)>(Number(appBounds?.left)||0)+edgeWidth)return;"), "Safari edge-back is scoped to the app's left edge");
 
 function classListFor(classes) {
   return {
@@ -44,7 +53,7 @@ function classListFor(classes) {
 }
 
 function createHarness({ reducedMotion = false, width = 390, height = 844, initialView = "home", initialHistoryState = { page: "shop" } } = {}) {
-  const state = { openedViews: [], scrollY: 421, scrollCalls: [], timers: new Map(), nextTimer: 1, now: 10, transitionHandler: null, popHandler: null, backCalls: 0, forwardCalls: 0, cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }] };
+  const state = { openedViews: [], scrollY: 421, windowScrollY: 0, scrollCalls: [], timers: new Map(), nextTimer: 1, now: 10, transitionHandler: null, popHandler: null, backCalls: 0, forwardCalls: 0, cart: [{ productId: 77, size: "M", color: "#112233", qty: 2 }] };
   const makeView = initial => {
     const classes = new Set(initial);
     const element = {
@@ -53,6 +62,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
       addEventListener(name, handler) { if (name === "transitionend") state.transitionHandler = handler; },
       removeEventListener(name, handler) { if (name === "transitionend" && state.transitionHandler === handler) state.transitionHandler = null; },
       setAttribute() {}, querySelector() { return edge; }, querySelectorAll() { return []; },
+      getBoundingClientRect() { return { left: width >= 700 ? (width - 430) / 2 : 0 }; },
       cloneNode() { const clone = makeView([...classes]); clone.scrollTop = element.scrollTop; clone.setAttribute = () => {}; clone.querySelector = () => ({ style: {} }); return clone; },
       remove() { if (this.parentNode) { this.parentNode.children = this.parentNode.children.filter(child => child !== this); this.parentNode = null; } },
     };
@@ -69,7 +79,8 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   const body = { scrollTop: 0, classList: classListFor(new Set()) };
   root.classList = classListFor(new Set());
   const edge = { style: {}, setPointerCapture() {}, releasePointerCapture() {} };
-  const mainApp = { children: [homeView, searchView, newModelView, discountView, favoritesView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
+  const mainApp = { scrollTop: state.scrollY, children: [homeView, searchView, newModelView, discountView, favoritesView, detailView], appendChild(node) { this.children.push(node); node.parentNode = this; } };
+  Object.defineProperty(state, "scrollY", { configurable: true, get() { return mainApp.scrollTop; }, set(value) { mainApp.scrollTop = Math.max(0, Number(value) || 0); } });
   detailView.parentNode = mainApp;
   homeView.parentNode = mainApp;
   searchView.parentNode = mainApp;
@@ -82,7 +93,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   detailFavoriteButton.title = "";
   detailFavoriteButton.attributes = new Map();
   detailFavoriteButton.setAttribute = (name, value) => detailFavoriteButton.attributes.set(name, value);
-  const elements = new Map([["detailView", detailView], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["detailFavoriteButton", detailFavoriteButton], ["homeView", homeView], ["searchView", searchView], ["newModelView", newModelView], ["discountView", discountView], ["favoritesView", favoritesView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
+  const elements = new Map([["detailView", detailView], ["mainApp", mainApp], ["detailName", { textContent: "" }], ["detailPrice", { textContent: "" }], ["detailDescription", { textContent: "" }], ["detailFavoriteButton", detailFavoriteButton], ["homeView", homeView], ["searchView", searchView], ["newModelView", newModelView], ["discountView", discountView], ["favoritesView", favoritesView], ["detailBackEdge", edge], ["navHome", navItems[0]], ["navSearch", navItems[1]], ["navCart", navItems[2]], ["navProfile", navItems[3]], ["ownerPanelButton", navItems[4]]]);
   const document = {
     getElementById: id => elements.get(id),
     querySelector: selector => selector === ".app" ? app : null,
@@ -108,12 +119,13 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
       history, location: { href: "http://127.0.0.1:4173/" },
       addEventListener(name, handler) { if (name === "popstate") state.popHandler = handler; },
       matchMedia: () => ({ matches: reducedMotion }), innerWidth: width, innerHeight: height,
-      get scrollY() { return state.scrollY; },
-      scrollTo(...args) { state.scrollCalls.push(args); state.scrollY = typeof args[0] === "number" ? Number(args[1]) || 0 : Number(args[0]?.top) || 0; root.scrollTop = state.scrollY; body.scrollTop = state.scrollY; },
+      get scrollY() { return state.windowScrollY; },
+      scrollTo(...args) { state.scrollCalls.push(args); state.windowScrollY = typeof args[0] === "number" ? Number(args[1]) || 0 : Number(args[0]?.top) || 0; root.scrollTop = state.windowScrollY; body.scrollTop = state.windowScrollY; },
     },
     performance: { now: () => state.now },
     console,
-    products: [product, secondProduct, thirdProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", currentGalleryImages: ["photo-1", "photo-2"], currentGalleryIndex: 0, previousView: "home", previousViewScrollY: 0,
+    products: [product, secondProduct, thirdProduct], currentProduct: null, currentQty: 0, selectedSize: "", selectedColor: "", currentGalleryImages: ["photo-1", "photo-2"], currentGalleryIndex: 0, previousView: "home", previousViewScrollY: 0, previousViewPosition: { windowY: 0, viewTop: 0, appTop: mainApp.scrollTop, authTop: 0 },
+    readShopViewPosition(view) { return { windowY: state.windowScrollY, viewTop: document.getElementById(`${view}View`)?.scrollTop || 0, appTop: mainApp.scrollTop, authTop: 0 }; },
     cloudMode: false, cloudAccount: null, currentUser: null, FAVORITES_KEY: "shivan_shop_favorites", localStorage: { getItem: () => "[]" }, customerUiText: english => english,
     productDetailCloseTimer: 0, productDetailClosing: false, productBackSwipe: null, productBackSwipeSnapTimer: 0, productBackTransitionHandler: null, productBackScrollBehavior: "", productBackPrepared: false, productBackPreparedView: "", productBackPreparedPreview: null,
     productDetailHistoryStack: [], productHistoryBackPending: false, productHistoryBackFromSwipe: false, productHistoryPopHandler: null,
@@ -121,7 +133,12 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
     openView(view, options = {}) {
       state.openedViews.push({ view, options });
       if (!options.preserveProductReturn) { homeView.classList.remove("product-backdrop-revealed"); searchView.classList.remove("product-backdrop-revealed"); newModelView.classList.remove("product-backdrop-revealed"); discountView.classList.remove("product-backdrop-revealed"); favoritesView.classList.remove("product-backdrop-revealed"); }
-      detailView.classList.remove("active"); homeView.classList.remove("active"); searchView.classList.remove("active"); newModelView.classList.remove("active"); discountView.classList.remove("active"); favoritesView.classList.remove("active");
+      const sourceView = [homeView, searchView, newModelView, discountView, favoritesView].find(item => item.classList.contains("active"));
+      const preserveSource = view === "detail" && options.preserveUnderlyingView ? sourceView : null;
+      for (const candidate of [homeView, searchView, newModelView, discountView, favoritesView, detailView]) {
+        if (candidate === preserveSource) candidate.classList.add("active", "product-detail-underlay");
+        else candidate.classList.remove("active", "product-detail-underlay");
+      }
       if (view === "detail") detailView.classList.add("active");
       if (view === "home") homeView.classList.add("active");
       if (view === "search") searchView.classList.add("active");
@@ -130,8 +147,8 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
       if (view === "favorites") favoritesView.classList.add("active");
       app.classList.toggle("detail-mode", view === "detail");
       root.classList.toggle("detail-view-open", view === "detail"); body.classList.toggle("detail-view-open", view === "detail");
-      state.scrollCalls.push([0, 0]); state.scrollY = 0; root.scrollTop = 0; body.scrollTop = 0;
-      if (view === "detail") detailView.scrollTop = 0;
+      if (view === "detail") detailView.scrollTop = Math.max(0, Number(options.restorePosition?.viewTop) || 0);
+      else mainApp.scrollTop = Math.max(0, Number(options.restorePosition?.appTop ?? mainApp.scrollTop) || 0);
     },
     setTimeout(callback, delay) { const id = state.nextTimer++; state.timers.set(id, { callback, delay }); state.lastTimer = id; return id; },
     clearTimeout(id) { state.timers.delete(id); },
@@ -166,7 +183,7 @@ function createHarness({ reducedMotion = false, width = 390, height = 844, initi
   vm.runInContext(openProductSource, context);
   const openProduct = context.openProduct;
   return {
-    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, edge, openProduct, historyEntries: entries,
+    state, products: [product, secondProduct, thirdProduct], context, product, homeView, searchView, newModelView, discountView, favoritesView, detailView, app, mainApp, edge, openProduct, historyEntries: entries,
     closeProductDetails: context.closeProductDetails,
     finishTransition() { assert.ok(state.transitionHandler, "the animated detail view should register its completion handler"); state.transitionHandler({ target: detailView, propertyName: "transform" }); },
     runTimer(id = state.lastTimer) { const timer = state.timers.get(id); assert.ok(timer, "the expected cleanup timer should be scheduled"); state.timers.delete(id); timer.callback(); },
@@ -180,6 +197,10 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.equal(harness.context.previousView, route, `${route} should be remembered as the source route`);
   assert.equal(harness.context.previousViewScrollY, scrollY, `${route} should remember its exact scroll offset`);
   assert.equal(harness.detailView.classList.contains("product-detail-entering"), true, "the existing opening animation should remain active");
+  assert.equal(harness.state.openedViews.at(-1).options.preserveUnderlyingView, true, "the originating page stays mounted under the detail overlay");
+  assert.equal(destinationFor(harness, route).classList.contains("product-detail-underlay"), true, "the original list remains active without changing its content state");
+  assert.equal(harness.mainApp.scrollTop, scrollY, "opening details leaves the Home/Search scroll container at its exact offset");
+  assert.equal(harness.state.windowScrollY, 0, "opening details does not scroll or shift the browser viewport");
   assert.deepEqual(harness.state.cart, [{ productId: 77, size: "M", color: "#112233", qty: 2 }], "opening must preserve the cart");
 
   harness.context.goBack();
@@ -189,7 +210,7 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.equal(destination.classList.contains("product-backdrop-revealed"), true, "the revealed list should avoid re-render and entry animation");
   assert.equal(harness.detailView.classList.contains("product-detail-back-ready"), true, "the fixed detail overlay should settle before motion begins");
   assert.equal(harness.detailView.classList.contains("product-detail-back-sliding"), true, "the detail page should slide to the right");
-  assert.equal(harness.state.scrollY, scrollY, "the previous list position should be restored before the visual transition");
+  assert.equal(harness.mainApp.scrollTop, scrollY, "the previous list position should be restored before the visual transition");
   assert.equal(harness.state.timers.get(harness.state.lastTimer).delay, 230, "a short fallback should complete if transitionend is unavailable");
   const viewCount = harness.state.openedViews.length;
   harness.context.goBack();
@@ -198,15 +219,24 @@ function assertAnimatedReturn(harness, route, scrollY) {
   assert.equal(harness.context.productDetailClosing, false, "the close state should clear after the transition");
   assert.equal(harness.state.openedViews.at(-1).view, route, "Back should finish on the exact previous route");
   assert.equal(harness.state.openedViews.at(-1).options.preserveProductReturn, true, "the return should preserve the visible list state");
-  assert.equal(harness.state.scrollY, scrollY, "the exact scroll position should remain after the transition");
+  assert.equal(harness.mainApp.scrollTop, scrollY, "the exact app scroll position should remain after the transition");
+  assert.equal(harness.state.windowScrollY, 0, "the browser viewport remains stationary throughout Back");
   assert.equal(destination.classList.contains("active"), true, "the previous list should remain active");
   assert.equal(harness.detailView.classList.contains("active"), false, "the detail page should be removed after the slide completes");
   assert.equal(harness.context.document.documentElement.style.scrollBehavior, "smooth", "the prior scroll behavior should be restored");
   assert.deepEqual(harness.state.cart, [{ productId: 77, size: "M", color: "#112233", qty: 2 }], "closing must preserve the cart");
 }
 
+function destinationFor(harness, route) {
+  return ({ home: harness.homeView, search: harness.searchView, newModel: harness.newModelView, discount: harness.discountView, favorites: harness.favoritesView })[route];
+}
+
 const mobileHome = createHarness();
 assertAnimatedReturn(mobileHome, "home", 421);
+for (const width of [320, 375]) {
+  const narrowPhone = createHarness({ width, height: width === 320 ? 568 : 812 });
+  assertAnimatedReturn(narrowPhone, "home", width + 73);
+}
 mobileHome.state.scrollY = 836;
 mobileHome.openProduct(2);
 mobileHome.closeProductDetails();
@@ -306,6 +336,12 @@ const swipe = createHarness();
 swipe.state.scrollY = 286;
 swipe.openProduct(1);
 const pointerEvent = (x, y, time, edge = swipe.edge) => ({ pointerId: 7, isPrimary: true, button: 0, clientX: x, clientY: y, timeStamp: time, cancelable: true, currentTarget: edge, preventDefault() { swipe.state.prevented = true; } });
+const controlTap = pointerEvent(2, 100, 10);
+controlTap.target = { closest: () => ({}) };
+swipe.context.beginProductBackSwipe(controlTap);
+assert.equal(swipe.context.productBackSwipe, null, "tapping an interactive control at the left edge does not start the Safari Back gesture");
+swipe.context.beginProductBackSwipe(pointerEvent(42, 100, 10));
+assert.equal(swipe.context.productBackSwipe, null, "a gesture beginning away from the app's left edge does not start Back navigation");
 swipe.context.beginProductBackSwipe(pointerEvent(2, 100, 10));
 swipe.context.moveProductBackSwipe(pointerEvent(34, 103, 65));
 assert.equal(swipe.homeView.classList.contains("active"), true, "the exact prior list should appear underneath while the finger drags");
