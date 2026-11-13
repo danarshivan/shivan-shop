@@ -45,7 +45,7 @@ body {
   box-sizing: border-box;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: calc(68px + env(safe-area-inset-bottom)) !important;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -119,14 +119,24 @@ body {
 }
 
 @media (max-width: 699px) {
-  body { padding: 0; }
+  body {
+    position: fixed;
+    top: var(--shivan-visible-viewport-offset-top, 0px);
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: var(--shivan-visible-viewport-height, 100dvh);
+    min-height: 0;
+    padding: 0;
+  }
 
   .app,
   .app.auth-mode,
   .app:not(.auth-mode) {
     width: 100% !important;
     max-width: none !important;
-    height: 100dvh !important;
+    height: var(--shivan-visible-viewport-height, 100dvh) !important;
     border: 0;
     border-radius: 0;
     box-shadow: none;

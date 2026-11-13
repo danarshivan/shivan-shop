@@ -21,12 +21,19 @@ const mainClose = html.lastIndexOf("</section>", html.indexOf("<!-- ============
 const navClose = html.indexOf("</nav>", navOpen);
 assert.ok(navOpen > mainClose, "the navigation is a sibling after the scrolling #mainApp section");
 assert.ok(navClose > navOpen, "the customer and authorized Owner navigation remains in the document");
+const navMarkup = html.slice(navOpen, navClose + 6);
+for (const id of ["navHome", "navSearch", "navCart", "navOrders", "navProfile", "ownerPanelButton"]) {
+  assert.match(navMarkup, new RegExp(`id="${id}"`), `the existing six-tab navigation keeps ${id}`);
+}
+assert.match(html, /\.bottom-nav\.owner-mode,\.bottom-nav\.owner-customer-mode\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)\}/, "Owner navigation retains six equal, shrinkable columns");
+assert.match(html, /\.nav-item\{min-width:0;padding-inline:1px/, "navigation items can shrink without creating horizontal overflow");
 assert.match(css, /#mainApp\s*\{[\s\S]*?padding-top:\s*env\(safe-area-inset-top,\s*0px\)\s*!important/, "the scrollable app content reserves the iPhone top safe area before its header and page content");
-assert.match(css, /#mainApp\s*\{[\s\S]*?overflow-y:\s*auto[\s\S]*?padding-bottom:\s*calc\(82px \+ env\(safe-area-inset-bottom\)\)/, "the scrollable content reserves room for the bottom navigation and safe area");
-assert.match(css, /\.app\s*>\s*\.bottom-nav\s*\{[\s\S]*?position:\s*absolute !important[\s\S]*?bottom:\s*0 !important[\s\S]*?env\(safe-area-inset-bottom\)/, "the navigation stays anchored to the app viewport rather than the browser or scroll content");
+assert.match(css, /#mainApp\s*\{[\s\S]*?overflow-y:\s*auto[\s\S]*?padding-bottom:\s*calc\(68px \+ env\(safe-area-inset-bottom\)\)/, "scroll content reserves exactly the navigation height and safe area without an extra blank strip");
+assert.match(css, /\.app\s*>\s*\.bottom-nav\s*\{[\s\S]*?position:\s*absolute !important[\s\S]*?bottom:\s*0 !important[\s\S]*?height:\s*calc\(68px \+ env\(safe-area-inset-bottom\)\)[\s\S]*?padding-bottom:\s*env\(safe-area-inset-bottom\) !important[\s\S]*?transform:\s*none !important/, "the navigation is anchored to the app viewport with one safe-area inset and no positional transform");
 assert.match(css, /\.app\.auth-mode\s*>\s*\.bottom-nav\s*\{\s*display:\s*none !important/, "navigation remains hidden on authentication screens");
 assert.match(css, /@media \(min-width: 700px\)[\s\S]*?width: min\(430px, calc\(100vw - 48px\)\)[\s\S]*?border-radius: 46px/, "Windows desktop presents the app in a centered phone-sized frame");
-assert.match(css, /@media \(max-width: 699px\)[\s\S]*?width: 100% !important[\s\S]*?height: 100dvh/, "phones use the full available screen");
+assert.match(css, /@media \(max-width: 699px\)[\s\S]*?width: 100% !important[\s\S]*?height: var\(--shivan-visible-viewport-height, 100dvh\) !important/, "the phone shell uses the same measured visible height as the Safari viewport");
+assert.match(css, /@media \(max-width: 699px\)\s*\{\s*body\s*\{[^}]*position:\s*fixed;[^}]*top:\s*var\(--shivan-visible-viewport-offset-top, 0px\)[^}]*height:\s*var\(--shivan-visible-viewport-height, 100dvh\)/, "the mobile app shell follows both the visible Safari viewport origin and height");
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)/, "motion respects reduced-motion preferences");
 
 const viewportGeometryStart = css.indexOf("/* Dynamic Safari viewport sizing and single-owner safe areas. */");
@@ -53,6 +60,7 @@ const viewportListeners = new Map();
 const animationFrames = [];
 const visualViewport = {
   height: 844,
+  offsetTop: 0,
   addEventListener(type, handler) { const list = viewportListeners.get(type) || []; list.push(handler); viewportListeners.set(type, list); },
 };
 const viewportWindow = {
@@ -67,17 +75,22 @@ const viewportContext = vm.createContext({
 });
 vm.runInContext(`${viewportInstaller}\ninstallShivanVisibleViewportSync();`, viewportContext);
 assert.equal(viewportStyle.get("--shivan-visible-viewport-height"), "844px", "the initial app height follows the visible iPhone viewport");
+assert.equal(viewportStyle.get("--shivan-visible-viewport-offset-top"), "0px", "the app starts at the visible viewport top");
 assert.equal(viewportListeners.has("resize"), true, "Safari visual viewport resizing is observed");
 assert.equal(windowListeners.has("orientationchange"), true, "orientation changes are observed");
 visualViewport.height = 720;
+visualViewport.offsetTop = 12;
 viewportListeners.get("resize")[0]();
 assert.equal(animationFrames.length, 1, "viewport events are coalesced into one animation frame");
 animationFrames.shift()();
 assert.equal(viewportStyle.get("--shivan-visible-viewport-height"), "720px", "the app height follows Safari toolbar viewport changes");
+assert.equal(viewportStyle.get("--shivan-visible-viewport-offset-top"), "12px", "the app follows Safari's shifted visible viewport origin");
 visualViewport.height = 390;
+visualViewport.offsetTop = 0;
 windowListeners.get("orientationchange")[0]();
 animationFrames.shift()();
 assert.equal(viewportStyle.get("--shivan-visible-viewport-height"), "390px", "the app height updates after orientation changes");
+assert.equal(viewportStyle.get("--shivan-visible-viewport-offset-top"), "0px", "orientation changes also update the app viewport origin");
 const listenerCount = [...windowListeners.values(), ...viewportListeners.values()].reduce((sum, list) => sum + list.length, 0);
 assert.equal(viewportContext.installShivanVisibleViewportSync(), false, "the viewport synchronizer does not register duplicate listeners");
 assert.equal([...windowListeners.values(), ...viewportListeners.values()].reduce((sum, list) => sum + list.length, 0), listenerCount);

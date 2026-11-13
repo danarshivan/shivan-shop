@@ -2608,7 +2608,7 @@ iframe{
 
 #mainApp{
   min-height:100dvh;
-  padding-bottom:calc(82px + env(safe-area-inset-bottom));
+  padding-bottom:calc(68px + env(safe-area-inset-bottom));
 }
 
 .topbar{
@@ -3549,9 +3549,12 @@ function installShivanVisibleViewportSync(){
   window.__shivanVisibleViewportSyncInstalled=true;
   let frame=0;
   const apply=()=>{
-    const height=Number(window.visualViewport?.height||window.innerHeight||0);
-    if(!Number.isFinite(height)||height<=0)return;
+    const viewport=window.visualViewport;
+    const height=Number(viewport?.height||window.innerHeight||0);
+    const offsetTop=Number(viewport?.offsetTop||0);
+    if(!Number.isFinite(height)||height<=0||!Number.isFinite(offsetTop))return;
     document.documentElement.style.setProperty("--shivan-visible-viewport-height",(Math.round(height*100)/100)+"px");
+    document.documentElement.style.setProperty("--shivan-visible-viewport-offset-top",(Math.round(offsetTop*100)/100)+"px");
   };
   const schedule=()=>{
     if(frame)return;
