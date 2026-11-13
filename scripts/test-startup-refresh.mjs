@@ -19,6 +19,10 @@ const finishSplash = sourceOf(/function finishShopStartupSplash\(\){[\s\S]*?\n\}
 const releaseBrand = sourceOf(/function releaseShopStartupBrand\(\){[\s\S]*?\n\}/, "persistent splash brand release");
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
 const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "animated brand startup screen");
+assert.doesNotMatch(splashMarkup,/\shidden(?:\s|=|>)/,"the startup logo is not hidden while the app opens");
+assert.match(splashMarkup,/fetchpriority="high" decoding="sync"/,"the original logo is requested and decoded at startup priority");
+const splashMarkupPosition=html.indexOf('id="shopStartupSplash"');
+assert.ok(splashMarkupPosition>html.indexOf("</head>")&&splashMarkupPosition<html.indexOf("<section id=\"mainApp\">"),"the visible Splash layer is in the initial document before the app content");
 
 assert.match(html,/SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion\?300:2000/,"the branded splash holds for two seconds");
 assert.match(html,/SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion\?0:500/,"the splash handoff is reduced-motion aware");

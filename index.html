@@ -3093,9 +3093,6 @@ html.shop-auth-modal-open,body.shop-auth-modal-open{overflow:hidden!important;ov
 .shop-promo-onboarding-brand svg{display:block;width:20px;height:17px;fill:none;stroke:#9ddfff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 7px rgba(73,188,255,.42))}
 .shop-promo-onboarding-brand-name{color:#fff!important}
 .shop-promo-onboarding-brand small{color:#a8dcff;font-family:Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:.32em;line-height:1.2}
-.shop-promo-onboarding-language-control{position:relative;z-index:2;display:flex;align-items:center;justify-self:center;gap:8px;min-height:30px;padding:3px 10px;border:1px solid rgba(130,211,255,.48);border-radius:999px;background:rgba(5,17,43,.72);color:#d7f2ff;font:600 10px Arial,sans-serif;direction:ltr;backdrop-filter:blur(10px)}
-.shop-promo-onboarding-language-control select{max-width:150px;min-height:25px;border:0;background:transparent;color:#fff;font:700 11px Arial,sans-serif;outline:none}
-.shop-promo-onboarding-language-control option{background:#07163b;color:#fff}
 .shop-promo-onboarding-choices[hidden],.shop-promo-onboarding-image[hidden]{display:none!important}
 .shop-promo-onboarding-actions{display:grid;align-self:end;gap:8px;width:min(100%,480px);justify-self:center}
 .shop-promo-onboarding-choices{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%}
@@ -3125,7 +3122,6 @@ html .shop-promo-onboarding{--onboarding-violet:#a84bff;--onboarding-pink:#ed65f
 .shop-promo-onboarding::before{bottom:8%;transform:rotate(-7deg);box-shadow:0 -8px 26px rgba(142,43,255,.28)}.shop-promo-onboarding::after{bottom:2%;transform:rotate(6deg);opacity:.56;filter:blur(1px) drop-shadow(0 0 10px rgba(166,43,255,.5))}
 .shop-promo-onboarding[hidden],.shop-promo-onboarding-choices[hidden]{display:none!important}
 .shop-promo-onboarding-content{position:relative;z-index:1;box-sizing:border-box;display:grid;grid-template-rows:minmax(0,clamp(160px,30dvh,280px)) auto auto;align-content:center;align-items:center;justify-items:center;width:100%;height:100%;min-height:0;gap:clamp(10px,2.6dvh,24px);padding:calc(env(safe-area-inset-top) + clamp(14px,3.4vh,34px)) clamp(22px,7vw,42px) calc(env(safe-area-inset-bottom) + clamp(14px,3.4vh,34px));text-align:center}
-.shop-promo-onboarding-language-control{position:absolute;top:calc(env(safe-area-inset-top) + 10px);right:max(18px,env(safe-area-inset-right));z-index:3;display:flex;align-items:center;gap:6px;min-height:30px;padding:3px 9px;border:1px solid rgba(169,84,255,.48);border-radius:999px;background:rgba(12,6,25,.78);color:#eee1ff;font:600 10px Arial,sans-serif;direction:ltr;backdrop-filter:blur(10px)}.shop-promo-onboarding-language-control select{max-width:150px;min-height:25px;border:0;background:transparent;color:#fff;font:700 11px Arial,sans-serif;outline:none}.shop-promo-onboarding-language-control option{background:#10071d;color:#fff}
 .shop-promo-onboarding-brand-art-wrap{display:grid;place-items:center;align-self:center;width:100%;height:100%;min-height:0;pointer-events:none}
 .shop-promo-onboarding-brand-art{display:none!important}
 .shop-promo-onboarding-welcome{margin:0;background:linear-gradient(110deg,#fff 0%,#f3e5ff 48%,#c68aff 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;color:transparent;font:500 clamp(32px,9vw,50px)/1.08 Didot,"Bodoni 72","Bodoni MT",Georgia,serif;letter-spacing:.16em;text-shadow:0 0 22px rgba(160,61,255,.42);opacity:1}
@@ -3762,7 +3758,6 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
 
 <section id="shopPromoOnboarding" class="shop-promo-onboarding" role="dialog" aria-modal="true" aria-label="Shivan Shop introduction" aria-hidden="true" hidden>
   <div class="shop-promo-onboarding-content">
-    <label class="shop-promo-onboarding-language-control" for="welcomeLanguageSelect"><span id="welcomeLanguageLabel">Language</span><select id="welcomeLanguageSelect" aria-label="Language" title="Language"><option value="en" data-i18n-preserve>English</option><option value="ku-Badini" data-i18n-preserve>Kurdish Badini · کوردی بادینی</option><option value="ar" data-i18n-preserve>العربية</option></select></label>
     <div class="shop-promo-onboarding-brand-art-wrap" aria-hidden="true"></div>
     <h1 id="shopPromoOnboardingWelcomeHeading" class="shop-promo-onboarding-welcome" tabindex="-1">WELCOME</h1>
     <div id="shopPromoOnboardingChoices" class="shop-promo-onboarding-choices">

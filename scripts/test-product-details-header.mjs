@@ -31,7 +31,7 @@ assert.match(html, /\.home-shop-wordmark-shop::after\{[^}]*border-bottom:2px sol
 
 assert.equal((html.match(/id="languageSelect"/g) || []).length, 1, "the hamburger keeps one language selector");
 assert.equal((html.match(/id="settingsLanguageSelect"/g) || []).length, 1, "Profile Settings exposes the second synchronized language selector");
-assert.equal((html.match(/id="welcomeLanguageSelect"/g) || []).length, 1, "Welcome exposes a language selector before account creation");
+assert.equal((html.match(/id="welcomeLanguageSelect"/g) || []).length, 0, "Welcome has no language selector");
 assert.match(html, /<select id="languageSelect"[^>]*>[\s\S]*?<option value="en"[^>]*>English<\/option>[\s\S]*?<option value="ku-Badini"[^>]*>Kurdish Badini/);
 assert.match(html, /<div id="settingsModal"[^>]*>[\s\S]*?<select id="settingsLanguageSelect"/, "language can be changed from Profile Settings");
 const menuStart = html.indexOf('<aside id="homeMenuPanel"');

@@ -14,11 +14,10 @@ assert.match(html, /<html lang="en" dir="ltr">/, "new sessions start with Englis
 assert.match(html, /const languageCatalog=\{en:Object\.create\(null\),"ku-Badini":Object\.create\(null\),ar:Object\.create\(null\)\}/, "the shared catalog contains exactly the three supported locales");
 assert.equal((html.match(/id="languageSelect"/g) || []).length, 1, "the hamburger language selector remains available");
 assert.equal((html.match(/id="settingsLanguageSelect"/g) || []).length, 1, "Profile Settings has a language selector");
-assert.equal((html.match(/id="welcomeLanguageSelect"/g) || []).length, 1, "Welcome offers a language choice before sign-up");
+assert.equal((html.match(/id="welcomeLanguageSelect"/g) || []).length, 0, "Welcome has no language selector");
 const optionValues = id => { const markup = html.match(new RegExp("<select id=\"" + id + "\"[^>]*>([\\s\\S]*?)<\\/select>")); assert.ok(markup, id + " exists"); return Array.from(markup[1].matchAll(/<option value="([^"]+)"/g), match => match[1]); };
 assert.deepEqual(optionValues("languageSelect"), ["en", "ku-Badini", "ar"], "the menu offers exactly the three supported languages");
 assert.deepEqual(optionValues("settingsLanguageSelect"), ["en", "ku-Badini", "ar"], "Profile Settings offers the same three languages");
-assert.deepEqual(optionValues("welcomeLanguageSelect"), ["en", "ku-Badini", "ar"], "Welcome offers the same three languages");
 assert.match(html, /id="detailName"[^>]*data-i18n-preserve/, "Product Details title is protected from automatic translation");
 assert.match(html, /id="detailDescription"[^>]*data-i18n-preserve/, "Owner-authored product descriptions are protected");
 assert.match(html, /id="profileName"[^>]*data-i18n-preserve/, "account names are protected");
@@ -35,7 +34,7 @@ assert.ok(rowsStart >= 0 && runtimeEnd > rowsStart, "central language rows and r
 const bootstrap = html.slice(rowsStart, runtimeEnd);
 
 const selectors = new Map();
-for (const id of ["languageSelect", "settingsLanguageSelect", "welcomeLanguageSelect"]) {
+for (const id of ["languageSelect", "settingsLanguageSelect"]) {
   selectors.set(id, {
     value: "",
     listeners: new Map(),
@@ -96,7 +95,6 @@ assert.equal(root.lang, "ku-Badini", "the saved Badini preference is restored");
 assert.equal(root.dir, "rtl");
 assert.equal(selectors.get("languageSelect").value, "ku-Badini");
 assert.equal(selectors.get("settingsLanguageSelect").value, "ku-Badini");
-assert.equal(selectors.get("welcomeLanguageSelect").value, "ku-Badini");
 assert.equal(writes.length, 0, "loading a saved preference does not rewrite it");
 assert.equal(interfaceNode.nodeValue, "ماڵەوە", "interface text translates to Badini on the real translator path");
 assert.equal(authoredNode.nodeValue, "Home", "user-authored text is excluded from automatic translation");
@@ -156,12 +154,6 @@ selectors.get("settingsLanguageSelect").value = "en";
 selectors.get("settingsLanguageSelect").listeners.get("change")();
 assert.equal(values.get("shivan_shop_language"), "en", "a Settings selection persists for future sessions");
 assert.equal(selectors.get("languageSelect").value, "en", "a Settings selection synchronizes the menu");
-assert.equal(selectors.get("welcomeLanguageSelect").value, "en", "a Settings selection synchronizes Welcome");
-selectors.get("welcomeLanguageSelect").value = "ku-Badini";
-selectors.get("welcomeLanguageSelect").listeners.get("change")();
-assert.equal(selectors.get("languageSelect").value, "ku-Badini", "a Welcome selection synchronizes the hamburger menu");
-assert.equal(selectors.get("settingsLanguageSelect").value, "ku-Badini", "a Welcome selection synchronizes Profile Settings");
-assert.equal(values.get("shivan_shop_language"), "ku-Badini", "a Welcome selection persists the canonical preference");
 assert.ok(writes.length > 0, "explicit language selection persists");
 
 console.log("Language support checks passed: three locales, central dictionary, synchronized selectors, RTL/LTR, preference persistence, screen copy, and authored-content preservation.");

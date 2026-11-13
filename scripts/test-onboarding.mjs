@@ -33,7 +33,9 @@ assert.ok(Number(splashCss.match(/z-index:(\d+)/)?.[1]||0)>Number(welcomeLayerCs
 assert.match(html,/\.shop-startup-splash\.is-onboarding-brand \.shop-startup-brand\{top:calc\(env\(safe-area-inset-top\)/,"the logo transitions from center to a responsive Welcome position");
 assert.match(html,/function replayShopStartupFlow\(\)[\s\S]*?finishShopStartupSplash\(\)/);
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
-assert.match(onboardingMarkup,/id="welcomeLanguageSelect"[^>]*aria-label="Language"/);
+assert.doesNotMatch(onboardingMarkup,/welcomeLanguageSelect|welcomeLanguageLabel|shop-promo-onboarding-language-control/,"Welcome has no language selector");
+assert.match(html,/id="languageSelect"/);
+assert.match(html,/id="settingsLanguageSelect"/);
 assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length,0,"Welcome does not render a duplicate logo image");
 assert.equal((html.match(/<img class="shop-startup-brand" src="\/assets\/branding\/shivan-shop-neon-brand\.png"/g)||[]).length,1,"Splash and Welcome use the same single logo node");
 assert.match(onboardingMarkup,/class="shop-promo-onboarding-brand-art-wrap" aria-hidden="true"><\/div>/,"the Welcome layout reserves space while the Splash logo overlays it");
