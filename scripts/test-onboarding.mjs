@@ -29,13 +29,15 @@ assert.match(splashMarkup,/shivan-shop-neon-brand\.png/);
 assert.equal((splashMarkup.match(/<img\b/g)||[]).length,1);
 const splashCss=html.match(/\.shop-startup-splash\{[^}]*\}/)?.[0]||"";
 const welcomeLayerCss=html.match(/html \.shop-promo-onboarding\{[^}]*\}/)?.[0]||"";
-assert.ok(Number(splashCss.match(/z-index:(\d+)/)?.[1]||0)>Number(welcomeLayerCss.match(/z-index:(\d+)/)?.[1]||0),"splash must remain above Welcome until its logo lift and fade complete");
-assert.match(html,/shopStartupBrandLift 500ms/);
+assert.ok(Number(splashCss.match(/z-index:(\d+)/)?.[1]||0)>Number(welcomeLayerCss.match(/z-index:(\d+)/)?.[1]||0),"the same Splash logo remains above Welcome until a destination is selected");
+assert.match(html,/\.shop-startup-splash\.is-onboarding-brand \.shop-startup-brand\{top:calc\(env\(safe-area-inset-top\)/,"the logo transitions from center to a responsive Welcome position");
 assert.match(html,/function replayShopStartupFlow\(\)[\s\S]*?finishShopStartupSplash\(\)/);
 const onboardingMarkup=html.match(/<section id="shopPromoOnboarding"[\s\S]*?<\/section>/)?.[0]||"";
 assert.match(onboardingMarkup,/id="welcomeLanguageSelect"[^>]*aria-label="Language"/);
-assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length,1);
-assert.match(onboardingMarkup,/shop-promo-onboarding-brand-art[^>]*shivan-shop-neon-brand\.png/);
+assert.equal((onboardingMarkup.match(/<img\b/g)||[]).length,0,"Welcome does not render a duplicate logo image");
+assert.equal((html.match(/<img class="shop-startup-brand" src="\/assets\/branding\/shivan-shop-neon-brand\.png"/g)||[]).length,1,"Splash and Welcome use the same single logo node");
+assert.match(onboardingMarkup,/class="shop-promo-onboarding-brand-art-wrap" aria-hidden="true"><\/div>/,"the Welcome layout reserves space while the Splash logo overlays it");
+assert.doesNotMatch(onboardingMarkup,/shop-promo-onboarding-brand-art[^>]*shivan-shop-neon-brand\.png/);
 assert.match(onboardingMarkup,/id="shopPromoOnboardingWelcomeHeading"[^>]*>WELCOME<\/h1>/);
 assert.doesNotMatch(onboardingMarkup,/shopPromoOnboardingImage|shop-promo-onboarding-media/);
 assert.equal((onboardingMarkup.match(/<button\b/g)||[]).length,2);
@@ -45,6 +47,23 @@ assert.match(html,/--onboarding-violet:#a84bff/);
 const welcomeCssPosition=html.indexOf("html .shop-promo-onboarding{--onboarding-violet:#a84bff;");
 assert.ok(welcomeCssPosition>=0&&welcomeCssPosition<html.indexOf("</head>"),"Welcome CSS must be in the page head stylesheet, not generated utility output");
 assert.match(html,/linear-gradient\(110deg,#8b20ff,#c22cff 58%,#7f16eb\)/);
+assert.match(html,/font:500 clamp\(32px,9vw,50px\)\/1\.08 Didot/);
+assert.match(html,/background-image:linear-gradient\(110deg,#fff 0%,#f3e5ff 48%,#c68aff 100%\)!important/);
+assert.match(html,/shopWelcomeHeadingIn 500ms[^}]*790ms/);
+assert.match(html,/@keyframes shopWelcomeChoiceIn\{0%\{visibility:hidden;opacity:0;[^}]*\}1%\{visibility:visible;opacity:0;/,"staggered actions fade smoothly once they become visible and tappable");
+assert.match(html,/shopPromoOnboardingCreateAccount\{animation:shopWelcomeChoiceIn 500ms[^}]*1290ms/);
+assert.match(html,/shopPromoOnboardingExploreModels\{animation:shopWelcomeChoiceIn 500ms[^}]*1430ms/);
+assert.match(html,/minmax\(0,clamp\(160px,30dvh,280px\)\)/);
+assert.match(html,/@media\(max-width:360px\)\{\.shop-promo-onboarding-content\{padding-left:18px;padding-right:18px/);
+const welcomeWidths=[320,375,390,430];
+for(const width of welcomeWidths){
+  const logoWidth=Math.min(width*.78,366)*.68;
+  const horizontalPadding=width<=360?18:Math.min(width*.07,42);
+  const actionsWidth=Math.min(480,width-horizontalPadding*2);
+  assert.ok(logoWidth>0&&logoWidth<width,"the centered logo fits at "+width+"px");
+  assert.ok(actionsWidth>0&&actionsWidth<=width-horizontalPadding*2,"Welcome actions fit at "+width+"px");
+}
+assert.match(html,/width:min\(78vw,366px\)/,"the splash logo scales to the requested phone widths");
 assert.match(html,/shop-promo-onboarding-content\{[^}]*height:100%[^}]*safe-area-inset-top[^}]*safe-area-inset-bottom/);
 assert.match(html,/@media\(min-width:700px\)\{html \.shop-promo-onboarding\{inset:50% auto auto 50%;width:min\(430px/);
 assert.match(html,/@media\(prefers-reduced-motion:reduce\)\{\.shop-startup-brand/);
@@ -57,21 +76,24 @@ assert.match(extractFunction("startShopOnboardingSignup"),/saveShopOnboardingCom
 assert.match(extractFunction("finishShopReturningWelcome"),/hideShopOnboarding\(\)[\s\S]*?openView\("home"/);
 const logoutSource=html.match(/async function logout\(\)\{[\s\S]*?\n\}/)?.[0]||"";
 assert.match(logoutSource,/SHOP_ONBOARDING_COMPLETED_KEY[\s\S]*?replayShopStartupFlow\(\)/);
-assert.match(extractFunction("finishShopStartupSplash"),/shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/);
-assert.equal(Number(html.match(/const SHOP_RETURNING_WELCOME_MS=(\d+);/)?.[1]),700);
+assert.match(extractFunction("finishShopStartupSplash"),/shopStartupCompleted=true;[\s\S]*?showShopOnboardingIfNeeded\(\{startupReveal:true\}\)[\s\S]*?classList.add\("is-onboarding-brand"\)/,"startup hands the persistent logo to Welcome without fading it");
+assert.equal(Number(html.match(/const SHOP_RETURNING_WELCOME_MS=(\d+);/)?.[1]),1700,"returning users see the completed Welcome reveal before automatic navigation");
 const flowNames = [
   "isShopOnboardingCompleted", "saveShopOnboardingCompletion", "finishShopReturningWelcome",
   "getShopOnboardingStartupView", "getShopOnboardingVisibilityAction", "getActiveShopView", "readShopViewPosition",
   "captureShopOnboardingResumeState", "restoreShopOnboardingResumeState", "prefersReducedShopOnboardingMotion",
   "warmShopOnboardingImages", "renderShopOnboardingSlide", "beginShopOnboardingPageHandoff", "startShopOnboardingSignup",
-  "finishShopOnboarding", "hideShopOnboarding", "showShopOnboardingIfNeeded", "showShopOnboarding", "handleShopOnboardingVisibilityChange",
+  "finishShopOnboarding", "releaseShopStartupBrand", "hideShopOnboarding", "showShopOnboardingIfNeeded", "showShopOnboarding", "handleShopOnboardingVisibilityChange",
 ];
 const flowSource = [
   'const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";',
   'const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_startup_choice_completed";',
   "const SHOP_ONBOARDING_SLIDE_COUNT = 3;",
   "const SHOP_ONBOARDING_HANDOFF_MS = 260;",
-  "const SHOP_RETURNING_WELCOME_MS = 700;",
+  "const SHOP_RETURNING_WELCOME_MS = 1700;",
+  "const SHOP_BRANDED_SPLASH_EXIT_MS = 500;",
+  "let shopStartupSplashHideTimer=null;",
+  'const shopStartupPrefersReducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches===true;',
   "const shopOnboardingImagePreloads=new Map();",
   'const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze(["https://fallback.example.test/1.jpg", "https://fallback.example.test/2.jpg", "https://fallback.example.test/3.jpg"]);',
   "let shopOnboardingHandoffTimer=0;",
@@ -102,6 +124,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   };
   const timers=new Map();
   const classes=new Set();
+  const startupSplashClasses=new Set();
   const rootClasses=new Set();
   const bodyClasses=new Set();
   const pageClassList=target=>({add(name){target.add(name);},remove(name){target.delete(name);},contains(name){return target.has(name);}});
@@ -131,8 +154,10 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   const pageView=(id,active)=>{const viewTokens=new Set(active?["active"]:[]);return {scrollTop:0,classList:{add(name){viewTokens.add(name);},remove(name){viewTokens.delete(name);},contains(name){return viewTokens.has(name);},toggle(name,force){force?viewTokens.add(name):viewTokens.delete(name);}}};};
   const viewElements=new Map(["home","search","cart","profile","detail","owner"].map(view=>[`${view}View`,pageView(`${view}View`,activeView===view)]));
   const searchInput={value:""};
+  const startupSplashNode={hidden:true,classList:{add(name){startupSplashClasses.add(name);},remove(name){startupSplashClasses.delete(name);},contains(name){return startupSplashClasses.has(name);}}};
   const elements=new Map([
     ["shopPromoOnboarding",layer],
+    ["shopStartupSplash",startupSplashNode],
     ["shopPromoOnboardingWelcomeHeading",{focus(){}}],
     ["shopPromoOnboardingChoices",choices],
     ["shopPromoOnboardingCreateAccount",{focus(){}}],
@@ -163,7 +188,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     openView: view => { openedView = view; },
   };
   const flow = runInNewContext(flowSource, runtime);
-  return { flow, runtime, storage, layer, image, choices, authPage, mainApp, elements, classes, rootClasses, bodyClasses, preloadedImageUrls, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;} };
+  return { flow, runtime, storage, layer, image, choices, authPage, mainApp, elements, classes, rootClasses, bodyClasses, preloadedImageUrls, startupSplashNode, startupSplashClasses, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;} };
 }
 
 const customSlidesFlow=createFlow();
@@ -177,7 +202,10 @@ assert.equal(customSlidesFlow.storage.getItem(sharedImageKey),JSON.stringify(["h
 const guestFlow = createFlow();
 guestFlow.storage.setItem('shivan_shop_web_onboarding_completed', '1');
 assert.equal(guestFlow.flow.view(), 'choices', 'a first visit starts with the two explicit destination choices');
+guestFlow.flow.showIfNeeded({startupReveal:true});
+assert.equal(guestFlow.classes.has("is-startup-reveal"),true,"the startup Welcome sequence is explicitly enabled");
 guestFlow.flow.showIfNeeded();
+assert.equal(guestFlow.classes.has("is-startup-reveal"),true,"reopening the already visible Welcome screen does not restart its entrance");
 assert.equal(guestFlow.rootClasses.has("shop-promo-onboarding-open"), true, "startup should lock the document root against scrolling");
 assert.equal(guestFlow.bodyClasses.has("shop-promo-onboarding-open"), true, "startup should lock the body against scrolling");
 guestFlow.flow.render();
@@ -193,12 +221,14 @@ assert.equal(returningFlow.flow.view(),"returning","a previously chosen destinat
 returningFlow.flow.showIfNeeded();
 assert.equal(returningFlow.layer.hidden,false,"returning Welcome is shown after splash");
 assert.equal(returningFlow.choices.hidden,true,"returning Welcome hides both first-time choices");
-assert.deepEqual(returningFlow.pendingTimerDelays(),[700],"returning Welcome has a brief automatic handoff");
+assert.deepEqual(returningFlow.pendingTimerDelays(),[1700],"returning Welcome allows the complete logo and heading reveal to finish");
 returningFlow.runTimers();
 assert.equal(returningFlow.layer.hidden,true,"returning Welcome closes after its reveal");
 assert.equal(returningFlow.openedView,"home","returning users land on the Shop");
 assert.equal(returningFlow.storage.getItem("shivan_shop_startup_choice_completed"),"1","returning flow preserves the chosen-destination marker");
 const exploreFlow = createFlow({pendingAuthenticationIntent:{type:'profile'},activeView:'profile'});
+exploreFlow.startupSplashNode.hidden=false;
+exploreFlow.startupSplashClasses.add("is-onboarding-brand");
 exploreFlow.flow.showIfNeeded();
 assert.equal(exploreFlow.choices.hidden,false, 'Explore Models is immediately available on welcome');
 assert.equal(exploreFlow.flow.finish(), true, 'Explore Models should start the existing shop handoff');
@@ -213,6 +243,11 @@ assert.equal(exploreFlow.rootClasses.has("shop-promo-onboarding-open"), true, 's
 exploreFlow.runTimers();
 assert.equal(exploreFlow.layer.hidden, true, 'Explore Models should dismiss Welcome after the transition');
 assert.equal(exploreFlow.layer.inert, false, 'the hidden onboarding layer should be reset for the next app entry');
+assert.equal(exploreFlow.startupSplashNode.hidden,false,"the same startup logo remains visible during the screen handoff");
+assert.equal(exploreFlow.startupSplashClasses.has("is-exiting"),true,"the original logo exits only after a Welcome choice");
+assert.deepEqual(exploreFlow.pendingTimerDelays(),[500],"the original logo stays mounted through the final handoff animation");
+exploreFlow.runTimers();
+assert.equal(exploreFlow.startupSplashNode.hidden,true,"the Splash layer closes after its destination transition completes");
 assert.equal(exploreFlow.rootClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore root scrolling");
 assert.equal(exploreFlow.bodyClasses.has("shop-promo-onboarding-open"), false, "Explore Models should restore body scrolling");
 assert.equal(exploreFlow.openedShop, true, 'Explore Models should open the existing shop');
@@ -246,10 +281,13 @@ assert.equal(accountFlow.storage.getItem('test-session'),preservedSession,'regis
 assert.equal(accountFlow.storage.getItem('test-cart'),preservedCart,'registration navigation should preserve the cart');
 
 const reducedExploreFlow=createFlow({reducedMotion:true});
+reducedExploreFlow.startupSplashNode.hidden=false;
+reducedExploreFlow.startupSplashClasses.add("is-onboarding-brand");
 reducedExploreFlow.flow.show();
 assert.equal(reducedExploreFlow.flow.finish(),true,'reduced-motion Explore Models should still open the existing shop');
 assert.equal(reducedExploreFlow.layer.hidden,true,'reduced-motion handoffs should complete immediately');
 assert.deepEqual(reducedExploreFlow.pendingTimerDelays(),[],'reduced-motion Explore Models should not wait on an animation timer');
+assert.equal(reducedExploreFlow.startupSplashNode.hidden,true,"reduced-motion handoff releases the logo immediately after the choice");
 assert.equal(reducedExploreFlow.rootClasses.has('shop-promo-onboarding-open'),false,'immediate Explore Models should restore page scrolling');
 
 const reducedAccountFlow=createFlow({reducedMotion:true});

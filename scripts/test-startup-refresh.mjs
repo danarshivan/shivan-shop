@@ -15,7 +15,8 @@ const sourceOf = (pattern, label) => {
 const startup = sourceOf(/async function initializeCloud\(\)\{[\s\S]*?\n\}/, "cloud startup");
 const refresh = sourceOf(/async function refreshCloudData\(\)\{[\s\S]*?\n\}/, "cloud refresh");
 const apply = sourceOf(/function applyCloudData\(data\)\{[\s\S]*?\n\}/, "cloud data application");
-const finishSplash = sourceOf(/function finishShopStartupSplash\(\)\{[\s\S]*?\n\}/, "branded splash");
+const finishSplash = sourceOf(/function finishShopStartupSplash\(\){[\s\S]*?\n\}/, "branded splash");
+const releaseBrand = sourceOf(/function releaseShopStartupBrand\(\){[\s\S]*?\n\}/, "persistent splash brand release");
 const startupHandler = sourceOf(/document\.addEventListener\("DOMContentLoaded",\(\)=>\{[\s\S]*?\n\}\);/, "page startup handler");
 const splashMarkup = sourceOf(/<section id="shopStartupSplash"[\s\S]*?<\/section>/, "animated brand startup screen");
 
@@ -33,13 +34,13 @@ assert.match(html,/<link rel="preload" as="image" href="\/assets\/branding\/shiv
 const splashCss=html.match(/\.shop-startup-splash\{[^}]*\}/)?.[0]||"";
 for(const declaration of ["position:fixed","inset:0","background:#030009","overflow:hidden"])assert.ok(splashCss.includes(declaration),"splash viewport rule includes "+declaration);
 assert.match(html,/\.shop-startup-brand\{[^}]*object-fit:contain/,"the logo keeps its original aspect ratio");
-assert.match(html,/\.shop-startup-brand\{[^}]*animation:shopStartupBrandReveal 850ms[^}]*120ms/,"the logo reveals smoothly after app launch");
-assert.match(html,/\.shop-startup-splash\.is-exiting \.shop-startup-brand\{animation:shopStartupBrandLift 500ms/,"the brand lifts smoothly during handoff");
+assert.match(html,/\.shop-startup-brand\{[^}]*opacity:1;transform:translate3d\(-50%,-50%,0\) scale\(1\)[^}]*transition:top 780ms[^}]*transform 780ms/,"the original logo starts visible and uses smooth positional transitions");
+assert.match(html,/\.shop-startup-splash\.is-onboarding-brand \.shop-startup-brand\{top:calc\(env\(safe-area-inset-top\) \+ clamp\(110px,19dvh,160px\)\);transform:translate3d\(-50%,-50%,0\) scale\(\.68\)/,"the same logo lifts into its persistent Welcome position");
 assert.match(html,/\.shop-startup-splash::before,.shop-startup-splash::after[^}]*rgba\(174,75,255/,"the splash uses restrained purple wave accents");
 assert.match(html,/@media\(min-width:700px\)\{\.shop-startup-splash\{inset:50% auto auto 50%;width:min\(430px/,"Windows keeps the splash in its centered iPhone frame");
 assert.match(html,/@media\(max-width:699px\)\{\.shop-startup-splash\{inset:0;width:100vw;width:100dvw;height:100vh;height:100dvh/,"iPhone uses the full dynamic viewport");
 assert.match(html,/SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion\?300:2000/);
-assert.equal(2000+500,2500,"splash hold and handoff total 2.5 seconds");
+assert.match(html,/transition:top 780ms cubic-bezier\(\.22,\.78,\.2,1\)/,"the logo movement has a deliberate, smooth 780ms duration");
 assert.match(html,/@media\(prefers-reduced-motion:reduce\)\{\.shop-startup-brand\{animation:none!important/,"the logo animation respects reduced-motion preferences");
 assert.match(html,/#mainApp\.shop-startup-enter\{animation:shopStartupShopIn 500ms/,"the existing app fades in during the handoff");
 assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)[\s\S]*?initializeCloud\(\)/, "cached products must render before network startup");
@@ -53,7 +54,7 @@ assert.doesNotMatch(startup, /location\.reload\(/, "startup and refresh must not
 assert.match(html, /if\(!changed\)return;/, "unchanged cloud data should not trigger a rerender");
 assert.match(apply, /if\(productsChanged\)loadProducts\(\)/, "only product changes should re-read the product cache");
 assert.match(apply, /if\(productsChanged\|\|favoritesChanged\)renderVisibleProductGrid\(\)/, "a product or favorite update should refresh the active browsing grid");
-assert.match(finishSplash, /shopStartupCompleted=true;\s*showShopOnboardingIfNeeded\(\)/, "the model-selection flow should show onboarding after the branded splash");
+assert.match(finishSplash,/shopStartupCompleted=true;[\s\S]*?showShopOnboardingIfNeeded\(\{startupReveal:true\}\)[\s\S]*?classList.add\("is-onboarding-brand"\)/,"the startup welcome reveal keeps the same logo visible above Welcome");
 
 function deferred() {
   let resolve;
@@ -64,10 +65,11 @@ function deferred() {
 
 const splashEvents = [];
 let onboardingShown = 0;
+const onboardingOptions = [];
 let now = 1000;
 const splashClasses = new Set();
 const mainClasses = new Set();
-const splashNode = { hidden: false, classList: { add: name => splashClasses.add(name), remove: name => splashClasses.delete(name) } };
+const splashNode = { hidden: false, classList: { add: name => splashClasses.add(name), remove: name => splashClasses.delete(name), contains: name => splashClasses.has(name) } };
 const mainNode = { style: { display: "none" }, classList: { add: name => mainClasses.add(name), remove: name => mainClasses.delete(name) } };
 const openedWith = [];
 const splashSandbox = {
@@ -80,7 +82,7 @@ const splashSandbox = {
   performance: { now: () => now },
   document: { getElementById: id => id === "shopStartupSplash" ? splashNode : id === "mainApp" ? mainNode : null },
   openMain: options => { openedWith.push(options); mainNode.style.display = "block"; },
-  showShopOnboardingIfNeeded: () => { onboardingShown += 1; },
+  showShopOnboardingIfNeeded: options => { onboardingShown += 1; onboardingOptions.push(options); return true; },
   setTimeout: (callback, ms) => { splashEvents.push({ callback, ms }); return splashEvents.length; },
   clearTimeout: () => {},
 };
@@ -92,14 +94,22 @@ now = 3100;
 splashEvents[0].callback();
 assert.equal(openedWith.length, 1, "the 2.1-second splash hold should open Shop once");
 assert.equal(openedWith[0]?.resumeIntent, false, "the startup transition should not resume an unverified purchase");
-assert.equal(onboardingShown, 1, "the first onboarding slide should show as the splash hands off to the shop");
-assert.equal(splashNode.hidden, false, "the supplied splash should fade away smoothly after its hold");
-assert.ok(splashClasses.has("is-exiting"), "the splash should fade out as the shop enters");
+assert.equal(onboardingShown, 1, "the first Welcome screen shows after the centered Splash");
+assert.equal(onboardingOptions[0]?.startupReveal,true,"startup explicitly sequences the Welcome entrance");
+assert.equal(splashNode.hidden, false, "the same splash logo remains visible throughout Welcome");
+assert.ok(splashClasses.has("is-onboarding-brand"), "the original logo stays in its Welcome position");
+assert.equal(splashClasses.has("is-exiting"),false,"the original logo does not fade during the Splash-to-Welcome transition");
 assert.ok(mainClasses.has("shop-startup-enter"), "the shop should fade and slide into view");
-assert.equal(splashEvents[1]?.ms, 500, "the visual handoff should use the smooth exit animation");
-now = 3600;
-splashEvents[1].callback();
-assert.equal(splashNode.hidden, true, "the splash should be removed after its transition completes");
+assert.equal(splashEvents.length,1,"startup does not schedule a timer that removes the persistent Welcome logo");
+splashNode.hidden=false;
+const releaseEvents=[];
+const releaseSandbox={document:{getElementById:()=>splashNode},shopStartupSplashHideTimer:null,shopStartupPrefersReducedMotion:false,SHOP_BRANDED_SPLASH_EXIT_MS:500,setTimeout:(callback,ms)=>{releaseEvents.push({callback,ms});return releaseEvents.length;},clearTimeout:()=>{}};
+runInNewContext(releaseBrand+"\nglobalThis.release=releaseShopStartupBrand;",releaseSandbox);
+assert.equal(releaseSandbox.release(),true,"the logo is released only when Welcome hands off to another screen");
+assert.equal(splashNode.hidden,false,"the logo remains visible during the final screen handoff");
+assert.equal(releaseEvents[0]?.ms,500,"the final logo exit uses the existing smooth handoff duration");
+releaseEvents[0].callback();
+assert.equal(splashNode.hidden,true,"the logo layer is removed only after the destination transition");
 assert.equal(splashSandbox.shopStartupCompleted, true, "the startup handoff should run only once");
 
 const bootstrap = deferred();
