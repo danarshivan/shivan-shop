@@ -93,6 +93,7 @@ const sessionSession = makeStorage();
 const functionNames = [
   "restoreProfileAuthCard", "showGuestProfileChoices", "beginProfileAuthentication", "backToProfileAuthChoices",
   "showAuth", "resumeAuthenticationIntent", "getActiveShopView", "readShopViewPosition", "shopViewHistoryState", "writeShopViewHistory", "installShopViewNavigation", "openGuestAuthenticationModal", "closeGuestAuthenticationModal", "openView", "openMain", "updateHomeHeaderCountBadges",
+  "clearActiveGuestShopVisit", "showLogoutLoginScreen",
 ];
 const functionSources = functionNames.map(name => {
   const source = html.match(new RegExp(`function ${name}\\([\\s\\S]*?\\n\\}`))?.[0];
@@ -110,6 +111,13 @@ const context = {
   shopOnboardingActive: false,
   SESSION_KEY: "offline-test-session",
   SHOP_ONBOARDING_COMPLETED_KEY: "shivan_shop_startup_choice_completed",
+  SHOP_GUEST_VISIT_KEY: "shivan_shop_guest_visit_active",
+  shopStartupSplashTimer: null,
+  shopStartupSplashHideTimer: null,
+  shopStartupAuthResolved: true,
+  shopStartupCompleted: true,
+  shopLoggedOutRequiresLogin: false,
+  shopLogoutInProgress: false,
   cloudMode: false,
   ownerPanel: "products",
   shopViewScrollPositions: new Map(),
@@ -157,13 +165,15 @@ const context = {
   },
   window: {
     scrollY: 0,
-    history: { state: null, pushState(state) { this.state = state; }, replaceState(state) { this.state = state; } },
-    addEventListener() {},
+    location: { href: "https://shivan-shop.test/" },
+    history: { state: null, pushState(state) { this.state = state; }, replaceState(state) { this.state = state; context.replacedHistoryState = state; } },
+    addEventListener(type, handler) { if (type === "popstate") context.shopViewNavigationPopHandler = handler; },
     scrollTo(_x, y) { this.scrollY = Number(y) || 0; },
   },
+  clearTimeout() {},
   requestAnimationFrame: callback => callback(),
   closeDetailImageFullscreen() {},
-  hideShopOnboarding() {},
+  hideShopOnboarding(options) { context.hiddenOnboardingOptions = options; get("shopPromoOnboarding").hidden = true; },
   isOwner: () => false,
   isStaffSession: () => false,
   renderOwnerPanel() {},
@@ -176,6 +186,8 @@ const context = {
 runInNewContext(`${functionSources}\n${logoutSource}\nthis.testApi={openView,openMain,beginProfileAuthentication,backToProfileAuthChoices,showAuth,openGuestAuthenticationModal,closeGuestAuthenticationModal,resumeAuthenticationIntent,logout};`, context);
 
 get("homeView").scrollTop = 187;
+get("shopStartupSplash").hidden = false;
+get("shopPromoOnboarding").hidden = false;
 context.window.scrollY = 34;
 context.document.activeElement = get("navProfile");
 assert.equal(context.testApi.openView("profile"), true, "guest Profile opens the Login / Sign Up modal");
@@ -276,21 +288,42 @@ assert.equal(get("profileView").classList.contains("active"), true, "authenticat
 assert.equal(get("authenticatedProfileCard").hidden, false, "authenticated navigation shows the customer's Profile");
 
 localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
+sessionSession.setItem(context.SHOP_GUEST_VISIT_KEY,"1");
 await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout clears the active account");
 assert.equal(localSession.getItem(context.SESSION_KEY), null, "Logout clears the persistent session");
 assert.equal(sessionSession.getItem(context.SESSION_KEY), null, "Logout clears the temporary session");
-assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"Logout clears the saved Welcome choice so the two destinations return");
-assert.equal(context.startupFlowReplayed,1,"Logout replays the animated splash and first-visit choices");
+assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"Logout clears the legacy onboarding marker");
+assert.equal(sessionSession.getItem(context.SHOP_GUEST_VISIT_KEY),null,"Logout clears the tab-scoped guest visit marker");
+assert.equal(context.startupFlowReplayed||0,0,"Logout does not replay Splash or Welcome");
+assert.equal(get("mainApp").style.display,"none","Logout hides the authenticated app immediately after server confirmation");
+assert.equal(get("mainApp").inert,true,"hidden authenticated content is inaccessible");
+assert.equal(get("authPage").style.display,"","Logout opens Login / Sign Up directly");
+assert.equal(get("authPage").inert,false,"Login remains interactive after Logout");
+assert.equal(get("loginForm").classList.contains("active"),true,"Logout selects the existing Login form");
+assert.equal(get("signupForm").classList.contains("active"),false,"the existing Sign Up choice remains available beside Login");
+assert.equal(get("shopStartupSplash").hidden,true,"Logout hides Splash without replaying it");
+assert.equal(context.replacedHistoryState.__shivanLoggedOut,true,"Logout replaces the current history state with a logged-out marker");
+assert.equal(context.shopLoggedOutRequiresLogin,true,"the app guards stale navigation after Logout");
+const loggedOutPopHandler=context.shopViewNavigationPopHandler;
+assert.equal(typeof loggedOutPopHandler,"function","shop navigation installs a Back handler");
+loggedOutPopHandler({state:{__shivanShopView:"owner"}});
+assert.equal(get("authPage").style.display,"","browser Back leaves the Login screen visible");
+assert.equal(context.currentUser,null,"browser Back cannot restore the logged-out account");
+assert.equal(context.testApi.openView("orders"),false,"stale private routes remain blocked after Logout");
+assert.equal(get("authPage").classList.contains("is-shop-auth-modal"),false,"stale navigation cannot replace direct Login with a guest modal");
 assert.equal(context.pendingAuthenticationIntent, null, "Logout clears any pending redirect intent");
 assert.equal(context.cart, preservedCart, "Logout does not discard the cart");
 
+context.shopLoggedOutRequiresLogin=false;
 context.testApi.openMain({resumeIntent:false});
 context.testApi.openView("cart");
 assert.equal(context.pendingAuthenticationIntent.type, "cart");
 context.testApi.showAuth("signup");
 assert.equal(get("signupForm").classList.contains("active"), true, "Cart users can choose Sign Up inside the modal");
 context.currentUser = { id: "offline-signup-customer", role: "customer" };
+context.shopLoggedOutRequiresLogin=false;
+sessionSession.removeItem(context.SHOP_GUEST_VISIT_KEY);
 sessionSession.setItem(context.SESSION_KEY, JSON.stringify({ accountId: context.currentUser.id }));
 context.testApi.openMain();
 assert.equal(get("cartView").classList.contains("active"), true, "successful Sign Up resumes the requested Cart destination");
@@ -313,16 +346,18 @@ assert.equal(context.mergedGuestCart, checkoutCart, "checkout merges the guest c
 assert.equal(context.checkoutOpened, true, "checkout resumes after authentication");
 
 localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
+context.shopLoggedOutRequiresLogin=false;
 await context.testApi.logout();
 assert.equal(context.currentUser, null, "Logout after Sign Up clears the active account");
 assert.equal(context.pendingAuthenticationIntent, null);
 assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"Logout after Sign Up also resets startup choices");
-assert.equal(context.startupFlowReplayed,2,"each confirmed Logout restarts the splash flow");
+assert.equal(context.startupFlowReplayed||0,0,"Logout after Sign Up still skips Splash and Welcome");
 
 context.cloudMode=true;
 context.flushCloudWrites=async()=>{};
 context.currentUser={id:"cloud-logout-customer",role:"customer"};
 context.cloudAccount={id:"cloud-logout-customer"};
+context.shopLoggedOutRequiresLogin=false;
 localSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:"cloud-logout-customer"}));
 sessionSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:"cloud-logout-customer"}));
 localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
@@ -332,10 +367,11 @@ assert.equal(context.currentUser,null,"confirmed cloud logout clears the local a
 assert.equal(localSession.getItem(context.SESSION_KEY),null,"confirmed cloud logout clears the saved session");
 assert.equal(sessionSession.getItem(context.SESSION_KEY),null,"confirmed cloud logout clears the temporary session");
 assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),null,"confirmed cloud logout resets startup choices");
-assert.equal(context.startupFlowReplayed,3,"confirmed cloud logout replays the splash flow");
+assert.equal(context.startupFlowReplayed||0,0,"confirmed cloud Logout never replays Splash");
 const unconfirmedAccount={id:"cloud-logout-offline",role:"customer"};
 context.currentUser=unconfirmedAccount;
 context.cloudAccount={id:"cloud-logout-offline"};
+context.shopLoggedOutRequiresLogin=false;
 localSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:unconfirmedAccount.id}));
 sessionSession.setItem(context.SESSION_KEY,JSON.stringify({accountId:unconfirmedAccount.id}));
 localSession.setItem(context.SHOP_ONBOARDING_COMPLETED_KEY,"1");
@@ -345,5 +381,5 @@ assert.equal(context.currentUser,unconfirmedAccount,"an unconfirmed logout prese
 assert.ok(localSession.getItem(context.SESSION_KEY),"an unconfirmed logout preserves the saved session");
 assert.ok(sessionSession.getItem(context.SESSION_KEY),"an unconfirmed logout preserves the temporary session");
 assert.equal(localSession.getItem(context.SHOP_ONBOARDING_COMPLETED_KEY),"1","an unconfirmed logout does not clear the selected startup choice");
-assert.equal(context.startupFlowReplayed,3,"an unconfirmed logout does not replay the splash or disturb the current flow");
+assert.equal(context.startupFlowReplayed||0,0,"an unconfirmed logout does not replay Splash or disturb the current flow");
 console.log("Offline authentication checks passed: guest Cart/Orders/Profile modal behavior, background-hydration race protection, exact page/scroll restoration, repeated-tap protection, in-modal Login/Sign Up switching, requested destination after authentication, authenticated navigation, session/cart preservation, and existing product/checkout intent flows.");

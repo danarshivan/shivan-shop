@@ -5068,6 +5068,7 @@ const PRODUCTS_KEY = "shivan_shop_products";
 const ADS_KEY = "shivan_shop_ads";
 const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";
 const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_startup_choice_completed";
+const SHOP_GUEST_VISIT_KEY = "shivan_shop_guest_visit_active";
 const SHOP_ONBOARDING_SLIDE_COUNT = 3;
 const SHOP_ONBOARDING_DEFAULT_IMAGES = Object.freeze([
   "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1000&q=75",
@@ -5123,6 +5124,9 @@ let shopStartupStartedAt=Number.isFinite(recordedShopStartupAt)?recordedShopStar
 let shopStartupSplashTimer=null;
 let shopStartupSplashHideTimer=null;
 let shopStartupCompleted=false;
+let shopStartupAuthResolved=false;
+let shopLoggedOutRequiresLogin=false;
+let shopLogoutInProgress=false;
 let cloudRefreshPromise=null;
 function finishShopStartupSplash(){
   if(shopStartupCompleted)return;
@@ -5134,6 +5138,13 @@ function finishShopStartupSplash(){
       shopStartupSplashTimer=null;
       finishShopStartupSplash();
     },remaining);
+    return;
+  }
+  if(!shopStartupAuthResolved){
+    if(!shopStartupSplashTimer)shopStartupSplashTimer=setTimeout(()=>{
+      shopStartupSplashTimer=null;
+      finishShopStartupSplash();
+    },100);
     return;
   }
   if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
@@ -5671,12 +5682,11 @@ async function initializeCloud(){
   const cachedShopWasOpened=hasCachedShop;
   if(cachedShopWasOpened){
     openMain({resumeIntent:false});
-    finishShopStartupSplash();
   }
   try{
     const authResult=await authPromise;
     if(authResult.ok&&authResult.auth?.account){
-      cloudAccount=authResult.auth.account;currentUser=authResult.auth.account;cloudMode=true;
+      cloudAccount=authResult.auth.account;currentUser=authResult.auth.account;cloudMode=true;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
       if(hasCachedShop){
         openMain({preserveProductGrid:cachedShopWasOpened});if(isStaffSession())openView("owner");
         startCloudSync();
@@ -5694,7 +5704,7 @@ async function initializeCloud(){
       return;
     }
     await bootstrapPromise;
-  }finally{cloudInitializationComplete=true;}
+  }finally{cloudInitializationComplete=true;if(!cloudMode){try{restoreSession();}catch(error){console.warn("Local session restore failed.",error);}}shopStartupAuthResolved=true;finishShopStartupSplash();}
 }
 
 function showCloudOwnerSetup(){
@@ -5714,7 +5724,7 @@ async function submitCloudOwnerSetup(){
   const password=document.getElementById("cloudOwnerSetupPassword").value;
   try{
     const data=await cloudRequest("/api/auth/setup-owner",{method:"POST",body:JSON.stringify({setupToken,name,identifier:OWNER_IDENTIFIER,password})});
-    cloudAccount=data.account;currentUser=data.account;cloudOwnerSetupRequired=false;
+    cloudAccount=data.account;currentUser=data.account;cloudOwnerSetupRequired=false;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
     closeModal("cloudOwnerSetupModal");
     await seedCloudDefaults();
     await refreshCloudData();openMain();
@@ -7632,16 +7642,25 @@ function renderHomeAdvertisements(){
   positionHomeAdvertisementSlides(hero,{animate:false});
 }
 
-function isShopOnboardingCompleted(){
-  try{return localStorage.getItem(SHOP_ONBOARDING_COMPLETED_KEY)==="1";}catch(error){return false;}
+function hasActiveGuestShopVisit(){
+  try{return sessionStorage.getItem(SHOP_GUEST_VISIT_KEY)==="1";}catch(error){return false;}
 }
 
-function saveShopOnboardingCompletion(){
-  try{localStorage.setItem(SHOP_ONBOARDING_COMPLETED_KEY,"1");return true;}catch(error){return false;}
+function markActiveGuestShopVisit(){
+  clearActiveGuestShopVisit();
+  try{sessionStorage.setItem(SHOP_GUEST_VISIT_KEY,"1");}catch(error){}
+  return true;
+}
+
+function clearActiveGuestShopVisit(){
+  try{sessionStorage.removeItem(SHOP_GUEST_VISIT_KEY);}catch(error){}
+  try{localStorage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);}catch(error){}
 }
 
 function getShopOnboardingStartupView(){
-  return isShopOnboardingCompleted()?"returning":"choices";
+  if(shopLoggedOutRequiresLogin)return "login";
+  if(currentUser||cloudAccount)return "authenticated";
+  return hasActiveGuestShopVisit()?"guest-active":"choices";
 }
 
 function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
@@ -7669,6 +7688,7 @@ function writeShopViewHistory(view,{replace=false,position}={}){
 function installShopViewNavigation(){
   if(shopViewNavigationPopHandler)return;
   shopViewNavigationPopHandler=event=>{
+    if(shopLoggedOutRequiresLogin){showLogoutLoginScreen();return;}
     const state=event?.state||{};
     if(state.__shivanOwnerNavigationId||state.__shivanProductDetail||getActiveShopView()==="detail")return;
     const view=SHOP_HISTORY_VIEWS.has(state.__shivanShopView)?state.__shivanShopView:state.__shivanOwnerExitView?"owner":"";
@@ -7746,11 +7766,13 @@ function prefersReducedShopOnboardingMotion(){
 function handleShopOnboardingVisibilityChange(hidden=document.hidden){
   const action=getShopOnboardingVisibilityAction(hidden,shopAppWasHidden,shopStartupCompleted);
   shopAppWasHidden=action.wasHidden;
-  if(action.show){
+  const authMode=Boolean(document.querySelector(".app")?.classList.contains("auth-mode"));
+  const shouldShow=action.show&&!authMode&&getShopOnboardingStartupView()==="choices";
+  if(shouldShow){
     shopOnboardingResumeState=captureShopOnboardingResumeState();
     showShopOnboarding("choices");
   }
-  return action.show;
+  return shouldShow;
 }
 
 function readShopOnboardingImages(){
@@ -7862,7 +7884,9 @@ function showShopOnboarding(startupView=getShopOnboardingStartupView(),{startupR
 }
 
 function showShopOnboardingIfNeeded({startupReveal=false}={}){
-  return showShopOnboarding(getShopOnboardingStartupView(),{startupReveal});
+  const startupView=getShopOnboardingStartupView();
+  if(startupView!=="choices")return false;
+  return showShopOnboarding("choices",{startupReveal});
 }
 
 function finishShopReturningWelcome(){
@@ -7916,7 +7940,8 @@ function beginShopOnboardingPageHandoff(destination,prepareDestination){
 
 function startShopOnboardingSignup(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||!saveShopOnboardingCompletion())return false;
+  if(!layer||layer.hidden)return false;
+  clearActiveGuestShopVisit();
   return beginShopOnboardingPageHandoff("signup",()=>{
     shopOnboardingResumeState=null;
     document.querySelector(".app")?.classList.add("auth-mode");
@@ -7930,7 +7955,7 @@ function startShopOnboardingSignup(){
 
 function finishShopOnboarding(){
   const layer=document.getElementById("shopPromoOnboarding");
-  if(!layer||layer.hidden||shopOnboardingHandoffLocked||!saveShopOnboardingCompletion())return false;
+  if(!layer||layer.hidden||shopOnboardingHandoffLocked||!markActiveGuestShopVisit())return false;
   const resumeState=shopOnboardingResumeState;
   shopOnboardingResumeState=null;
   return beginShopOnboardingPageHandoff("shop",()=>{
@@ -8232,7 +8257,7 @@ async function signup(){
   if(cloudMode){
     try{
       const data=await cloudRequest("/api/auth/signup",{method:"POST",body:JSON.stringify({name,identifier:id,password:pass})});
-      currentUser=data.account;cloudAccount=data.account;
+      currentUser=data.account;cloudAccount=data.account;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
       await refreshCloudData();openMain();
       startCloudSync();
       showToast("Your account is ready and will sync on this phone and computer.");
@@ -8262,7 +8287,7 @@ async function signup(){
     return;
   }
 
-  currentUser = account;
+  currentUser = account;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
 
   try{
     localStorage.setItem(SESSION_KEY,JSON.stringify({accountId:account.id}));
@@ -8292,7 +8317,7 @@ async function login(){
     if(id===OWNER_IDENTIFIER&&cloudOwnerSetupRequired){showCloudOwnerSetup();return;}
     try{
       const data=await cloudRequest("/api/auth/login",{method:"POST",body:JSON.stringify({identifier:id,password:pass})});
-      currentUser=data.account;cloudAccount=data.account;cloudOwnerSetupRequired=false;
+      currentUser=data.account;cloudAccount=data.account;cloudOwnerSetupRequired=false;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
       await refreshCloudData();openMain();if(isStaffSession())openView("owner");
       startCloudSync();
       showToast("Signed in. Your saved shop data is syncing.");
@@ -8328,7 +8353,7 @@ async function login(){
     return;
   }
 
-  currentUser = account;
+  currentUser = account;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
 
   try{
     if(id===OWNER_IDENTIFIER){
@@ -8372,7 +8397,7 @@ function restoreSession(){
     );
 
     if(account){
-      currentUser = account;
+      currentUser = account;clearActiveGuestShopVisit();shopLoggedOutRequiresLogin=false;
       openMain();
     }
 
@@ -8381,27 +8406,47 @@ function restoreSession(){
 }
 
 
-async function logout(){
-  if(cloudMode){
-    try{await flushCloudWrites();}catch(error){console.warn("Pending shop changes could not be synchronized before logout.",error);}
-    try{await cloudRequest("/api/auth/logout",{method:"POST"});}
-    catch(error){showToast(error?.message||"Logout could not be confirmed. Check your connection and try again.");return false;}
-  }
-  stopCloudSync();
-  cloudAccount=null;
-  localStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  localStorage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);
-  currentUser=null;
-  pendingAuthenticationIntent=null;
-  shopOnboardingResumeState=null;
+function showLogoutLoginScreen(){
+  if(shopStartupSplashTimer){clearTimeout(shopStartupSplashTimer);shopStartupSplashTimer=null;}
+  if(shopStartupSplashHideTimer){clearTimeout(shopStartupSplashHideTimer);shopStartupSplashHideTimer=null;}
+  shopStartupAuthResolved=true;
+  shopStartupCompleted=true;
+  hideShopOnboarding({releaseStartupBrand:false});
+  const splash=document.getElementById("shopStartupSplash");
+  if(splash){splash.hidden=true;splash.classList.remove("is-exiting","is-onboarding-brand");}
+  const mainApp=document.getElementById("mainApp");
+  const authPage=document.getElementById("authPage");
   document.querySelector(".app")?.classList.add("auth-mode");
-  document.getElementById("mainApp").style.display="none";
-  document.getElementById("authPage").style.display="";
+  if(mainApp){mainApp.inert=true;mainApp.style.display="none";}
+  if(authPage){authPage.inert=false;authPage.style.display="";authPage.classList.remove("is-shop-auth-modal");authPage.removeAttribute?.("aria-modal");}
   showAuth("login");
-  replayShopStartupFlow();
-  showToast(customerUiText("You have logged out.","تۆ ژ دەرکەفتی.","لقد سجلت الخروج."));
+  try{window.history?.replaceState?.({__shivanLoggedOut:true},"",window.location?.href||"");}catch(error){}
   return true;
+}
+
+async function logout(){
+  if(shopLogoutInProgress)return false;
+  shopLogoutInProgress=true;
+  try{
+    if(cloudMode){
+      try{await flushCloudWrites();}catch(error){console.warn("Pending shop changes could not be synchronized before logout.",error);}
+      try{await cloudRequest("/api/auth/logout",{method:"POST"});}
+      catch(error){showToast(error?.message||"Logout could not be confirmed. Check your connection and try again.");return false;}
+    }
+    stopCloudSync();
+    cloudAccount=null;
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SHOP_ONBOARDING_COMPLETED_KEY);
+    clearActiveGuestShopVisit();
+    currentUser=null;
+    pendingAuthenticationIntent=null;
+    shopOnboardingResumeState=null;
+    shopLoggedOutRequiresLogin=true;
+    showLogoutLoginScreen();
+    showToast(customerUiText("You have logged out.","تۆ ژ دەرکەفتی.","لقد سجلت الخروج."));
+    return true;
+  }finally{shopLogoutInProgress=false;}
 }
 
 
@@ -8518,6 +8563,7 @@ function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
   installShopViewNavigation();
+  if(shopLoggedOutRequiresLogin&&["cart","orders","profile","owner"].includes(view)){showLogoutLoginScreen();return false;}
   const authPage=document.getElementById("authPage");
   if(authPage?.classList.contains("is-shop-auth-modal")&&pendingAuthenticationIntent?.type==="product"&&!currentUser&&!cloudAccount)return false;
   if(authPage?.classList.contains("is-shop-auth-modal")&&!currentUser&&!cloudAccount)return false;
@@ -13676,7 +13722,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   updateCartBadge();
 
   initializeCloud().catch(error=>console.warn("Shop startup failed; keeping saved shop content available.",ownerSaveDiagnosticCode(error))).then(async()=>{
-    if(!cloudMode)await restoreSession();
     consumeOwnerPushNavigation();
     consumeCustomerPushNavigation();
   });

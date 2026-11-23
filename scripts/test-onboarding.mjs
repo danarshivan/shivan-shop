@@ -21,7 +21,8 @@ const extractFunction = name => {
 };
 const sharedImageKey=html.match(/const SHOP_ONBOARDING_IMAGES_KEY = "([^"]+)";/)?.[1];
 assert.equal(sharedImageKey,"shivan_shop_ios_onboarding_images","Owner-managed slide storage key remains shared");
-assert.equal(html.match(/const SHOP_ONBOARDING_COMPLETED_KEY = "([^"]+)";/)?.[1],"shivan_shop_startup_choice_completed","a selected welcome destination is persisted");
+assert.equal(html.match(/const SHOP_ONBOARDING_COMPLETED_KEY = "([^"]+)";/)?.[1],"shivan_shop_startup_choice_completed","the legacy onboarding marker can be cleared safely");
+assert.equal(html.match(/const SHOP_GUEST_VISIT_KEY = "([^"]+)";/)?.[1],"shivan_shop_guest_visit_active","guest browsing is scoped to the current tab session");
 assert.match(html,/SHOP_BRANDED_SPLASH_MS=shopStartupPrefersReducedMotion\?300:2000/);
 assert.match(html,/SHOP_BRANDED_SPLASH_EXIT_MS=shopStartupPrefersReducedMotion\?0:500/);
 const splashMarkup=html.match(/<section id="shopStartupSplash"[\s\S]*?<\/section>/)?.[0]||"";
@@ -73,15 +74,17 @@ assert.match(extractFunction("warmShopOnboardingImages"),/new Set\(shopOnboardin
 const defaultImages=html.match(/const SHOP_ONBOARDING_DEFAULT_IMAGES = Object\.freeze\(\[([\s\S]*?)\]\);/)?.[1]||"";
 assert.equal((defaultImages.match(/https:\/\/images\.unsplash\.com\//g)||[]).length,3,"Owner promo images remain available");
 assert.match(extractFunction("saveShopOnboardingImages"),/cloudAccount\?\.role!=="owner"/);
-assert.match(extractFunction("finishShopOnboarding"),/saveShopOnboardingCompletion\(\)[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/);
-assert.match(extractFunction("startShopOnboardingSignup"),/saveShopOnboardingCompletion\(\)[\s\S]*?showAuth\("signup"\)/);
+assert.match(extractFunction("finishShopOnboarding"),/markActiveGuestShopVisit\(\)[\s\S]*?openMain\(\{resumeIntent:false\}\);\s*openView\("home"\)/);
+assert.match(extractFunction("startShopOnboardingSignup"),/clearActiveGuestShopVisit\(\)[\s\S]*?showAuth\("signup"\)/);
 assert.match(extractFunction("finishShopReturningWelcome"),/hideShopOnboarding\(\)[\s\S]*?openView\("home"/);
 const logoutSource=html.match(/async function logout\(\)\{[\s\S]*?\n\}/)?.[0]||"";
-assert.match(logoutSource,/SHOP_ONBOARDING_COMPLETED_KEY[\s\S]*?replayShopStartupFlow\(\)/);
+assert.match(logoutSource,/SHOP_ONBOARDING_COMPLETED_KEY[\s\S]*?showLogoutLoginScreen\(\)/);
+assert.doesNotMatch(logoutSource,/replayShopStartupFlow/,"Logout must not replay Splash or Welcome");
+assert.match(extractFunction("showShopOnboardingIfNeeded"),/startupView!=="choices"\)return false/,"authenticated and active guest visits skip Welcome");
+assert.match(extractFunction("showLogoutLoginScreen"),/mainApp\.inert=true[\s\S]*?showAuth\("login"\)[\s\S]*?__shivanLoggedOut/);
 assert.match(extractFunction("finishShopStartupSplash"),/shopStartupCompleted=true;[\s\S]*?showShopOnboardingIfNeeded\(\{startupReveal:true\}\)[\s\S]*?classList.add\("is-onboarding-brand"\)/,"startup hands the persistent logo to Welcome without fading it");
-assert.equal(Number(html.match(/const SHOP_RETURNING_WELCOME_MS=(\d+);/)?.[1]),1700,"returning users see the completed Welcome reveal before automatic navigation");
 const flowNames = [
-  "isShopOnboardingCompleted", "saveShopOnboardingCompletion", "finishShopReturningWelcome",
+  "hasActiveGuestShopVisit", "markActiveGuestShopVisit", "clearActiveGuestShopVisit", "finishShopReturningWelcome",
   "getShopOnboardingStartupView", "getShopOnboardingVisibilityAction", "getActiveShopView", "readShopViewPosition",
   "captureShopOnboardingResumeState", "restoreShopOnboardingResumeState", "prefersReducedShopOnboardingMotion",
   "warmShopOnboardingImages", "renderShopOnboardingSlide", "beginShopOnboardingPageHandoff", "startShopOnboardingSignup",
@@ -90,6 +93,7 @@ const flowNames = [
 const flowSource = [
   'const SHOP_ONBOARDING_IMAGES_KEY = "shivan_shop_ios_onboarding_images";',
   'const SHOP_ONBOARDING_COMPLETED_KEY = "shivan_shop_startup_choice_completed";',
+  'const SHOP_GUEST_VISIT_KEY = "shivan_shop_guest_visit_active";',
   "const SHOP_ONBOARDING_SLIDE_COUNT = 3;",
   "const SHOP_ONBOARDING_HANDOFF_MS = 260;",
   "const SHOP_RETURNING_WELCOME_MS = 1700;",
@@ -113,17 +117,22 @@ const flowSource = [
   "let currentGalleryIndex=0;",
   'let ownerPanel="products";',
   "let shopStartupCompleted=true;",
+  "let shopLoggedOutRequiresLogin=false;",
   ...[...flowNames, "readShopOnboardingImages"].map(extractFunction),
   "({signup:startShopOnboardingSignup,render:renderShopOnboardingSlide,handoffLocked:()=>shopOnboardingHandoffLocked,view:getShopOnboardingStartupView,showIfNeeded:showShopOnboardingIfNeeded,show:showShopOnboarding,finish:finishShopOnboarding,hide:hideShopOnboarding,visibility:getShopOnboardingVisibilityAction,handleVisibility:handleShopOnboardingVisibilityChange,readImages:readShopOnboardingImages,active:()=>shopOnboardingActive,resumeState:()=>shopOnboardingResumeState})",
 ].join("\n");
 
 function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationIntent=null,activeView="home",reducedMotion=false}={}){
-  const values = new Map();
-  const storage = {
-    getItem: key => values.has(key) ? values.get(key) : null,
-    setItem: (key, value) => values.set(String(key), String(value)),
-    removeItem: key => values.delete(String(key)),
+  const createStorage = () => {
+    const values = new Map();
+    return {
+      getItem: key => values.has(key) ? values.get(key) : null,
+      setItem: (key, value) => values.set(String(key), String(value)),
+      removeItem: key => values.delete(String(key)),
+    };
   };
+  const storage=createStorage();
+  const sessionStorage=createStorage();
   const timers=new Map();
   const classes=new Set();
   const startupSplashClasses=new Set();
@@ -173,6 +182,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
   let openedShop = false;
   const runtime = {
     localStorage: storage,
+    sessionStorage,
     safeImageUrl: value => /^(https:\/\/|\/api\/media\/shop\/)/i.test(String(value || "")) ? String(value) : "",
     customerUiText: english => english,
     currentUser,
@@ -190,7 +200,7 @@ function createFlow({currentUser=null,cloudAccount=null,pendingAuthenticationInt
     openView: view => { openedView = view; },
   };
   const flow = runInNewContext(flowSource, runtime);
-  return { flow, runtime, storage, layer, image, choices, authPage, mainApp, elements, classes, rootClasses, bodyClasses, preloadedImageUrls, startupSplashNode, startupSplashClasses, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;} };
+  return { flow, runtime, storage, sessionStorage, layer, image, choices, authPage, mainApp, elements, classes, rootClasses, bodyClasses, preloadedImageUrls, startupSplashNode, startupSplashClasses, runTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(timer=>timer.callback());}, pendingTimerDelays(){return [...timers.values()].map(timer=>timer.delay);}, get authScreen(){return authScreen;}, get authMode(){return authMode;}, get openedShop(){return openedShop;}, get openedView(){return openedView;}, get openedOnboarding(){return openedOnboarding;}, get openMainOptions(){return openMainOptions;} };
 }
 
 const customSlidesFlow=createFlow();
@@ -202,7 +212,7 @@ assert.deepEqual(Array.from(customSlidesFlow.flow.readImages()),["https://cdn.ex
 assert.equal(customSlidesFlow.storage.getItem(sharedImageKey),JSON.stringify(["https://cdn.example.test/model-one.jpg","https://cdn.example.test/model-two.jpg","https://cdn.example.test/model-three.jpg"]),"Welcome rendering does not rewrite saved Owner image data");
 
 const guestFlow = createFlow();
-guestFlow.storage.setItem('shivan_shop_web_onboarding_completed', '1');
+guestFlow.storage.setItem("shivan_shop_startup_choice_completed", "1");
 assert.equal(guestFlow.flow.view(), 'choices', 'a first visit starts with the two explicit destination choices');
 guestFlow.flow.showIfNeeded({startupReveal:true});
 assert.equal(guestFlow.classes.has("is-startup-reveal"),true,"the startup Welcome sequence is explicitly enabled");
@@ -215,26 +225,35 @@ assert.deepEqual(guestFlow.preloadedImageUrls,[],"the redesigned Welcome does no
 assert.equal(guestFlow.layer.hidden,false,"Welcome is visible at startup");
 assert.equal(guestFlow.image.src,"","Welcome leaves the Owner-managed image element absent");
 assert.equal(guestFlow.choices.hidden,false,"both direct actions are visible immediately");
-assert.equal(guestFlow.storage.getItem('shivan_shop_startup_choice_completed'),null,'a first visit is not marked complete until a choice is made');
+assert.equal(guestFlow.sessionStorage.getItem("shivan_shop_guest_visit_active"),null,"a fresh visitor is not marked as actively browsing before choosing");
+assert.equal(guestFlow.storage.getItem("shivan_shop_startup_choice_completed"),"1","legacy permanent markers do not hide the fresh guest choices");
 
 const returningFlow=createFlow();
 returningFlow.storage.setItem("shivan_shop_startup_choice_completed","1");
-assert.equal(returningFlow.flow.view(),"returning","a previously chosen destination marks the next launch as returning");
-returningFlow.flow.showIfNeeded();
-assert.equal(returningFlow.layer.hidden,false,"returning Welcome is shown after splash");
-assert.equal(returningFlow.choices.hidden,true,"returning Welcome hides both first-time choices");
-assert.deepEqual(returningFlow.pendingTimerDelays(),[1700],"returning Welcome allows the complete logo and heading reveal to finish");
-returningFlow.runTimers();
-assert.equal(returningFlow.layer.hidden,true,"returning Welcome closes after its reveal");
-assert.equal(returningFlow.openedView,"home","returning users land on the Shop");
-assert.equal(returningFlow.storage.getItem("shivan_shop_startup_choice_completed"),"1","returning flow preserves the chosen-destination marker");
+returningFlow.layer.hidden=true;
+assert.equal(returningFlow.flow.view(),"choices","a guest reopening after a previous selection gets the choices again");
+assert.equal(returningFlow.flow.showIfNeeded(),true,"fresh guest startup presents Welcome despite a legacy marker");
+assert.equal(returningFlow.layer.hidden,false,"fresh guest Welcome is visible after Splash");
+assert.equal(returningFlow.choices.hidden,false,"both guest destinations are available again");
+const activeGuestFlow=createFlow();
+activeGuestFlow.layer.hidden=true;
+activeGuestFlow.sessionStorage.setItem("shivan_shop_guest_visit_active","1");
+assert.equal(activeGuestFlow.flow.view(),"guest-active","active guest browsing is tracked only for this tab session");
+assert.equal(activeGuestFlow.flow.showIfNeeded(),false,"refreshing an active guest visit does not interrupt browsing with Welcome");
+assert.equal(activeGuestFlow.layer.hidden,true,"an active guest refresh stays on the shop");
+const authenticatedStartupFlow=createFlow({currentUser:{id:"returning-account",role:"customer"}});
+authenticatedStartupFlow.layer.hidden=true;
+assert.equal(authenticatedStartupFlow.flow.view(),"authenticated","a verified session takes precedence over guest onboarding");
+assert.equal(authenticatedStartupFlow.flow.showIfNeeded(),false,"authenticated startup skips the Welcome choices");
+assert.equal(authenticatedStartupFlow.layer.hidden,true,"authenticated return proceeds to the existing app screen");
 const exploreFlow = createFlow({pendingAuthenticationIntent:{type:'profile'},activeView:'profile'});
 exploreFlow.startupSplashNode.hidden=false;
 exploreFlow.startupSplashClasses.add("is-onboarding-brand");
 exploreFlow.flow.showIfNeeded();
 assert.equal(exploreFlow.choices.hidden,false, 'Explore Models is immediately available on welcome');
 assert.equal(exploreFlow.flow.finish(), true, 'Explore Models should start the existing shop handoff');
-assert.equal(exploreFlow.storage.getItem('shivan_shop_startup_choice_completed'),'1','choosing Explore Models persists onboarding completion');
+assert.equal(exploreFlow.sessionStorage.getItem('shivan_shop_guest_visit_active'),'1','Explore Models marks only the active tab session as browsing');
+assert.equal(exploreFlow.storage.getItem('shivan_shop_startup_choice_completed'),null,'Explore Models does not permanently mark onboarding completed');
 assert.equal(exploreFlow.layer.hidden, false, 'the onboarding overlay should remain visible until its exit transition completes');
 assert.equal(exploreFlow.classes.has('is-handoff-exiting'), true, 'Explore Models should use the handoff exit animation');
 assert.equal(exploreFlow.layer.inert, true, 'the outgoing onboarding controls should be inert during the handoff');
@@ -265,7 +284,8 @@ accountFlow.storage.setItem('test-cart',preservedCart);
 accountFlow.flow.show();
 assert.equal(accountFlow.choices.hidden,false, 'Create Account is immediately available on welcome');
 assert.equal(accountFlow.flow.signup(),true,'Create Account should start the existing registration handoff');
-assert.equal(accountFlow.storage.getItem('shivan_shop_startup_choice_completed'),'1','choosing Create Account persists onboarding completion');
+assert.equal(accountFlow.storage.getItem('shivan_shop_startup_choice_completed'),null,'Create Account does not permanently complete guest onboarding');
+assert.equal(accountFlow.sessionStorage.getItem('shivan_shop_guest_visit_active'),null,'Create Account is not recorded as an active guest visit');
 assert.equal(accountFlow.layer.hidden,false,'the overlay should remain visible through the registration transition');
 assert.equal(accountFlow.classes.has('is-handoff-exiting'),true,'Create Account should use the shared handoff animation');
 assert.equal(accountFlow.flow.signup(),false,'a second Create Account tap during handoff should be ignored');
@@ -311,18 +331,16 @@ const savedSession = JSON.stringify({ accountId:savedCustomer.id });
 const signedInFlow = createFlow({currentUser:savedCustomer,activeView:'profile'});
 signedInFlow.storage.setItem('test-account-session', savedSession);
 signedInFlow.storage.setItem('test-cart', JSON.stringify([{productId:'p1',qty:2}]));
-signedInFlow.flow.showIfNeeded();
-assert.equal(signedInFlow.layer.hidden, false, 'signed-in customers also see onboarding on a new app entry');
-assert.equal(signedInFlow.choices.hidden,false, 'signed-in customers immediately see both destinations');
+signedInFlow.layer.hidden=true;
+assert.equal(signedInFlow.flow.showIfNeeded(),false, 'signed-in customers skip the Welcome screen on a new app entry');
+assert.equal(signedInFlow.layer.hidden, true, 'the authenticated app remains the startup destination');
 assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'the existing signed-in account remains active behind onboarding');
 assert.equal(signedInFlow.storage.getItem('test-account-session'), savedSession, 'onboarding preserves the saved account session');
 assert.equal(signedInFlow.storage.getItem('test-cart'), JSON.stringify([{productId:'p1',qty:2}]), 'onboarding preserves the cart');
 assert.equal(signedInFlow.image.src,"","signed-in Welcome does not display stored Owner slide images");
 assert.equal(signedInFlow.choices.hidden,false,"both Welcome actions remain visible for signed-in customers");
-signedInFlow.flow.finish();
-signedInFlow.runTimers();
-assert.equal(signedInFlow.layer.hidden, true, 'Explore Models dismisses onboarding');
-assert.equal(signedInFlow.openedView, 'home', 'completion opens model selection');
+assert.equal(signedInFlow.flow.finish(),false,'authenticated sessions do not need to choose Explore Models again');
+assert.equal(signedInFlow.openedView, 'profile', 'authenticated startup preserves its current destination');
 assert.equal(signedInFlow.runtime.currentUser, savedCustomer, 'completion preserves the signed-in account');
 assert.equal(signedInFlow.storage.getItem('test-account-session'), savedSession, 'completion does not rewrite account storage');
 assert.equal(signedInFlow.storage.getItem('test-cart'), JSON.stringify([{productId:'p1',qty:2}]), 'completion preserves the cart');
@@ -362,10 +380,11 @@ const authResumeFlow=createFlow({activeView:"profile"});
 authResumeFlow.mainApp.style.display="none";
 authResumeFlow.authPage.style.display="";
 authResumeFlow.runtime.document.querySelector(".app").classList.add("auth-mode");
+authResumeFlow.layer.hidden=true;
 authResumeFlow.runtime.window.scrollY=116;
 authResumeFlow.authPage.scrollTop=72;
 authResumeFlow.flow.handleVisibility(true);
-authResumeFlow.flow.handleVisibility(false);
+assert.equal(authResumeFlow.flow.handleVisibility(false),false,"Login / Sign Up remains open when the app resumes");
 authResumeFlow.flow.finish();
 authResumeFlow.runTimers();
 assert.equal(authResumeFlow.openedShop,false,"foreground onboarding must not replace an active Login / Sign Up screen with Shop");
@@ -402,7 +421,7 @@ const navDocument={
 };
 let routeRuntime;
 routeRuntime={
-  document:navDocument,window:{scrollY:0,history:{state:null,pushState(state){this.state=state;},replaceState(state){this.state=state;}},addEventListener(){},scrollTo(_x,y){this.scrollY=Number(y)||0;}},productDetailClosing:false,shopOnboardingActive:true,shopViewScrollPositions:new Map(),ownerPanelRefreshPending:false,
+  document:navDocument,window:{scrollY:0,history:{state:null,pushState(state){this.state=state;},replaceState(state){this.state=state;}},addEventListener(){},scrollTo(_x,y){this.scrollY=Number(y)||0;}},productDetailClosing:false,shopOnboardingActive:true,shopLoggedOutRequiresLogin:false,showLogoutLoginScreen(){routeRuntime.loggedOutScreenShown=true;},shopViewScrollPositions:new Map(),ownerPanelRefreshPending:false,
   SHOP_HISTORY_VIEWS:new Set(["home","search","cart","orders","profile","store","newModel","discount","favorites","owner"]),shopViewNavigationPopHandler:null,shopViewNavigationScrollHandler:null,
   currentUser:{id:"offline-customer"},cloudAccount:null,pendingAuthenticationIntent:null,ownerPanel:"products",
   getActiveShopView(){return ["home","store","search","cart","orders","profile","detail","newModel","discount","favorites","owner"].find(view=>navClasses.get(`${view}View`)?.has("active"))||"home";},

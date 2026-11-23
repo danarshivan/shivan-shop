@@ -107,6 +107,8 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     pendingAuthenticationIntent: null,
     shopAuthModalReturnState: null,
     shopOnboardingActive: false,
+    shopLoggedOutRequiresLogin: false,
+    clearActiveGuestShopVisit() {},
     productDetailClosing: false,
     currentProduct: product,
     products: [product],

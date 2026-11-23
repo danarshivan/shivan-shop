@@ -51,7 +51,11 @@ assert.match(startupHandler, /loadProducts\(\)[\s\S]*?renderProducts\(products\)
 assert.doesNotMatch(startupHandler, /showShopOnboardingIfNeeded/, "the branded splash should lead directly to Shop / Models");
 assert.ok(startup.indexOf('cloudRequest("/api/bootstrap"') < startup.indexOf('cloudRequest("/api/auth/me"'), "both startup requests should begin together");
 assert.ok(startup.indexOf('cloudRequest("/api/auth/me"') < startup.indexOf("await authPromise"), "auth should be awaited only after both startup requests have started");
-assert.match(startup, /if\(cachedShopWasOpened\)\{[\s\S]*?openMain\(\{resumeIntent:false\}\)[\s\S]*?finishShopStartupSplash\(\)/, "a returning visitor should see cached shop content before cloud checks finish");
+const cachedShopRenderBlock=startup.match(/if\(cachedShopWasOpened\)\{[\s\S]*?\r?\n  \}/)?.[0]||"";
+assert.ok(cachedShopRenderBlock,"cached shop render block exists");
+assert.match(cachedShopRenderBlock,/openMain\(\{resumeIntent:false\}\)/,"cached shop content can render behind the startup Splash while authentication is checked");
+assert.doesNotMatch(cachedShopRenderBlock,/finishShopStartupSplash\(\)/,"cached content must not reveal guest Welcome before session authentication resolves");
+assert.match(startup, /finally\{cloudInitializationComplete=true;[\s\S]*?shopStartupAuthResolved=true;finishShopStartupSplash\(\)/, "startup waits for cloud authentication and local session restoration before choosing its destination");
 assert.match(startup, /openMain\(\{preserveProductGrid:cachedShopWasOpened\}\)/, "auth confirmation should preserve the displayed product grid");
 assert.match(startup, /openMain\(\{resumeIntent:false\}\)/, "cached guest rendering must not consume a pending purchase intent before authentication is checked");
 assert.doesNotMatch(startup, /location\.reload\(/, "startup and refresh must not reload the document");
@@ -59,6 +63,7 @@ assert.match(html, /if\(!changed\)return;/, "unchanged cloud data should not tri
 assert.match(apply, /if\(productsChanged\)loadProducts\(\)/, "only product changes should re-read the product cache");
 assert.match(apply, /if\(productsChanged\|\|favoritesChanged\)renderVisibleProductGrid\(\)/, "a product or favorite update should refresh the active browsing grid");
 assert.match(finishSplash,/shopStartupCompleted=true;[\s\S]*?showShopOnboardingIfNeeded\(\{startupReveal:true\}\)[\s\S]*?classList.add\("is-onboarding-brand"\)/,"the startup welcome reveal keeps the same logo visible above Welcome");
+assert.match(finishSplash,/if\(!shopStartupAuthResolved\)[\s\S]*?finishShopStartupSplash\(\)[\s\S]*?\},100\)/,"the logo remains on Splash instead of flashing Welcome while auth is unresolved");
 
 function deferred() {
   let resolve;
@@ -83,6 +88,7 @@ const splashSandbox = {
   shopStartupSplashTimer: null,
   shopStartupSplashHideTimer: null,
   shopStartupCompleted: false,
+  shopStartupAuthResolved: true,
   performance: { now: () => now },
   document: { getElementById: id => id === "shopStartupSplash" ? splashNode : id === "mainApp" ? mainNode : null },
   openMain: options => { openedWith.push(options); mainNode.style.display = "block"; },
@@ -116,6 +122,26 @@ releaseEvents[0].callback();
 assert.equal(splashNode.hidden,true,"the logo layer is removed only after the destination transition");
 assert.equal(splashSandbox.shopStartupCompleted, true, "the startup handoff should run only once");
 
+const authWaitTimers=[];
+const authWaitClasses=new Set();
+const authWaitSplash={hidden:false,classList:{add:name=>authWaitClasses.add(name),remove:name=>authWaitClasses.delete(name)}};
+const authWaitMain={style:{display:"block"},classList:{add(){}}};
+let authWaitWelcomeShown=0;
+const authWaitSandbox={
+  SHOP_BRANDED_SPLASH_MS:2000,SHOP_BRANDED_SPLASH_EXIT_MS:500,shopStartupStartedAt:1000,
+  shopStartupSplashTimer:null,shopStartupSplashHideTimer:null,shopStartupCompleted:false,shopStartupAuthResolved:false,
+  performance:{now:()=>3000},document:{getElementById:id=>id==="shopStartupSplash"?authWaitSplash:id==="mainApp"?authWaitMain:null},
+  showShopOnboardingIfNeeded(){authWaitWelcomeShown++;return true;},
+  setTimeout:(callback,ms)=>{authWaitTimers.push({callback,ms});return authWaitTimers.length;},clearTimeout(){},
+};
+runInNewContext(finishSplash+"\nglobalThis.finishSplash=finishShopStartupSplash;",authWaitSandbox);
+authWaitSandbox.finishSplash();
+assert.equal(authWaitWelcomeShown,0,"Welcome stays hidden until the auth check finishes");
+assert.equal(authWaitTimers[0]?.ms,100,"Splash checks auth completion without revealing the wrong route");
+authWaitSandbox.shopStartupAuthResolved=true;
+authWaitSandbox.finishSplash();
+assert.equal(authWaitWelcomeShown,1,"a verified unauthenticated visit reveals guest Welcome");
+
 const bootstrap = deferred();
 const auth = deferred();
 const backgroundSync = deferred();
@@ -132,10 +158,14 @@ const startupSandbox = {
   isStaffSession: () => false,
   cloudOwnerSetupRequired: false,
   cloudInitializationComplete: false,
+  shopStartupAuthResolved: false,
+  shopLoggedOutRequiresLogin: false,
+  clearActiveGuestShopVisit: () => sequence.push("guest-state-cleared"),
   cloudRequest: path => {
     apiCalls.push(path);
     return path === "/api/bootstrap" ? bootstrap.promise : auth.promise;
   },
+  restoreSession: () => sequence.push("local-session-restored"),
   applyCloudData: () => sequence.push("bootstrap-applied"),
   openMain: options => sequence.push(options?.preserveProductGrid ? "shop-open-preserved" : "shop-open"),
   isShopOnboardingCompleted: () => true,
@@ -159,9 +189,10 @@ runInNewContext(startup + "\nglobalThis.initialize=initializeCloud;", startupSan
 const initialization = startupSandbox.initialize();
 assert.deepEqual(apiCalls, ["/api/bootstrap", "/api/auth/me"], "bootstrap and session lookup should start in parallel");
 assert.ok(sequence.includes("shop-open"), "a returning visitor with cached products should see the shop before cloud authentication finishes");
-assert.ok(sequence.includes("splash-ready"), "cached shop display should release the branded splash on its minimum-duration timer");
+assert.equal(sequence.includes("splash-ready"),false,"cached content stays behind Splash until authentication resolves");
 auth.resolve({ account: { id: "cached-account", role: "customer" } });
 await initialization;
+assert.ok(sequence.includes("splash-ready"),"after auth resolves, Splash selects the correct startup destination");
 assert.ok(sequence.indexOf("shop-open") < sequence.indexOf("background-refresh"), "the cached shop opens before shared sync finishes");
 assert.equal(startupSandbox.cloudAccount.id, "cached-account");
 assert.equal(startupSandbox.cloudInitializationComplete, true);

@@ -31,6 +31,8 @@ const shopContext = {
   },
   document: { addEventListener() {} },
   SHOP_HISTORY_VIEWS: new Set(["home", "search", "cart", "orders", "profile", "newModel", "discount", "favorites", "owner"]),
+  shopLoggedOutRequiresLogin: false,
+  showLogoutLoginScreen() { restoredShopViews.push({ view: "login", options: { loggedOut: true } }); },
   getActiveShopView: () => activeShopView,
   readShopViewPosition: view => shopPositions[view] || { windowY: 0, viewTop: 0, authTop: 0 },
   isOwner: () => true,
