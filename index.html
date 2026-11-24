@@ -1390,6 +1390,106 @@ button{
 @media(max-width:360px){.customer-page-icon{width:42px;height:42px;flex-basis:42px;border-radius:14px}.customer-cart-heading,.customer-orders-heading{gap:9px;padding:12px}.customer-cart-heading .page-title,.customer-orders-heading .page-title{font-size:22px}.customer-page-count{padding:6px 7px;font-size:10px}.shop-cart-view .cart-item{grid-template-columns:58px minmax(0,1fr) 32px;gap:8px;padding:8px}.shop-cart-view .cart-item-media{width:58px;height:72px}.shop-cart-view .cart-info>strong{font-size:12px}.shop-cart-view .cart-info .cart-qty button{width:30px;height:30px;min-height:30px}.shop-cart-view .cart-item .remove{width:32px;height:32px}.cart-summary-row{font-size:12px}}
 @media(min-width:700px){.shop-cart-view,.shop-orders-view{max-width:880px;margin-inline:auto}.shop-cart-view .cart-item{grid-template-columns:82px minmax(0,1fr) auto;padding:13px}.shop-cart-view .cart-item-media{width:82px;height:96px}.shop-cart-view .total{padding:19px}.shop-orders-view .customer-order-card{padding:16px}.customer-order-preview img{width:54px;height:64px;flex-basis:54px}}
 @media(prefers-reduced-motion:reduce){.customer-order-filter{transition:none!important}}
+.shop-orders-view .customer-orders-heading{gap:12px;margin:0 14px 15px;padding:13px;border-color:#34304c;border-radius:19px;background:radial-gradient(ellipse at 92% 0,rgba(132,92,255,.19),transparent 44%),#0b0e18;box-shadow:none}
+.shop-orders-view .customer-orders-heading>div{min-width:0;flex:1}
+.shop-orders-view .customer-orders-heading .page-title{margin:1px 0 4px;color:#fff;font-size:clamp(21px,5vw,25px);line-height:1.15}
+.shop-orders-view .customer-orders-heading p{margin:0;color:#b7b5c4;font-size:12px;line-height:1.45}
+.shop-orders-view #ordersPageCount{max-width:90px}
+.customer-orders-count{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.shop-orders-view .customer-order-filters{gap:8px;margin:0 14px 15px;padding:2px 1px 5px}
+.shop-orders-view .customer-order-filter{min-height:40px;padding-inline:11px;border-color:#38324e;background:#0d101b;color:#e9e6f3;font-size:11px}
+.customer-order-filter-icon{display:grid;width:15px;height:15px;place-items:center;color:#c3aaff}
+.customer-order-filter-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.shop-orders-view .customer-order-filter[aria-pressed="true"]{border-color:#9c70ff;background:linear-gradient(115deg,#7139ed,#a04cff);box-shadow:0 5px 17px rgba(119,67,231,.25)}
+.customer-orders-section{min-width:0;margin:0 14px 22px}
+.customer-orders-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 1px 10px;padding-bottom:9px;border-bottom:1px solid #302a43}
+.customer-orders-section-heading h2{display:flex;align-items:center;gap:8px;min-width:0;margin:0;color:#f8f7ff;font-size:17px;line-height:1.3;font-weight:820}
+.customer-orders-section-heading h2 svg{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:#c4aaff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.customer-orders-section-count{flex:0 0 auto;padding:5px 10px;border:1px solid #41345f;border-radius:999px;background:#171427;color:#ded2ff;font-size:10px;font-weight:800;white-space:nowrap}
+.customer-order-list{display:grid;gap:10px;min-width:0}
+.customer-order-card{display:grid;width:100%;min-width:0;gap:9px;margin:0;padding:10px;border:1px solid #38304f;border-radius:17px;background:linear-gradient(150deg,#101421,#0a0d17);color:#f6f4ff;text-align:start;cursor:pointer;transition:border-color .18s ease,background-color .18s ease,transform .18s ease}
+.customer-order-card:hover{border-color:#7657b3}
+.customer-order-card:active{transform:scale(.992)}
+.customer-order-card:focus-visible,.customer-order-detail-actions button:focus-visible{outline:2px solid #a78bff;outline-offset:2px}
+.customer-order-card-main{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;min-width:0}
+.customer-order-card-thumb{display:grid;width:58px;height:68px;place-items:center;overflow:hidden;border:1px solid #3a3152;border-radius:11px;background:#151626;color:#c5aeff}
+.customer-order-card-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.customer-order-card-thumb svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-card-copy{display:grid;gap:4px;min-width:0}
+.customer-order-card .customer-order-number{display:block;overflow:hidden;color:#fff;font-size:12px;font-weight:850;text-overflow:ellipsis;white-space:nowrap}
+.customer-order-card-copy time,.customer-order-card-items{display:flex;align-items:center;gap:5px;min-width:0;color:#aaa8bb;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.customer-order-card-copy time svg,.customer-order-card-items svg{width:13px;height:13px;flex:0 0 13px;fill:none;stroke:#a99acb;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-card-side{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
+.customer-order-card-side .customer-order-status{max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.customer-order-card-arrow{display:grid;width:25px;height:25px;place-items:center;color:#ada2c6}
+.customer-order-card-arrow svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-card-total{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #2c273c;color:#b9b6c8;font-size:11px;font-weight:750}
+.customer-order-card-total strong{color:#c8a9ff;font-size:14px;font-weight:900;white-space:nowrap}
+.customer-order-empty{display:grid;justify-items:center;gap:8px;padding:24px 16px;border:1px solid #302844;border-radius:18px;background:radial-gradient(ellipse at 50% 0,rgba(132,93,255,.12),transparent 55%),#0b0e18;text-align:center}
+.customer-order-empty .customer-empty-icon{width:58px;height:58px;border-radius:18px}
+.customer-order-empty .customer-empty-icon svg{width:29px;height:29px}
+.customer-order-empty h3{margin:0;color:#fff;font-size:16px}
+.customer-order-empty p{max-width:36ch;margin:0;color:#aaa8bb;font-size:12px;line-height:1.5}
+.customer-order-history-section{margin-top:3px}
+.customer-order-history-section .customer-orders-section-heading h2 svg{color:#a9a4bd}
+.customer-order-detail-intro{margin:0 15px 17px}
+.customer-order-detail-intro h1{margin:0 0 4px;color:#fff;font-size:clamp(22px,5.5vw,27px);line-height:1.2}
+.customer-order-detail-intro p{margin:0;color:#b4b1c1;font-size:13px;line-height:1.5}
+.customer-order-detail-content{display:grid;gap:13px;min-width:0;margin:0 14px}
+.customer-order-detail-summary,.customer-order-timeline,.customer-order-detail-panel,.customer-order-detail-summary-total{min-width:0;border:1px solid #37304d;border-radius:18px;background:linear-gradient(150deg,#101421,#0b0e18)}
+.customer-order-detail-summary{display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px}
+.customer-order-detail-summary .customer-page-icon{width:48px;height:48px;flex-basis:48px}
+.customer-order-detail-summary-copy{display:grid;gap:4px;min-width:0}
+.customer-order-detail-summary-copy strong{color:#fff;font-size:13px;overflow-wrap:anywhere}
+.customer-order-detail-summary-copy time{color:#aca9bb;font-size:10px;line-height:1.4}
+.customer-order-timeline{padding:14px 10px 12px;overflow:hidden}
+.customer-order-timeline ol{display:grid;grid-template-columns:repeat(var(--customer-order-stage-count,4),minmax(0,1fr));gap:0;margin:0;padding:0;list-style:none;direction:ltr}
+.customer-order-timeline-step{position:relative;display:grid;justify-items:center;align-content:start;gap:5px;min-width:0;color:#a7a3b5;text-align:center}
+.customer-order-timeline-step::before{position:absolute;top:19px;right:50%;left:-50%;height:1px;background:#393347;content:""}
+.customer-order-timeline-step:first-child::before{display:none}
+.customer-order-timeline-step.is-complete::before,.customer-order-timeline-step.is-current::before{background:#8c59ff;box-shadow:0 0 8px rgba(139,86,255,.5)}
+.customer-order-timeline-icon{position:relative;z-index:1;display:grid;width:38px;height:38px;place-items:center;border:1px solid #51456e;border-radius:50%;background:#17142a;color:#ccb4ff}
+.customer-order-timeline-step.is-current .customer-order-timeline-icon{border-color:#b194ff;background:linear-gradient(145deg,#8140f2,#ad50ff);color:#fff;box-shadow:0 0 18px rgba(149,78,255,.4)}
+.customer-order-timeline-step.is-complete .customer-order-timeline-icon{border-color:#7654ad;color:#e0d0ff}
+.customer-order-timeline-step.is-cancelled .customer-order-timeline-icon{border-color:#7654ad;background:#221a35;color:#e2ceff}
+.customer-order-timeline-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-timeline-step strong{max-width:100%;color:#f1eff8;font-size:9px;line-height:1.3;overflow-wrap:anywhere}
+.customer-order-timeline-step time,.customer-order-timeline-step .customer-order-timestamp-missing{min-height:14px;color:#9692a4;font-size:8px;line-height:1.35;overflow-wrap:anywhere}
+.customer-order-detail-items{overflow:hidden}
+.customer-order-detail-items-heading{display:flex;align-items:center;gap:8px;margin:0;padding:12px;border-bottom:1px solid #302a43;color:#f8f7ff;font-size:14px}
+.customer-order-detail-items-heading svg{width:18px;height:18px;fill:none;stroke:#c1a6ff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-detail-item{display:grid;grid-template-columns:62px minmax(0,1fr) auto;align-items:center;gap:10px;min-width:0;padding:11px;border-bottom:1px solid #272437}
+.customer-order-detail-item:last-child{border-bottom:0}
+.customer-order-detail-item>img,.customer-order-detail-item>.customer-order-item-image-fallback{display:grid;width:62px;height:76px;place-items:center;overflow:hidden;border:1px solid #39324e;border-radius:10px;background:#151626;color:#c4aaff;object-fit:cover}
+.customer-order-item-image-fallback svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-detail-item-copy{display:grid;gap:4px;min-width:0}
+.customer-order-detail-item-copy>strong{color:#fff;font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.customer-order-detail-item-copy>small{color:#b1aebf;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.customer-order-detail-item-price{margin-top:2px}
+.customer-order-quantity{align-self:start;padding:5px 7px;border:1px solid #40375a;border-radius:999px;background:#17142a;color:#ddd2f7;font-size:9px;font-weight:800;white-space:nowrap}
+.customer-order-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.customer-order-detail-panel{padding:12px}
+.customer-order-detail-panel h2{display:flex;align-items:center;gap:7px;margin:0 0 10px;color:#f7f5ff;font-size:12px;line-height:1.35}
+.customer-order-detail-panel h2 svg{width:17px;height:17px;flex:0 0 17px;fill:none;stroke:#c5a8ff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.customer-order-detail-field{display:grid;gap:3px;margin-top:8px;min-width:0}
+.customer-order-detail-field:first-of-type{margin-top:0}
+.customer-order-detail-field span{color:#9390a2;font-size:9px}
+.customer-order-detail-field strong,.customer-order-detail-field a{color:#e7e4f0;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.customer-order-detail-summary-total{display:grid;gap:10px;padding:14px}
+.customer-order-detail-summary-total h2{margin:0;color:#f9f7ff;font-size:15px}
+.customer-order-detail-summary-total .is-order-grand-total{border-top:1px solid #413653;padding-top:10px;color:#f6f4ff;font-size:14px}
+.customer-order-detail-summary-total .is-order-grand-total strong:last-child{color:#c28bff;font-size:17px}
+.customer-order-detail-summary-total .customer-order-card-total{font-size:12px}
+.customer-order-detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.customer-order-detail-actions button{min-height:46px;padding:9px;border:1px solid #7756b7;border-radius:14px;background:#111323;color:#f8f5ff;font:700 12px/1.3 system-ui,sans-serif;cursor:pointer}
+.customer-order-detail-actions .customer-order-again{border-color:#9c6aff;background:linear-gradient(115deg,#723fee,#a04cff);box-shadow:0 6px 18px rgba(119,67,231,.22)}
+.customer-order-detail-message{padding:20px;border:1px solid #37304d;border-radius:18px;background:#0b0e18;color:#d5d0e2;text-align:center}
+.customer-order-detail-message h2{margin:0 0 7px;color:#fff;font-size:17px}
+.customer-order-detail-message p{margin:0 0 13px;color:#a9a6b7;font-size:12px;line-height:1.5}
+.customer-order-detail-message button{min-height:42px;padding:8px 14px;border:1px solid #7052a9;border-radius:12px;background:#19152b;color:#fff;font:700 12px system-ui,sans-serif}
+@media(max-width:360px){.shop-orders-view,.customer-order-details-view{padding-top:10px}.shop-orders-view .customer-orders-heading{gap:8px;padding:10px}.shop-orders-view .customer-orders-heading .page-title{font-size:20px}.shop-orders-view .customer-order-filters{gap:5px;margin-inline:10px}.shop-orders-view .customer-order-filter{gap:5px;padding-inline:8px;font-size:10px}.customer-orders-section,.customer-order-detail-content{margin-inline:10px}.customer-order-card-main{grid-template-columns:50px minmax(0,1fr) auto;gap:7px}.customer-order-card-thumb{width:50px;height:62px}.customer-order-status{padding:4px 6px;font-size:9px}.customer-order-detail-summary{grid-template-columns:42px minmax(0,1fr);gap:7px;padding:9px}.customer-order-detail-summary .customer-page-icon{width:40px;height:40px;flex-basis:40px}.customer-order-detail-summary>.customer-order-status{grid-column:2;justify-self:start}.customer-order-detail-grid{grid-template-columns:1fr}.customer-order-detail-item{grid-template-columns:54px minmax(0,1fr) auto;gap:7px;padding:9px}.customer-order-detail-item>img,.customer-order-detail-item>.customer-order-item-image-fallback{width:54px;height:68px}.customer-order-quantity{font-size:8px;padding:4px 5px}.customer-order-timeline{padding-inline:6px}.customer-order-timeline-step strong{font-size:8px}.customer-order-timeline-step time,.customer-order-timeline-step .customer-order-timestamp-missing{font-size:7px}}
+@media(min-width:700px){.shop-orders-view,.customer-order-details-view{max-width:880px;margin-inline:auto}.shop-orders-view .customer-orders-heading,.customer-order-detail-intro{max-width:852px;margin-inline:auto}.shop-orders-view .customer-order-filters{max-width:852px;margin-inline:auto}.customer-orders-section,.customer-order-detail-content{max-width:852px;margin-inline:auto}.customer-order-detail-content{gap:15px}.customer-order-detail-item>img,.customer-order-detail-item>.customer-order-item-image-fallback{width:72px;height:86px}.customer-order-detail-grid{gap:14px}.customer-order-detail-panel{padding:16px}}
+
 .profile-card{
   background:#0b0e18;
   border:1px solid #282d40;
@@ -3447,6 +3547,10 @@ html.home-menu-open,html.home-menu-open body{overflow:hidden!important}
 @media(prefers-reduced-motion:reduce){.home-menu-backdrop,.home-menu-panel,.home-menu-link{transition:none}}
 
 /* Search page and live Home counts */
+body.customer-orders-page-open>.language-switcher{display:none!important}
+body.customer-orders-page-open #mainApp>.topbar{display:none!important}
+.shop-orders-view,.customer-order-details-view{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden;padding:12px 0 calc(96px + env(safe-area-inset-bottom));color:#f6f4ff}
+.shop-orders-view .search-page-header,.customer-order-details-view .search-page-header{margin-bottom:17px}
 .shop-cart-view{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden;padding:12px 0 calc(96px + env(safe-area-inset-bottom));color:#f6f4ff}
 body.cart-page-open>.language-switcher{display:none!important}
 body.cart-page-open #mainApp>.topbar{display:none!important}
@@ -4098,13 +4202,32 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
   </div>
 
 <div id="ordersView" class="view page shop-orders-view">
-  <header class="customer-orders-heading">
-    <span class="customer-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 2v4m8-4v4M8 10h8m-8 4h8m-8 4h5"/></svg></span>
-    <div><p class="shop-eyebrow">SHIVAN SHOP · YOUR HISTORY</p><h1 id="ordersPageTitle" class="page-title">My Orders</h1><p id="ordersPageSubtitle">Track your orders and review their details.</p></div>
+  <header class="shop-collection-header search-page-header">
+    <button id="ordersBackButton" class="shop-collection-back" type="button" onclick="goBackFromOrders()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
+    <div class="search-page-brand" aria-label="Shivan Shop">Shivan Shop</div>
+    <span class="shop-collection-header-spacer" aria-hidden="true"></span>
   </header>
-  <nav id="customerOrderFilters" class="customer-order-filters" aria-label="Filter orders by status"></nav>
+  <section class="customer-orders-heading" aria-labelledby="ordersPageTitle">
+    <span class="customer-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v18H4V5a2 2 0 0 1 2-2Z"/><path d="M8 2v4m8-4v4M8 10h8m-8 4h8m-8 4h5"/></svg></span>
+    <div><h1 id="ordersPageTitle" class="page-title">My Orders</h1><p id="ordersPageSubtitle">Track your orders and review their details.</p></div>
+    <span id="ordersPageCount" class="customer-page-count" aria-live="polite">0 orders</span>
+  </section>
+  <nav id="customerOrderFilters" class="customer-order-filters" aria-label="Filter active orders"></nav>
   <p id="customerOrdersCount" class="customer-orders-count" aria-live="polite"></p>
   <div id="ordersList" class="customer-order-list" aria-live="polite"></div>
+</div>
+
+<div id="orderDetailsView" class="view page customer-order-details-view">
+  <header class="shop-collection-header search-page-header">
+    <button id="orderDetailsBackButton" class="shop-collection-back" type="button" onclick="goBackFromCustomerOrderDetails()" aria-label="Back to orders" title="Back to orders"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
+    <div class="search-page-brand" aria-label="Shivan Shop">Shivan Shop</div>
+    <span class="shop-collection-header-spacer" aria-hidden="true"></span>
+  </header>
+  <section class="customer-order-detail-intro">
+    <h1 id="customerOrderDetailPageTitle">Order Details</h1>
+    <p id="customerOrderDetailPageSubtitle">Complete information about your order.</p>
+  </section>
+  <div id="customerOrderDetailsContent" aria-live="polite"></div>
 </div>
 
 <!-- PROFILE -->
@@ -5047,6 +5170,8 @@ function renderHomeLabels(){
   if(typeof renderSearchLabels==="function")renderSearchLabels();
   if(typeof updateHomeHeaderCountBadges==="function")updateHomeHeaderCountBadges();
   if(getActiveShopView()==="store"&&typeof renderStorePage==="function")renderStorePage();
+  if(getActiveShopView()==="orders"&&typeof renderOrders==="function")renderOrders();
+  if(getActiveShopView()==="orderDetails"&&typeof renderCustomerOrderDetails==="function")renderCustomerOrderDetails();
 }
 function getProductName(product,language=activeLanguage){
   if(!product)return "";
@@ -5293,7 +5418,7 @@ const shopViewScrollPositions=new Map();
 let shopSearchReturnView="home";
 let shopViewNavigationPopHandler=null;
 let shopViewNavigationScrollHandler=null;
-const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","orders","profile","store","newModel","discount","favorites","owner"]);
+const SHOP_HISTORY_VIEWS=new Set(["home","search","cart","orders","orderDetails","profile","store","newModel","discount","favorites","owner"]);
 let ownerPanelRefreshPending=false;
 let ownerProductWorkflowId="";
 let ownerAdWorkflowId="";
@@ -7788,7 +7913,7 @@ function getShopOnboardingVisibilityAction(hidden,wasHidden,startupComplete){
 }
 
 function getActiveShopView(){
-  return ["detail","home","store","search","cart","orders","profile","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
+  return ["detail","orderDetails","home","store","search","cart","orders","profile","newModel","discount","favorites","owner"].find(view=>document.getElementById(view+"View")?.classList.contains("active"))||"home";
 }
 
 function shopViewHistoryState(view,position=readShopViewPosition(view)){
@@ -8682,11 +8807,11 @@ function openView(view,options={}){
 
   if(productDetailClosing&&!options.preserveProductReturn)return;
   installShopViewNavigation();
-  if(shopLoggedOutRequiresLogin&&["cart","orders","profile","owner"].includes(view)){showLogoutLoginScreen();return false;}
+  if(shopLoggedOutRequiresLogin&&["cart","orders","orderDetails","profile","owner"].includes(view)){showLogoutLoginScreen();return false;}
   const authPage=document.getElementById("authPage");
   if(authPage?.classList.contains("is-shop-auth-modal")&&pendingAuthenticationIntent?.type==="product"&&!currentUser&&!cloudAccount)return false;
   if(authPage?.classList.contains("is-shop-auth-modal")&&!currentUser&&!cloudAccount)return false;
-  if((view==="cart"||view==="orders"||view==="profile")&&!currentUser&&!cloudAccount){
+  if((view==="cart"||view==="orders"||view==="orderDetails"||view==="profile")&&!currentUser&&!cloudAccount){
     return openGuestAuthenticationModal(view);
   }
   const previousView=getActiveShopView();
@@ -8730,6 +8855,7 @@ function openView(view,options={}){
     "searchView",
     "cartView",
     "ordersView",
+    "orderDetailsView",
     "profileView",
     "detailView",
     "ownerView"
@@ -8749,6 +8875,7 @@ function openView(view,options={}){
   document.querySelector(".app")?.classList.toggle("detail-mode",view==="detail");
   document.body?.classList.toggle("search-page-open",view==="search");
   document.body?.classList.toggle("cart-page-open",view==="cart");
+  document.body?.classList.toggle("customer-orders-page-open",view==="orders"||view==="orderDetails");
   document.body?.classList.toggle("store-page-open",view==="store");
   document.documentElement.classList.toggle("detail-view-open",view==="detail");
   document.body.classList.toggle("detail-view-open",view==="detail");
@@ -8768,7 +8895,7 @@ function openView(view,options={}){
   if(view==="cart")
     document.getElementById("navCart").classList.add("active");
 
-  if(view==="orders")
+  if(view==="orders"||view==="orderDetails")
     document.getElementById("navOrders").classList.add("active");
 
   if(view==="profile")
@@ -8782,6 +8909,7 @@ function openView(view,options={}){
   }
 
   if(view==="orders")renderOrders();
+  if(view==="orderDetails")renderCustomerOrderDetails();
 
   if(view==="search"&&typeof renderSearchPage==="function")renderSearchPage();
 
@@ -10881,6 +11009,12 @@ async function placeOrder(autoFib=false){
 }
 
 let customerOrdersFilter="all";
+let customerOrderDetailsId="";
+function setCustomerOrdersFilter(status){
+  const allowed=["all","new","processing","shipped"];
+  if(!allowed.includes(String(status)))return false;
+  customerOrdersFilter=String(status);renderOrders();return true;
+}
 function customerOrderFilterKey(order){
   const status=String(order?.status||"").trim().toLocaleLowerCase();
   if(/cancel|canceled|cancelled|reject|هەڵوەشاند|ڕەتکرا|ملغي|ملغى|إلغاء/.test(status))return "cancelled";
@@ -10890,63 +11024,75 @@ function customerOrderFilterKey(order){
   if(/new|pending|لە چاوەڕوانی|قيد الانتظار|جديد|نوو/.test(status))return "new";
   return "other";
 }
-function setCustomerOrdersFilter(status){
-  const allowed=["all","new","processing","shipped","delivered","cancelled"];
-  if(!allowed.includes(String(status)))return false;
-  customerOrdersFilter=String(status);
-  renderOrders();
-  return true;
+function customerOrderStatusLabel(order){
+  const key=customerOrderFilterKey(order),labels={new:customerUiText("New","نوو","جديد"),processing:customerUiText("Processing","پێچرا","قيد التجهيز"),shipped:customerUiText("Shipped","هاتە ناردن","تم الشحن"),delivered:customerUiText("Delivered","گەهشت","تم التوصيل"),cancelled:customerUiText("Cancelled","هەڵوەشاند","ملغى")};
+  return labels[key]||String(order?.status||customerUiText("Status unavailable","دۆخ نینە","الحالة غير متاحة"));
+}
+function customerOrderDateLabel(order){
+  const raw=order?.createdAt||order?.created_at||order?.placedAt||order?.placed_at;
+  const time=Date.parse(String(raw||""));if(!Number.isFinite(time))return String(order?.date||customerUiText("Date not recorded","بەروار تۆمار نەکراوە","التاريخ غير مسجل"));
+  const locale=activeLanguage==="ar"?"ar-IQ":activeLanguage==="ku-Badini"?"ku-IQ":"en-US";
+  try{return new Date(time).toLocaleString(locale,{year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});}catch(error){return new Date(time).toLocaleString();}
+}
+function customerOrderSortNewest(a,b){
+  const at=Date.parse(String(a?.createdAt||a?.created_at||a?.date||"")),bt=Date.parse(String(b?.createdAt||b?.created_at||b?.date||""));
+  if(Number.isFinite(at)&&Number.isFinite(bt)&&at!==bt)return bt-at;
+  if(Number.isFinite(at)!==Number.isFinite(bt))return Number.isFinite(bt)?1:-1;
+  return String(b?.id||"").localeCompare(String(a?.id||""));
+}
+function customerOrderCardMarkup(order){
+  const items=Array.isArray(order?.items)?order.items:[],count=items.reduce((sum,item)=>sum+Math.max(1,Math.floor(Number(item?.qty)||1)),0),status=customerOrderFilterKey(order),image=safeImageUrl(items.find(item=>safeImageUrl(item?.image))?.image),dateRaw=order?.createdAt||order?.created_at||"";
+  const thumb=image?'<img data-i18n-preserve src="'+escapeHtml(image)+'" alt="" loading="lazy">':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16l-1 14H5L4 7Zm4 0a4 4 0 0 1 8 0"/></svg>';
+  return '<button type="button" class="customer-order-card" data-order-id="'+escapeHtml(order.id)+'" aria-label="'+escapeHtml(customerUiText("View order ","داخوازی ببینە ","عرض الطلب ")+String(order.id||""))+'" onclick="openCustomerOrderDetails(this.dataset.orderId)"><span class="customer-order-card-main"><span class="customer-order-card-thumb">'+thumb+'</span><span class="customer-order-card-copy"><strong class="customer-order-number">'+escapeHtml(customerUiText("Order #","داخوازی #","الطلب #"))+escapeHtml(order.id||"—")+'</strong><time'+(dateRaw?' datetime="'+escapeHtml(dateRaw)+'"':'')+'>'+escapeHtml(customerOrderDateLabel(order))+'</time><span class="customer-order-card-items">'+count+' '+escapeHtml(customerUiText(count===1?"item":"items",count===1?"بەرهەم":"بەرهەم","منتجات"))+'</span></span><span class="customer-order-status is-'+(["new","processing","shipped","delivered","cancelled"].includes(status)?status:"other")+'">'+escapeHtml(customerOrderStatusLabel(order))+'</span></span><span class="customer-order-card-total"><span>'+escapeHtml(customerUiText("Total","کۆ","الإجمالي"))+'</span><strong>'+escapeHtml(formatPrice(Math.max(0,Number(order.total)||0)))+'</strong><span class="customer-order-card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></span></span></button>';
 }
 function renderOrders(){
   if(typeof updateHomeHeaderCountBadges==="function")updateHomeHeaderCountBadges();
-  const box=document.getElementById("ordersList");
-  if(!box)return;
-  const filterBar=document.getElementById("customerOrderFilters"),countBox=document.getElementById("customerOrdersCount");
-  if(!currentUser){
-    if(filterBar)filterBar.innerHTML="";
-    if(countBox)countBox.textContent="";
-    box.innerHTML='<section class="customer-empty-state"><span class="customer-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 2v4m8-4v4M8 10h8m-8 4h8"/></svg></span><h2>'+escapeHtml(customerUiText("Sign in to view your orders","بۆ دیتنا داخوازیان بچۆ ژوور","سجلي الدخول لعرض طلباتك"))+'</h2><p>'+escapeHtml(customerUiText("Your order history will be here after you sign in.","پشتی چوونا ژوور، مێژوویا داخوازیان ل ڤێرە دێ بیت.","سيظهر سجل طلباتك هنا بعد تسجيل الدخول."))+'</p></section>';
-    return;
-  }
-  const customerOrders=getOrders().filter(order=>String(order?.userId??"")===String(currentUser.id??""));
-  const definitions=[
-    ["all",customerUiText("All","هەمی","الكل")],
-    ["new",customerUiText("New","نوو","جديد")],
-    ["processing",customerUiText("Processing","پێچرا","قيد التجهيز")],
-    ["shipped",customerUiText("Shipped","هاتە ناردن","تم الشحن")],
-    ["delivered",customerUiText("Delivered","گەهشت","تم التوصيل")],
-    ["cancelled",customerUiText("Cancelled","هەڵوەشاند","ملغى")]
-  ];
-  if(filterBar){
-    filterBar.setAttribute("aria-label",customerUiText("Filter orders by status","ب دۆخێ داخوازیان فلتەر بکە","تصفية الطلبات حسب الحالة"));
-    filterBar.innerHTML=definitions.map(entry=>{
-      const key=entry[0],label=entry[1],count=key==="all"?customerOrders.length:customerOrders.filter(order=>customerOrderFilterKey(order)===key).length;
-      return '<button type="button" class="customer-order-filter" data-status="'+key+'" aria-pressed="'+String(customerOrdersFilter===key)+'" onclick="setCustomerOrdersFilter(this.dataset.status)"><span>'+escapeHtml(label)+'</span><span class="customer-order-filter-count" aria-hidden="true">'+count+'</span></button>';
-    }).join("");
-  }
-  const visibleOrders=customerOrdersFilter==="all"?customerOrders:customerOrders.filter(order=>customerOrderFilterKey(order)===customerOrdersFilter);
-  if(countBox)countBox.textContent=customerUiText(String(visibleOrders.length)+" of "+String(customerOrders.length)+" orders",String(visibleOrders.length)+" ژ "+String(customerOrders.length)+" داخوازی","عدد الطلبات المعروضة "+String(visibleOrders.length)+" من "+String(customerOrders.length));
-  if(!customerOrders.length){
-    box.innerHTML='<section class="customer-empty-state"><span class="customer-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 2v4m8-4v4M8 10h8m-8 4h8"/></svg></span><h2>'+escapeHtml(customerUiText("No orders yet","هێشتا داخوازی نینە","لا توجد طلبات بعد"))+'</h2><p>'+escapeHtml(customerUiText("When you place an order, its details will appear here.","دەمێ داخوازیەک بکەی، وردەکاریێن وێ ل ڤێرە دێ دەرکەڤن.","ستظهر تفاصيل طلبك هنا عند إتمام أول طلب."))+'</p><button type="button" class="main-btn" onclick="openView(\'home\')">'+escapeHtml(customerUiText("Explore Collection","بینین بەرهەمەکان","تسوقي المجموعة"))+' <span aria-hidden="true">→</span></button></section>';
-    return;
-  }
-  if(!visibleOrders.length){
-    box.innerHTML='<section class="customer-empty-state"><span class="customer-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16M7 9h10M9 13h6M11 17h2"/></svg></span><h2>'+escapeHtml(customerUiText("No matching orders","هیچ داخوازییەک نەهاتە دیتن","لا توجد طلبات مطابقة"))+'</h2><p>'+escapeHtml(customerUiText("There are no orders with this status yet.","هێشتا داخوازی ب ڤی دۆخی نینە.","لا توجد طلبات بهذه الحالة حالياً."))+'</p><button type="button" class="customer-order-filter" onclick="setCustomerOrdersFilter(\'all\')">'+escapeHtml(customerUiText("Show all orders","هەمی داخوازیان نیشان بدە","عرض كل الطلبات"))+'</button></section>';
-    return;
-  }
-  box.innerHTML=visibleOrders.map(order=>{
-    const items=Array.isArray(order.items)?order.items:[],itemCount=items.reduce((count,item)=>count+(Number(item.qty)||1),0);
-    const statusKey=customerOrderFilterKey(order),statusClass=["new","processing","shipped","delivered","cancelled"].includes(statusKey)?statusKey:"other";
-    const orderDate=String(order.date||order.createdAt||""),address=String(order.address||[order.city,order.area].filter(Boolean).join(" · ")||"");
-    const deliveryFee=order.deliveryFee!==undefined&&order.deliveryFee!==null&&String(order.deliveryFee)!==""&&Number.isFinite(Number(order.deliveryFee))?Number(order.deliveryFee):null;
-    const itemMarkup=items.map(item=>'<div class="order-item-detail"><img data-i18n-preserve src="'+escapeHtml(safeImageUrl(item.image))+'" alt="'+escapeHtml(getCartItemName(item))+'" loading="lazy"><div class="order-item-copy"><strong data-i18n-preserve>'+escapeHtml(getCartItemName(item))+'</strong><small><span>'+escapeHtml(customerUiText("Color","ڕەنگ","اللون"))+'</span>: <span data-i18n-preserve>'+escapeHtml(item.colorName||item.color||"—")+'</span></small><small><span>'+escapeHtml(customerUiText("Size","قەبارە","المقاس"))+'</span>: <span data-i18n-preserve>'+escapeHtml(item.size||"—")+'</span> · <span>'+escapeHtml(customerUiText("Quantity","ژمارە","الكمية"))+'</span>: '+(Number(item.qty)||1)+'</small><small class="order-item-price">'+renderOrderItemPrice(item)+'</small></div></div>').join("");
-    const thumbnails=items.slice(0,3).map(item=>'<img data-i18n-preserve src="'+escapeHtml(safeImageUrl(item.image))+'" alt="'+escapeHtml(getCartItemName(item))+'" loading="lazy">').join("");
-    const payment=order.paymentMethod?paymentMethodLabel(order.paymentMethod,order):customerUiText("Not specified","نەهاتییە دیارکرن","غير محدد");
-    const delivery=order.deliveryZoneName||customerUiText("Not specified","نەهاتییە دیارکرن","غير محدد");
-    return '<article class="order-card customer-order-card" data-customer-order-status="'+statusKey+'"><header class="order-head"><div class="customer-order-heading-copy"><span class="customer-order-number">'+escapeHtml(customerUiText("Order","داخوازی","الطلب"))+' #'+escapeHtml(order.id)+'</span><time data-i18n-preserve datetime="'+escapeHtml(order.date||order.createdAt||"")+'">'+escapeHtml(orderDate||"—")+'</time></div><span class="customer-order-status is-'+statusClass+'">'+escapeHtml(translateText(order.status||""))+'</span></header><div class="customer-order-preview">'+thumbnails+'<span class="customer-order-preview-count">'+itemCount+' '+escapeHtml(customerUiText("items","بەرهەم","منتجات"))+'</span></div><details class="order-items customer-order-details"><summary>'+escapeHtml(customerUiText("Order details","وردەکاریێن داخوازیێ","تفاصيل الطلب"))+' <span>'+escapeHtml(customerUiText("View details","دیتنا وردەکاریان","عرض التفاصيل"))+'</span></summary><div class="customer-order-facts"><div class="customer-order-fact"><span>'+escapeHtml(customerUiText("Status","دۆخ","الحالة"))+'</span><strong>'+escapeHtml(translateText(order.status||""))+'</strong></div><div class="customer-order-fact"><span>'+escapeHtml(customerUiText("Payment","پارەدان","الدفع"))+'</span><strong>'+escapeHtml(payment)+'</strong></div><div class="customer-order-fact"><span>'+escapeHtml(customerUiText("Delivery","گەهاندن","التوصيل"))+'</span><strong>'+escapeHtml(delivery)+'</strong></div><div class="customer-order-fact"><span>'+escapeHtml(customerUiText("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل"))+'</span><strong>'+escapeHtml(deliveryFee===null?customerUiText("Not available","نەهاتییە دیارکرن","غير متاح"):formatPrice(deliveryFee))+'</strong></div>'+(address?'<div class="customer-order-fact"><span>'+escapeHtml(customerUiText("Delivery address","ناڤنیشانا گەهاندنێ","عنوان التوصيل"))+'</span><strong>'+escapeHtml(address)+'</strong></div>':"")+'</div><div class="order-item-list">'+(itemMarkup||'<p class="cart-delivery-note">'+escapeHtml(customerUiText("No item details are available for this order.","وردەکاریێن بەرهەمان بۆ ڤێ داخوازیێ نینن.","لا تتوفر تفاصيل المنتجات لهذا الطلب."))+'</p>')+'</div></details><footer class="customer-order-total"><span>'+escapeHtml(customerUiText("Order total","کۆیا داخوازیێ","إجمالي الطلب"))+'</span><strong>'+escapeHtml(formatPrice(Number(order.total)||0))+'</strong></footer></article>';
-  }).join("");
+  const title=document.getElementById("ordersPageTitle"),subtitle=document.getElementById("ordersPageSubtitle");if(title)title.textContent=customerUiText("My Orders","داخوازیێن من","طلباتي");if(subtitle)subtitle.textContent=customerUiText("Track your orders and review their details.","داخوازیێن خۆ پێکڤەبەرە و وردەکاریان ببینە.","تابعي طلباتك وراجعي تفاصيلها.");
+  const box=document.getElementById("ordersList");if(!box)return;
+  const filters=document.getElementById("customerOrderFilters"),countBox=document.getElementById("customerOrdersCount"),totalBox=document.getElementById("ordersPageCount");
+  if(!currentUser&&!cloudAccount){if(filters)filters.innerHTML="";if(countBox)countBox.textContent="";if(totalBox)totalBox.textContent="";box.innerHTML='<section class="customer-order-empty"><h3>'+escapeHtml(customerUiText("Sign in to view your orders","بۆ دیتنا داخوازیان بچۆ ژوور","سجلي الدخول لعرض طلباتك"))+'</h3></section>';return;}
+  const ownerId=String((currentUser||cloudAccount)?.id??""),orders=getOrders().filter(order=>String(order?.userId??"")===ownerId).sort(customerOrderSortNewest),active=orders.filter(order=>["new","processing","shipped","other"].includes(customerOrderFilterKey(order))),history=orders.filter(order=>["delivered","cancelled"].includes(customerOrderFilterKey(order)));
+  const labels=[["all",customerUiText("All","هەمی","الكل")],["new",customerUiText("New","نوو","جديد")],["processing",customerUiText("Processing","پێچرا","قيد التجهيز")],["shipped",customerUiText("Shipped","هاتە ناردن","تم الشحن")]];
+  if(filters){filters.setAttribute("aria-label",customerUiText("Filter active orders","فلتەرکرنا داخوازیێن چالاک","تصفية الطلبات النشطة"));filters.innerHTML=labels.map(([key,label])=>{const rows=key==="all"?active:active.filter(order=>customerOrderFilterKey(order)===key);return '<button type="button" class="customer-order-filter" data-status="'+key+'" aria-pressed="'+String(customerOrdersFilter===key)+'" onclick="setCustomerOrdersFilter(this.dataset.status)"><span>'+escapeHtml(label)+'</span><span class="customer-order-filter-count">'+rows.length+'</span></button>';}).join("");}
+  const activeShown=customerOrdersFilter==="all"?active:active.filter(order=>customerOrderFilterKey(order)===customerOrdersFilter);
+  if(totalBox)totalBox.textContent=customerUiText(orders.length+" orders",orders.length+" داخوازی",orders.length+" طلبات");
+  if(countBox)countBox.textContent=customerUiText(activeShown.length+" active · "+history.length+" history",activeShown.length+" چالاک · "+history.length+" مێژوو",activeShown.length+" نشطة · "+history.length+" في السجل");
+  const activeSection=activeShown.length?'<section class="customer-orders-section" aria-labelledby="customerActiveOrdersTitle"><div class="customer-orders-section-heading"><h2 id="customerActiveOrdersTitle">'+escapeHtml(customerUiText("Active Orders","داخوازیێن چالاک","الطلبات النشطة"))+'</h2><span class="customer-orders-section-count">'+activeShown.length+'</span></div><div class="customer-order-list">'+activeShown.map(customerOrderCardMarkup).join("")+'</div></section>':'<section class="customer-order-empty customer-orders-section"><h3>'+escapeHtml(customerUiText("No new orders","داخوازیێن نوو نینن","لا توجد طلبات جديدة"))+'</h3><p>'+escapeHtml(customerUiText("You don’t have any new orders at the moment.","نەکە داخوازیەکا نوو یێن هاو دەم دا.","ليس لديك طلبات جديدة في الوقت الحالي."))+'</p></section>';
+  const historySection=history.length?'<section class="customer-orders-section customer-order-history-section" aria-labelledby="customerOrderHistoryTitle"><div class="customer-orders-section-heading"><h2 id="customerOrderHistoryTitle"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5m4-2v6l4 2"/></svg>'+escapeHtml(customerUiText("Order History","مێژوویا داخوازیان","سجل الطلبات"))+'</h2><span class="customer-orders-section-count">'+history.length+' '+escapeHtml(customerUiText("orders","داخوازی","طلبات"))+'</span></div><div class="customer-order-list">'+history.map(customerOrderCardMarkup).join("")+'</div></section>':'';
+  box.innerHTML=activeSection+historySection;
 }
-
+function customerOrderLookupForCurrentUser(id){if(!currentUser&&!cloudAccount)return null;const userId=String((currentUser||cloudAccount)?.id??"");return getOrders().find(order=>String(order?.id??"")===String(id??"")&&String(order?.userId??"")===userId)||null;}
+function openCustomerOrderDetails(id){const order=customerOrderLookupForCurrentUser(id);if(!order){showToast(customerUiText("Order not found.","داخوازی نەهاتە دیتن.","لم يتم العثور على الطلب."));return false;}customerOrderDetailsId=String(order.id);openView("orderDetails");return true;}
+function goBackFromOrders(){const state=window.history?.state;if(state?.__shivanShopView==="orders"&&Number(window.history?.length||0)>1){window.history.back();return true;}const destination="home",position=shopViewScrollPositions.get(destination)||{windowY:0,viewTop:0,appTop:0,authTop:0};writeShopViewHistory(destination,{replace:true,position});openView(destination,{historyRestore:true,restorePosition:position});return true;}
+function goBackFromCustomerOrderDetails(){const state=window.history?.state;if(state?.__shivanShopView==="orderDetails"&&Number(window.history?.length||0)>1){window.history.back();return true;}const position=shopViewScrollPositions.get("orders")||{windowY:0,viewTop:0,appTop:0,authTop:0};writeShopViewHistory("orders",{replace:true,position});openView("orders",{historyRestore:true,restorePosition:position});return true;}
+function customerOrderStageTime(order,stage){
+  const keys={placed:["createdAt","created_at","placedAt","placed_at"],processing:["processingAt","processedAt","processing_at","processed_at"],shipped:["shippedAt","shipped_at","dispatchAt","dispatch_at"],delivered:["deliveredAt","delivered_at","completedAt","completed_at"],cancelled:["cancelledAt","canceledAt","rejectedAt","cancelled_at","canceled_at","rejected_at"]}[stage]||[];
+  for(const key of keys){const value=order?.[key],time=Date.parse(String(value||""));if(value&&Number.isFinite(time))return new Date(time).toISOString();}
+  for(const list of [order?.statusHistory,order?.history,order?.trackingHistory])if(Array.isArray(list))for(const entry of list){const state=String(entry?.status||entry?.state||"");const match=stage==="placed"?/place|order|new|pending/i:stage==="processing"?/process|packing/i:stage==="shipped"?/ship|transit|dispatch/i:stage==="delivered"?/deliver|complete|fulfill/i:/cancel|reject/i;if(match.test(state)){const value=entry.timestamp||entry.at||entry.createdAt||entry.date,time=Date.parse(String(value||""));if(Number.isFinite(time))return new Date(time).toISOString();}}
+  return "";
+}
+function customerOrderTimeText(value){if(!value)return customerUiText("Not recorded","نەهاتییە تۆمارکرن","غير مسجل");const date=new Date(value),locale=activeLanguage==="ar"?"ar-IQ":activeLanguage==="ku-Badini"?"ku-IQ":"en-US";try{return date.toLocaleString(locale,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});}catch(error){return date.toLocaleString();}}
+function customerOrderTimelineMarkup(order){
+  const status=customerOrderFilterKey(order),stages=[{key:"placed",label:customerUiText("Order Placed","داخوازی هاتە ناردن","تم تقديم الطلب"),icon:"<svg viewBox=\"0 0 24 24\"><path d=\"M3 4h18v3H3zM5 7l1 14h12l1-14M9 11v6m6-6v6\"/></svg>"},{key:"processing",label:customerUiText("Processing","پێچرا","قيد التجهيز"),icon:"<svg viewBox=\"0 0 24 24\"><path d=\"M12 3v9l6 3M21 12a9 9 0 1 1-2.64-6.36L21 8\"/></svg>"},{key:"shipped",label:customerUiText("Shipped","هاتە ناردن","تم الشحن"),icon:"<svg viewBox=\"0 0 24 24\"><path d=\"M3 7h11v11H3zM14 11h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z\"/></svg>"},{key:"delivered",label:customerUiText("Delivered","گەهشت","تم التوصيل"),icon:"<svg viewBox=\"0 0 24 24\"><path d=\"m5 12 5 5L20 7\"/></svg>"}];
+  if(status==="cancelled")stages.splice(1,3,{key:"cancelled",label:customerUiText("Cancelled","هەڵوەشاند","ملغى"),icon:"<svg viewBox=\"0 0 24 24\"><path d=\"m7 7 10 10M17 7 7 17\"/></svg>"});
+  const progress={new:0,other:0,processing:1,shipped:2,delivered:3,cancelled:1}[status]??0;
+  return '<section class="customer-order-timeline" aria-label="'+escapeHtml(customerUiText("Order tracking","پێکڤەچوونا داخوازیێ","تتبع الطلب"))+'"><ol style="--customer-order-stage-count:'+stages.length+'">'+stages.map((stage,index)=>{const time=customerOrderStageTime(order,stage.key),complete=index<progress,current=index===progress;return '<li class="customer-order-timeline-step'+(complete?' is-complete':'')+(current?' is-current':'')+(stage.key==='cancelled'?' is-cancelled':'')+'"><span class="customer-order-timeline-icon" aria-hidden="true">'+stage.icon+'</span><strong>'+escapeHtml(stage.label)+'</strong><span class="customer-order-timestamp-missing">'+escapeHtml(customerOrderTimeText(time))+'</span></li>';}).join("")+'</ol></section>';
+}
+function customerOrderDetailMarkup(order){
+  const items=Array.isArray(order.items)?order.items:[],status=customerOrderFilterKey(order),fee=order.deliveryFee===undefined||order.deliveryFee===null||order.deliveryFee===""?null:Number(order.deliveryFee),explicitDiscount=order.discountTotal!==undefined&&order.discountTotal!==null&&order.discountTotal!==""&&Number.isFinite(Number(order.discountTotal)),discount=explicitDiscount?Math.max(0,Number(order.discountTotal)):items.reduce((sum,item)=>{const original=Number(item?.originalPrice),price=Number(item?.price),qty=Math.max(1,Number(item?.qty)||1);return Number.isFinite(original)&&Number.isFinite(price)&&original>price?sum+(original-price)*qty:sum;},0),hasSavedSubtotal=order.subtotal!==undefined&&order.subtotal!==null&&order.subtotal!==""&&Number.isFinite(Number(order.subtotal)),netSubtotal=hasSavedSubtotal?Number(order.subtotal):items.reduce((sum,item)=>sum+(Math.max(0,Number(item?.price)||0)*Math.max(1,Number(item?.qty)||1)),0),subtotal=netSubtotal+discount,address=String(order.address||[order.city,order.area].filter(Boolean).join(" · ")||""),delivery=String(order.deliveryMethod||order.deliveryZoneName||""),timestamp=customerOrderStageTime(order,"placed"),locale=activeLanguage==="ar"?"ar-IQ":activeLanguage==="ku-Badini"?"ku-IQ":"en-US";
+  const price=item=>{const qty=Math.max(1,Number(item?.qty)||1),current=Math.max(0,Number(item?.price)||0),original=Number(item?.originalPrice),off=Number(item?.discount);return Number.isSafeInteger(original)&&original>current&&Number.isInteger(off)&&off>0?renderPriceBreakdown(original*qty,current*qty,off,{badge:true}):formatPrice(current*qty);};
+  const itemHtml=items.map((item,index)=>{const image=safeImageUrl(item?.image),name=getCartItemName(item)||customerUiText("Product","بەرهەم","المنتج"),qty=Math.max(1,Number(item?.qty)||1);return '<article class="customer-order-detail-item">'+(image?'<img data-i18n-preserve src="'+escapeHtml(image)+'" alt="'+escapeHtml(name)+'" loading="lazy">':'<span class="customer-order-item-image-fallback" aria-hidden="true">◇</span>')+'<div class="customer-order-detail-item-copy"><strong data-i18n-preserve>'+escapeHtml(name)+'</strong><small>'+escapeHtml(customerUiText("Size","قەبارە","المقاس"))+': <span data-i18n-preserve>'+escapeHtml(item?.size||"—")+'</span> · '+escapeHtml(customerUiText("Color","ڕەنگ","اللون"))+': <span data-i18n-preserve>'+escapeHtml(item?.colorName||item?.color||"—")+'</span></small><strong>'+price(item)+'</strong></div><span class="customer-order-quantity">'+escapeHtml(customerUiText("Qty: ","ژمارە: ","الكمية: "))+qty+'</span></article>';}).join("");
+  const row=(label,value)=>'<div class="customer-order-card-total"><span>'+escapeHtml(label)+'</span><span>'+escapeHtml(value)+'</span></div>';
+  const statusClass=["new","processing","shipped","delivered","cancelled"].includes(status)?status:"other",date=timestamp?new Date(timestamp).toLocaleString(locale):String(order.date||customerUiText("Date not recorded","بەروار تۆمار نەکراوە","التاريخ غير مسجل"));
+  return '<div class="customer-order-detail-content"><section class="customer-order-detail-summary"><span class="customer-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v17H4V5a2 2 0 0 1 2-2Z"/><path d="M8 2v4m8-4v4M8 10h8m-8 4h8m-8 4h5"/></svg></span><span class="customer-order-detail-summary-copy"><strong>'+escapeHtml(customerUiText("Order #","داخوازی #","الطلب #"))+escapeHtml(order.id||"—")+'</strong><time'+(timestamp?' datetime="'+escapeHtml(timestamp)+'"':'')+'>'+escapeHtml(date)+'</time></span><span class="customer-order-status is-'+statusClass+'">'+escapeHtml(customerOrderStatusLabel(order))+'</span></section>'+customerOrderTimelineMarkup(order)+'<section class="customer-order-detail-panel customer-order-detail-items"><h2 class="customer-order-detail-items-heading"><svg viewBox="0 0 24 24"><path d="M4 7h16l-1 14H5L4 7Zm4 0a4 4 0 0 1 8 0"/></svg>'+escapeHtml(customerUiText("Order Items","بەرهەمێن داخوازیێ","منتجات الطلب"))+' ('+items.length+')</h2>'+(itemHtml||'<p>'+escapeHtml(customerUiText("No saved item details are available.","وردەکاریێن تۆمارکریێن بەرهەمان نینن.","لا تتوفر تفاصيل المنتجات المحفوظة."))+'</p>')+'</section><div class="customer-order-detail-grid"><section class="customer-order-detail-panel"><h2><svg viewBox="0 0 24 24"><path d="M12 21s8-5 8-12a8 8 0 0 0-16 0c0 7 8 12 8 12Zm0-10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>'+escapeHtml(customerUiText("Delivery Information","زانیاریێن گەهاندنێ","معلومات التوصيل"))+'</h2><div class="customer-order-detail-field"><span>'+escapeHtml(customerUiText("Customer","کڕیار","العميل"))+'</span><strong data-i18n-preserve>'+escapeHtml(order.name||customerUiText("Not provided","نەهاتییە دابینکرن","غير متوفر"))+'</strong></div><div class="customer-order-detail-field"><span>'+escapeHtml(customerUiText("Phone","تەلەفۆن","الهاتف"))+'</span><strong data-i18n-preserve>'+(order.phone?escapeHtml(order.phone):escapeHtml(customerUiText("Not saved","نەهاتییە تۆمارکرن","غير محفوظ")))+'</strong></div><div class="customer-order-detail-field"><span>'+escapeHtml(customerUiText("Address","ناڤنیشان","العنوان"))+'</span><strong data-i18n-preserve>'+(address?escapeHtml(address):escapeHtml(customerUiText("Not saved","نەهاتییە تۆمارکرن","غير محفوظ")))+'</strong></div></section><section class="customer-order-detail-panel"><h2><svg viewBox="0 0 24 24"><path d="M3 7h11v11H3zM14 11h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>'+escapeHtml(customerUiText("Delivery Method","شێوازێ گەهاندنێ","طريقة التوصيل"))+'</h2><strong data-i18n-preserve>'+(delivery?escapeHtml(delivery):escapeHtml(customerUiText("Not saved","نەهاتییە تۆمارکرن","غير محفوظ")))+'</strong>'+(order.paymentMethod?'<div class="customer-order-detail-field"><span>'+escapeHtml(customerUiText("Payment","پارەدان","الدفع"))+'</span><strong>'+escapeHtml(paymentMethodLabel(order.paymentMethod,order))+'</strong></div>':'')+'</section></div><section class="customer-order-detail-summary-total"><h2>'+escapeHtml(customerUiText("Order Summary","کورتەیا داخوازیێ","ملخص الطلب"))+'</h2>'+row(customerUiText("Items subtotal","کۆیا بەرهەمان","المجموع الفرعي"),formatPrice(subtotal))+(discount>0?row(customerUiText("Discounts","داشکاندن","الخصومات"),"−"+formatPrice(discount)):"")+(fee===null?row(customerUiText("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل"),customerUiText("Not saved","نەهاتییە تۆمارکرن","غير محفوظ")):row(customerUiText("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل"),formatPrice(Math.max(0,fee))))+(order.total!==undefined&&order.total!==null&&order.total!==""&&Number.isFinite(Number(order.total))?'<div class="customer-order-card-total is-order-grand-total"><strong>'+escapeHtml(customerUiText("Total","کۆ","الإجمالي"))+'</strong><strong>'+escapeHtml(formatPrice(Number(order.total)))+'</strong></div>':"")+'</section><div class="customer-order-detail-actions"><button type="button" onclick="openCustomerOrderHelp()">'+escapeHtml(customerUiText("Need Help?","پێدڤی ب یارمەتیێ؟","هل تحتاجين للمساعدة؟"))+'</button><button type="button" class="customer-order-again" onclick="orderAgainFromHistory()">'+escapeHtml(customerUiText("Order Again","دووبارە داخوازی بکە","اطلبي مجدداً"))+'</button></div></div>';
+}
+function renderCustomerOrderDetails(){const box=document.getElementById("customerOrderDetailsContent");if(!box)return false;const title=document.getElementById("customerOrderDetailPageTitle"),subtitle=document.getElementById("customerOrderDetailPageSubtitle");if(title)title.textContent=customerUiText("Order Details","وردەکاریێن داخوازیێ","تفاصيل الطلب");if(subtitle)subtitle.textContent=customerUiText("Complete information about your order.","هەمی زانیاریێن داخوازیێ.","كافة معلومات طلبك.");const order=customerOrderLookupForCurrentUser(customerOrderDetailsId);if(!order){box.innerHTML='<section class="customer-order-detail-message"><h2>'+escapeHtml(customerUiText("Order not found","داخوازی نەهاتە دیتن","لم يتم العثور على الطلب"))+'</h2><button type="button" onclick="goBackFromCustomerOrderDetails()">'+escapeHtml(customerUiText("Back to Orders","ڤەگەڕە داخوازیان","العودة إلى الطلبات"))+'</button></section>';return false;}box.innerHTML=customerOrderDetailMarkup(order);return true;}
+function openCustomerOrderHelp(){const order=customerOrderLookupForCurrentUser(customerOrderDetailsId);if(!order)return false;const modal=document.getElementById("supportModal"),field=document.getElementById("supportMessage");if(modal&&field){field.value=customerUiText("I need help with order ","پێدڤی ب یارمەتیێ بۆ داخوازی ","أحتاج مساعدة بخصوص الطلب ")+String(order.id);openSupport();return true;}showToast(customerUiText("Support is not available right now.","یارمەتی ئێستا بەردەست نینە.","الدعم غير متاح حالياً."));return false;}
+function orderAgainFromHistory(){
+  const order=customerOrderLookupForCurrentUser(customerOrderDetailsId);if(!order)return false;const next=getCart().slice(),skipped=[];let added=0;
+  for(const saved of Array.isArray(order.items)?order.items:[]){const product=products.find(item=>String(item.id)===String(saved?.productId??saved?.id??"")),size=String(saved?.size||""),color=String(saved?.color||""),qty=Math.max(1,Math.floor(Number(saved?.qty)||1));if(!product||!size||!color||!canAddToCart(product.id,qty,size,color)){skipped.push(saved);continue;}const existing=next.find(line=>String(line.productId)===String(product.id)&&String(line.size)===size&&normalizeHexColor(line.color)===normalizeHexColor(color));if(existing){if(!canAddToCart(product.id,Number(existing.qty||0)+qty,size,color)){skipped.push(saved);continue;}existing.qty=Number(existing.qty||0)+qty;Object.assign(existing,cartPriceSnapshot(product));}else next.push({id:Date.now()+Math.random(),productId:product.id,name:getProductName(product),image:product.images?.[0]||product.image||"",size,color,colorName:saved?.colorName||getProductColorLabel(product,color),qty,...cartPriceSnapshot(product)});added+=1;}
+  if(added===0&&skipped.length){showToast(customerUiText("These saved options are no longer available.","ڤان هەلبژارتن نینن یان نەماون.","الخيارات المحفوظة لم تعد متاحة."));return false;}saveCart(next);openView("cart");showToast(skipped.length?customerUiText("Available items were added to your Cart.","بەرهەمێن بەردەست هاتنە زێدەکرن.","تمت إضافة المنتجات المتاحة إلى السلة."):customerUiText("Items added to your Cart.","بەرهەم هاتنە زێدەکرنە سەبەتێ.","تمت إضافة المنتجات إلى السلة."));return true;
+}
 /* =========================================
    OWNER TOOLS
 ========================================= */

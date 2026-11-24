@@ -20,6 +20,7 @@ assert.match(cartMarkup,/id="cartBackButton"[^>]*onclick="goBackFromCart\(\)"/,"
 assert.doesNotMatch(cartMarkup,/SHIVAN SHOP · YOUR SELECTION|Fashion and lovely finds/,"the obsolete Cart heading copy is removed");
 assert.match(cartMarkup,/id="cartItemsHeading" class="cart-items-heading">Your Items/);
 assert.match(html,/id="ordersView" class="view page shop-orders-view"/);
+assert.ok(html.includes('onclick="goBackFromOrders()"')&&html.includes("function goBackFromOrders()"),"Orders Back uses a history-aware navigation handler");
 assert.match(html,/id="customerOrderFilters" class="customer-order-filters"/);
 assert.match(html,/body\.cart-page-open #mainApp>\.topbar\{display:none!important\}/,"Cart hides the old app topbar in favor of the Search header");
 assert.match(html,/classList\.toggle\("cart-page-open",view==="cart"\)/,"Cart header state is scoped to Cart navigation");
@@ -49,58 +50,53 @@ assert.equal(cartFallbackContext.goBack(),true);
 assert.deepEqual(fallbackCalls.map(([view])=>view),["home","home"],"Cart Back falls back to Home when no history entry exists");
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-const orderNodes={ordersList:{innerHTML:""},customerOrderFilters:{innerHTML:"",attributes:{},setAttribute(key,value){this.attributes[key]=value;}},customerOrdersCount:{textContent:""}};
+assert.match(html,/id="orderDetailsView" class="view page customer-order-details-view"/);
+assert.ok(html.includes('id="orderDetailsBackButton" class="shop-collection-back" type="button" onclick="goBackFromCustomerOrderDetails()"'));
+assert.ok(html.includes("class=\"search-page-brand\" aria-label=\"Shivan Shop\">Shivan Shop</div>")&&html.includes("id=\"customerOrderDetailsContent\""));
+assert.match(html,/"orderDetails"/,"Order Details is registered in app navigation history");
+assert.match(html,/customer-orders-page-open #mainApp>.topbar/);
+assert.match(html,/view==="orders"||view==="orderDetails"/);
+assert.ok(html.includes('if((view==="cart"||view==="orders"||view==="orderDetails"||view==="profile")'),"Order Details follows the existing customer authentication gate");
+const orderFunctionNames=["customerOrderFilterKey","customerOrderStatusLabel","customerOrderDateLabel","customerOrderSortNewest","customerOrderCardMarkup","setCustomerOrdersFilter","renderOrders","customerOrderLookupForCurrentUser","openCustomerOrderDetails","goBackFromCustomerOrderDetails","customerOrderStageTime","customerOrderTimeText","customerOrderTimelineMarkup","customerOrderDetailMarkup","renderCustomerOrderDetails","openCustomerOrderHelp","orderAgainFromHistory"];
+const orderSources=Object.fromEntries(orderFunctionNames.map(name=>[name,functionSource(name)]));
+assert.ok(Object.values(orderSources).every(Boolean),"Orders and Order Details functions are present");
+const orderNodes={ordersList:{innerHTML:""},customerOrderFilters:{innerHTML:"",attributes:{},setAttribute(key,value){this.attributes[key]=value;}},customerOrdersCount:{textContent:""},ordersPageCount:{textContent:""},customerOrderDetailsContent:{innerHTML:""}};
+const placedAt="2026-11-20T14:00:00.000Z";
 const orders=[
-  {id:"order-new",userId:"customer-7",status:"لە چاوەڕوانی",date:"2026-11-20",total:24000,deliveryFee:1000,deliveryZoneName:"Central",items:[{name:"Real dress",image:"/dress.jpg",size:"M",color:"#112233",qty:2,price:12000}]},
-  {id:"order-processing",userId:"customer-7",status:"پێچرا",date:"2026-11-19",total:18000,items:[{name:"Real top",image:"/top.jpg",size:"S",color:"#223344",qty:1,price:18000}]},
-  {id:"order-shipped",userId:"customer-7",status:"هاتە ناردن",date:"2026-11-18",total:9000,items:[]},
-  {id:"order-delivered",userId:"customer-7",status:"گەهشت",date:"2026-11-17",total:12000,items:[]},
-  {id:"order-cancelled",userId:"customer-7",status:"ڕەتکراوە",date:"2026-11-16",total:0,items:[]},
-  {id:"other-customer-order",userId:"customer-8",status:"پێچرا",total:999999,items:[]}
+  {id:"order-new",userId:"customer-7",status:"New",createdAt:placedAt,total:25000,subtotal:24000,deliveryFee:1000,deliveryZoneName:"Central delivery",address:"Erbil, Ankawa",name:"Customer Seven",phone:"07501234567",items:[{productId:1,name:"Real dress",image:"/dress.jpg",size:"M",color:"#112233",colorName:"Navy",qty:2,price:12000,originalPrice:16000,discount:25}]},
+  {id:"order-processing",userId:"customer-7",status:"Processing",createdAt:"2026-11-21T14:00:00.000Z",total:18000,items:[{name:"Real top",image:"/top.jpg",size:"S",color:"#223344",qty:1,price:18000}]},
+  {id:"order-shipped",userId:"customer-7",status:"Shipped",createdAt:"2026-11-19T14:00:00.000Z",total:9000,items:[]},
+  {id:"order-delivered",userId:"customer-7",status:"Delivered",createdAt:"2026-11-17T14:00:00.000Z",total:12000,items:[]},
+  {id:"order-cancelled",userId:"customer-7",status:"Cancelled",createdAt:"2026-11-16T14:00:00.000Z",total:0,items:[]},
+  {id:"other-customer-order",userId:"customer-8",status:"Processing",total:999999,items:[]}
 ];
-const ordersContext={
-  currentUser:{id:"customer-7"},
-  getOrders:()=>orders,
-  document:{getElementById:id=>orderNodes[id]||null},
-  updateHomeHeaderCountBadges(){},
-  customerUiText:english=>english,
-  escapeHtml:esc,
-  translateText:value=>String(value||""),
-  safeImageUrl:value=>String(value||""),
-  getCartItemName:item=>String(item?.name||"Item"),
-  renderOrderItemPrice:item=>String(item?.price||0)+" IQD",
-  paymentMethodLabel:value=>String(value),
-  formatPrice:value=>Number(value).toLocaleString("en-US")+" IQD",
-  console
-};
-runInNewContext('let customerOrdersFilter="all";\n'+orderFilterSource+"\n"+setOrderFilterSource+"\n"+renderOrdersSource+"\nglobalThis.orderApi={customerOrderFilterKey,setCustomerOrdersFilter,renderOrders};",ordersContext);
+const ordersContext={currentUser:{id:"customer-7"},cloudAccount:null,activeLanguage:"en",customerOrdersFilter:"all",customerOrderDetailsId:"order-new",getOrders:()=>orders,document:{getElementById:id=>orderNodes[id]||null},updateHomeHeaderCountBadges(){},showToast(){},openView(){},customerUiText:english=>english,escapeHtml:esc,translateText:value=>String(value||""),safeImageUrl:value=>String(value||""),getCartItemName:item=>String(item?.name||"Item"),renderPriceBreakdown:(original,final,percent)=>'<del>'+original.toLocaleString()+" IQD</del><strong>"+final.toLocaleString()+" IQD</strong><b>-"+percent+"%</b>",formatPrice:value=>Number(value).toLocaleString("en-US")+" IQD",paymentMethodLabel:value=>String(value),console,Date,Intl};
+runInNewContext('let customerOrdersFilter="all";let customerOrderDetailsId="order-new";\n'+orderSources.customerOrderFilterKey+"\n"+orderSources.customerOrderStatusLabel+"\n"+orderSources.customerOrderDateLabel+"\n"+orderSources.customerOrderSortNewest+"\n"+orderSources.customerOrderCardMarkup+"\n"+orderSources.setCustomerOrdersFilter+"\n"+orderSources.renderOrders+"\n"+orderSources.customerOrderLookupForCurrentUser+"\n"+orderSources.openCustomerOrderDetails+"\n"+orderSources.customerOrderStageTime+"\n"+orderSources.customerOrderTimeText+"\n"+orderSources.customerOrderTimelineMarkup+"\n"+orderSources.customerOrderDetailMarkup+"\n"+orderSources.renderCustomerOrderDetails+"\nglobalThis.orderApi={customerOrderFilterKey,setCustomerOrdersFilter,renderOrders,customerOrderLookupForCurrentUser,openCustomerOrderDetails,customerOrderTimelineMarkup,customerOrderDetailMarkup,renderCustomerOrderDetails};",ordersContext);
 ordersContext.orderApi.renderOrders();
-assert.match(orderNodes.customerOrderFilters.innerHTML,/All/);
-assert.match(orderNodes.customerOrderFilters.innerHTML,/data-status="processing"/);
-assert.match(orderNodes.customerOrderFilters.innerHTML,/data-status="delivered"/);
-assert.match(orderNodes.ordersList.innerHTML,/order-new/);
-assert.match(orderNodes.ordersList.innerHTML,/order-processing/);
+assert.match(orderNodes.customerOrderFilters.innerHTML,/All/);assert.match(orderNodes.customerOrderFilters.innerHTML,/data-status="processing"/);assert.match(orderNodes.customerOrderFilters.innerHTML,/data-status="shipped"/);
+assert.ok(orderNodes.ordersList.innerHTML.indexOf("order-processing")<orderNodes.ordersList.innerHTML.indexOf("order-new"),"active orders are sorted newest first");
+assert.ok(orderNodes.ordersList.innerHTML.indexOf("customer-order-history-section")<orderNodes.ordersList.innerHTML.indexOf("order-delivered"),"completed orders render in a separate history section");
+assert.ok(orderNodes.ordersList.innerHTML.indexOf("order-delivered")<orderNodes.ordersList.innerHTML.indexOf("order-cancelled"),"history is sorted newest first");
 assert.doesNotMatch(orderNodes.ordersList.innerHTML,/other-customer-order/,"Orders never render another customer's records");
-assert.match(orderNodes.ordersList.innerHTML,/<details class="order-items customer-order-details">/,"each order exposes expandable details");
-assert.match(orderNodes.ordersList.innerHTML,/dress\.jpg/,"orders render saved product thumbnails");
-assert.match(orderNodes.ordersList.innerHTML,/24,000 IQD/);
-assert.match(orderNodes.ordersList.innerHTML,/Not available/,"legacy orders keep missing delivery fees unspecified");
-assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[0]),"new");
-assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[1]),"processing");
-assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[2]),"shipped");
-assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[3]),"delivered");
-assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[4]),"cancelled");
-assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("processing"),true);
-assert.match(orderNodes.ordersList.innerHTML,/order-processing/);
-assert.doesNotMatch(orderNodes.ordersList.innerHTML,/order-new/,"status filters show only matching customer orders");
-assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("unknown"),false,"unsupported filters are rejected");
-assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("delivered"),true);
-assert.match(orderNodes.ordersList.innerHTML,/order-delivered/);
-assert.doesNotMatch(orderNodes.ordersList.innerHTML,/order-processing/);
-ordersContext.currentUser=null;
-ordersContext.orderApi.renderOrders();
-assert.match(orderNodes.ordersList.innerHTML,/Sign in to view your orders/);
+assert.doesNotMatch(orderNodes.ordersList.innerHTML,/<details|<summary/,"order cards navigate to a dedicated details page instead of expanding");
+assert.match(orderNodes.ordersList.innerHTML,/dress\.jpg/);assert.match(orderNodes.ordersList.innerHTML,/25,000 IQD/);assert.match(orderNodes.ordersList.innerHTML,/Order History/);assert.match(orderNodes.ordersList.innerHTML,/data-order-id="order-new"/);
+assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[0]),"new");assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[1]),"processing");assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[2]),"shipped");assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[3]),"delivered");assert.equal(ordersContext.orderApi.customerOrderFilterKey(orders[4]),"cancelled");
+assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("processing"),true);assert.match(orderNodes.ordersList.innerHTML,/order-processing/);assert.doesNotMatch(orderNodes.ordersList.innerHTML,/order-new/);assert.match(orderNodes.ordersList.innerHTML,/order-delivered/,"history remains visible while filtering active orders");
+assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("delivered"),false,"history statuses are not active-order filters");assert.equal(ordersContext.orderApi.setCustomerOrdersFilter("unknown"),false);
+assert.equal(ordersContext.orderApi.customerOrderLookupForCurrentUser("other-customer-order"),null,"detail lookup rejects another customer's order");assert.ok(ordersContext.orderApi.customerOrderLookupForCurrentUser("order-new"));assert.equal(ordersContext.orderApi.openCustomerOrderDetails("other-customer-order"),false,"cannot navigate to another customer's order detail");
+assert.equal(ordersContext.orderApi.openCustomerOrderDetails("order-new"),true);
+const detailOrder=orders[0];const detail=ordersContext.orderApi.customerOrderDetailMarkup(detailOrder);
+assert.match(detail,/Order Items/);assert.match(detail,/Real dress/);assert.match(detail,/Size: <span data-i18n-preserve>M<\/span> · Color: <span data-i18n-preserve>Navy<\/span>/);assert.match(detail,/32,000 IQD/,"saved original line total multiplies original unit price by quantity");assert.match(detail,/24,000 IQD/);assert.match(detail,/-25%/);assert.match(detail,/Customer Seven/);assert.match(detail,/07501234567/);assert.match(detail,/Erbil, Ankawa/);assert.match(detail,/Central delivery/);assert.match(detail,/1,000 IQD/);assert.match(detail,/8,000 IQD/);assert.match(detail,/25,000 IQD/);assert.match(detail,/Need Help?/);assert.match(detail,/Order Again/);
+assert.ok((detail.match(/Not recorded/g)||[]).length>=2,"tracking stages without saved event timestamps are marked unrecorded");
+const cancelledTimeline=ordersContext.orderApi.customerOrderTimelineMarkup(orders[4]);assert.match(cancelledTimeline,/Cancelled/);assert.doesNotMatch(cancelledTimeline,/Shipped|Delivered/,"cancelled orders do not show delivery milestones");
+ordersContext.orderApi.renderCustomerOrderDetails();assert.match(orderNodes.customerOrderDetailsContent.innerHTML,/Real dress/);
+let supportOpened=false;const supportNode={classList:{add(){supportOpened=true;}}},supportMessageNode={value:""};const supportContext={currentUser:{id:"customer-7"},cloudAccount:null,customerOrderDetailsId:"order-new",getOrders:()=>orders,document:{getElementById:id=>id==="supportModal"?supportNode:id==="supportMessage"?supportMessageNode:null},customerUiText:english=>english,openSupport(){supportOpened=true;},showToast(){}};runInNewContext(orderSources.customerOrderLookupForCurrentUser+"\n"+orderSources.openCustomerOrderHelp+"\nglobalThis.help=openCustomerOrderHelp;",supportContext);assert.equal(supportContext.help(),true);assert.match(supportMessageNode.value,/order-new/);assert.equal(supportOpened,true,"Need Help opens the existing support flow with the order reference");
+let reorderedCart=[],savedReorder=null,reorderDestination="";const reorderContext={currentUser:{id:"customer-7"},cloudAccount:null,customerOrderDetailsId:"order-new",getOrders:()=>orders,getCart:()=>reorderedCart,products:[{id:1,price:13000,images:["/current-dress.jpg"]}],canAddToCart:()=>true,normalizeHexColor:value=>String(value||"").toLowerCase(),cartPriceSnapshot:()=>({price:13000}),getProductName:()=>"Real dress",getProductColorLabel:()=>"Navy",saveCart:cart=>{savedReorder=cart;reorderedCart=cart;},openView:view=>{reorderDestination=view;},showToast(){},customerUiText:english=>english,Date,Math};runInNewContext(orderSources.customerOrderLookupForCurrentUser+"\n"+orderSources.orderAgainFromHistory+"\nglobalThis.reorder=orderAgainFromHistory;",reorderContext);assert.equal(reorderContext.reorder(),true);assert.equal(savedReorder[0].qty,2);assert.equal(savedReorder[0].price,13000,"Order Again uses the current catalog price");assert.equal(reorderDestination,"cart");
+let blockedSave=false;reorderContext.canAddToCart=()=>false;reorderContext.saveCart=()=>{blockedSave=true;};reorderContext.reorderedCart=[];reorderContext.getCart=()=>[];assert.equal(reorderContext.reorder(),false);assert.equal(blockedSave,false,"unavailable variants are not silently added");
 
+orders.splice(0,3);ordersContext.orderApi.renderOrders();assert.match(orderNodes.ordersList.innerHTML,/No new orders/);assert.match(orderNodes.ordersList.innerHTML,/Order History/,"history stays visible when there are no active orders");
+ordersContext.currentUser=null;ordersContext.orderApi.renderOrders();assert.match(orderNodes.ordersList.innerHTML,/Sign in to view your orders/);
+const orderBackSource=functionSource("goBackFromCustomerOrderDetails"),orderBackHistory={state:{__shivanShopView:"orderDetails"},length:3,backCount:0,back(){this.backCount++;}},backContext={window:{history:orderBackHistory},shopViewScrollPositions:new Map(),writeShopViewHistory(){throw new Error("should restore prior list history");},openView(){throw new Error("should restore prior list history");}};runInNewContext(orderBackSource+"\nglobalThis.goBack=goBackFromCustomerOrderDetails;",backContext);assert.equal(backContext.goBack(),true);assert.equal(orderBackHistory.backCount,1,"Order Details Back restores the previous Orders history entry and scroll state");
 const cartNodes={cartList:{innerHTML:""},cartTotal:{innerHTML:""},cartItemCount:{textContent:""},cartPageTitle:{textContent:""},cartPageSubtitle:{textContent:""},cartItemsHeading:{textContent:""}};
 let cartItems=[{id:3,productId:3,name:"Real dress",image:"/dress.jpg",size:"M",color:"#112233",colorName:"Navy",qty:2,price:12000,originalPrice:16000,discount:25}];
 let selectedDelivery={id:"zone-1",name:"Configured area",fee:1500};
@@ -156,4 +152,4 @@ cartContext.cartApi.renderCart();
 assert.match(cartNodes.cartList.innerHTML,/Your bag is empty/);
 assert.match(cartNodes.cartList.innerHTML,/Explore Collection/);
 assert.equal(cartNodes.cartTotal.innerHTML,"","empty carts do not show a stale total");
-console.log("Customer Cart and Orders checks passed: real cart item data, quantity/remove controls, configured delivery fee and total, empty state, owner-isolated order history, status filters, thumbnails, and expandable order details.");
+console.log("Customer Cart and Orders checks passed: cart behavior, active/history sorting and filters, customer-isolated details, saved tracking times, support, and current-catalog reorder.");

@@ -21,7 +21,7 @@ assert.match(html, /\.detail-toolbar \.back\{[^}]*touch-action:manipulation/, "t
 assert.match(html, /html\{scrollbar-gutter:stable\}/, "the page scrollbar width should remain reserved while detail scrolling is locked");
 assert.match(html, /<button class="back" type="button" onclick="goBack\(\)" aria-label="Back" title="Back"><svg[\s\S]*?<path d="m14\.5 5-7 7 7 7"\/>/, "the detail toolbar should keep its accessible iPhone-style Back button");
 assert.match(html, /function productHistoryStateFor\(productId,depth,returnView,returnScrollY,returnPosition=previousViewPosition\)/, "each detail entry should carry its full browser-history return position");
-assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\["home","search","cart","orders","profile","store","newModel","discount","favorites","owner"\]\)/, "dedicated customer routes should participate in saved Shop navigation");
+assert.match(html, /const SHOP_HISTORY_VIEWS=new Set\(\[[^\]]*"orders","orderDetails"[^\]]*\]\)/, "Orders and Order Details routes should participate in saved Shop navigation");
 assert.match(html, /id="newModelView" class="view page shop-menu-collection-view"[\s\S]*?id="newModelProductsGrid" class="products/, "New model should own a dedicated page and reuse the Shop product grid");
 assert.match(html, /id="discountView" class="view page shop-menu-collection-view"[\s\S]*?id="discountProductsGrid" class="products/, "Discount should own a separate page and reuse the Shop product grid");
 assert.match(html, /function openHomeMenuCollection\(mode\)[\s\S]*?if\(mode==="collection1"\|\|mode==="collection2"\)return openStorePage\(mode==="collection1"\?"shop1":"shop2"\)/, "Shop Menu store entries should open the reusable assigned-store page");

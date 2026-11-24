@@ -74,6 +74,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
   const searchView = el("searchView", "view");
   const cartView = el("cartView", "view");
   const ordersView = el("ordersView", "view");
+  const orderDetailsView = el("orderDetailsView", "view");
   const profileView = el("profileView", "view");
   const detailView = el("detailView", "view active"); detailView.scrollTop = 246;
   const ownerView = el("ownerView", "view");
@@ -144,6 +145,7 @@ function createHarness({ signedIn = false, forSignup = false } = {}) {
     searchView,
     cartView,
     ordersView,
+    orderDetailsView,
     profileView,
     detailView,
     buyButton,

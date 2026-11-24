@@ -63,7 +63,7 @@ for (const [id, cls] of [
   ["authPage", ""], ["authHeroEyebrow", ""], ["authHeroTitle", ""], ["authHeroDescription", ""],
   ["shopAuthModalClose", ""], ["languageSwitcher", "language-switcher"],
   ["profileView", "view page"], ["homeView", "view active"], ["storeView", "view page"], ["newModelView", "view page"], ["discountView", "view page"], ["favoritesView", "view page"], ["searchView", "view"], ["cartView", "view"], ["ordersView", "view page"],
-  ["detailView", "view"], ["ownerView", "view"], ["profileGuestAccess", ""], ["profileGuestAuthMount", ""],
+  ["orderDetailsView", "view page"], ["detailView", "view"], ["ownerView", "view"], ["profileGuestAccess", ""], ["profileGuestAuthMount", ""],
   ["authenticatedProfileCard", "profile-card"], ["profileAuthBack", ""], ["loginId", ""], ["signupName", ""],
   ["navHome", ""], ["navSearch", ""], ["navCart", ""], ["navOrders", ""], ["navProfile", ""], ["ownerPanelButton", ""], ["navAnalytics", ""],
   ["mainApp", ""],
