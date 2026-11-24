@@ -22,6 +22,10 @@ const ownerProductRenderer = block(html, "renderOwnerProducts");
 assert.match(ownerProductRenderer, /ownerProductNewModel/, "the product editor exposes New model control");
 assert.match(ownerProductRenderer, /isOwner\(\)\?\(product\?/, "New model controls are Owner-only");
 assert.match(html, /\.home-menu-panel\{[^\n]*width:min\(80vw,320px\)/, "the drawer stays within the requested mobile width");
+assert.match(html, /\.home-menu-backdrop\{inset-inline:0;top:var\(--shivan-visible-viewport-offset-top,0px\);bottom:auto;height:var\(--shivan-visible-viewport-height,100dvh\)\}/, "the drawer follows the visible iPhone viewport as Safari controls change");
+assert.match(html, /\.home-menu-panel\{height:calc\(100% - 68px - env\(safe-area-inset-bottom\)\);max-height:calc\(100% - 68px - env\(safe-area-inset-bottom\)\);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scroll-padding-block:16px\}/, "the drawer scrolls smoothly inside the visible app area, above the safe-area-aware bottom navigation");
+assert.match(html, /\.home-menu-heading,\.home-menu-links,\.home-menu-divider,\.home-menu-language-wrap\{flex-shrink:0\}/, "drawer sections keep their full height so the final item remains reachable");
+assert.match(html, /\.home-menu-language-wrap\{margin-top:0\}/, "the language control stays in the drawer scroll flow on short screens");
 assert.match(html, /homeMenuCollection1Label[\s\S]*homeMenuCollection2Label[\s\S]*homeMenuDiscountLabel[\s\S]*homeMenuNewModelLabel[\s\S]*homeMenuShopLabel[\s\S]*homeMenuSearchLabel[\s\S]*homeMenuCartLabel[\s\S]*homeMenuOrdersLabel[\s\S]*homeMenuProfileLabel/, "the drawer keeps the approved menu ordering");
 
 assert.ok(html.includes('id="newModelView" class="view page shop-menu-collection-view"'), "New model is a dedicated view");

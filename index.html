@@ -3732,6 +3732,12 @@ html.detail-view-open #homeMenuPanel .home-menu-language-control{display:none!im
 @media(min-width:381px) and (max-width:430px){.nav-item{font-size:9px}.nav-item .nav-icon{width:21px;height:21px}}
 </style>
 <link rel="stylesheet" href="/ios-app-theme.css">
+<style id="shivan-menu-viewport-and-scroll-fix">
+.home-menu-backdrop{inset-inline:0;top:var(--shivan-visible-viewport-offset-top,0px);bottom:auto;height:var(--shivan-visible-viewport-height,100dvh)}
+.home-menu-panel{height:calc(100% - 68px - env(safe-area-inset-bottom));max-height:calc(100% - 68px - env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scroll-padding-block:16px}
+.home-menu-heading,.home-menu-links,.home-menu-divider,.home-menu-language-wrap{flex-shrink:0}
+.home-menu-language-wrap{margin-top:0}
+</style>
 <script>
 function installShivanVisibleViewportSync(){
   if(typeof document==="undefined"||!document.documentElement?.style||window.__shivanVisibleViewportSyncInstalled)return false;
@@ -5433,6 +5439,7 @@ let checkoutFibPaymentError="";
 let pendingAuthenticationIntent=null;
 let shopAuthModalReturnState=null;
 let ownerInventoryVariants=[];
+let ownerInventoryRenderGeneration=0;
 let ownerQrRenderQueue=[];
 let ownerQrSvgById=new Map();
 let ownerInventorySelectedProductId=null;
@@ -5718,6 +5725,12 @@ function ownerPanelHasPendingWork(){
   return ownerPanel==="products"&&ownerProductMode==="form"&&Boolean(ownerProductWorkflowId);
 }
 
+function shouldRefreshOwnerPanelForCloudChanges(changedKeys){
+  if(!ownerPanel||!changedKeys||!changedKeys.size)return false;
+  if(ownerPanel==="inventory")return changedKeys.has(PRODUCTS_KEY);
+  return true;
+}
+
 function refreshOwnerPanelIfSafe(){
   if((!isOwner()&&!isStaffSession())||!ownerPanel)return false;
   if(ownerPanelHasPendingWork()){
@@ -5783,7 +5796,7 @@ function applyCloudData(data){
   if(document.getElementById("mainApp")?.style.display!=="none"){
     if(changedKeys.has(ORDERS_KEY))renderOrders();
     updateProfile();
-    if(isOwner()&&ownerPanel)refreshOwnerPanelIfSafe();
+    if(isOwner()&&ownerPanel&&shouldRefreshOwnerPanelForCloudChanges(changedKeys))refreshOwnerPanelIfSafe();
   }
 }
 
@@ -5805,7 +5818,7 @@ window.addEventListener("storage",event=>{
   if(document.getElementById("mainApp")?.style.display!=="none"){
     if(key===ORDERS_KEY)renderOrders();
     if([ACCOUNT_KEY,SETTINGS_KEY,SUPPORT_KEY].includes(key))updateProfile();
-    if(isOwner()&&ownerPanel&&CLOUD_OWNER_KEYS.has(key))refreshOwnerPanelIfSafe();
+    if(isOwner()&&ownerPanel&&CLOUD_OWNER_KEYS.has(key)&&shouldRefreshOwnerPanelForCloudChanges(new Set([key])))refreshOwnerPanelIfSafe();
   }
 });
 
@@ -11339,7 +11352,7 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   const box=document.getElementById("ownerPanelContent");
   if(!box)return false;
   ensureOwnerDashboardShell(box);
-  if(previousPanel==="inventory"&&route.panel!=="inventory")stopOwnerQrScanner();
+  if(previousPanel==="inventory"&&route.panel!=="inventory"){ownerInventoryRenderGeneration++;stopOwnerQrScanner();}
   ownerPanel=route.panel;
   ownerDashboardNavKey=route.nav;
   if(isStaffSession()&&route.panel==="products"){ownerProductMode="list";editingProductId=null;}
@@ -12197,15 +12210,17 @@ function loadQrVendorScript(file,globalName){
 
 async function renderOwnerInventory(box){
   if((!isOwner()&&!staffHasPermission("inventory"))||!box)return;
+  const renderGeneration=++ownerInventoryRenderGeneration;
+  const renderIsCurrent=()=>renderGeneration===ownerInventoryRenderGeneration&&ownerPanel==="inventory";
   stopOwnerQrScanner();
   ownerQrRenderQueue=[];ownerQrSvgById.clear();ownerInventoryScannedVariant=null;ownerInventorySelectedProductId=null;ownerInventoryListPosition={windowY:0,viewTop:0,authTop:0};
   box.innerHTML=`<section class="owner-inventory-tools"><div id="ownerInventoryListView"><h3>QR product inventory</h3><p>Choose a product to view its color and size variants, exact QR codes, and shared stock.</p><p id="ownerInventoryStatus" class="owner-inventory-status" role="status" aria-live="polite">Loading shared inventory…</p><div class="owner-inventory-filter-row"><label for="ownerInventorySearch">Search products, colors, or sizes<input id="ownerInventorySearch" type="search" autocomplete="off" oninput="filterOwnerInventoryQr()" placeholder="Search QR inventory"></label><label for="ownerInventoryStockFilter">Stock status<select id="ownerInventoryStockFilter" onchange="filterOwnerInventoryQr()"><option value="all">All products</option><option value="in-stock">Has stock</option><option value="out-of-stock">Out of stock</option></select></label></div><div id="ownerInventoryProductGrid" class="owner-qr-product-grid" aria-live="polite"></div></div><div id="ownerInventoryDetailView" hidden></div></section>`;
   try{
     const data=await cloudRequest("/api/inventory/qr/ensure",{method:"POST",body:"{}",timeoutMs:30000});
-    if(ownerPanel!=="inventory"||(!isOwner()&&!staffHasPermission("inventory")))return;
+    if(!renderIsCurrent()||(!isOwner()&&!staffHasPermission("inventory")))return;
     if(!Array.isArray(data.products))throw new Error("The shared inventory response was invalid.");
     await loadQrVendorScript("qrcode-generator.js","qrcode");
-    if(ownerPanel!=="inventory"||(!isOwner()&&!staffHasPermission("inventory")))return;
+    if(!renderIsCurrent()||(!isOwner()&&!staffHasPermission("inventory")))return;
     products=data.products.map(normalizeProductInventory);
     cloudHydrating=true;
     try{originalStorageSetItem.call(localStorage,PRODUCTS_KEY,JSON.stringify(products));}finally{cloudHydrating=false;}
@@ -12216,7 +12231,7 @@ async function renderOwnerInventory(box){
     if(status)status.textContent=`${products.length} products and ${variants.length} unique color-and-size variants loaded from shared inventory.`;
     renderOwnerInventoryProductList();
   }catch(error){
-    if(ownerPanel!=="inventory")return;
+    if(!renderIsCurrent())return;
     const status=document.getElementById("ownerInventoryStatus");
     if(status)status.textContent=`Shared inventory could not be loaded: ${error.message||"Please retry."}`;
   }

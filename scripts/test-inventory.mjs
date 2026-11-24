@@ -42,6 +42,16 @@ for (const marker of ["ownerInventorySearch", "ownerInventoryStockFilter", "sele
 }
 for (const marker of ["ownerInventoryProductGrid", "ownerInventoryDetailView", "Product QR Details", "Variant ID:", "Print all for this product", "Download all for this product", "closeOwnerInventoryProductDetails()", "data-qr-product"]) assert.ok(html.includes(marker), `product-first QR inventory should include ${marker}`);
 const inventoryRenderSource = sourceFunction("renderOwnerInventory");
+assert.match(inventoryRenderSource, /const renderGeneration=\+\+ownerInventoryRenderGeneration/);
+assert.match(inventoryRenderSource, /if\(!renderIsCurrent\(\)/, "stale inventory loads cannot replace the active page after navigation");
+assert.doesNotMatch(inventoryRenderSource, /startOwnerQrScanner|loadQrVendorScript\("jsQR\.js"\)/, "opening inventory must not initialize the camera scanner");
+assert.equal((html.match(/startOwnerQrScanner\(/g)||[]).length, 1, "the camera scanner is only started by an explicit scan action");
+assert.match(html, /previousPanel==="inventory"&&route\.panel!=="inventory"\)\{ownerInventoryRenderGeneration\+\+;stopOwnerQrScanner\(\);\}/, "leaving inventory invalidates any in-flight load and stops an explicitly started scanner");
+const refreshPolicy = runInNewContext(sourceFunction("shouldRefreshOwnerPanelForCloudChanges") + "\n({shouldRefreshOwnerPanelForCloudChanges})", { ownerPanel: "inventory", PRODUCTS_KEY: "products" }).shouldRefreshOwnerPanelForCloudChanges;
+assert.equal(refreshPolicy(new Set(["orders"])), false, "unrelated cloud changes do not rerender the open QR inventory page");
+assert.equal(refreshPolicy(new Set(["products"])), true, "product changes still refresh the QR inventory page");
+assert.match(html, /shouldRefreshOwnerPanelForCloudChanges\(changedKeys\)/, "cloud synchronization checks whether the open Owner section depends on changed data");
+assert.match(html, /shouldRefreshOwnerPanelForCloudChanges\(new Set\(\[key\]\)\)/, "cross-tab synchronization uses the same section-aware refresh policy");
 assert.doesNotMatch(inventoryRenderSource, /Start camera scanner|Stop camera|ownerInventoryVideo|ownerInventoryCanvas|ownerInventoryResult|ownerInventoryQuantity|ownerInventorySale|ownerInventoryRestock|ownerInventoryPending|Scan a product variant/, "the QR product list must not render the scanner or stock-action panel");
 assert.doesNotMatch(html, /\.owner-inventory-scanner/, "scanner-only layout styles should be removed with the panel");
 assert.match(html, /ownerQrSvgById\.set\(item\.id,svg\)/, "download and print controls use the same persistent variant QR ID generated for the shared database record");

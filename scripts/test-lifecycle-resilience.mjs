@@ -13,6 +13,7 @@ const apply = sourceOf(/function applyCloudData\(data\)\{[\s\S]*?\n\}/, "cloud d
 const refresh = sourceOf(/async function refreshCloudData\(\)\{[\s\S]*?\n\}/, "background refresh");
 const storageListener = sourceOf(/window\.addEventListener\("storage",event=>\{[\s\S]*?\n\}\);/, "cross-tab storage listener");
 const ownerDraftGuard = sourceOf(/function ownerPanelHasPendingWork\(\)\{[\s\S]*?\n\}/, "Owner draft guard");
+const ownerRefreshPolicy = sourceOf(/function shouldRefreshOwnerPanelForCloudChanges\(changedKeys\)\{[\s\S]*?\n\}/, "section-aware Owner refresh policy");
 const safeOwnerRefresh = sourceOf(/function refreshOwnerPanelIfSafe\(\)\{[\s\S]*?\n\}/, "safe Owner refresh");
 const visibleGrid = sourceOf(/function renderVisibleProductGrid\(\)\{[\s\S]*?\n\}/, "active product grid refresh");
 const searchRenderer = sourceOf(/function searchProducts\(value,forceTarget=""\)\{[\s\S]*?\n\}/, "search result renderer");
@@ -77,7 +78,7 @@ const ownerSandbox = {
   renderCategoryButtons() {}, renderVisibleProductGrid() {}, renderShopOnboardingSlide() {}, updateCartBadge() {},
   renderOrders: () => { orderRenderCount++; }, reconcileOwnerSmartAlerts() {}, updateProfile() {},
 };
-runInNewContext(`${ownerDraftGuard}\n${safeOwnerRefresh}\n${apply}\nglobalThis.applyRemote=applyCloudData;`, ownerSandbox);
+runInNewContext(`${ownerRefreshPolicy}\n${ownerDraftGuard}\n${safeOwnerRefresh}\n${apply}\nglobalThis.applyRemote=applyCloudData;`, ownerSandbox);
 ownerSandbox.applyRemote({ shop: { shivan_shop_ads: "remote-1" }, user: {} });
 assert.equal(ownerPanelRenderCount, 0, "background sync keeps an in-progress Owner banner editor mounted");
 assert.equal(ownerSandbox.ownerPanelRefreshPending, true, "deferred refresh remains queued while the Owner draft is active");

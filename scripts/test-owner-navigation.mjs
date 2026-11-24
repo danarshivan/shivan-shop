@@ -203,7 +203,7 @@ function createOwnerNavigationRuntime(){
   const source = `
     let ownerPanel="dashboard", ownerDashboardNavKey="dashboard", ownerProductMode="menu", ownerProductEditorTab="basic", editingProductId=null, editingAdIndex=null;
     let ownerAnalyticsSelection={period:"daily",date:"",month:"",year:""}, ownerReportSelection={preset:"month",start:"",end:""}, ownerOrdersSelection={tab:"all",query:"",status:"",date:""}, ownerOrderDetailId="";
-    let ownerNavigationRestoring=false, ownerPanelRefreshPending=false, ownerProductWorkflowId="", ownerAdWorkflowId="", ownerInventoryDraft=new Map();
+    let ownerNavigationRestoring=false, ownerPanelRefreshPending=false, ownerProductWorkflowId="", ownerAdWorkflowId="", ownerInventoryDraft=new Map(), ownerInventoryRenderGeneration=0;
     let ownerNavigationLedger=createOwnerNavigationLedger(), ownerNavigationPopHandler=null;
     ${integrationFunctions}
     ({
