@@ -57,7 +57,9 @@ assert.match(html, /\.owner-btn\{display:none\}\s*\.owner-btn\.visible\{display:
 assert.match(html, /if\(view==="owner"&&!isOwner\(\)&&!isStaffSession\(\)\)/, "opening Owner remains protected by the existing role guard");
 assert.match(navMarkup, /id="navOrders"[^>]*onclick="openView\(\x27orders\x27\)"/, "the customer Orders tab opens the customer Orders route directly");
 assert.ok(navMarkup.indexOf('id="navCart"') < navMarkup.indexOf('id="navOrders"') && navMarkup.indexOf('id="navOrders"') < navMarkup.indexOf('id="navProfile"'), "Orders sits immediately after Cart and before Profile");
-assert.match(html, /function renderOrders\(\)[\s\S]*?o=>o\.userId===currentUser\.id/, "the customer Orders route filters to the signed-in customer");
+const customerOrdersRenderer=html.match(/function renderOrders\(\)\{[\s\S]*?\r?\n\}/)?.[0]||"";
+assert.match(customerOrdersRenderer, /getOrders\(\)\.filter\(order=>String\(order\?\.userId/, "the customer Orders renderer filters saved records by account ID");
+assert.match(customerOrdersRenderer, /===String\(currentUser\.id/, "the Orders filter compares records with the signed-in account ID");
 assert.match(html, /@media\(max-width:380px\)\{\.bottom-nav\{padding-left:2px;padding-right:2px\}\.nav-item\{gap:2px;font-size:clamp\(8px,2\.4vw,9px\)\}/, "320px and 375px widths use compact safe tab sizing");
 assert.match(html, /@media\(min-width:381px\) and \(max-width:430px\)\{\.nav-item\{font-size:9px\}/, "390px width keeps labels compact");
 assert.match(navMarkup, /id="navAnalytics"[^>]*hidden/, "Analytics remains available through Owner screens without taking a navigation slot");
