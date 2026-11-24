@@ -1308,11 +1308,13 @@ button{
 .customer-page-icon{display:grid;width:48px;height:48px;flex:0 0 48px;place-items:center;border:1px solid rgba(164,133,255,.38);border-radius:16px;background:linear-gradient(145deg,rgba(131,91,255,.23),rgba(71,53,126,.1));color:#c8b4ff;box-shadow:0 0 22px rgba(120,84,255,.18),inset 0 1px rgba(255,255,255,.07)}
 .customer-page-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .customer-cart-heading,.customer-orders-heading{display:flex;align-items:center;gap:13px;min-width:0;margin:0 0 16px;padding:15px;border:1px solid #302844;border-radius:19px;background:radial-gradient(ellipse at 94% 0,rgba(130,91,255,.2),transparent 45%),linear-gradient(145deg,#101421,#090c15);box-shadow:0 12px 26px rgba(0,0,0,.2)}
+.shop-cart-view .customer-cart-heading{margin:0 14px 20px;padding:13px;border-color:#34304c;background:#0b0e18;box-shadow:none}
 .customer-cart-heading>div,.customer-orders-heading>div{min-width:0;flex:1}
 .customer-cart-heading .page-title,.customer-orders-heading .page-title{margin:2px 0 4px;font-size:clamp(22px,5vw,28px);line-height:1.15}
+.cart-items-heading{margin:0 14px 10px;color:#fff;font-size:17px;line-height:1.25;font-weight:800}
 .customer-cart-heading p:not(.shop-eyebrow),.customer-orders-heading p:not(.shop-eyebrow){margin:0;color:#a9a8ba;font-size:12px;line-height:1.5}
 .customer-page-count{flex:0 0 auto;max-width:76px;padding:7px 10px;border:1px solid #4b3970;border-radius:999px;background:#191428;color:#d8c8ff;font-size:11px;font-weight:800;text-align:center;white-space:nowrap}
-#cartList.customer-cart-list{display:grid;gap:10px;min-width:0}
+#cartList.customer-cart-list{display:grid;gap:10px;min-width:0;margin:0 14px}
 .shop-cart-view .cart-item{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:11px;min-width:0;margin:0;padding:10px;border:1px solid #302b43;border-radius:16px;background:linear-gradient(145deg,#111522,#0a0d16);box-shadow:0 8px 20px rgba(0,0,0,.18)}
 .shop-cart-view .cart-item-media{width:72px;height:86px;overflow:hidden;border:1px solid rgba(178,157,255,.18);border-radius:11px;background:#151626}
 .shop-cart-view .cart-item img{display:block;width:100%;height:100%;object-fit:cover}
@@ -1328,9 +1330,11 @@ button{
 .shop-cart-view .cart-info .cart-qty span{min-width:23px;color:#fff;font-size:12px;font-weight:800;text-align:center}
 .shop-cart-view .cart-item .remove{display:grid;width:36px;height:36px;place-items:center;border:1px solid #49386f;border-radius:11px;background:#1b1730;color:#d0b5ff;font-size:23px;line-height:1}
 .shop-cart-view .cart-item .remove svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.shop-cart-view .cart-item .remove:hover{background:#371a29}
-.customer-cart-total{min-width:0;margin-top:13px}
+.shop-cart-view .cart-item .remove:hover{background:#2b2143}
+.customer-cart-total{min-width:0;margin:14px 14px 0}
 .shop-cart-view .total{display:grid;gap:10px;margin:0;padding:16px;border:1px solid #40335e;border-radius:19px;background:radial-gradient(ellipse at 100% 0,rgba(135,99,255,.16),transparent 44%),linear-gradient(145deg,#111421,#090c15);box-shadow:0 14px 30px rgba(0,0,0,.22)}
+.shop-cart-view .total,.shop-cart-view .customer-empty-state{background:#0b0e18;box-shadow:none}
+.shop-cart-view .discount-pill{background:#7145ff}
 .shop-cart-view .total h2{margin:0;color:#fff;font-size:18px}
 .cart-summary-rows{display:grid;gap:9px}
 .cart-summary-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;color:#c5c3d2;font-size:13px;line-height:1.45}
@@ -3443,6 +3447,9 @@ html.home-menu-open,html.home-menu-open body{overflow:hidden!important}
 @media(prefers-reduced-motion:reduce){.home-menu-backdrop,.home-menu-panel,.home-menu-link{transition:none}}
 
 /* Search page and live Home counts */
+.shop-cart-view{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden;padding:12px 0 calc(96px + env(safe-area-inset-bottom));color:#f6f4ff}
+body.cart-page-open>.language-switcher{display:none!important}
+body.cart-page-open #mainApp>.topbar{display:none!important}
 .home-shop-icon-btn{position:relative}
 .home-header-count-badge{position:absolute;top:-6px;right:-6px;z-index:5;display:inline-flex;min-width:18px;height:18px;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #0a0d19;border-radius:999px;background:linear-gradient(145deg,#b58cff,#805cff);color:#fff;font:800 10px/1 system-ui,sans-serif;box-shadow:0 0 12px rgba(142,103,255,.58);pointer-events:none}
 .home-header-count-badge[hidden]{display:none!important}
@@ -4075,14 +4082,20 @@ html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.
   <!-- CART -->
 
   <div id="cartView" class="view page shop-cart-view">
-  <header class="customer-cart-heading">
-    <span class="customer-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.3 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg></span>
-    <div><p class="shop-eyebrow">SHIVAN SHOP · YOUR SELECTION</p><h1 id="cartPageTitle" class="page-title">My Cart</h1><p id="cartPageSubtitle">Review your pieces before checkout.</p></div>
-    <span id="cartItemCount" class="customer-page-count" aria-live="polite"></span>
-  </header>
-  <div id="cartList" class="customer-cart-list"></div>
-  <div id="cartTotal" class="customer-cart-total"></div>
-</div>
+    <header class="shop-collection-header search-page-header">
+      <button id="cartBackButton" class="shop-collection-back" type="button" onclick="goBackFromCart()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
+      <div class="search-page-brand" aria-label="Shivan Shop">Shivan Shop</div>
+      <span class="shop-collection-header-spacer" aria-hidden="true"></span>
+    </header>
+    <section class="customer-cart-heading" aria-labelledby="cartPageTitle">
+      <span class="customer-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.3 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg></span>
+      <div><h1 id="cartPageTitle" class="page-title">My Cart</h1><p id="cartPageSubtitle">Review your pieces before checkout.</p></div>
+      <span id="cartItemCount" class="customer-page-count" aria-live="polite"></span>
+    </section>
+    <h2 id="cartItemsHeading" class="cart-items-heading">Your Items</h2>
+    <div id="cartList" class="customer-cart-list"></div>
+    <div id="cartTotal" class="customer-cart-total"></div>
+  </div>
 
 <div id="ordersView" class="view page shop-orders-view">
   <header class="customer-orders-heading">
@@ -8735,6 +8748,7 @@ function openView(view,options={}){
   bottomNavigation?.classList.toggle("owner-customer-mode",view!=="owner"&&(isOwner()||isStaffSession()));
   document.querySelector(".app")?.classList.toggle("detail-mode",view==="detail");
   document.body?.classList.toggle("search-page-open",view==="search");
+  document.body?.classList.toggle("cart-page-open",view==="cart");
   document.body?.classList.toggle("store-page-open",view==="store");
   document.documentElement.classList.toggle("detail-view-open",view==="detail");
   document.body.classList.toggle("detail-view-open",view==="detail");
@@ -10507,6 +10521,14 @@ function resetSearchFilters(){
   const discounts=document.getElementById("searchDiscountOnly");if(discounts)discounts.checked=false;
   return searchProducts(document.getElementById("searchPageInput")?.value||"","searchGrid");
 }
+function goBackFromCart(){
+  const state=window.history?.state;
+  if(state?.__shivanShopView==="cart"&&Number(window.history?.length||0)>1){window.history.back();return true;}
+  const position=shopViewScrollPositions.get("home")||{windowY:0,viewTop:0,authTop:0};
+  writeShopViewHistory("home",{replace:true,position});
+  openView("home",{historyRestore:true,restorePosition:position});
+  return true;
+}
 function goBackFromSearch(){
   const state=window.history?.state;
   if(state?.__shivanShopView==="search"&&Number(window.history?.length||0)>1){window.history.back();return true;}
@@ -10579,10 +10601,13 @@ function updateCartBadge(){
 
 function renderCart(){
   renderOrders();
-  const cart=getCart(),box=document.getElementById("cartList"),totalBox=document.getElementById("cartTotal"),countBox=document.getElementById("cartItemCount");
+  const cart=getCart(),box=document.getElementById("cartList"),totalBox=document.getElementById("cartTotal"),countBox=document.getElementById("cartItemCount"),titleBox=document.getElementById("cartPageTitle"),subtitleBox=document.getElementById("cartPageSubtitle"),itemsHeading=document.getElementById("cartItemsHeading");
   if(!box||!totalBox)return;
+  if(titleBox)titleBox.textContent=customerUiText("My Cart","سەبەتا من","سلتي");
+  if(subtitleBox)subtitleBox.textContent=customerUiText("Review your pieces before checkout.","پێش پارەدانێ پێداچوونەکا بەرهەمێن هەلبژارتی بکە.","راجعي منتجاتك قبل إتمام الدفع.");
+  if(itemsHeading)itemsHeading.textContent=customerUiText("Your Items","بەرهەمێن تە","منتجاتك");
   const itemCount=cart.reduce((sum,item)=>sum+(Number(item.qty)||1),0);
-  if(countBox)countBox.textContent=String(itemCount)+" "+customerUiText("items","بەرهەم","منتجات");
+  if(countBox)countBox.textContent=String(itemCount)+" "+customerUiText(itemCount===1?"item":"items","بەرهەم","منتج");
   if(!cart.length){
     box.innerHTML='<section class="customer-empty-state"><span class="customer-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1.3 12H5.3L4 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/><path d="m9 14 2 2 4-4"/></svg></span><h2>'+escapeHtml(customerUiText("Your bag is empty","سەبەتەکەت بەتاڵە.","حقيبتك فارغة"))+'</h2><p>'+escapeHtml(customerUiText("Explore the collection and find a piece you love.","بەرهەمە جوانەکان لە کەتەلۆگێ ببینە.","اكتشفي المجموعة واختاري قطعة تحبينها."))+'</p><button type="button" class="main-btn" onclick="openView(\'home\')">'+escapeHtml(customerUiText("Explore Collection","بینین بەرهەمەکان","تسوقي المجموعة"))+' <span aria-hidden="true">→</span></button></section>';
     totalBox.innerHTML="";
@@ -10597,7 +10622,7 @@ function renderCart(){
   const deliveryValue=deliveryActive?(selectedDelivery?formatPrice(selectedDelivery.fee):"—"):formatPrice(0);
   const totalValue=deliveryActive&&!selectedDelivery?escapeHtml(customerUiText("Choose an area above","ل سەرەوە ناڤچەیەکێ هەلبژێرە","اختاري منطقة أعلاه")):escapeHtml(formatPrice(subtotal+(selectedDelivery?.fee||0)));
   const deliveryNote=deliveryActive&&!selectedDelivery?'<p class="cart-delivery-note">'+escapeHtml(customerUiText("Choose your delivery area to see the exact fee and total. The same selection will be used at checkout.","بۆ دیتنا خەرجی و کۆیا دروست، ناڤچەیا گەهاندنێ هەلبژێرە؛ هەمان هەلبژاردن دێ ل پارەدانێ بهێتە بکارئینان.","اختاري منطقة التوصيل لمعرفة الرسم والإجمالي الدقيق. سيُستخدم اختيارك نفسه عند الدفع."))+'</p>':"";
-  totalBox.innerHTML='<section class="total"><p class="shop-eyebrow">'+escapeHtml(customerUiText("ORDER SUMMARY","پوختەیا داخوازی","ملخص الطلب"))+'</p><h2>'+escapeHtml(customerUiText("Your selection","هەلبژاردنا تە","اختياراتك"))+'</h2><div class="cart-summary-rows"><div class="cart-summary-row"><span>'+escapeHtml(customerUiText("Items subtotal","کۆی بەرهەمان","مجموع المنتجات"))+'</span><strong>'+escapeHtml(formatPrice(subtotal))+'</strong></div>'+deliverySelector+'<div class="cart-summary-row"><span>'+escapeHtml(customerUiText("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل"))+'</span><strong>'+escapeHtml(deliveryValue)+'</strong></div><div class="cart-summary-row cart-summary-grand-total"><span>'+escapeHtml(customerUiText("Total","کۆی گشتی","الإجمالي"))+'</span><strong>'+totalValue+'</strong></div></div>'+deliveryNote+'<button type="button" class="main-btn cart-checkout-button" onclick="openCheckout()">'+escapeHtml(customerUiText("Continue to checkout","بەردەوامبوون بۆ پارەدان","متابعة الدفع"))+' <span aria-hidden="true">→</span></button></section>';
+  totalBox.innerHTML='<section class="total"><p class="shop-eyebrow">'+escapeHtml(customerUiText("SUMMARY","پوختە","الملخص"))+'</p><h2>'+escapeHtml(customerUiText("Order Summary","پوختەیا داخوازیێ","ملخص الطلب"))+'</h2><div class="cart-summary-rows"><div class="cart-summary-row"><span>'+escapeHtml(customerUiText("Items subtotal","کۆی بەرهەمان","مجموع المنتجات"))+'</span><strong>'+escapeHtml(formatPrice(subtotal))+'</strong></div>'+deliverySelector+'<div class="cart-summary-row"><span>'+escapeHtml(customerUiText("Delivery fee","خەرجییا گەهاندنێ","رسوم التوصيل"))+'</span><strong>'+escapeHtml(deliveryValue)+'</strong></div><div class="cart-summary-row cart-summary-grand-total"><span>'+escapeHtml(customerUiText("Total","کۆی گشتی","الإجمالي"))+'</span><strong>'+totalValue+'</strong></div></div>'+deliveryNote+'<button type="button" class="main-btn cart-checkout-button" onclick="openCheckout()">'+escapeHtml(customerUiText("Continue to Checkout","بەردەوامبوون بۆ پارەدان","متابعة الدفع"))+' <span aria-hidden="true">→</span></button></section>';
 }
 
 function removeCartItem(id){

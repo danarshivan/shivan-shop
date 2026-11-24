@@ -5,23 +5,48 @@ import { runInNewContext } from "node:vm";
 const html=await readFile(new URL("../index.html",import.meta.url),"utf8");
 const functionSource=name=>html.match(new RegExp("function "+name+"\\([^]*?\\n\\}"))?.[0]||"";
 const renderCartSource=functionSource("renderCart");
+const cartPricingSource=functionSource("cartItemPricing");
+const renderCartItemPriceSource=functionSource("renderCartItemPrice");
+const renderPriceBreakdownSource=functionSource("renderPriceBreakdown");
 const renderOrdersSource=functionSource("renderOrders");
+const cartBackSource=functionSource("goBackFromCart");
 const orderFilterSource=functionSource("customerOrderFilterKey");
 const setOrderFilterSource=functionSource("setCustomerOrdersFilter");
-assert.ok(renderCartSource&&renderOrdersSource&&orderFilterSource&&setOrderFilterSource,"Cart and Orders functions are present");
+assert.ok(renderCartSource&&cartPricingSource&&renderCartItemPriceSource&&renderPriceBreakdownSource&&renderOrdersSource&&cartBackSource&&orderFilterSource&&setOrderFilterSource,"Cart and Orders functions are present");
 assert.match(html,/id="cartView" class="view page shop-cart-view"/);
+const cartMarkup=html.match(/<div id="cartView" class="view page shop-cart-view">[\s\S]*?(?=<div id="ordersView")/)?.[0]||"";
+assert.match(cartMarkup,/<header class="shop-collection-header search-page-header">[\s\S]*?<div class="search-page-brand" aria-label="Shivan Shop">Shivan Shop<\/div>/,"Cart reuses the Search header and centered wordmark");
+assert.match(cartMarkup,/id="cartBackButton"[^>]*onclick="goBackFromCart\(\)"/,"Cart Back control follows the Search header pattern and has Cart history handling");
+assert.doesNotMatch(cartMarkup,/SHIVAN SHOP · YOUR SELECTION|Fashion and lovely finds/,"the obsolete Cart heading copy is removed");
+assert.match(cartMarkup,/id="cartItemsHeading" class="cart-items-heading">Your Items/);
 assert.match(html,/id="ordersView" class="view page shop-orders-view"/);
 assert.match(html,/id="customerOrderFilters" class="customer-order-filters"/);
+assert.match(html,/body\.cart-page-open #mainApp>\.topbar\{display:none!important\}/,"Cart hides the old app topbar in favor of the Search header");
+assert.match(html,/classList\.toggle\("cart-page-open",view==="cart"\)/,"Cart header state is scoped to Cart navigation");
+assert.match(html,/\.shop-cart-view\{[^}]*padding:12px 0 calc\(96px \+ env\(safe-area-inset-bottom\)\)/,"Cart uses Search page spacing and reserves the mobile safe area");
 assert.match(html,/function getCheckoutDeliverySelection\(\)[\s\S]*?document\.getElementById\("cartDeliveryZone"\)/,"Cart uses the existing configured delivery zones");
 assert.match(html,/function handleCartDeliveryZoneChange[\s\S]*?checkoutSelect\.value=selected[\s\S]*?renderCart\(\)/,"Cart delivery choice stays synchronized with Checkout");
 assert.match(html,/\.customer-order-filters\{[^}]*overflow-x:auto/,"status filters scroll within the page on narrow screens");
 assert.match(html,/\.shop-cart-view \.cart-item\{[^}]*grid-template-columns:72px minmax\(0,1fr\) auto/,"cart rows use a compact responsive item layout");
+assert.match(html,/\.search-page-header\{[^}]*grid-template-columns:42px minmax\(0,1fr\) 42px/,"Cart and Search share the same header sizing and centered layout");
 const cartOrdersCss=html.match(/\/\* Customer Cart & Orders \*\/([\s\S]*?)\.profile-card\{/ )?.[1]||"";
 assert.ok(cartOrdersCss,"Cart and Orders styles stay in their scoped section");
 assert.doesNotMatch(cartOrdersCss,/#ff9cae|#f3cf7b|#87d5f2|#87e1ad|#ff9bac/i,"new Cart and Orders components do not add alternate accent colors");
+assert.match(cartOrdersCss,/\.shop-cart-view \.discount-pill\{background:#7145ff\}/,"Cart discount badges use the existing purple accent");
 assert.match(cartOrdersCss,/\.customer-order-status\.is-processing\{border-color:#6c5526;background:#2b2415;color:#ffdc8a\}/,"processing badge reuses the existing Owner status palette");
 assert.match(cartOrdersCss,/\.customer-order-status\.is-delivered\{border-color:#245849;background:#10291f;color:#83e4b2\}/,"delivered badge reuses the existing Owner status palette");
 assert.match(cartOrdersCss,/\.customer-order-status\.is-cancelled\{border-color:#6b3442;background:#2d171e;color:#ff9aa6\}/,"cancelled badge reuses the existing Owner status palette");
+
+const backHistory={state:{__shivanShopView:"cart"},length:2,backCount:0,back(){this.backCount++;}};
+const cartBackContext={window:{history:backHistory},shopViewScrollPositions:new Map(),writeShopViewHistory(){throw new Error("history back should be used");},openView(){throw new Error("history back should be used");}};
+runInNewContext(cartBackSource+"\nglobalThis.goBack=goBackFromCart;",cartBackContext);
+assert.equal(cartBackContext.goBack(),true);
+assert.equal(backHistory.backCount,1,"Cart Back uses browser history when the user has a prior screen");
+const fallbackCalls=[];
+const cartFallbackContext={window:{history:{state:{},length:1}},shopViewScrollPositions:new Map([["home",{windowY:125,viewTop:0,authTop:0}]]),writeShopViewHistory:(view,options)=>fallbackCalls.push([view,options]),openView:(view,options)=>fallbackCalls.push([view,options])};
+runInNewContext(cartBackSource+"\nglobalThis.goBack=goBackFromCart;",cartFallbackContext);
+assert.equal(cartFallbackContext.goBack(),true);
+assert.deepEqual(fallbackCalls.map(([view])=>view),["home","home"],"Cart Back falls back to Home when no history entry exists");
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const orderNodes={ordersList:{innerHTML:""},customerOrderFilters:{innerHTML:"",attributes:{},setAttribute(key,value){this.attributes[key]=value;}},customerOrdersCount:{textContent:""}};
@@ -76,40 +101,50 @@ ordersContext.currentUser=null;
 ordersContext.orderApi.renderOrders();
 assert.match(orderNodes.ordersList.innerHTML,/Sign in to view your orders/);
 
-const cartNodes={cartList:{innerHTML:""},cartTotal:{innerHTML:""},cartItemCount:{textContent:""},cartPageTitle:{textContent:""},cartPageSubtitle:{textContent:""}};
-let cartItems=[{id:3,productId:3,name:"Real dress",image:"/dress.jpg",size:"M",color:"#112233",colorName:"Navy",qty:2,price:12000}];
+const cartNodes={cartList:{innerHTML:""},cartTotal:{innerHTML:""},cartItemCount:{textContent:""},cartPageTitle:{textContent:""},cartPageSubtitle:{textContent:""},cartItemsHeading:{textContent:""}};
+let cartItems=[{id:3,productId:3,name:"Real dress",image:"/dress.jpg",size:"M",color:"#112233",colorName:"Navy",qty:2,price:12000,originalPrice:16000,discount:25}];
 let selectedDelivery={id:"zone-1",name:"Configured area",fee:1500};
 const ownerAppearance={deliveryChargingEnabled:true,deliveryZones:[{id:"zone-1",name:"Configured area",fee:1500}]};
 const cartContext={
   document:{getElementById:id=>cartNodes[id]||null},
   renderOrders(){},
   getCart:()=>cartItems,
+  products:[],
+  getProductPricing:()=>null,
   customerUiText:english=>english,
   escapeHtml:esc,
   safeImageUrl:value=>String(value||""),
   getCartItemName:item=>String(item?.name||"Item"),
   normalizeHexColor:value=>String(value||""),
-  renderCartItemPrice:item=>(Number(item.price)*Number(item.qty)).toLocaleString("en-US")+" IQD",
-  cartItemPricing:item=>({finalPrice:Number(item.price)}),
   normalizeOwnerAppearance:value=>value,
   ownerAppearance,
   getCheckoutDeliverySelection:()=>selectedDelivery,
   formatPrice:value=>Number(value).toLocaleString("en-US")+" IQD",
   currentUser:{id:"customer-7"}
 };
-runInNewContext(renderCartSource+"\nglobalThis.cartApi={renderCart};",cartContext);
+runInNewContext(cartPricingSource+"\n"+renderPriceBreakdownSource+"\n"+renderCartItemPriceSource+"\n"+renderCartSource+"\nglobalThis.cartApi={renderCart};",cartContext);
 cartContext.cartApi.renderCart();
+assert.equal(cartNodes.cartPageTitle.textContent,"My Cart");
+assert.equal(cartNodes.cartItemsHeading.textContent,"Your Items");
 assert.match(cartNodes.cartList.innerHTML,/Real dress/);
 assert.match(cartNodes.cartList.innerHTML,/dress\.jpg/);
 assert.match(cartNodes.cartList.innerHTML,/Size/);
 assert.match(cartNodes.cartList.innerHTML,/Navy/);
 assert.match(cartNodes.cartList.innerHTML,/changeCartQty\(3,1\)/);
 assert.match(cartNodes.cartList.innerHTML,/removeCartItem\(3\)/);
+assert.match(cartNodes.cartList.innerHTML,/32,000 IQD/,"cart pricing keeps the original total price visible");
+assert.match(cartNodes.cartList.innerHTML,/24,000 IQD/,"cart pricing shows the discounted item total");
+assert.match(cartNodes.cartList.innerHTML,/-25%/,"discount percentage remains visible in Cart");
 assert.match(cartNodes.cartTotal.innerHTML,/24,000 IQD/,"cart rows and subtotal use the effective item price and quantity");
 assert.match(cartNodes.cartTotal.innerHTML,/1,500 IQD/,"the configured delivery fee is displayed");
 assert.match(cartNodes.cartTotal.innerHTML,/25,500 IQD/,"the total includes the configured delivery fee");
+assert.match(cartNodes.cartTotal.innerHTML,/Order Summary/);
+assert.match(cartNodes.cartTotal.innerHTML,/Continue to Checkout/);
 assert.match(cartNodes.cartTotal.innerHTML,/id="cartDeliveryZone"/);
 assert.equal(cartNodes.cartItemCount.textContent,"2 items");
+cartItems[0].qty=1;
+cartContext.cartApi.renderCart();
+assert.equal(cartNodes.cartItemCount.textContent,"1 item","the item count uses correct singular copy");
 
 selectedDelivery=null;
 cartContext.cartApi.renderCart();
