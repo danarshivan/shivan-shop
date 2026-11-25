@@ -26,6 +26,52 @@ assert.match(migration, /operation_id TEXT NOT NULL UNIQUE/, "D1 enforces unique
 assert.match(migration, /CREATE TABLE IF NOT EXISTS pos_sales/, "POS sales use a separate additive D1 table");
 assert.doesNotMatch(migration, /DROP TABLE|DELETE FROM|UPDATE orders|ALTER TABLE orders/i, "the migration does not alter orders or existing records");
 
+function posFunctionSection(name,nextName,isAsync=false){
+  const start=html.indexOf(`${isAsync?"async ":""}function ${name}(`);
+  const boundaries=[html.indexOf(`\nfunction ${nextName}(`,start),html.indexOf(`\nasync function ${nextName}(`,start)].filter(index=>index>=0);
+  const end=boundaries.length?Math.min(...boundaries):-1;
+  assert.ok(start>=0&&end>start,`source section ${name} exists`);
+  return html.slice(start,end);
+}
+const posRender=posFunctionSection("renderOwnerPosSell","openOwnerPosSell");
+const posOpen=posFunctionSection("openOwnerPosSell","setOwnerPosCameraError");
+const posCameraError=posFunctionSection("setOwnerPosCameraError","retryOwnerPosScanner");
+const posRetry=posFunctionSection("retryOwnerPosScanner","startOwnerPosScanner");
+const posCameraRequest=posFunctionSection("requestOwnerPosCamera","renderOwnerPosSell");
+const posScannerStart=posFunctionSection("startOwnerPosScanner","toggleOwnerPosFlashlight",true);
+const posTorch=posFunctionSection("toggleOwnerPosFlashlight","stopOwnerPosScanner",true);
+const posLookup=posFunctionSection("lookupOwnerPosQr","renderOwnerPosSaleVariant",true);
+const posSaleCard=posFunctionSection("renderOwnerPosSaleVariant","updateOwnerPosSaleTotal");
+const posConfirm=posFunctionSection("confirmOwnerPosSale","beginNextOwnerPosSale",true);
+assert.match(posRender,/startOwnerPosScanner\(requestOwnerPosCamera\(\)\)/,"opening the authorized POS page requests the rear camera and starts scanning immediately");
+assert.doesNotMatch(posRender,/Open Camera|Tap Open Camera|ownerPosRetryScan[^>]*Open camera/i,"the scanner has no separate Open Camera step");
+assert.match(posRender,/ownerNavigateBack\(\)/,"the compact scanner has a working Back control");
+assert.match(posRender,/toggleOwnerPosFlashlight\(\)/,"the compact scanner exposes a flashlight control");
+assert.match(posRender,/owner-pos-scan-frame/,"the scanner has a QR targeting frame");
+assert.match(posOpen,/if\(!isOwner\(\)\)/,"only owners can start the camera scanner");
+assert.match(posCameraError,/error\?\.name==="NotAllowedError"/,"denied camera permission has a specific message");
+assert.match(posCameraError,/retry\.hidden=false/,"camera errors expose an actionable retry control");
+assert.match(posRetry,/startOwnerPosScanner\(requestOwnerPosCamera\(\)\)/,"camera retry requests permission only after the owner chooses retry");
+assert.match(posCameraRequest,/facingMode:\{ideal:"environment"\}/,"camera requests prefer the rear camera");
+assert.match(posCameraRequest,/navigator\.mediaDevices\?\.getUserMedia/,"camera permission is requested only through the browser media API");
+assert.match(posScannerStart,/getCapabilities\?\.\(\)\.torch/,"flashlight availability follows camera capabilities");
+assert.match(posTorch,/applyConstraints\(\{advanced:\[\{torch:next\}\]\}\)/,"flashlight uses the active camera track");
+assert.match(posLookup,/QR code not recognized/,"invalid product QR codes receive a clear explanation");
+assert.match(posLookup,/retryOwnerPosScanner\(\)/,"invalid QR scans automatically resume scanning");
+assert.match(posSaleCard,/variant\.productName/,"the verified product name is shown after scanning");
+assert.match(posSaleCard,/variant\.image/,"the real product image is shown after scanning");
+assert.match(posSaleCard,/variant\.size/,"the saved size is shown after scanning");
+assert.match(posSaleCard,/variant\.colorName\|\|variant\.color/,"the saved color is shown after scanning");
+assert.match(posSaleCard,/variant\.unitPrice/,"the saved price is shown after scanning");
+assert.match(posSaleCard,/variant\.stock/,"the available stock is shown after scanning");
+assert.match(posSaleCard,/outOfStock\?"disabled"/,"out-of-stock products cannot be confirmed");
+assert.equal((posSaleCard.match(/id="ownerPosConfirmButton"/g)||[]).length,1,"the product review shows one Confirm Sale button");
+assert.doesNotMatch(posSaleCard,/ownerPosNextButton|Scan Next Sale/,"the review screen does not add a second sale action");
+assert.match(posConfirm,/if\(!result\?\.confirmed\|\|!result\.sale\)/,"the UI waits for server confirmation before returning to scan");
+assert.match(posConfirm,/setTimeout\(\(\)=>\{ownerPosScanTimer=null;beginNextOwnerPosSale\(\);\},750\)/,"a confirmed sale automatically returns to the scanner");
+assert.match(html,/getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/,"camera tracks are stopped when leaving the scanner");
+assert.doesNotMatch(html,/ownerPosNextButton/,"the old manual Scan Next Sale action is removed");
+
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
 const { onRequest } = await import(apiUrl);
 const owner = { id: "owner-pos", identifier: "owner@example.test", name: "Store Owner", role: "owner" };
