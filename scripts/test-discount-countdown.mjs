@@ -83,7 +83,16 @@ assert.match(html, /id="ownerProductDiscountTimerEnabled" type="checkbox"/);
 assert.match(html, /id="ownerProductDiscountEndsAt" type="datetime-local"/);
 assert.match(html, /record\.discountTimerEnabled=true;record\.discountEndsAt=discountTimerEndsAt/);
 assert.match(html, /ownerProductDiscountTimerEnabled/);
-assert.match(html, /product-image-frame[\s\S]*?renderTimedDiscountBadge\(p\)/);
+const productCardSource = functionSource(html, "renderProducts");
+const storeCardSource = functionSource(html, "renderStoreProductCards");
+assert.match(productCardSource, /<div class="price">[\s\S]*?\$\{renderTimedDiscountBadge\(p\)\}/, "the Home and collection card countdown follows the price");
+const productImageMarkup = productCardSource.match(/<div class="product-image-frame">[\s\S]*?<img/);
+assert.ok(productImageMarkup, "the shared card keeps its image frame");
+assert.doesNotMatch(productImageMarkup[0], /renderTimedDiscountBadge/, "countdowns no longer cover product photos");
+assert.match(productCardSource, /\$\{renderProductBranchIndicators\(p\)\}/, "shared cards render explicit store branches");
+assert.match(storeCardSource, /<div class="price">\$\{renderProductPricing\(p\)\}<\/div>\$\{renderTimedDiscountBadge\(p\)\}/, "store cards place a timed countdown below price");
+assert.match(html, /\.product-info>\.product-countdown-badge\{position:relative/, "card countdowns flow below price instead of overlaying the image");
+assert.match(html, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, "the three-column card grid is preserved");
 assert.match(html, /id="detailDiscountCountdown"/);
 assert.match(html, /\.product-countdown-badge\{[^\n]*background:rgba\(139,31,48/);
 assert.match(api, /validateProductPriceDetails\(parsed\)/);
@@ -91,6 +100,25 @@ assert.match(api, /INVALID_PRODUCT_DISCOUNT_TIMER/);
 
 const timerValidationSource = functionSource(api, "productDiscountTimerDetails");
 const productPriceDetailsSource = functionSource(api, "productPriceDetails");
+const branchIndicatorsSource = functionSource(html, "renderProductBranchIndicators");
+const renderBranches = runInNewContext(branchIndicatorsSource + "\n({renderProductBranchIndicators})", {
+  productHasAvailableInventory: product => product?.available === true,
+  customerUiText: (en, ku, ar) => en,
+  escapeHtml: value => String(value),
+}).renderProductBranchIndicators;
+const shopOneBranches = renderBranches({ storeAvailability: "shop1", available: true });
+assert.match(shopOneBranches, /✓[\s\S]*Shivan 1/);
+assert.doesNotMatch(shopOneBranches, /Shivan 2/);
+const shopTwoBranches = renderBranches({ storeAvailability: "shop2", available: true });
+assert.match(shopTwoBranches, /✓[\s\S]*Shivan 2/);
+assert.doesNotMatch(shopTwoBranches, /Shivan 1/);
+const bothBranches = renderBranches({ storeAvailability: "both", available: true });
+assert.match(bothBranches, /Shivan 1[\s\S]*Shivan 2/);
+assert.equal((bothBranches.match(/class="product-branch-indicator"/g) || []).length, 2, "both branch indicators render in one compact row");
+for (const product of [{ available: true }, { storeAvailability: "unknown", available: true }, { storeAvailability: "both", available: false }]) {
+  const markup = renderBranches(product);
+  assert.doesNotMatch(markup, /✓|Shivan 1|Shivan 2/, "unknown and unavailable products do not receive branch checkmarks");
+}
 const apiPricing = runInNewContext(`${timerValidationSource}\n${productPriceDetailsSource}\n({productPriceDetails})`);
 const legacyPricing = apiPricing.productPriceDetails({ price: 10000, discount: 25 });
 assert.equal(legacyPricing.finalPrice, 7500);

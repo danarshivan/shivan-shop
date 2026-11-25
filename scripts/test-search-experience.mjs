@@ -17,8 +17,11 @@ assert.match(html, /id="searchCategoryFilter"[\s\S]*?id="searchSortControl"[\s\S
 assert.match(html, /\.search-page\{[^}]*overflow-x:hidden/, "the Search view clips accidental horizontal overflow on narrow devices");
 assert.match(html, /@media\(max-width:350px\)\{\.search-page-header/, "the Search controls have a compact layout for 320px iPhones");
 assert.match(html, /\.products\.shop-collection-products\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, "Search reuses the three-column mobile product grid at 375px and 390px");
-assert.match(source("renderProducts"), /<div class="product-store-location"[\s\S]*?productStoreAvailabilityLabel\(p\)[\s\S]*?<div class="product-bottom">/, "all product cards show explicit store assignment below the image");
 const cardRenderer = source("renderProducts");
+const cardImageMarkup = cardRenderer.match(/<div class="product-image-frame">[\s\S]*?<img/)?.[0] || "";
+assert.match(cardImageMarkup, /product-discount-badge/, "discount percent stays on the image");
+assert.doesNotMatch(cardImageMarkup, /renderTimedDiscountBadge/, "timed discount countdown does not overlay product photos");
+assert.match(cardRenderer, /<div class="price">[\s\S]*?\$\{renderTimedDiscountBadge\(p\)\}[\s\S]*?\$\{renderProductBranchIndicators\(p\)\}[\s\S]*?<div class="product-bottom">/, "cards show the countdown below price and compact branch indicators");
 assert.match(cardRenderer, /class="heart \$\{isFavorite\(p\.id\)\?/, "Search cards keep the shared Favorite control");
 assert.match(cardRenderer, /renderProductPricing\(p\)/, "Search cards use live IQD pricing");
 assert.match(cardRenderer, /product-discount-badge[\s\S]*?renderTimedDiscountBadge\(p\)/, "Search cards retain discount percentages and timed countdowns");
