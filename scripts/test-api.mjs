@@ -101,7 +101,7 @@ assert.match(confirmCloudShopWritesSource, /persistOwnerShopDelete\(key,requestI
 assert.match(cloudRequestSource, /AbortController/, "owner cloud requests need a timeout so the UI cannot wait forever");
 assert.match(resetPasswordSource, /if\(cloudMode\)[\s\S]*?cloud passwords can only be changed after signing in/i, "the hosted forgot-password flow must not bypass account verification");
 assert.match(htmlSource, /function productHasAvailableInventory\(product\)/, "customer product cards should render availability without exposing inventory quantities");
-assert.match(htmlSource, /stock-line \$\{productHasAvailableInventory\(p\)\?"":"out-of-stock"\}/, "customer product card status depends only on availability");
+assert.match(htmlSource, /class="add-mini"[\s\S]*?\$\{!productHasAvailableInventory\(p\)\?"disabled":""\}/, "customer cart controls depend only on availability without showing a stock label");
 assert.match(htmlSource, /detailStock"\)\.textContent=translateText\(variantStock\(currentProduct,selectedColor,selectedSize\)>0\?"بەردەست:"/, "Product Details shows availability without an exact stock count");
 assert.doesNotMatch(htmlSource, /بەردەست: \$\{Math\.max\(0,Number\(p\.stock\)\|\|0\)\}/, "customer product cards must not print exact stock quantities");
 assert.match(htmlSource, /بەردەست نەماوە/, "the storefront should show a localized out-of-stock label");
