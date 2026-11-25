@@ -71,6 +71,14 @@ assert.match(posConfirm,/if\(!result\?\.confirmed\|\|!result\.sale\)/,"the UI wa
 assert.match(posConfirm,/setTimeout\(\(\)=>\{ownerPosScanTimer=null;beginNextOwnerPosSale\(\);\},750\)/,"a confirmed sale automatically returns to the scanner");
 assert.match(html,/getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/,"camera tracks are stopped when leaving the scanner");
 assert.doesNotMatch(html,/ownerPosNextButton/,"the old manual Scan Next Sale action is removed");
+assert.equal((posRender.match(/<header\b/g)||[]).length,1,"Scan & Sell renders exactly one toolbar header");
+assert.equal((posRender.match(/<h3\b/g)||[]).length,1,"Scan & Sell renders exactly one title");
+assert.match(posRender,/owner-pos-scanner-square/,"the live preview uses the compact square scanner layout");
+assert.match(posRender,/owner-pos-square-frame/,"the QR corners are attached to the camera square");
+assert.match(html,/if\(route\.panel!=="dashboard"&&route\.panel!=="pos-sell"\)sectionBox\.insertAdjacentHTML\("afterbegin",ownerNavigationHeaderMarkup\(\)\)/,"the shared Owner header is omitted only for POS because POS has its own toolbar");
+assert.match(html,/\.owner-pos-compact \.owner-pos-scanner-square\{[^}]*width:min\(280px,100%\)[^}]*aspect-ratio:1/,"the preview is centered and sized as a responsive 280px square");
+assert.match(html,/\.owner-pos-compact \.owner-pos-square-frame\{inset:0;width:auto;height:auto/,"the camera view and scan frame occupy the same square");
+assert.match(html,/\.owner-pos-compact \.owner-pos-square-frame:before\{top:0;left:0\}[\s\S]*?\.owner-pos-square-frame:after\{top:0;right:0\}[\s\S]*?\.owner-pos-square-frame i:before\{bottom:0;left:0\}[\s\S]*?\.owner-pos-square-frame i:after\{right:0;bottom:0\}/,"all four QR corner markers align to the frame edges");
 
 const apiUrl = `data:text/javascript;base64,${Buffer.from(apiSource).toString("base64")}`;
 const { onRequest } = await import(apiUrl);

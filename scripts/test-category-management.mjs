@@ -40,7 +40,7 @@ assert.match(ownerCategoryStyles, /\.owner-category-editor\[hidden\]\{display:no
 assert.match(ownerCategoryStyles, /\.owner-category-edit-actions\{display:grid;grid-template-columns:minmax\(0,\.9fr\) minmax\(0,1\.2fr\) minmax\(0,\.9fr\)/, "Edit, Save, and Delete actions share one aligned row");
 assert.ok(html.includes("id=\"ownerCategoryCreateToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"ownerCategoryAddRow\""), "the create button opens its accessible category form");
 assert.ok(html.includes("id=\"ownerCategoryAddRow\" hidden"), "the create form is collapsed by default");
-assert.match(html, /if\(route\.panel!=="dashboard"\)sectionBox\.insertAdjacentHTML\("afterbegin",ownerNavigationHeaderMarkup\(\)\)/, "the Categories route retains the shared Back/title navigation header");
+assert.match(html, /if\(route\.panel!=="dashboard"&&route\.panel!=="pos-sell"\)sectionBox\.insertAdjacentHTML\("afterbegin",ownerNavigationHeaderMarkup\(\)\)/, "normal Owner routes such as Categories retain the shared Back/title header while Scan & Sell uses its single toolbar");
 assert.ok(html.includes("id=\"ownerNewCategoryImageDraft\""), "new categories use a separate image-crop draft field");
 assert.ok(functionSource("editOwnerCategoryImage").includes("openSavedOwnerImageCrop"), "existing category images reopen from shared storage");
 assert.match(functionSource("bindOwnerCategoryManager"), /#ownerCategoryAddRow \[data-category-edit-image\]/, "the new-category form wires its saved crop back into the editor");
