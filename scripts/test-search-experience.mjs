@@ -17,7 +17,8 @@ assert.match(html, /id="searchCategoryFilter"[\s\S]*?id="searchSortControl"[\s\S
 assert.match(html, /\.search-page\{[^}]*overflow-x:hidden/, "the Search view clips accidental horizontal overflow on narrow devices");
 assert.match(html, /@media\(max-width:350px\)\{\.search-page-header/, "the Search controls have a compact layout for 320px iPhones");
 assert.match(html, /\.products\.shop-collection-products\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, "Search reuses the three-column mobile product grid at 375px and 390px");
-assert.match(source("renderProducts"), /<div class="product-store-location"[\s\S]*?productStoreAvailabilityLabel\(p\)[\s\S]*?<div class="product-bottom">/, "all product cards show explicit store assignment below the image");
+assert.match(source("renderProducts"), /\$\{renderProductCardAvailability\(p\)\}[\s\S]*?<div class="product-bottom">/, "shared customer cards render only explicit available branch indicators");
+assert.match(source("renderProducts"), /\$\{renderProductCardStockStatus\(p\)\}/, "shared customer cards omit the in-stock label while retaining a status slot");
 const cardRenderer = source("renderProducts");
 assert.match(cardRenderer, /class="heart \$\{isFavorite\(p\.id\)\?/, "Search cards keep the shared Favorite control");
 assert.match(cardRenderer, /renderProductPricing\(p\)/, "Search cards use live IQD pricing");

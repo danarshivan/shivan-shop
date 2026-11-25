@@ -118,22 +118,26 @@ assert.equal(gridNode.classList.value, "is-list");
 assert.deepEqual(Array.from(renderedStoreRows, p => p.id), [107, 103, 102], "newest sorting preserves the store page's filtered products");
 
 let cardHtml = "";
-const cardContext = contextWithFunctions(["renderStoreProductCards"], {
+const cardContext = contextWithFunctions(["renderProductCardAvailability", "renderStoreProductCards"], {
   document: { getElementById: () => ({ set innerHTML(value) { cardHtml = value; }, get innerHTML() { return cardHtml; } }) },
   customerUiText: en => en, escapeHtml: value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;"),
   getProductName: p => p.name, productDiscountPercent: p => p.discount || 0, isFavorite: () => false,
-  productHasAvailableInventory: () => true, searchProductSizes: () => ["S", "M"],
+  productHasAvailableInventory: p => Number(p.stock) > 0, searchProductSizes: () => ["S", "M"],
   searchProductColors: () => [{ value: "#aabbcc", label: "Blue" }], safeImageUrl: value => value,
   renderTimedDiscountBadge: () => "", renderProductPricing: () => "<del>20,000 IQD</del><strong>15,000 IQD</strong>",
-  productStoreAvailabilityLabel: () => "Shivan Shop 1 + Shivan Shop 2", refreshDiscountCountdownBadges() {},
+  refreshDiscountCountdownBadges() {},
 });
-const cardProduct = { id: 777, name: "Dress & Coat", image: "/real-dress.jpg", discount: 25, stock: 987654 };
+const cardProduct = { id: 777, name: "Dress & Coat", image: "/real-dress.jpg", discount: 25, stock: 987654, storeAvailability: "both" };
 assert.equal(cardContext.renderStoreProductCards([cardProduct]), true);
 assert.match(cardHtml, /src="\/real-dress\.jpg"/);
 assert.match(cardHtml, /-25%/);
 assert.match(cardHtml, /20,000 IQD[\s\S]*15,000 IQD/);
 assert.match(cardHtml, /Dress &amp; Coat/);
-assert.match(cardHtml, /Shivan Shop 1 \+ Shivan Shop 2/);
+assert.match(cardHtml, /class="product-store-location product-store-branches"/);
+assert.match(cardHtml, /Shivan 1<\/span><span class="product-store-branch-check" role="img" aria-label="Available">✓<\/span>/);
+assert.match(cardHtml, /Shivan 2<\/span><span class="product-store-branch-check" role="img" aria-label="Available">✓<\/span>/);
+assert.doesNotMatch(cardHtml, /Store availability not specified|Shivan Shop 1 \+ Shivan Shop 2|M20 10c/);
+assert.doesNotMatch(cardHtml, /In stock/);
 assert.match(cardHtml, /store-product-size-chip[\s\S]*>S</);
 assert.match(cardHtml, /background:#aabbcc/);
 assert.match(cardHtml, /quickAdd\(777\)/);
