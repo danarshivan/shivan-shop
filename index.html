@@ -3779,6 +3779,18 @@ html[dir="rtl"] .app textarea{direction:rtl;text-align:start;unicode-bidi:plaint
 html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.language-switcher){direction:ltr}
 @media(max-width:390px){html[dir="rtl"] .app :is(.field,.owner-product-field-grid>label,.owner-product-name-fields>label){min-width:0}}
 </style>
+<style id="shivan-owner-scan-sell-styles">
+.owner-pos-primary-action{display:grid;grid-template-columns:52px minmax(0,1fr) 24px;align-items:center;gap:12px;width:100%;min-height:82px;margin:0 0 14px;padding:14px 16px;border:1px solid rgba(164,132,255,.62);border-radius:20px;background:radial-gradient(ellipse at 0 0,rgba(133,79,255,.35),transparent 58%),linear-gradient(115deg,#17152b,#0e1120 72%);box-shadow:0 10px 28px rgba(87,42,180,.2),inset 0 1px rgba(255,255,255,.06);color:#fff;text-align:start;cursor:pointer}
+.owner-pos-primary-action:focus-visible,.owner-pos-primary-action:active{outline:2px solid #a77dff;outline-offset:2px}
+.owner-pos-primary-icon{display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(178,144,255,.45);border-radius:16px;background:linear-gradient(145deg,#6434d9,#291b58);color:#fff;font-size:28px;line-height:1}
+.owner-pos-primary-action>span:nth-child(2){display:grid;gap:4px;min-width:0}.owner-pos-primary-action strong{font-size:17px;letter-spacing:.01em}.owner-pos-primary-action small{color:#c5c5d7;font-size:12px;line-height:1.4}.owner-pos-primary-arrow{color:#c7a9ff;font-size:28px;text-align:center}
+.owner-pos-page{display:grid;gap:14px;max-width:880px;margin:0 auto;padding:12px 0 24px}.owner-pos-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.owner-pos-intro h3{margin:3px 0 5px;color:#fff;font-size:clamp(22px,5vw,28px)}.owner-pos-intro p{margin:0;color:#bfc1d2;font-size:13px;line-height:1.55}.owner-pos-intro .owner-dashboard-kicker{margin:0 0 4px;color:#a98bff;font-size:10px;font-weight:800;letter-spacing:.14em}
+.owner-pos-scanner-card{position:relative;display:grid;place-items:center;min-height:clamp(250px,58vw,410px);overflow:hidden;border:1px solid rgba(137,108,213,.35);border-radius:22px;background:radial-gradient(ellipse at 50% 42%,rgba(68,46,124,.38),transparent 57%),#080b17;isolation:isolate}.owner-pos-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#080b17}.owner-pos-camera-placeholder{position:absolute;inset:0;z-index:1;display:grid;align-content:center;justify-items:center;gap:9px;padding:22px;text-align:center;color:#f7f6ff;pointer-events:none}.owner-pos-camera-placeholder>span{display:grid;place-items:center;width:58px;height:58px;border:1px solid rgba(164,132,255,.5);border-radius:18px;background:rgba(62,43,111,.55);color:#c6a8ff;font-size:32px}.owner-pos-camera-placeholder strong{font-size:16px}.owner-pos-camera-placeholder small{max-width:250px;color:#bec0d1;font-size:12px;line-height:1.5}.owner-pos-camera-placeholder.is-camera-active{display:none}.owner-pos-scan-frame{position:absolute;z-index:2;width:min(66%,280px);aspect-ratio:1;border:2px solid rgba(190,156,255,.92);border-radius:26px;box-shadow:0 0 0 100vmax rgba(5,7,16,.28),0 0 28px rgba(141,89,255,.38);pointer-events:none}.owner-pos-scan-frame:before,.owner-pos-scan-frame:after,.owner-pos-scan-frame i:before,.owner-pos-scan-frame i:after{position:absolute;width:22px;height:22px;border-color:#fff;border-style:solid;content:""}.owner-pos-scan-frame:before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:12px 0 0}.owner-pos-scan-frame:after{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 12px 0 0}.owner-pos-scan-frame i:before{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 12px}.owner-pos-scan-frame i:after{right:-2px;bottom:-2px;border-width:0 3px 3px 0;border-radius:0 0 12px 0}.owner-pos-status{z-index:3;align-self:end;max-width:calc(100% - 28px);margin:0 14px 14px;padding:7px 10px;border:1px solid rgba(141,119,191,.3);border-radius:12px;background:rgba(7,9,19,.86);color:#f3efff;text-align:center;font-size:12px;line-height:1.4}.owner-pos-scanner-card>.owner-pos-secondary{z-index:3;align-self:end;margin:0 0 14px}.owner-pos-secondary{min-height:42px;padding:9px 15px;border:1px solid rgba(163,132,234,.5);border-radius:13px;background:#17152a;color:#fff;font:600 13px inherit;cursor:pointer}
+.owner-pos-variant-card,.owner-pos-receipt{display:grid;gap:13px;padding:15px;border:1px solid rgba(141,119,191,.35);border-radius:19px;background:linear-gradient(145deg,rgba(23,22,42,.98),rgba(12,15,27,.98));color:#fff}.owner-pos-product-head{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:13px}.owner-pos-product-image,.owner-pos-product-placeholder{width:92px;height:108px;border:1px solid rgba(154,128,216,.35);border-radius:14px;background:#0a0d19;object-fit:cover}.owner-pos-product-placeholder{display:grid;place-items:center;color:#a98bff;font-size:34px}.owner-pos-product-copy{min-width:0}.owner-pos-product-copy h4{margin:0 0 7px;font-size:17px;overflow-wrap:anywhere}.owner-pos-product-copy p,.owner-pos-product-copy small{display:block;margin:0 0 5px;color:#c2c2d1;font-size:12px;line-height:1.45;overflow-wrap:anywhere}.owner-pos-price-line,.owner-pos-total-line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.owner-pos-price-line>strong{margin-inline-start:auto;color:#fff;font-size:17px}.owner-pos-price-line>strong small{color:#b9b8c9;font-size:11px;font-weight:500}.owner-pos-original-price{color:#aaaabd;text-decoration:line-through}.owner-pos-discount{padding:4px 8px;border-radius:999px;background:rgba(142,72,244,.22);color:#cdafff;font-size:12px;font-weight:700}.owner-pos-quantity-label{display:flex;align-items:center;justify-content:space-between;gap:16px;color:#f4f2fb;font-size:13px;font-weight:650}.owner-pos-quantity-label input{box-sizing:border-box;width:112px;min-height:42px;padding:8px 10px;border:1px solid rgba(154,128,216,.45);border-radius:12px;background:#0b0e1b;color:#fff;font:600 15px inherit;text-align:center}.owner-pos-total-line{padding-top:12px;border-top:1px solid rgba(141,119,191,.24)}.owner-pos-total-line span{color:#d0cfde;font-size:13px}.owner-pos-total-line strong{color:#c19aff;font-size:20px}.owner-pos-confirm{min-height:48px;border:1px solid #9b6aff;border-radius:14px;background:linear-gradient(100deg,#6332d9,#8c4cff);box-shadow:0 6px 20px rgba(112,58,216,.23);color:#fff;font:700 15px inherit;cursor:pointer}.owner-pos-confirm:disabled{opacity:.48;cursor:not-allowed}.owner-pos-confirm-error{color:#ffb6c2}.owner-pos-safety-note{margin:0;color:#9fa1b4;font-size:11px;line-height:1.5}.owner-pos-receipt{grid-template-columns:minmax(0,1fr) auto;align-items:center;border-color:rgba(58,184,131,.4);background:rgba(12,50,41,.35)}.owner-pos-receipt strong{color:#b4f2d4}.owner-pos-receipt span{justify-self:end;color:#fff;font-weight:700}.owner-pos-receipt small{grid-column:1/-1;color:#b9c8c1;font-size:11px}
+.owner-pos-report{margin-top:20px;padding:16px;border:1px solid rgba(141,119,191,.32);border-radius:18px;background:linear-gradient(145deg,rgba(22,20,39,.88),rgba(10,13,25,.92))}.owner-pos-report .owner-dashboard-section-head{margin-bottom:12px}.owner-pos-report .owner-dashboard-section-head h4{margin:0;color:#f7f4ff;font-size:16px}.owner-pos-report .owner-dashboard-section-head p{margin:4px 0 0;color:#a9aabd;font-size:11px}.owner-pos-report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.owner-pos-report-metrics article{display:grid;gap:7px;min-width:0;padding:11px;border:1px solid rgba(141,119,191,.22);border-radius:13px;background:rgba(13,14,28,.8)}.owner-pos-report-metrics small{color:#b5b4c7;font-size:10px;line-height:1.35}.owner-pos-report-metrics strong{color:#cfb1ff;font-size:clamp(13px,3.2vw,18px);overflow-wrap:anywhere}.owner-pos-sales-list{display:grid;gap:8px;margin:12px 0 0;padding:0;list-style:none}.owner-pos-sales-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(141,119,191,.18)}.owner-pos-sales-list li span{display:grid;gap:3px;min-width:0}.owner-pos-sales-list li strong{color:#f5f3fc;font-size:12px;overflow-wrap:anywhere}.owner-pos-sales-list li small{color:#9fa1b4;font-size:10px;line-height:1.35}.owner-pos-sales-list li b{flex:0 0 auto;color:#c29aff;font-size:12px}.owner-pos-primary-action[dir="rtl"]{text-align:right}
+@media(max-width:380px){.owner-pos-primary-action{grid-template-columns:44px minmax(0,1fr) 18px;gap:9px;padding:12px}.owner-pos-primary-icon{width:42px;height:42px}.owner-pos-primary-action strong{font-size:15px}.owner-pos-primary-action small{font-size:11px}.owner-pos-product-head{grid-template-columns:76px minmax(0,1fr);gap:10px}.owner-pos-product-image,.owner-pos-product-placeholder{width:76px;height:94px}.owner-pos-report{padding:12px}.owner-pos-report-metrics{gap:6px}.owner-pos-report-metrics article{padding:8px}}
+.owner-pos-secondary{font:600 13px/1.25 system-ui,sans-serif}.owner-pos-quantity-label input{font:600 15px/1.2 system-ui,sans-serif}.owner-pos-confirm{font:700 15px/1.2 system-ui,sans-serif}
+</style>
 </head>
 
 <body>
@@ -5449,6 +5461,14 @@ let ownerInventoryStream=null;
 let ownerInventoryScanTimer=null;
 let ownerInventoryScanBusy=false;
 let ownerInventoryScannedVariant=null;
+let ownerPosStream=null;
+let ownerPosScanTimer=null;
+let ownerPosScanBusy=false;
+let ownerPosScanGeneration=0;
+let ownerPosScannedVariant=null;
+let ownerPosOperationId="";
+let ownerPosSaving=false;
+let ownerPosSaleConfirmed=false;
 const INVENTORY_PENDING_OPERATION_KEY="shivan_shop_inventory_pending_operation";
 const GUEST_CART_MERGE_KEY="shivan_shop_guest_cart_merge_fingerprints";
 const originalStorageSetItem=Storage.prototype.setItem;
@@ -8828,6 +8848,7 @@ function openView(view,options={}){
     return openGuestAuthenticationModal(view);
   }
   const previousView=getActiveShopView();
+  if(previousView==="owner"&&view!=="owner"&&ownerPanel==="pos-sell")stopOwnerPosScanner();
   if(view==="search"&&previousView!=="search"&&previousView!=="detail")shopSearchReturnView=previousView;
   const ownerLedger=typeof ownerNavigationLedger==="undefined"?null:ownerNavigationLedger;
   if(previousView!==view)shopViewScrollPositions.set(previousView,readShopViewPosition(previousView));
@@ -11257,7 +11278,8 @@ function ownerNavigationHasUnsavedDraft(){
 
 function ownerNavigationHeaderMarkup(){
   let title="Owner";
-  if(ownerPanel==="orders"&&ownerOrderDetailId)title=`${ownerDashboardText("Order details","وردەکاریێن داخوازی","تفاصيل الطلب")} #${ownerOrderDetailId}`;
+  if(ownerPanel==="pos-sell")title=ownerDashboardText("Scan & Sell","سکان بکە و بفرۆشە","امسح وبِع");
+  else if(ownerPanel==="orders"&&ownerOrderDetailId)title=`${ownerDashboardText("Order details","وردەکاریێن داخوازی","تفاصيل الطلب")} #${ownerOrderDetailId}`;
   else if(ownerPanel==="products"){
     if(ownerProductMode==="form")title=editingProductId?ownerDashboardText("Edit Product","دەستکاری بەرهەم","تعديل المنتج"):ownerDashboardText("New Product","بەرهەمی نوێ","منتج جديد");
     else if(ownerProductMode==="categories")title=ownerDashboardText("Categories","جۆرەکان","الفئات");
@@ -11332,6 +11354,10 @@ function completeOwnerNestedEditNavigation(parentSnapshot,form){
 }
 
 function renderOwnerPanel(section=ownerPanel,options={}){
+  if(section==="pos-sell"&&!isOwner()){
+    showToast(ownerDashboardText("Scan & Sell is available to the store owner only.","سکان و فرۆتن تەنێ بۆ خاوەنێ فرۆشگەیێیە.","المسح والبيع متاحان لمالك المتجر فقط."));
+    return false;
+  }
   const route=ownerPanelRoute(section);
   if(!isOwner()&&!canAccessOwnerRoute(section)){
     showToast("This account does not have access to that section.");
@@ -11353,6 +11379,7 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   if(!box)return false;
   ensureOwnerDashboardShell(box);
   if(previousPanel==="inventory"&&route.panel!=="inventory"){ownerInventoryRenderGeneration++;stopOwnerQrScanner();}
+  if(previousPanel==="pos-sell"&&route.panel!=="pos-sell"){stopOwnerPosScanner();ownerPosScannedVariant=null;ownerPosOperationId="";ownerPosSaleConfirmed=false;}
   ownerPanel=route.panel;
   ownerDashboardNavKey=route.nav;
   if(isStaffSession()&&route.panel==="products"){ownerProductMode="list";editingProductId=null;}
@@ -11379,8 +11406,10 @@ function renderOwnerPanel(section=ownerPanel,options={}){
   if(route.panel==="dashboard"){
     sectionBox.innerHTML="";
     renderOwnerDashboard(dashboard);
+    if(isOwner())dashboard.insertAdjacentHTML("afterbegin",ownerPosPrimaryActionMarkup());
     if(ownerNavigationLedger.hasBack())dashboard.insertAdjacentHTML("afterbegin",ownerNavigationHeaderMarkup());
-  }else if(route.panel==="products")renderOwnerProducts(sectionBox);
+  }else if(route.panel==="pos-sell")renderOwnerPosSell(sectionBox);
+  else if(route.panel==="products")renderOwnerProducts(sectionBox);
   else if(route.panel==="ads")renderOwnerAds(sectionBox);
   else if(route.panel==="orders")renderOwnerOrders(sectionBox);
   else if(route.panel==="alerts")renderOwnerSmartAlerts(sectionBox);
@@ -11452,6 +11481,7 @@ function ownerDashboardText(en,ku=en,ar=en){
 function ownerPanelRoute(section){
   const routes={
     dashboard:{panel:"dashboard",nav:"dashboard"},
+    "pos-sell":{panel:"pos-sell",nav:"pos-sell"},
     products:{panel:"products",nav:"products"},
     categories:{panel:"products",nav:"categories"},
     ads:{panel:"ads",nav:"ads"},
@@ -12163,6 +12193,8 @@ function renderOwnerAnalytics(box,selection=ownerAnalyticsSelection){
   const series=ownerAnalyticsSeries(period,ownerAnalyticsSelection,range,metrics.orders);
   const best=metrics.bestSellers.length?`<ol class="owner-analytics-top-products">${metrics.bestSellers.map(item=>`<li><span>${escapeHtml(item.name)}</span><strong>${item.quantity} ${escapeHtml(ownerDashboardText("sold"))}</strong></li>`).join("")}</ol>`:`<div class="owner-analytics-empty">${escapeHtml(ownerDashboardText("No confirmed item sales in this period."))}</div>`;
   box.innerHTML=`<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Sales Analytics"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved orders and customer records"))}</p></div><div class="owner-analytics-controls"><label>${escapeHtml(ownerDashboardText("View"))}<select id="ownerAnalyticsPeriod" onchange="updateOwnerAnalyticsFromControls()"><option value="daily" ${period==="daily"?"selected":""}>Daily</option><option value="monthly" ${period==="monthly"?"selected":""}>Monthly</option><option value="yearly" ${period==="yearly"?"selected":""}>Yearly</option></select></label><label ${period!=="daily"?"hidden":""}>${escapeHtml(ownerDashboardText("Date"))}<input id="ownerAnalyticsDate" type="date" value="${escapeHtml(range.date)}" onchange="updateOwnerAnalyticsFromControls()"></label><label ${period!=="monthly"?"hidden":""}>${escapeHtml(ownerDashboardText("Month"))}<input id="ownerAnalyticsMonth" type="month" value="${escapeHtml(range.month)}" onchange="updateOwnerAnalyticsFromControls()"></label><label ${period!=="yearly"?"hidden":""}>${escapeHtml(ownerDashboardText("Year"))}<input id="ownerAnalyticsYear" type="number" min="2000" max="9999" step="1" value="${escapeHtml(range.year)}" onchange="updateOwnerAnalyticsFromControls()"></label></div><div class="owner-analytics-summary">${ownerAnalyticsMetricCards(metrics)}</div>${ownerAnalyticsChartMarkup(series,period)}<div class="owner-dashboard-section-head"><h4>${escapeHtml(ownerDashboardText("Best-selling products"))}</h4></div>${best}<p class="owner-inventory-status">${escapeHtml(ownerDashboardText("Date range"))}: ${escapeHtml(range.start.toLocaleDateString())} – ${escapeHtml(range.end.toLocaleDateString())}</p></section>`;
+  box.insertAdjacentHTML("beforeend",ownerPosSalesReportMarkup());
+  void loadOwnerPosSalesSummary(box,range);
 }
 
 function updateOwnerAnalyticsFromControls(){
@@ -12182,6 +12214,8 @@ function renderOwnerReports(box,selection=ownerReportSelection){
   const values=[formatPrice(metrics.sales),metrics.totalOrders,metrics.confirmedOrders,metrics.pendingOrders,metrics.cancelledOrders,metrics.unitsSold,metrics.newCustomers];
   const cards=notes.map((label,index)=>`<article class="owner-report-card"><small>${escapeHtml(ownerDashboardText(label))}</small><strong>${escapeHtml(String(values[index]))}</strong><small>${escapeHtml(index===0?ownerDashboardText("Paid or completed order totals"):ownerDashboardText("Saved records in this date range"))}</small></article>`).join("");
   box.innerHTML=`<section class="owner-dashboard-section"><div class="owner-dashboard-section-head"><h3>${escapeHtml(ownerDashboardText("Store Reports"))}</h3><p>${escapeHtml(ownerDashboardText("Calculated from saved store records; no example data is added."))}</p></div><div class="owner-report-controls"><label>${escapeHtml(ownerDashboardText("Report period"))}<select id="ownerReportPreset" onchange="updateOwnerReportsFromControls()"><option value="today" ${preset==="today"?"selected":""}>Today</option><option value="month" ${preset==="month"?"selected":""}>This month</option><option value="year" ${preset==="year"?"selected":""}>This year</option><option value="custom" ${preset==="custom"?"selected":""}>Date range</option></select></label><label ${preset!=="custom"?"hidden":""}>${escapeHtml(ownerDashboardText("From"))}<input id="ownerReportStart" type="date" value="${escapeHtml(selection.start||"")}" onchange="updateOwnerReportsFromControls()"></label><label ${preset!=="custom"?"hidden":""}>${escapeHtml(ownerDashboardText("Through"))}<input id="ownerReportEnd" type="date" value="${escapeHtml(selection.end||"")}" onchange="updateOwnerReportsFromControls()"></label></div>${range.valid?`<div class="owner-report-grid">${cards}</div>`:`<div class="owner-analytics-empty">${escapeHtml(ownerDashboardText("Choose a valid start and end date."))}</div>`}<p class="owner-inventory-status">${escapeHtml(ownerDashboardText("Report dates"))}: ${escapeHtml(range.start.toLocaleDateString())} – ${escapeHtml(range.end.toLocaleDateString())}</p></section>`;
+  box.insertAdjacentHTML("beforeend",ownerPosSalesReportMarkup());
+  if(range.valid)void loadOwnerPosSalesSummary(box,range);
 }
 
 function updateOwnerReportsFromControls(){
@@ -12206,6 +12240,181 @@ function loadQrVendorScript(file,globalName){
     script.onerror=()=>reject(new Error("Local QR tools could not be loaded. Rebuild the website and try again."));
     document.head.appendChild(script);
   });
+}
+
+function ownerPosPrimaryActionMarkup(){
+  return `<button type="button" class="owner-pos-primary-action" onclick="openOwnerPosSell()"><span class="owner-pos-primary-icon" aria-hidden="true">⌗</span><span><strong>${escapeHtml(ownerDashboardText("Scan & Sell","سکان بکە و بفرۆشە","امسح وبِع"))}</strong><small>${escapeHtml(ownerDashboardText("Scan a product QR and record an in-store sale","کۆدی QR یا بەرهەمەکێ سکان بکە و فرۆشتنەکا ناڤ فرۆشگەیێ تۆمار بکە","امسح رمز QR للمنتج وسجل عملية بيع داخل المتجر"))}</small></span><span class="owner-pos-primary-arrow" aria-hidden="true">›</span></button>`;
+}
+
+function renderOwnerPosSell(box){
+  if(!isOwner()||!box)return false;
+  stopOwnerPosScanner();
+  ownerPosScannedVariant=null;ownerPosOperationId="";ownerPosSaving=false;ownerPosSaleConfirmed=false;
+  box.innerHTML=`<section class="owner-pos-page" aria-labelledby="ownerPosHeading"><header class="owner-pos-intro"><div><p class="owner-dashboard-kicker">${escapeHtml(ownerDashboardText("IN-STORE POINT OF SALE","فرۆشتنا ناڤ فرۆشگەیێ","نقطة بيع داخل المتجر"))}</p><h3 id="ownerPosHeading">${escapeHtml(ownerDashboardText("Scan & Sell","سکان بکە و بفرۆشە","امسح وبِع"))}</h3><p>${escapeHtml(ownerDashboardText("Scan the product's existing QR code. Review the saved variant and stock, then confirm to record the sale.","کۆدی QR یا بەرهەمەیا هەیی سکان بکە. پێش تۆمارکرنا فرۆتنێ جۆر و ستۆکێ پاشەکەفتکری بپشکنە و پەسەند بکە.","امسح رمز QR الموجود على المنتج. راجع النوع والمخزون المحفوظين ثم أكد تسجيل البيع."))}</p></div></header><div class="owner-pos-scanner-card"><video id="ownerPosVideo" class="owner-pos-video" playsinline muted autoplay hidden aria-label="${escapeHtml(ownerDashboardText("Product QR scanner camera","کامێرا یا سکانکرنا QR یا بەرهەمی","كاميرا مسح رمز QR للمنتج"))}"></video><canvas id="ownerPosCanvas" hidden></canvas><div class="owner-pos-camera-placeholder" id="ownerPosCameraPlaceholder"><span aria-hidden="true">⌗</span><strong>${escapeHtml(ownerDashboardText("Camera scan","سکانکرنا کامێرایێ","مسح بالكاميرا"))}</strong><small>${escapeHtml(ownerDashboardText("Hold one product QR code inside the frame.","کۆدێ QR یێ بەرهەمەکێ ل ناڤ چوارچێوێ داگرە.","ضع رمز QR لمنتج واحد داخل الإطار."))}</small></div><div class="owner-pos-scan-frame" aria-hidden="true"><i></i></div><p id="ownerPosStatus" class="owner-pos-status" role="status" aria-live="polite">${escapeHtml(ownerDashboardText("Opening camera…","کامێرا ڤەدکەت…","جارٍ فتح الكاميرا…"))}</p><button id="ownerPosRetryScan" type="button" class="owner-pos-secondary" onclick="retryOwnerPosScanner()" hidden>${escapeHtml(ownerDashboardText("Open camera","کامێرا ڤەکە","افتح الكاميرا"))}</button></div><article id="ownerPosVariantCard" class="owner-pos-variant-card" hidden></article><article id="ownerPosReceipt" class="owner-pos-receipt" hidden></article><p class="owner-pos-safety-note">${escapeHtml(ownerDashboardText("Nothing is recorded until you press Confirm Sale. Stock is checked again by the shared database at confirmation.","هیچ فرۆتنەک ناهێتە تۆمارکرن هەتا تە پەسەند نەکر. ستۆک ل دەما پەسەندکرنێ د هێتە پشکنین.","لن يتم تسجيل البيع حتى تضغط تأكيد البيع. يتحقق النظام من المخزون المشترك عند التأكيد."))}</p></section>`;
+  if(!ownerPosStream){const status=document.getElementById("ownerPosStatus"),retry=document.getElementById("ownerPosRetryScan");if(status)status.textContent=ownerDashboardText("Tap Open Camera to start scanning.","بۆ دەستپێکرنا سکانکرنێ کامێرا ڤەکە.","اضغط فتح الكاميرا لبدء المسح.");if(retry)retry.hidden=false;}
+  return true;
+}
+
+function openOwnerPosSell(){
+  if(!isOwner()){showToast(ownerDashboardText("Only the store owner can use Scan & Sell.","تەنێ خاوەنێ فرۆشگەیێ دکاریت Scan & Sell بکارهینیت.","يمكن لمالك المتجر فقط استخدام المسح والبيع."));return false;}
+  if(ownerPanelHasPendingWork()){showToast(ownerDashboardText("Save or finish the current Owner change before opening Scan & Sell.","پێش ڤەکرنا Scan & Sell گۆڕانکاریێن خاوەن پاشەکەفت بکە.","احفظ أو أنهِ تغييرات المالك الحالية قبل فتح المسح والبيع."));return false;}
+  let cameraPromise=null;
+  try{if(navigator.mediaDevices?.getUserMedia)cameraPromise=navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:960},height:{ideal:720}},audio:false});}catch(error){cameraPromise=Promise.reject(error);}
+  const opened=renderOwnerPanel("pos-sell");
+  if(!opened){cameraPromise?.then(stream=>stream.getTracks().forEach(track=>track.stop())).catch(()=>{});return false;}
+  if(cameraPromise)startOwnerPosScanner(cameraPromise);
+  else setOwnerPosCameraError(new Error("Camera scanning needs a secure HTTPS page or localhost preview."));
+  return true;
+}
+
+function setOwnerPosCameraError(error){
+  const status=document.getElementById("ownerPosStatus");const retry=document.getElementById("ownerPosRetryScan");
+  if(status)status.textContent=error?.name==="NotAllowedError"?ownerDashboardText("Camera permission was denied. Allow camera access and try again.","مۆڵەتا کامێرایێ نەهاتە دان. مۆڵەتێ بدە و دوبارە هەوڵ بدە.","تم رفض إذن الكاميرا. اسمح بالوصول ثم حاول مجدداً."):error?.message||ownerDashboardText("The camera could not start. Check browser permission and try again.","کامێرا نەهاتە دەستپێکرن. مۆڵەتا وێبگەری بپشکنە و دوبارە هەوڵ بدە.","تعذر تشغيل الكاميرا. تحقق من إذن المتصفح وحاول مجدداً.");
+  if(retry)retry.hidden=false;
+}
+
+function retryOwnerPosScanner(){
+  if(!isOwner()||ownerPanel!=="pos-sell")return false;
+  let cameraPromise;
+  try{cameraPromise=navigator.mediaDevices?.getUserMedia?.({video:{facingMode:{ideal:"environment"},width:{ideal:960},height:{ideal:720}},audio:false});}catch(error){cameraPromise=Promise.reject(error);}
+  if(!cameraPromise){setOwnerPosCameraError(new Error("Camera scanning needs a secure HTTPS page or localhost preview."));return false;}
+  startOwnerPosScanner(cameraPromise);return true;
+}
+
+async function startOwnerPosScanner(cameraPromise){
+  if(!isOwner()||ownerPanel!=="pos-sell")return false;
+  const generation=++ownerPosScanGeneration;
+  const status=document.getElementById("ownerPosStatus");const retry=document.getElementById("ownerPosRetryScan");
+  if(status)status.textContent=ownerDashboardText("Starting camera…","کامێرا ددەستپێکەت…","جارٍ تشغيل الكاميرا…");
+  if(retry)retry.hidden=true;
+  const cameraStream=Promise.resolve(cameraPromise).then(stream=>{
+    if(generation!==ownerPosScanGeneration||ownerPanel!=="pos-sell"||!isOwner())stream.getTracks().forEach(track=>track.stop());
+    return stream;
+  });
+  try{
+    const [qrReader,stream]=await Promise.all([loadQrVendorScript("jsQR.js","jsQR"),cameraStream]);
+    if(generation!==ownerPosScanGeneration||ownerPanel!=="pos-sell"||!isOwner()){stream.getTracks().forEach(track=>track.stop());return false;}
+    const video=document.getElementById("ownerPosVideo");const placeholder=document.getElementById("ownerPosCameraPlaceholder");
+    if(!video||!qrReader)throw new Error("The Scan & Sell camera view is unavailable.");
+    ownerPosStream=stream;video.srcObject=stream;video.hidden=false;placeholder?.classList.add("is-camera-active");
+    await video.play();
+    if(status)status.textContent=ownerDashboardText("Camera ready — scan one product QR code.","کامێرا ئامادەیە — کۆدێ QR یێ بەرهەمەکێ سکان بکە.","الكاميرا جاهزة — امسح رمز QR لمنتج واحد.");
+    scanOwnerPosFrame(generation);return true;
+  }catch(error){
+    if(generation!==ownerPosScanGeneration)return false;
+    cameraStream.then(stream=>stream.getTracks().forEach(track=>track.stop())).catch(()=>{});
+    if(ownerPosStream){ownerPosStream.getTracks().forEach(track=>track.stop());ownerPosStream=null;}
+    setOwnerPosCameraError(error);return false;
+  }
+}
+
+function stopOwnerPosScanner(){
+  ownerPosScanGeneration++;
+  if(ownerPosScanTimer){clearTimeout(ownerPosScanTimer);ownerPosScanTimer=null;}
+  ownerPosScanBusy=false;
+  if(ownerPosStream){ownerPosStream.getTracks().forEach(track=>track.stop());ownerPosStream=null;}
+  const video=document.getElementById("ownerPosVideo");
+  if(video){video.pause?.();video.srcObject=null;video.hidden=true;}
+}
+
+function scanOwnerPosFrame(generation){
+  const video=document.getElementById("ownerPosVideo");const canvas=document.getElementById("ownerPosCanvas");
+  if(generation!==ownerPosScanGeneration||!ownerPosStream||!video||!canvas||ownerPanel!=="pos-sell"||!isOwner())return;
+  try{
+    if(video.readyState>=2&&!ownerPosScanBusy){
+      ownerPosScanBusy=true;
+      const width=Math.min(960,video.videoWidth||960);const height=Math.max(1,Math.round(width*(video.videoHeight||720)/(video.videoWidth||960)));
+      canvas.width=width;canvas.height=height;
+      const context=canvas.getContext("2d",{willReadFrequently:true});context.drawImage(video,0,0,width,height);
+      const pixels=context.getImageData(0,0,width,height);const result=window.jsQR(pixels.data,width,height,{inversionAttempts:"dontInvert"});
+      ownerPosScanBusy=false;
+      if(result?.data){stopOwnerPosScanner();lookupOwnerPosQr(result.data);return;}
+    }
+  }catch(error){ownerPosScanBusy=false;stopOwnerPosScanner();setOwnerPosCameraError(new Error("The camera preview could not read a frame. Reopen the camera and try again."));return;}
+  ownerPosScanTimer=setTimeout(()=>scanOwnerPosFrame(generation),220);
+}
+
+async function lookupOwnerPosQr(value){
+  if(!isOwner()||ownerPanel!=="pos-sell")return false;
+  const status=document.getElementById("ownerPosStatus");if(status)status.textContent=ownerDashboardText("Checking the exact product variant and shared stock…","جۆرا بەرهەمێ و ستۆکێ هاوبەش دپشکنیت…","جارٍ التحقق من نوع المنتج والمخزون المشترك…");
+  try{
+    const data=await cloudRequest(`/api/pos/variant?qr=${encodeURIComponent(value)}`);
+    if(!isOwner()||ownerPanel!=="pos-sell")return false;
+    const variant=data?.variant;
+    if(!variant||!variant.qrId||!Number.isSafeInteger(Number(variant.stock))||!Number.isSafeInteger(Number(variant.unitPrice)))throw new Error("The saved variant details were incomplete.");
+    ownerPosScannedVariant=variant;ownerPosOperationId=createInventoryOperationId();ownerPosSaleConfirmed=false;
+    renderOwnerPosSaleVariant();
+    if(status)status.textContent=ownerDashboardText("Product verified. Review the quantity and confirm when ready.","بەرهەم هاتە پشتڕاستکرن. ژمارە بپشکنە و دەمێ ئامادەی پەسەند بکە.","تم التحقق من المنتج. راجع الكمية ثم أكد عند الاستعداد.");
+    return true;
+  }catch(error){
+    if(status)status.textContent=error.message||ownerDashboardText("That QR code could not be verified. Scan a Shivan Shop product QR.","ئەو کۆدێ QR نەهاتە پشتڕاستکرن. کۆدێ QR یێ Shivan Shop سکان بکە.","تعذر التحقق من رمز QR. امسح رمز منتج Shivan Shop.");
+    return false;
+  }
+}
+
+function renderOwnerPosSaleVariant(){
+  const card=document.getElementById("ownerPosVariantCard");const receipt=document.getElementById("ownerPosReceipt");const variant=ownerPosScannedVariant;
+  if(!card||!variant)return false;
+  if(receipt)receipt.hidden=true;
+  card.hidden=false;
+  const image=variant.image?`<img class="owner-pos-product-image" src="${escapeHtml(safeImageUrl(variant.image))}" alt="${escapeHtml(variant.productName)}">`:`<div class="owner-pos-product-placeholder" aria-hidden="true">◇</div>`;
+  card.innerHTML=`<div class="owner-pos-product-head">${image}<div class="owner-pos-product-copy"><h4>${escapeHtml(variant.productName)}</h4><p>${escapeHtml(ownerDashboardText("Size","قەبارە","المقاس"))}: ${escapeHtml(variant.size||ownerDashboardText("One size","یەک قەبارە","مقاس واحد"))} <span aria-hidden="true">·</span> ${escapeHtml(ownerDashboardText("Color","ڕەنگ","اللون"))}: ${escapeHtml(variant.colorName||variant.color||"—")}</p><small>${escapeHtml(ownerDashboardText("Available","بەردەست","المتاح"))}: ${Number(variant.stock)}</small></div></div><div class="owner-pos-price-line">${variant.discountPercent?`<span class="owner-pos-original-price">${escapeHtml(formatPrice(variant.originalPrice))}</span><span class="owner-pos-discount">−${Number(variant.discountPercent)}%</span>`:""}<strong>${escapeHtml(formatPrice(variant.unitPrice))} <small>${escapeHtml(ownerDashboardText("each","بۆ هەر دانە","للقطعة"))}</small></strong></div><label class="owner-pos-quantity-label" for="ownerPosQuantity">${escapeHtml(ownerDashboardText("Quantity","ژمارە","الكمية"))}<input id="ownerPosQuantity" type="number" inputmode="numeric" min="1" max="${Math.max(0,Number(variant.stock))}" step="1" value="1" ${Number(variant.stock)>0?"":"disabled"} oninput="updateOwnerPosSaleTotal()"></label><div class="owner-pos-total-line"><span>${escapeHtml(ownerDashboardText("Sale total","کۆی فرۆتنێ","إجمالي البيع"))}</span><strong id="ownerPosTotal">${escapeHtml(formatPrice(Number(variant.unitPrice)))}</strong></div><p id="ownerPosConfirmError" class="owner-pos-status" role="status" aria-live="polite"></p><button id="ownerPosConfirmButton" type="button" class="owner-pos-confirm" onclick="confirmOwnerPosSale()" ${Number(variant.stock)>0?"":"disabled"}>${escapeHtml(ownerDashboardText("Confirm Sale","فرۆتنێ پەسەند بکە","أكد البيع"))}</button><button id="ownerPosNextButton" type="button" class="owner-pos-secondary" onclick="beginNextOwnerPosSale()" hidden>${escapeHtml(ownerDashboardText("Scan Next Sale","فرۆشتنا پاشی سکان بکە","امسح البيع التالي"))}</button>`;
+  updateOwnerPosSaleTotal();return true;
+}
+
+function updateOwnerPosSaleTotal(){
+  const variant=ownerPosScannedVariant;const input=document.getElementById("ownerPosQuantity");const total=document.getElementById("ownerPosTotal");const button=document.getElementById("ownerPosConfirmButton");
+  if(!variant||!input)return false;
+  const quantity=Number(input.value);const valid=Number.isSafeInteger(quantity)&&quantity>=1&&quantity<=Number(variant.stock);
+  const amount=valid?Number(variant.unitPrice)*quantity:NaN;
+  if(total)total.textContent=Number.isSafeInteger(amount)?formatPrice(amount):"—";
+  if(button)button.disabled=!valid||ownerPosSaving||ownerPosSaleConfirmed;
+  return valid;
+}
+
+async function confirmOwnerPosSale(){
+  if(!isOwner()||ownerPanel!=="pos-sell"||ownerPosSaving||ownerPosSaleConfirmed||!ownerPosScannedVariant)return false;
+  if(!updateOwnerPosSaleTotal()){const message=ownerDashboardText("Enter a quantity within the available stock.","ژمارەیەکا ناڤ ستۆکێ بەردەست داخیلبکە.","أدخل كمية ضمن المخزون المتاح.");const error=document.getElementById("ownerPosConfirmError");if(error)error.textContent=message;return false;}
+  const quantity=Number(document.getElementById("ownerPosQuantity").value);const button=document.getElementById("ownerPosConfirmButton");const error=document.getElementById("ownerPosConfirmError");
+  ownerPosSaving=true;if(button){button.disabled=true;button.textContent=ownerDashboardText("Confirming…","دپەسەندیت…","جارٍ التأكيد…");}
+  if(error)error.textContent="";
+  try{
+    const result=await cloudRequest("/api/pos/sales",{method:"POST",body:JSON.stringify({qrId:ownerPosScannedVariant.qrId,quantity,operationId:ownerPosOperationId})});
+    if(!result?.confirmed||!result.sale)throw new Error("The database did not confirm the sale.");
+    ownerPosSaleConfirmed=true;ownerPosScannedVariant.stock=Number(result.remainingStock??Math.max(0,ownerPosScannedVariant.stock-quantity));
+    if(button){button.disabled=true;button.textContent=ownerDashboardText("Sale Confirmed","فرۆتن هاتە پەسەندکرن","تم تأكيد البيع");}
+    const next=document.getElementById("ownerPosNextButton");if(next)next.hidden=false;
+    const status=document.getElementById("ownerPosStatus");if(status)status.textContent=ownerDashboardText("Sale saved to the in-store sales ledger and inventory was updated.","فرۆتن ل لیستا فرۆتنێن ناڤ فرۆشگەیێ هاتە پاراستن و ستۆک هاتە نووکرن.","حُفظ البيع في سجل المبيعات داخل المتجر وتم تحديث المخزون.");
+    const receipt=document.getElementById("ownerPosReceipt");if(receipt){receipt.hidden=false;receipt.innerHTML=`<strong>${escapeHtml(ownerDashboardText("Sale recorded","فرۆتن هاتە تۆمارکرن","تم تسجيل البيع"))}</strong><span>${escapeHtml(ownerDashboardText("Sale total","کۆی فرۆتنێ","إجمالي البيع"))}: ${escapeHtml(formatPrice(result.sale.total))}</span><small>${escapeHtml(new Date(result.sale.createdAt).toLocaleString())}</small>`;}
+    return true;
+  }catch(exception){
+    if(error)error.textContent=exception.message||ownerDashboardText("The sale was not confirmed. Your scanned product and quantity are still available to retry.","فرۆتن نەهاتە پەسەندکرن. بەرهەم و ژمارە یا تە هەر ئامادەیە بۆ دوبارە هەوڵدانێ.","لم يتم تأكيد البيع. لا يزال المنتج والكمية متاحين لإعادة المحاولة.");
+    if(button){button.disabled=false;button.textContent=ownerDashboardText("Retry Confirm Sale","پەسەندکرنێ دوبارە بکە","أعد تأكيد البيع");}
+    return false;
+  }finally{ownerPosSaving=false;updateOwnerPosSaleTotal();if(ownerPosSaleConfirmed&&button)button.disabled=true;}
+}
+
+function beginNextOwnerPosSale(){
+  if(!isOwner()||ownerPanel!=="pos-sell")return false;
+  ownerPosScannedVariant=null;ownerPosOperationId="";ownerPosSaleConfirmed=false;ownerPosSaving=false;
+  const card=document.getElementById("ownerPosVariantCard");const receipt=document.getElementById("ownerPosReceipt");if(card)card.hidden=true;if(receipt)receipt.hidden=true;
+  return retryOwnerPosScanner();
+}
+
+function ownerPosSalesReportMarkup(){
+  return `<section class="owner-pos-report" aria-labelledby="ownerPosReportHeading"><div class="owner-dashboard-section-head"><div><h4 id="ownerPosReportHeading">${escapeHtml(ownerDashboardText("In-store sales · Scan & Sell","فرۆتنێن ناڤ فرۆشگەیێ · Scan & Sell","مبيعات المتجر · المسح والبيع"))}</h4><p>${escapeHtml(ownerDashboardText("Recorded separately from online orders","ژ داخوازیێن ئۆنلاین جودایە","مسجلة بشكل منفصل عن الطلبات عبر الإنترنت"))}</p></div></div><div class="owner-pos-sales-content" aria-live="polite">${escapeHtml(ownerDashboardText("Loading saved in-store sales…","فرۆتنێن ناڤ فرۆشگەیێ دئێن…","جارٍ تحميل المبيعات المحفوظة…"))}</div></section>`;
+}
+
+async function loadOwnerPosSalesSummary(box,range){
+  const target=box?.querySelector(".owner-pos-sales-content");if(!target)return false;
+  try{
+    const query=new URLSearchParams({from:range.start.toISOString(),to:range.end.toISOString()});
+    const data=await cloudRequest(`/api/pos/sales?${query}`);
+    if(!target.isConnected)return false;
+    const summary=data.summary||{};const sales=Array.isArray(data.recent)?data.recent:[];
+    target.innerHTML=`<div class="owner-pos-report-metrics"><article><small>${escapeHtml(ownerDashboardText("Sales","فرۆتن","المبيعات"))}</small><strong>${Number(summary.sales)||0}</strong></article><article><small>${escapeHtml(ownerDashboardText("Units","دانە","القطع"))}</small><strong>${Number(summary.units)||0}</strong></article><article><small>${escapeHtml(ownerDashboardText("Revenue · IQD","داهات · IQD","الإيراد · IQD"))}</small><strong>${escapeHtml(formatPrice(Number(summary.revenue)||0))}</strong></article></div>${sales.length?`<ul class="owner-pos-sales-list">${sales.slice(0,6).map(sale=>`<li><span><strong>${escapeHtml(sale.productName)}</strong><small>${escapeHtml(String(sale.quantity))} × ${escapeHtml(formatPrice(sale.unitPrice))} · ${escapeHtml(new Date(sale.createdAt).toLocaleString())}</small></span><b>${escapeHtml(formatPrice(sale.total))}</b></li>`).join("")}</ul>`:`<p class="owner-analytics-empty">${escapeHtml(ownerDashboardText("No in-store sales in this period.","د ڤێ ماوەیێ دا هیچ فرۆتنەکا ناڤ فرۆشگەیێ نینە.","لا توجد مبيعات داخل المتجر خلال هذه الفترة."))}</p>`}`;
+    return true;
+  }catch(error){if(target.isConnected)target.textContent=error.message||ownerDashboardText("In-store sales could not be loaded.","فرۆتنێن ناڤ فرۆشگەیێ نەهاتن بارکرن.","تعذر تحميل المبيعات داخل المتجر.");return false;}
 }
 
 async function renderOwnerInventory(box){

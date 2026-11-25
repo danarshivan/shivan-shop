@@ -132,7 +132,7 @@ const integrationFunctionNames = [
   "ownerNavigationIdentity", "createOwnerNavigationLedger", "captureOwnerNavigationSnapshot", "ownerNavigationHistoryState",
   "writeOwnerNavigationHistory", "restoreOwnerScrollPosition", "ownerNavigationHasUnsavedDraft", "ownerNavigationHeaderMarkup",
   "restoreOwnerNavigationEntry", "installOwnerNavigationPopHandler", "ownerNavigateBack", "renderOwnerPanel",
-  "ownerPanelRoute", "ownerDashboardText", "ownerDashboardNavItems",
+  "ownerPanelRoute", "ownerDashboardText", "ownerDashboardNavItems", "ownerPosPrimaryActionMarkup",
 ];
 const integrationFunctions = integrationFunctionNames.map(functionSource).join("\n");
 
@@ -182,7 +182,7 @@ function createOwnerNavigationRuntime(){
     isOwner: () => true, isStaffSession: () => false, ownerPanelHasPendingWork: () => false,
     readShopViewPosition: () => ({ windowY: position.windowY, viewTop: ownerView.scrollTop, authTop: 0 }),
     showToast: () => {}, createOwnerSaveRequestId: () => "test-save-id",
-    ensureOwnerDashboardShell: () => {}, stopOwnerQrScanner: () => {}, renderOwnerDashboard: box => { box.innerHTML = "dashboard"; },
+    ensureOwnerDashboardShell: () => {}, stopOwnerQrScanner: () => {}, stopOwnerPosScanner: () => {}, renderOwnerPosSell: () => {}, renderOwnerDashboard: box => { box.innerHTML = "dashboard"; },
     renderOwnerProducts: box => { box.innerHTML = "products"; }, renderOwnerAds: box => { box.innerHTML = "ads"; },
     renderOwnerOrders: box => { box.innerHTML = "orders"; }, renderOwnerInventory: box => { box.innerHTML = "inventory"; },
     renderOwnerAppearance: box => { box.innerHTML = "appearance"; },
@@ -222,8 +222,9 @@ function createOwnerNavigationRuntime(){
 for (const viewport of [{name:"iPhone-sized", width:390, height:844, baseY:517}, {name:"desktop", width:1440, height:900, baseY:1320}]) {
   const ui = createOwnerNavigationRuntime();
   ui.renderOwnerPanel("dashboard");
+  assert.match(ui.header, /owner-pos-primary-action/, `${viewport.name}: Scan & Sell is the primary dashboard action`);
   assert.match(ui.historyEntries.at(-1)?.__shivanOwnerNavigationId || "", /^owner-/, `${viewport.name}: Owner dashboard is registered in browser history`);
-  const sectionRoutes = ["products", "categories", "ads", "orders", "customers", "inventory", "analytics", "discounts", "colors", "store-settings", "settings-appearance", "settings-information", "settings-notifications", "settings-delivery", "settings-security", "settings-backup", "reports", "onboarding"];
+  const sectionRoutes = ["products", "categories", "ads", "orders", "pos-sell", "customers", "inventory", "analytics", "discounts", "colors", "store-settings", "settings-appearance", "settings-information", "settings-notifications", "settings-delivery", "settings-security", "settings-backup", "reports", "onboarding"];
   const saved = [{ id: ui.current.id, route: { panel: "dashboard", nav: "dashboard" }, position: { windowY: viewport.baseY, viewTop: 7 } }];
   for (let index = 0; index < sectionRoutes.length; index += 1) {
     const before = ui.current;

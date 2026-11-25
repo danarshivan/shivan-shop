@@ -5,7 +5,7 @@ import { runInNewContext } from "node:vm";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const functionSource = name => {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = html.match(new RegExp(`function ${escaped}\\([^\\n]*\\)\\s*\\{[\\s\\S]*?\\n\\}`));
+  const match = html.match(new RegExp(`(?:async\\s+)?function ${escaped}\\([^\\n]*\\)\\s*\\{[\\s\\S]*?\\n\\}`));
   assert.ok(match, `Expected function ${name} to exist`);
   return match[0];
 };
@@ -13,7 +13,7 @@ const functionSource = name => {
 const names = [
   "ownerRecordDate", "ownerDateInputValue", "ownerLocalDateRange", "ownerAnalyticsRange", "ownerReportDateRange",
   "ownerCancelledOrder", "ownerConfirmedSalesOrder", "ownerPendingOrder", "ownerStoreMetrics", "ownerAnalyticsSeries",
-  "ownerAnalyticsMetricCards", "ownerAnalyticsChartMarkup", "renderOwnerAnalytics", "renderOwnerReports",
+  "ownerAnalyticsMetricCards", "ownerAnalyticsChartMarkup", "ownerPosSalesReportMarkup", "loadOwnerPosSalesSummary", "renderOwnerAnalytics", "renderOwnerReports",
 ];
 const sources = names.map(functionSource).join("\n");
 const dateAt = (day, hour = 12) => new Date(2026, 10, day, hour, 0, 0, 0).toISOString();
@@ -54,6 +54,7 @@ const context = {
   getProductName: product => product.name,
   products: data.products,
   isOwner: () => true,
+  cloudRequest: async () => ({ summary: { sales: 0, units: 0, revenue: 0 }, recent: [] }),
 };
 const runtime = runInNewContext(`${sources}\n({${names.join(",")}})`, context);
 const now = new Date(2026, 10, 2, 18, 0, 0, 0);
@@ -95,20 +96,22 @@ assert.equal(runtime.ownerReportDateRange({ preset: "custom", start: "", end: ""
 const report = runtime.ownerReportDateRange({ preset: "today" }, now);
 assert.equal(runtime.ownerStoreMetrics(report.start, report.end).totalOrders, 4);
 
-const analyticsBox = { innerHTML: "" };
+const analyticsBox = { innerHTML: "", insertAdjacentHTML(_position, markup) { this.innerHTML += markup; }, querySelector() { return null; } };
 runtime.renderOwnerAnalytics(analyticsBox, { period: "daily", date: "2026-11-02" });
 assert.match(analyticsBox.innerHTML, /Sales Analytics/);
 assert.match(analyticsBox.innerHTML, /ownerAnalyticsPeriod/);
 assert.match(analyticsBox.innerHTML, /Best-selling products/);
 assert.match(analyticsBox.innerHTML, /Confirmed sales by hour/);
 assert.match(analyticsBox.innerHTML, /IQD 300/);
+assert.match(analyticsBox.innerHTML, /In-store sales · Scan &amp; Sell/, "in-store totals are shown separately from online analytics");
 assert.match(html, /owner-analytics-controls label\[hidden\].*display:none!important/, "inactive analytics period controls stay hidden despite the control label layout styles");
-const reportsBox = { innerHTML: "" };
+const reportsBox = { innerHTML: "", insertAdjacentHTML(_position, markup) { this.innerHTML += markup; }, querySelector() { return null; } };
 runtime.renderOwnerReports(reportsBox, { preset: "today" });
 assert.match(reportsBox.innerHTML, /This month/);
 assert.match(reportsBox.innerHTML, /Date range/);
 assert.match(reportsBox.innerHTML, /ownerReportStart/);
 assert.match(reportsBox.innerHTML, /IQD 300/);
+assert.match(reportsBox.innerHTML, /Recorded separately from online orders/, "reports identify POS sales separately from online orders");
 assert.equal(JSON.stringify(data), baseline, "analytics and reports do not mutate saved store records");
 
 const protectedRuntime = runInNewContext(`${functionSource("renderOwnerAnalytics")}\n${functionSource("renderOwnerReports")}\n({renderOwnerAnalytics,renderOwnerReports})`, {

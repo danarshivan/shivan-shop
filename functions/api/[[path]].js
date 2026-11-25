@@ -1292,6 +1292,143 @@ function inventoryVariantView(match) {
   };
 }
 
+function posSaleView(row) {
+  return {
+    id: String(row.id || ""), operationId: String(row.operation_id || ""),
+    productId: String(row.product_id || ""), productName: String(row.product_name || "Product"),
+    qrId: String(row.variant_qr_id || ""), image: String(row.image_url || ""),
+    color: String(row.color || ""), size: String(row.size || ""),
+    quantity: Number(row.quantity) || 0, unitPrice: Number(row.unit_price_iqd) || 0,
+    originalUnitPrice: Number(row.original_unit_price_iqd) || 0,
+    discountPercent: Number(row.discount_percent) || 0, total: Number(row.total_iqd) || 0,
+    createdAt: String(row.created_at || ""),
+  };
+}
+
+function replayPosSale(row, account, qrId, quantity) {
+  if (!row) return null;
+  if (String(row.owner_id || "") !== String(account?.id || "") || String(row.variant_qr_id || "").toLowerCase() !== qrId || Number(row.quantity) !== quantity) {
+    return error("This sale reference has already been used for a different sale. Scan the product again.", 409);
+  }
+  return json({ ok: true, confirmed: true, duplicate: true, sale: posSaleView(row) });
+}
+
+function posVariantView(match) {
+  if (!match) return null;
+  const { product, variant } = match;
+  let pricing;
+  try { pricing = productPriceDetails(product); }
+  catch { return null; }
+  const discountPercent = customerProductDiscount(product);
+  const unitPrice = Number((BigInt(pricing.originalPrice) * BigInt(100 - discountPercent) + 50n) / 100n);
+  const stock = Number(variant.stock);
+  if (!Number.isSafeInteger(stock) || stock < 0 || !Number.isSafeInteger(unitPrice)) return null;
+  const colorIndex = (product.colors || []).findIndex(value => normalizeVariantColor(typeof value === "object" ? value?.value : value) === variant.color);
+  const images = Array.isArray(product.images) ? product.images : [];
+  const imageValues = [
+    ...images.filter(item => normalizeVariantColor(item?.color) === variant.color).map(item => item?.url || item?.src),
+    ...images.map(item => item?.url || item?.src), product.image,
+  ];
+  const image = imageValues.map(value => String(value || "").trim()).find(value =>
+    /^https:\/\//i.test(value) || /^\/api\/media\//.test(value) || /^data:image\//i.test(value),
+  ) || "";
+  return {
+    qrId: variant.qrId, productId: String(product.id),
+    productName: String(product.name || product.names?.en || "Product"), image,
+    color: String(variant.color || ""),
+    colorName: (product.colorNames || [])[Math.max(0, colorIndex)] || String(variant.color || ""),
+    size: String(variant.size || ""), stock, originalPrice: pricing.originalPrice,
+    discountPercent, unitPrice,
+  };
+}
+
+async function handlePos(request, env, account, route) {
+  const url = new URL(request.url);
+  if (route === "pos/sales" && request.method === "GET") {
+    if (!account) return error("Sign in with the store owner account to view in-store sales.", 401);
+    if (account.role !== "owner" && !(account.role === "staff" && staffHasPermission(account, "reports"))) return error("Owner reports permission is required to view in-store sales.", 403);
+    const parseBoundary = (value, fallback) => {
+      if (!value) return fallback;
+      const time = Date.parse(value);
+      return Number.isFinite(time) ? new Date(time).toISOString() : "";
+    };
+    const from = parseBoundary(url.searchParams.get("from"), "1970-01-01T00:00:00.000Z");
+    const to = parseBoundary(url.searchParams.get("to"), new Date().toISOString());
+    if (!from || !to || from > to) return error("Choose a valid in-store sales date range.");
+    const result = await env.DB.prepare("SELECT id, operation_id, product_id, product_name, variant_qr_id, image_url, color, size, quantity, unit_price_iqd, original_unit_price_iqd, discount_percent, total_iqd, created_at FROM pos_sales WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC LIMIT 25").bind(from, to).all();
+    const aggregate = await env.DB.prepare("SELECT COUNT(*) AS sale_count, COALESCE(SUM(quantity), 0) AS units_sold, COALESCE(SUM(total_iqd), 0) AS revenue_iqd FROM pos_sales WHERE created_at >= ? AND created_at <= ?").bind(from, to).first();
+    return json({ ok: true, summary: { sales: Number(aggregate?.sale_count) || 0, units: Number(aggregate?.units_sold) || 0, revenue: Number(aggregate?.revenue_iqd) || 0 }, recent: (result?.results || []).map(posSaleView) }, 200, { "Cache-Control": "private, no-store" });
+  }
+
+  const denied = requireOwnerRole(account);
+  if (denied) return denied;
+  if (request.headers.get("Origin") && request.headers.get("Origin") !== url.origin) return error("Cross-origin POS changes are not allowed.", 403);
+
+  if (route === "pos/variant" && request.method === "GET") {
+    const qrId = parseInventoryQrId(url.searchParams.get("qr"));
+    if (!qrId) return error("That QR code is not a Shivan Shop product variant.");
+    const row = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+    const products = asJson(row?.value, []);
+    const match = Array.isArray(products) ? findVariantByQrId(products, qrId) : null;
+    if (!match) return error("This product variant was not found in the shared inventory.", 404);
+    const variant = posVariantView(match);
+    if (!variant) return error("This product has invalid pricing or inventory data. Correct it before selling.", 409);
+    return json({ ok: true, variant }, 200, { "Cache-Control": "private, no-store" });
+  }
+
+  if (route === "pos/sales" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    const qrId = parseInventoryQrId(body?.qrId);
+    const quantity = Number(body?.quantity);
+    const operationId = String(body?.operationId || "").toLowerCase();
+    if (!qrId || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 1000000) return error("Scan a product and choose a valid whole quantity.");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(operationId)) return error("The sale confirmation reference is invalid.");
+    const prior = await env.DB.prepare("SELECT id, owner_id, operation_id, product_id, product_name, variant_qr_id, image_url, color, size, quantity, unit_price_iqd, original_unit_price_iqd, discount_percent, total_iqd, created_at FROM pos_sales WHERE operation_id=?").bind(operationId).first();
+    if (prior) return replayPosSale(prior, account, qrId, quantity);
+
+    const productRow = await env.DB.prepare("SELECT value FROM shop_state WHERE key=?").bind(PRODUCTS_KEY).first();
+    const products = asJson(productRow?.value, null);
+    if (!Array.isArray(products) || typeof productRow?.value !== "string") return error("Shared inventory is unavailable.", 503);
+    const match = findVariantByQrId(products, qrId);
+    if (!match) return error("This product variant was not found in the shared inventory.", 404);
+    const variant = posVariantView(match);
+    if (!variant) return error("This product has invalid pricing or inventory data. Correct it before selling.", 409);
+    if (quantity > variant.stock) return error(variant.stock === 0 ? "This variant is out of stock." : "There is not enough stock for that sale.", 409);
+    const total = variant.unitPrice * quantity;
+    if (!Number.isSafeInteger(total)) return error("The sale total is above the supported limit.", 400);
+    const nextProducts = products.map(product => {
+      if (String(product.id) !== variant.productId) return product;
+      const nextVariants = (product.variants || []).map(item => String(item.qrId || "").toLowerCase() === qrId ? { ...item, stock: variant.stock - quantity } : item);
+      return { ...product, variants: nextVariants, stock: nextVariants.reduce((sum, item) => sum + Math.max(0, Math.floor(Number(item.stock) || 0)), 0) };
+    });
+    const nextProductsValue = JSON.stringify(nextProducts);
+    const createdAt = now();
+    const saleId = crypto.randomUUID();
+    const update = env.DB.prepare("UPDATE shop_state SET value=?, updated_at=? WHERE key=? AND value=?")
+      .bind(nextProductsValue, createdAt, PRODUCTS_KEY, productRow.value);
+    const insert = env.DB.prepare("INSERT INTO pos_sales (id, operation_id, owner_id, product_id, product_name, variant_qr_id, image_url, color, size, quantity, unit_price_iqd, original_unit_price_iqd, discount_percent, total_iqd, created_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE changes()=1")
+      .bind(saleId, operationId, account.id, variant.productId, variant.productName, qrId, variant.image, variant.color, variant.size, quantity, variant.unitPrice, variant.originalPrice, variant.discountPercent, total, createdAt);
+    let results;
+    try {
+      results = await env.DB.batch([update, insert]);
+      requireD1WriteSuccess(results, "In-store sale");
+    } catch {
+      const duplicate = await env.DB.prepare("SELECT id, owner_id, operation_id, product_id, product_name, variant_qr_id, image_url, color, size, quantity, unit_price_iqd, original_unit_price_iqd, discount_percent, total_iqd, created_at FROM pos_sales WHERE operation_id=?").bind(operationId).first();
+      if (duplicate) return replayPosSale(duplicate, account, qrId, quantity);
+      return error("The database could not confirm this sale. Check inventory before retrying.", 503);
+    }
+    if (Number(results?.[0]?.meta?.changes) !== 1 || Number(results?.[1]?.meta?.changes) !== 1) {
+      const duplicate = await env.DB.prepare("SELECT id, owner_id, operation_id, product_id, product_name, variant_qr_id, image_url, color, size, quantity, unit_price_iqd, original_unit_price_iqd, discount_percent, total_iqd, created_at FROM pos_sales WHERE operation_id=?").bind(operationId).first();
+      if (duplicate) return replayPosSale(duplicate, account, qrId, quantity);
+      return error("Inventory changed while this sale was being confirmed. Refresh the variant and try again.", 409);
+    }
+    try { await broadcastSync(env); } catch { /* the confirmed D1 stock value remains available through refresh */ }
+    return json({ ok: true, confirmed: true, duplicate: false, sale: posSaleView({ id: saleId, operation_id: operationId, product_id: variant.productId, product_name: variant.productName, variant_qr_id: qrId, image_url: variant.image, color: variant.color, size: variant.size, quantity, unit_price_iqd: variant.unitPrice, original_unit_price_iqd: variant.originalPrice, discount_percent: variant.discountPercent, total_iqd: total, created_at: createdAt }), remainingStock: variant.stock - quantity });
+  }
+
+  return error("Not found.", 404);
+}
+
 async function handleInventory(request, env, account, route) {
   const denied = requireOwner(account);
   if (denied) return denied;
@@ -2251,6 +2388,7 @@ export async function onRequest({ request, env }) {
   if (route === "staff-accounts" || route.startsWith("staff-accounts/")) return handleStaffAccounts(request, env, account, route, secure);
   if (route.startsWith("push/")) return handleOwnerPush(request, env, account, route, url);
   if (route.startsWith("customer-push/")) return handleCustomerPush(request, env, account, route, url);
+  if (route.startsWith("pos/")) return handlePos(request, env, account, route);
   if (route.startsWith("inventory/")) return handleInventory(request, env, account, route);
   if (route.startsWith("orders/") && route.endsWith("/next-status")) return handleNextOwnerOrderStatus(request, env, account, route);
   if (route === "realtime") {
