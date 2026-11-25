@@ -1055,7 +1055,7 @@ button{
 .store-page-filter-panel[hidden]{display:none!important}
 .store-page-filter-option{display:flex;align-items:center;gap:8px;color:#e9e5f8;font-size:12px;cursor:pointer}
 .store-page-filter-option input{width:17px;height:17px;margin:0;accent-color:#8150f5}
-.products.store-page-products{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:10px;padding:0 1px 22px}
+.products.store-page-products{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:10px;padding:0 1px 22px}
 .store-page-products .product{min-width:0;border:1px solid rgba(153,127,235,.48);border-radius:19px;background:linear-gradient(155deg,#111427,#090c18 75%);box-shadow:0 7px 20px rgba(0,0,0,.24);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
 .store-page-products .product:active{transform:scale(.985)}
 .store-page-products .product-image-frame{width:100%;aspect-ratio:1/1;background:#101223}
@@ -3778,39 +3778,6 @@ html[dir="rtl"] .app :is(input[type="email"],input[type="tel"],input[type="numbe
 html[dir="rtl"] .app textarea{direction:rtl;text-align:start;unicode-bidi:plaintext}
 html[dir="rtl"] .app :is(.home-shop-header,.detail-toolbar,.search-page-header,.language-switcher){direction:ltr}
 @media(max-width:390px){html[dir="rtl"] .app :is(.field,.owner-product-field-grid>label,.owner-product-name-fields>label){min-width:0}}
-</style>
-<style id="shivan-compact-product-cards">.product{min-width:0;height:100%;min-height:0}
-.product-info{gap:3px;padding:6px}
-.product-name{display:-webkit-box;min-height:2.6em;overflow:hidden;white-space:normal;text-overflow:clip;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.3;overflow-wrap:anywhere}
-.product .price{display:flex;min-height:2.5em;align-items:flex-start;margin-top:1px;color:var(--shop-primary,#8966ff);font-size:clamp(9px,2.5vw,11px);font-weight:900;line-height:1.2;overflow-wrap:anywhere}
-.product.has-discount .price{text-align:left;direction:ltr}
-.product.has-discount .discount-price-layout{display:flex;width:100%;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;text-align:left;direction:ltr}
-.product.has-discount .discount-price-values{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0}
-.product.has-discount .discounted-price{color:var(--shop-primary,#8966ff);font-weight:900}
-.product.has-discount .original-price{color:#9b9eaa;font-size:.78em;font-weight:500}
-.product-image-frame>.product-countdown-badge{left:50%;bottom:6px;max-width:calc(100% - 12px);min-height:19px;padding:2px 6px;transform:translateX(-50%);border-color:rgba(255,136,148,.72);background:rgba(139,31,48,.92);color:#fff;font-size:8px;font-weight:850;box-shadow:0 2px 8px rgba(119,21,38,.24)}
-.product-image-frame>.product-countdown-badge svg{width:10px;height:10px;flex-basis:10px}
-.product-branch-indicators{display:flex;min-width:0;min-height:14px;align-items:center;flex-wrap:nowrap;gap:clamp(2px,.55vw,5px);margin-top:1px;overflow:hidden;white-space:nowrap}
-.product-branch-indicator{display:inline-flex;min-width:0;align-items:center;gap:2px;color:#eeeaf8;font-size:clamp(6.5px,1.95vw,8px);font-weight:750;line-height:1.2;white-space:nowrap}
-.product-branch-indicator .product-branch-check{display:inline-grid;width:11px;height:11px;flex:0 0 11px;place-items:center;border-radius:50%;background:#20c978;color:#fff}
-.product-branch-indicator .product-branch-check svg{display:block;width:8px;height:8px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.product-bottom{direction:ltr;margin-top:auto;padding-top:3px;gap:3px;justify-content:flex-end}
-.add-mini{display:grid;width:29px;height:29px;flex:0 0 29px;place-items:center;padding:0;border:1px solid rgba(191,164,255,.45);border-radius:50%;background:linear-gradient(135deg,#8650ff,#6635df);color:#fff;box-shadow:0 3px 10px rgba(97,58,218,.26);cursor:pointer}
-.add-mini svg{display:block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.add-mini:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
-.product-discount-badge{top:6px;left:6px;min-height:19px;padding:2px 6px;font-size:9px;box-shadow:0 2px 7px rgba(216,61,80,.26)}
-.product-new-badge{top:6px;left:6px;min-height:17px;padding:2px 5px;font-size:8px}
-.product.new-model-product-card.has-discount .product-discount-badge{top:27px}
-.store-page-products .product-discount-badge{top:6px;left:6px;min-height:19px;padding:2px 6px;font-size:9px}
-.store-page-products .product-info{gap:3px;min-height:0;padding:7px 7px 8px}
-.store-page-products .product-name{min-height:2.6em;white-space:normal}
-.store-page-products .price{min-height:2.5em;margin-top:1px;color:var(--shop-primary,#8966ff);font-size:clamp(9px,2.5vw,11px);font-weight:900}
-.store-page-products .discounted-price{color:var(--shop-primary,#8966ff)}
-.store-page-products .store-add-to-cart{width:29px;height:29px;min-height:29px;align-self:flex-end;justify-content:center;margin:2px 0 0;padding:0;border-radius:50%;font-size:0;box-shadow:0 3px 10px rgba(97,58,218,.26)}
-.store-page-products .store-add-to-cart svg{width:15px;height:15px}
-.store-page-products.is-list .store-add-to-cart{margin-top:auto}
-@media(max-width:350px){.product-info{padding:5px 4px}.product-branch-indicator{font-size:6.5px}.product-discount-badge{top:5px;left:5px;padding-inline:5px;font-size:8px}.store-page-products .product-info{padding:6px 5px 7px}.store-page-products .store-add-to-cart{width:26px;height:26px;min-height:26px}}
-@media(min-width:700px){.product-info{padding:9px}.product-name{font-size:13px}.product .price{font-size:12px}.product-branch-indicator{font-size:9px}.store-page-products .product-info{padding:10px}.store-page-products .product-name{font-size:14px}.store-page-products .price{font-size:13px}.store-page-products .store-add-to-cart{width:32px;height:32px;min-height:32px}}
 </style>
 <style id="shivan-owner-scan-sell-styles">
 .owner-pos-primary-action{display:grid;grid-template-columns:52px minmax(0,1fr) 24px;align-items:center;gap:12px;width:100%;min-height:82px;margin:0 0 14px;padding:14px 16px;border:1px solid rgba(164,132,255,.62);border-radius:20px;background:radial-gradient(ellipse at 0 0,rgba(133,79,255,.35),transparent 58%),linear-gradient(115deg,#17152b,#0e1120 72%);box-shadow:0 10px 28px rgba(87,42,180,.2),inset 0 1px rgba(255,255,255,.06);color:#fff;text-align:start;cursor:pointer}
@@ -9094,6 +9061,7 @@ function renderProducts(list, target="productsGrid", append=false, preserveOrder
       <div class="product-image-frame">
         ${target==="newModelProductsGrid"&&p.isNewModel===true?`<span class="product-new-badge">NEW</span>`:""}
         ${productDiscountPercent(p)?`<span class="product-discount-badge" aria-label="${productDiscountPercent(p)} percent off">-${productDiscountPercent(p)}%</span>`:""}
+        ${renderTimedDiscountBadge(p)}
         <img
           class="product-img"
           data-i18n-preserve
@@ -9102,7 +9070,6 @@ function renderProducts(list, target="productsGrid", append=false, preserveOrder
           data-product-name-id="${p.id}"
           loading="lazy"
         >
-        ${renderTimedDiscountBadge(p)}
       </div>
 
       <div class="product-info">
@@ -9112,14 +9079,27 @@ function renderProducts(list, target="productsGrid", append=false, preserveOrder
         <div class="price">
           ${renderProductPricing(p)}
         </div>
+        <div class="stock-line ${productHasAvailableInventory(p)?"":"out-of-stock"}" role="status">${productHasAvailableInventory(p)?translateText("بەردەست:").replace(/[:：]\s*$/," ").trim():translateText("بەردەست نەماوە")}</div>
 
-        ${renderProductBranchIndicators(p)}
+        <div class="product-store-location" aria-label="${escapeHtml(customerUiText("Store availability","بەردەستبوونا فرۆگەه","توفر المتجر"))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>${escapeHtml(productStoreAvailabilityLabel(p))}</span></div>
 
         <div class="product-bottom">
 
+          <div class="colors">
+            ${p.colors.map(c=>`
+              <span
+                class="color-dot"
+                style="background:${escapeHtml(c)}">
+              </span>
+            `).join("")}
+          </div>
 
-
-          <button type="button" class="add-mini" ${!productHasAvailableInventory(p)?"disabled":""} aria-label="${escapeHtml(customerUiText("Add to cart","زیاد بکە بۆ سەبەت","أضيفي إلى السلة"))}" onclick="event.stopPropagation();quickAdd(${p.id})"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg></button>
+          <button
+            class="add-mini"
+            ${!productHasAvailableInventory(p)?"disabled":""}
+            onclick="event.stopPropagation();quickAdd(${p.id})">
+            🛒
+          </button>
 
         </div>
 
@@ -9927,7 +9907,7 @@ function storePageSortProducts(list,mode=storePageSortMode){const rows=Array.isA
 function renderStoreProductCards(list){
  const grid=document.getElementById("storePageProductsGrid");if(!grid)return false;const rows=Array.isArray(list)?list:[];
  if(!rows.length){const title=customerUiText("No products in this store yet","هێشتا بەرهەم ل ڤێ فرۆگەهێ نینن","لا توجد منتجات في هذا المتجر بعد"),hint=customerUiText("Products assigned to this store will appear here.","بەرهەمێن تەرخانکری بۆ ڤێ فرۆگەهێ ل ڤێرە دێ دیار بن.","ستظهر هنا المنتجات المعيّنة لهذا المتجر.");grid.innerHTML=`<section class="store-page-empty" role="status"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 17h32l-3 25H11L8 17Z"/><path d="M16 17a8 8 0 0 1 16 0"/><path d="m19 29 10 0M24 24v10"/></svg><strong>${escapeHtml(title)}</strong><p>${escapeHtml(hint)}</p></section>`;return true;}
- grid.innerHTML=rows.map(p=>{const id=Number(p.id);if(!Number.isSafeInteger(id))return "";const n=getProductName(p),d=productDiscountPercent(p),fav=isFavorite(p.id),avail=productHasAvailableInventory(p),favText=customerUiText(fav?"Remove from Favorites":"Add to Favorites",fav?"ژ دڵخوازان دەربێخە":"بە دڵخوازان زیاد بکە",fav?"إزالة من المفضلة":"أضف إلى المفضلة"),cartText=customerUiText("Add to cart","زیاد بکە بۆ سەبەت","أضيفي إلى السلة");return `<article class="product store-product-card${d?" has-discount":""}" data-store-product-id="${escapeHtml(p.id)}" onclick="openProduct(${id})"><button type="button" class="heart${fav?" liked":""}" aria-label="${escapeHtml(favText)}" aria-pressed="${fav}" title="${escapeHtml(favText)}" onclick="event.stopPropagation();toggleFavorite(${id})">${fav?"♥":"♡"}</button><div class="product-image-frame">${d?`<span class="product-discount-badge" aria-label="${d} percent off">-${d}%</span>`:""}<img class="product-img" data-i18n-preserve src="${escapeHtml(safeImageUrl(p.image))}" alt="${escapeHtml(n)}" data-product-name-id="${escapeHtml(p.id)}" loading="lazy">${renderTimedDiscountBadge(p)}</div><div class="product-info"><div class="product-name" data-product-name-id="${escapeHtml(p.id)}" data-i18n-preserve>${escapeHtml(n)}</div><div class="price">${renderProductPricing(p)}</div>${renderProductBranchIndicators(p)}<button type="button" class="add-mini store-add-to-cart" ${avail?"":"disabled"} aria-label="${escapeHtml(cartText)}" onclick="event.stopPropagation();quickAdd(${id})"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg></button></div></article>`;}).join("");refreshDiscountCountdownBadges();return true;
+ grid.innerHTML=rows.map(p=>{const id=Number(p.id);if(!Number.isSafeInteger(id))return "";const n=getProductName(p),d=productDiscountPercent(p),fav=isFavorite(p.id),avail=productHasAvailableInventory(p),sizes=searchProductSizes(p),colors=searchProductColors(p),visibleSizes=sizes.slice(0,5),visibleColors=colors.slice(0,5),sizeMore=Math.max(0,sizes.length-visibleSizes.length),colorMore=Math.max(0,colors.length-visibleColors.length),favText=customerUiText(fav?"Remove from Favorites":"Add to Favorites",fav?"ژ دڵخوازان دەربێخە":"بە دڵخوازان زیاد بکە",fav?"إزالة من المفضلة":"أضف إلى المفضلة"),cartText=customerUiText("Add to cart","زیاد بکە بۆ سەبەت","أضيفي إلى السلة"),sizeText=customerUiText("Size:","قیاس:","المقاس:"),unspecified=customerUiText("Not specified","نەهاتییە دیارکرن","غير محدد"),colorMarkup=visibleColors.map(c=>{const raw=String(c?.value||""),safe=/^(?:#[0-9a-f]{3,8}|[a-z]{3,24})$/i.test(raw)?raw:"transparent";return `<span class="color-dot" style="background:${escapeHtml(safe)}" title="${escapeHtml(c?.label||raw)}" aria-label="${escapeHtml(c?.label||raw)}"></span>`;}).join("");return `<article class="product store-product-card${d?" has-discount":""}" data-store-product-id="${escapeHtml(p.id)}" onclick="openProduct(${id})"><button type="button" class="heart${fav?" liked":""}" aria-label="${escapeHtml(favText)}" aria-pressed="${fav}" title="${escapeHtml(favText)}" onclick="event.stopPropagation();toggleFavorite(${id})">${fav?"♥":"♡"}</button><div class="product-image-frame">${d?`<span class="product-discount-badge" aria-label="${d} percent off">-${d}%</span>`:""}${renderTimedDiscountBadge(p)}<img class="product-img" data-i18n-preserve src="${escapeHtml(safeImageUrl(p.image))}" alt="${escapeHtml(n)}" data-product-name-id="${escapeHtml(p.id)}" loading="lazy"></div><div class="product-info"><div class="product-name" data-product-name-id="${escapeHtml(p.id)}" data-i18n-preserve>${escapeHtml(n)}</div><div class="price">${renderProductPricing(p)}</div><div class="product-store-location" aria-label="${escapeHtml(customerUiText("Store availability","بەردەستبوونا فرۆگەه","توفر المتجر"))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>${escapeHtml(productStoreAvailabilityLabel(p))}</span></div><div class="store-product-options"><div class="store-product-size-row"><span class="store-product-size-label">${escapeHtml(sizeText)}</span><span class="store-product-size-values">${visibleSizes.map(s=>`<span class="store-product-size-chip">${escapeHtml(s)}</span>`).join("")||`<span class="store-product-size-chip">${escapeHtml(unspecified)}</span>`}${sizeMore?`<span class="store-product-size-chip">+${sizeMore}</span>`:""}</span></div><div class="store-product-color-row" aria-label="${escapeHtml(customerUiText("Available colors","ڕەنگێن هەین","الألوان المتاحة"))}">${colorMarkup}${colorMore?`<span class="store-product-color-more">+${colorMore}</span>`:""}</div></div><button type="button" class="store-add-to-cart" ${avail?"":"disabled"} onclick="event.stopPropagation();quickAdd(${id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg><span>${escapeHtml(cartText)}</span></button></div></article>`;}).join("");refreshDiscountCountdownBadges();return true;
 }
 function renderStorePage(){if(!["shop1","shop2"].includes(storePageStore))return false;const t=storePageStore==="shop1"?"Shivan Shop 1":"Shivan Shop 2",title=document.getElementById("storePageTitle"),subtitle=document.getElementById("storePageSubtitle");if(title)title.textContent=t;if(subtitle)subtitle.textContent=customerUiText("Premium Fashion Collection","کۆمبەستەکا جلوبەرگێن تایبەت","مجموعة أزياء مميزة");const cats=typeof getAllCategories==="function"?getAllCategories({visibleOnly:true}):[],host=document.getElementById("storePageCategoryFilters");if(storePageCategory&&!cats.includes(storePageCategory))storePageCategory="";if(host){const all=customerUiText("All","هەمی","الكل");host.innerHTML=["",...cats].map(c=>`<button type="button" class="store-page-category-filter" data-store-category="${escapeHtml(c)}" aria-pressed="${storePageCategory===c}" onclick="setStorePageCategory(this.dataset.storeCategory)">${escapeHtml(c?categoryLabel(c):all)}</button>`).join("");}const sort=document.getElementById("storePageSortControl");if(sort){const opts=[["newest","Sort: Newest","ڕیز: نووترین","الترتيب: الأحدث"],["price-low","Price: Low to High","بها: ژ کێم بۆ زێدە","السعر: من الأقل للأعلى"],["price-high","Price: High to Low","بها: ژ زێدە بۆ کێم","السعر: من الأعلى للأقل"],["name","Name: A to Z","ناڤ: A بۆ Z","الاسم: أ إلى ي"]];sort.innerHTML=opts.map(x=>`<option value="${x[0]}">${escapeHtml(customerUiText(x[1],x[2],x[3]))}</option>`).join("");sort.value=storePageSortMode;if(sort.value!==storePageSortMode){storePageSortMode="newest";sort.value="newest";}}const labels=[["storePageFilterLabel","Filter","فلتەر","تصفية"],["storePageDiscountFilterLabel","Discounted products","بەرهەمێن داشکاندی","المنتجات المخفضة"],["storePageAvailableFilterLabel","Available products","بەرهەمێن بەردەست","المنتجات المتاحة"]];for(const [id,en,ku,ar] of labels){const e=document.getElementById(id);if(e)e.textContent=customerUiText(en,ku,ar);}const dc=document.getElementById("storePageDiscountedOnly"),ac=document.getElementById("storePageAvailableOnly"),panel=document.getElementById("storePageFilterPanel"),fb=document.getElementById("storePageFilterButton"),grid=document.getElementById("storePageProductsGrid"),gb=document.getElementById("storePageGridButton"),lb=document.getElementById("storePageListButton");if(dc)dc.checked=storePageDiscountedOnly;if(ac)ac.checked=storePageAvailableOnly;if(panel)panel.hidden=!storePageFiltersOpen;if(fb)fb.setAttribute("aria-expanded",String(storePageFiltersOpen));if(grid)grid.classList.toggle("is-list",storePageViewMode==="list");if(gb)gb.setAttribute("aria-pressed",String(storePageViewMode==="grid"));if(lb)lb.setAttribute("aria-pressed",String(storePageViewMode==="list"));const filtered=filterStorePageProducts(products,storePageStore,{category:storePageCategory,discountedOnly:storePageDiscountedOnly,availableOnly:storePageAvailableOnly}),sorted=storePageSortProducts(filtered,storePageSortMode),count=document.getElementById("storePageProductCount");if(count){const c=count.querySelector("span");if(c)c.textContent=String(sorted.length.toLocaleString())+" "+customerUiText(sorted.length===1?"Product":"Products",sorted.length===1?"بەرهەم":"بەرهەم","منتج");}renderStoreProductCards(sorted);scheduleStorePageDiscountRefresh();return sorted.length;}
 function scheduleStorePageDiscountRefresh(){if(storePageDiscountExpiryTimer){window.clearTimeout(storePageDiscountExpiryTimer);storePageDiscountExpiryTimer=0;}if(typeof window==="undefined"||typeof window.setTimeout!=="function")return false;const now=Date.now(),items=filterStorePageProducts(products,storePageStore),next=items.flatMap(p=>[p?.discountTimerEnabled===true?Date.parse(String(p.discountEndsAt||"")):NaN,p?.discountStartsAt||p?.discount_starts_at?Date.parse(String(p.discountStartsAt||p.discount_starts_at)):NaN]).filter(x=>Number.isFinite(x)&&x>now).sort((a,b)=>a-b)[0];if(!next)return false;storePageDiscountExpiryTimer=window.setTimeout(()=>{storePageDiscountExpiryTimer=0;if(getActiveShopView()==="store")renderStorePage();},Math.max(25,Math.min(2147480000,next-now+20)));return true;}
@@ -10603,16 +10583,6 @@ function productStoreAvailabilityLabel(product){
   if(value==="shop2")return "Shivan Shop 2";
   if(value==="both")return "Shivan Shop 1 + Shivan Shop 2";
   return customerUiText("Store availability not specified","بەردەستبوونا فرۆگەه دیار نەکراوە","توفر المتجر غير محدد");
-}
-function renderProductBranchIndicators(product){
-  const assignment=String(product?.storeAvailability||"");
-  const assigned=assignment==="shop1"?["Shivan 1"]:assignment==="shop2"?["Shivan 2"]:assignment==="both"?["Shivan 1","Shivan 2"]:[];
-  const branches=productHasAvailableInventory(product)?assigned:[];
-  if(!branches.length)return '<div class="product-branch-indicators" aria-hidden="true"></div>';
-  const intro=customerUiText("Available at","ل فرۆگەها","متوفر في");
-  const conjunction=customerUiText("and","و","و");
-  const accessible=[intro,branches.length===2?branches.join(" "+conjunction+" "):branches[0]].join(" ");
-  return '<div class="product-branch-indicators" role="group" aria-label="'+escapeHtml(accessible)+'">'+branches.map(name=>'<span class="product-branch-indicator"><span class="product-branch-check" aria-hidden="true"><svg viewBox="0 0 12 12" focusable="false"><path d="m2.2 6.2 2.3 2.2 5.1-5"/></svg></span><span>'+name+'</span></span>').join("")+'</div>';
 }
 function searchProductStoreLocationLabel(product){
   return productStoreAvailabilityLabel(product);

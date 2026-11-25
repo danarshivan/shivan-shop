@@ -17,8 +17,7 @@ function contextWithFunctions(functions, context = {}) {
 }
 
 assert.match(html, /id="storeView" class="view page shop-menu-collection-view store-page-view"/);
-assert.ok(html.includes(".products.store-page-products{grid-template-columns:repeat(3,minmax(0,1fr));"), "store pages use a three-column product grid");
-assert.ok(html.includes(".store-page-products .product-name{min-height:2.6em;white-space:normal}"), "store product names can wrap inside compact cards");
+assert.match(html, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "store pages use a two-column product grid");
 assert.match(html, /id="storePageGridButton"[\s\S]*id="storePageListButton"/, "store page offers grid and list layouts");
 assert.match(html, /id="storePageCategoryFilters"[\s\S]*id="storePageSortControl"[\s\S]*id="storePageFilterButton"/, "store page includes category, sorting, and filter controls");
 assert.match(html, /options\.preserveProductReturn\|\|options\.historyRestore\)[^;]*mainApp\.scrollTop/, "history Back restores the saved app scroll position");
@@ -119,32 +118,27 @@ assert.equal(gridNode.classList.value, "is-list");
 assert.deepEqual(Array.from(renderedStoreRows, p => p.id), [107, 103, 102], "newest sorting preserves the store page's filtered products");
 
 let cardHtml = "";
-const cardContext = contextWithFunctions(["renderProductBranchIndicators", "renderStoreProductCards"], {
+const cardContext = contextWithFunctions(["renderStoreProductCards"], {
   document: { getElementById: () => ({ set innerHTML(value) { cardHtml = value; }, get innerHTML() { return cardHtml; } }) },
   customerUiText: en => en, escapeHtml: value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;"),
   getProductName: p => p.name, productDiscountPercent: p => p.discount || 0, isFavorite: () => false,
   productHasAvailableInventory: () => true, searchProductSizes: () => ["S", "M"],
   searchProductColors: () => [{ value: "#aabbcc", label: "Blue" }], safeImageUrl: value => value,
-  renderTimedDiscountBadge: () => '<span class="product-countdown-badge">01h 12m</span>', renderProductPricing: () => "<del>20,000 IQD</del><strong>15,000 IQD</strong>",
+  renderTimedDiscountBadge: () => "", renderProductPricing: () => "<del>20,000 IQD</del><strong>15,000 IQD</strong>",
   productStoreAvailabilityLabel: () => "Shivan Shop 1 + Shivan Shop 2", refreshDiscountCountdownBadges() {},
 });
-const cardProduct = { id: 777, name: "Dress & Coat", image: "/real-dress.jpg", discount: 25, stock: 987654, storeAvailability: "both" };
+const cardProduct = { id: 777, name: "Dress & Coat", image: "/real-dress.jpg", discount: 25, stock: 987654 };
 assert.equal(cardContext.renderStoreProductCards([cardProduct]), true);
 assert.match(cardHtml, /src="\/real-dress\.jpg"/);
 assert.match(cardHtml, /-25%/);
 assert.match(cardHtml, /20,000 IQD[\s\S]*15,000 IQD/);
 assert.match(cardHtml, /Dress &amp; Coat/);
-assert.match(cardHtml, /product-branch-indicators[\s\S]*Shivan 1[\s\S]*Shivan 2/);
-assert.doesNotMatch(cardHtml, /Shivan Shop 1 \+ Shivan Shop 2/, "cards no longer show a long store sentence");
-assert.ok(cardHtml.includes("product-image-frame") && cardHtml.includes("product-countdown-badge") && cardHtml.includes("01h 12m"), "active countdown stays over the product image");
-assert.doesNotMatch(cardHtml, /store-product-size-chip|store-product-color-row|color-dot/, "store cards omit size and color swatches");
-assert.ok(cardHtml.includes("class=\"add-mini store-add-to-cart\"") && cardHtml.includes("<svg viewBox=\"0 0 24 24\""), "store cards use a compact circular cart icon");
-assert.match(cardHtml, /product-branch-indicators[\s\S]*product-branch-check[\s\S]*Shivan 1[\s\S]*Shivan 2/);
-assert.doesNotMatch(cardHtml, /Shivan Shop 1 \+ Shivan Shop 2/, "cards no longer show a long store sentence");
+assert.match(cardHtml, /Shivan Shop 1 \+ Shivan Shop 2/);
+assert.match(cardHtml, /store-product-size-chip[\s\S]*>S</);
+assert.match(cardHtml, /background:#aabbcc/);
 assert.match(cardHtml, /quickAdd\(777\)/);
 assert.match(cardHtml, /toggleFavorite\(777\)/);
 assert.doesNotMatch(cardHtml, /987654/, "customer product cards never render exact inventory quantities");
-assert.doesNotMatch(cardHtml, /<div class="colors">|stock-line/, "customer cards omit swatches and redundant stock text");
 assert.equal(cardContext.renderStoreProductCards([]), true);
 assert.match(cardHtml, /No products in this store yet/, "empty store collections have a dedicated empty state");
 
